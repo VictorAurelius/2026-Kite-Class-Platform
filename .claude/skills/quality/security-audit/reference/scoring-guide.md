@@ -81,7 +81,7 @@ Total: 20 pts across OWASP checks.
 **Checks:**
 - JWT secret strength (≥256 bit)
 - Token expiry configured (access: ≤15min, refresh: ≤7d)
-- Rate limit config per tier (FREE/PRO/PREMIUM/ENTERPRISE)
+- Rate limit config per tier (FREE/BASIC/PREMIUM/ENTERPRISE)
 - Email verification enforced before access
 - Password policy (min length, complexity)
 

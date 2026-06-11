@@ -150,7 +150,7 @@ Production default: hash-only (above schema). Debug mode (`ai.logging.debug-samp
 }
 ```
 
-**Sampling rule:** Only sample khi `tenant_tier IN (ENTERPRISE, ADMIN_DEBUG)` AND opt-in flag set (privacy preserved cho FREE/PRO/PREMIUM tenants).
+**Sampling rule:** Only sample khi `tenant_tier IN (ENTERPRISE, ADMIN_DEBUG)` AND opt-in flag set (privacy preserved cho FREE/BASIC/PREMIUM tenants).
 
 ### 3.3 Error classification
 

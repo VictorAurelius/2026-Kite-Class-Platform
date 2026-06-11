@@ -28,7 +28,7 @@ Verify KiteHub ↔ KiteClass shared conventions. Chạy khi PR touches shared in
 
 ### 4. Domain Model Alignment
 - [ ] `InstanceStatus` enum values match giữa KiteHub (producer) và KiteClass (consumer)
-- [ ] `SubscriptionTier` (FREE/PRO/PREMIUM/ENTERPRISE) consistent
+- [ ] `SubscriptionTier` (FREE/BASIC/PREMIUM/ENTERPRISE) consistent
 - [ ] Tenant ID format: UUID, truyền qua header `X-Tenant-Id`
 
 ### 5. Docker Naming

@@ -45,7 +45,7 @@ Section này định nghĩa các thuật ngữ key được capitalized trong to
 **Phase 2 TODO:**
 - [ ] Legal counsel review từng definition above + bổ sung thuật ngữ mới (ví dụ: "Personal Data", "Affiliate", "Subprocessor" theo PDPL terminology)
 - [ ] Cross-check terminology nhất quán với Privacy Policy (privacy-policy.md) và Acceptable Use Policy (acceptable-use-policy.md)
-- [ ] Thêm definition cho subscription tiers (FREE/PRO/PREMIUM/ENTERPRISE) + reference pricing-model.md
+- [ ] Thêm definition cho subscription tiers (FREE/BASIC/PREMIUM/ENTERPRISE) + reference pricing-model.md
 
 ---
 
@@ -70,8 +70,8 @@ Section này mô tả phạm vi Service mà Customer được sử dụng theo s
 Service Description ràng buộc Provider phải cung cấp đúng phạm vi đã advertise; ràng buộc Customer chỉ được sử dụng trong phạm vi đó (không reverse engineer, không resell — chi tiết tại §5 Acceptable Use).
 
 **Phase 2 TODO:**
-- [ ] Liệt kê chi tiết features per tier theo `documents/00-brd/pricing-model.md` (FREE/PRO/PREMIUM/ENTERPRISE)
-- [ ] Liệt kê AI Branding quotas per tier theo `ai-branding-guidelines.md` §4.3 (FREE 3, PRO 10, PREMIUM 30, ENTERPRISE unlimited)
+- [ ] Liệt kê chi tiết features per tier theo `documents/00-brd/pricing-model.md` (FREE/BASIC/PREMIUM/ENTERPRISE)
+- [ ] Liệt kê AI Branding quotas per tier theo `ai-branding-guidelines.md` §4.3 (FREE 3, BASIC 10, PREMIUM 30, ENTERPRISE unlimited)
 - [ ] Document explicit exclusions (custom development, on-premise deployment, white-label, data migration services)
 - [ ] Reference SLA document riêng (planned — see GAP-189) cho uptime + support response time commitments
 - [ ] Document upgrade/downgrade mechanism + prorated billing handling (cross-link với Payment Terms §7 → planned GAP-185)
@@ -103,7 +103,7 @@ Section này liệt kê các nghĩa vụ Customer phải tuân thủ trong suố
 Section này liệt kê các cam kết Provider đối với Customer trong Term:
 
 - **Service availability:** Provider commit uptime % per tier theo Service Level Agreement (planned — see GAP-189). Downtime ngoài planned maintenance được tính credit/refund per SLA terms.
-- **Support:** Provider cung cấp support qua kênh + response time tương ứng tier. FREE = community/docs only; PRO = email business hours; PREMIUM = email + chat business hours; ENTERPRISE = priority + dedicated CSM (per pricing-model.md).
+- **Support:** Provider cung cấp support qua kênh + response time tương ứng tier. FREE = community/docs only; BASIC = email business hours; PREMIUM = email + chat business hours; ENTERPRISE = priority + dedicated CSM (per pricing-model.md).
 - **Data security:** Provider implement security measures theo industry standards: encryption at rest + in transit, access controls, audit logging, periodic security audits (per `documents/04-quality/audits/security-audit-*.md`). Chi tiết tại Privacy Policy (privacy-policy.md) §13 Security Measures.
 - **Data confidentiality:** Provider không sell, rent, hoặc share Customer data cho bên thứ ba ngoài subprocessors necessary cho Service operation (payment gateway, email provider, hosting) — chi tiết tại Privacy Policy §7.
 - **Notice of changes:** Provider notice Customer trước modification material đối với TOS, Privacy Policy, hoặc tier features (per §14 Modifications).
@@ -111,7 +111,7 @@ Section này liệt kê các cam kết Provider đối với Customer trong Term
 - **Lawful operation:** Provider tuân thủ pháp luật VN (Luật An ninh mạng, PDPL, Luật Quản lý Thuế, Luật Doanh nghiệp) — bao gồm cooperation với cơ quan có thẩm quyền khi nhận yêu cầu hợp pháp.
 
 **Phase 2 TODO:**
-- [ ] Cross-link SLA document khi GAP-189 ship — uptime targets (FREE 95% / PRO 99% / PREMIUM 99.5% / ENTERPRISE 99.9% — TODO actual values per business-rules-review.md 5-attribute) <!-- Phase 2: legal counsel + PM to finalize uptime tiers — informed gut value, GAP-154 -->
+- [ ] Cross-link SLA document khi GAP-189 ship — uptime targets (FREE 95% / BASIC 99% / PREMIUM 99.5% / ENTERPRISE 99.9% — TODO actual values per business-rules-review.md 5-attribute) <!-- Phase 2: legal counsel + PM to finalize uptime tiers — informed gut value, GAP-154 -->
 - [ ] Document support SLA chi tiết (response time targets) per tier
 - [ ] Reference latest security audit report path
 - [ ] Document subprocessor list + change notification process (per PDPL Art 11(4) subject right to know about subprocessors)
@@ -161,7 +161,7 @@ Section này xác định ownership + license của IP rights giữa Provider v�
 Detailed payment terms (subscription pricing, billing cycle, late fee %, refund window, VAT/TCT handling, e-invoice mechanism per Nghị định 123/2020/NĐ-CP) sẽ được document trong Billing Terms riêng (planned — see GAP-185 Phase 2 deferred to next wave).
 
 Tóm tắt high-level cho Phase 1:
-- **Subscription tiers:** FREE / PRO / PREMIUM / ENTERPRISE (per pricing-model.md). FREE không có payment obligation.
+- **Subscription tiers:** FREE / BASIC / PREMIUM / ENTERPRISE (per pricing-model.md). FREE không có payment obligation.
 - **Billing cycle:** monthly hoặc annual prepay (annual discount per pricing model).
 - **Payment methods:** VNPay, MoMo, Zalo Pay, bank transfer (domestic), credit card (qua VNPay/Stripe gateway).
 - **VAT:** giá listed có thể chưa bao gồm VAT 10% — Customer có VN GPKD được phát hành hóa đơn điện tử theo yêu cầu.

@@ -19,7 +19,7 @@ TODO: Mô tả 1 đoạn về pricing strategy cho KiteHub (subscription) + Kite
 
 ## 2. Tier Comparison Matrix
 
-| Feature / Limit | FREE | PRO | PREMIUM | ENTERPRISE |
+| Feature / Limit | FREE | BASIC | PREMIUM | ENTERPRISE |
 |-----------------|:----:|:---:|:-------:|:----------:|
 | **Monthly price (VND)** | 0 | TODO (~500K?) | TODO (~2M?) | Custom (TODO) |
 | **Monthly price (USD ref)** | 0 | TODO | TODO | Custom |
@@ -43,7 +43,7 @@ TODO: Mô tả 1 đoạn về pricing strategy cho KiteHub (subscription) + Kite
 | **Support channel** | Community | Email (48h) | Email (24h) | Dedicated CS + phone |
 | **Onboarding** | Self-serve | Self-serve | Guided (1 session) | White-glove |
 
-**Note:** §2.5 of `.claude/rules/ai-branding-guidelines.md` references tiers as FREE/BASIC/PREMIUM/ENTERPRISE. TODO: reconcile naming — adopt FREE/PRO/PREMIUM/ENTERPRISE consistently OR document mapping (PRO↔BASIC).
+**Note (resolved 2026-06-11, GAP-1098):** tier naming canonical = FREE/BASIC/PREMIUM/ENTERPRISE per `PricingTier.java` — tên cũ PRO đã map → BASIC toàn bộ doc này; khớp `.claude/rules/ai-branding-guidelines.md` §2.5.
 
 ---
 
@@ -53,13 +53,13 @@ Reference: [`personas-catalog.md`](personas-catalog.md)
 
 | Persona | Recommended Tier | Reason |
 |---------|:----------------:|--------|
-| P1 Solo Teacher | FREE → PRO upgrade | Trial low risk, upgrade khi >50 students |
-| P2 Small Center | PRO → PREMIUM | 20-100 students cần ≥PRO |
+| P1 Solo Teacher | FREE → BASIC upgrade | Trial low risk, upgrade khi >50 students |
+| P2 Small Center | BASIC → PREMIUM | 20-100 students cần ≥BASIC |
 | P3 Medium Center | PREMIUM | 100-500 students + role-based access |
 | P4 Chain/Franchise | ENTERPRISE | Multi-branch only available ENT |
 | P5 K-12 School | PREMIUM (small) → ENTERPRISE | Parent portal, bulk import gated |
 | P7 Corporate | ENTERPRISE | SCORM, SSO needed |
-| P8 Online Creator | PRO/PREMIUM | depends on student count |
+| P8 Online Creator | BASIC/PREMIUM | depends on student count |
 | P9 International School | ENTERPRISE | Multi-curriculum, premium pricing tolerance |
 
 ---
@@ -135,7 +135,7 @@ Reference: [`trial-to-paid-conversion.md`](trial-to-paid-conversion.md)
 
 TODO:
 - Trial duration: 14d / 30d?
-- Trial tier: PRO equivalent? PREMIUM with restrictions?
+- Trial tier: BASIC equivalent? PREMIUM with restrictions?
 - Conversion friction (credit card upfront vs not)
 - Trial → paid conversion KPI link `business-objectives.md` §4.1
 
@@ -155,8 +155,8 @@ TODO:
 
 ## 9. Reconciliation TODOs
 
-- [ ] Tier naming: FREE/PRO/PREMIUM/ENTERPRISE vs FREE/BASIC/PREMIUM/ENTERPRISE (rule §2.5) — pick one
-- [ ] AI Branding regenerate limits in `ai-branding-guidelines.md` §4.3 use FREE/PRO/PREMIUM/ENTERPRISE → align
+- [ ] Tier naming: FREE/BASIC/PREMIUM/ENTERPRISE vs FREE/BASIC/PREMIUM/ENTERPRISE (rule §2.5) — pick one
+- [ ] AI Branding regenerate limits in `ai-branding-guidelines.md` §4.3 use FREE/BASIC/PREMIUM/ENTERPRISE → align
 - [ ] AI input cap tier names in `ai-branding-guidelines.md` §2.5 use FREE/BASIC/PREMIUM/ENTERPRISE → align
 - [ ] BR-INPUT-CAP-001..007 in `01-business/kiteclass/ai-agent-workflow/rules.md` — verify tier mapping
 

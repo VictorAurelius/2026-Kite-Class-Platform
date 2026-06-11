@@ -280,7 +280,7 @@ export const UserRoleLabels: Record<UserRole, string> = {
 - `ClassStatus`: UPCOMING, ACTIVE, COMPLETED, CANCELLED
 - `InvoiceStatus`: DRAFT, SENT, PAID, OVERDUE, CANCELLED
 - `PaymentStatus`: PENDING, COMPLETED, FAILED, REFUNDED
-- `TierLevel`: FREE, STARTER, PROFESSIONAL, ENTERPRISE
+- `PricingTier`: FREE, BASIC, PREMIUM, ENTERPRISE
 
 ---
 

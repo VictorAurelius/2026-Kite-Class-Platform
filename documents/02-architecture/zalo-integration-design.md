@@ -95,7 +95,7 @@ Flow-check 2026-06-08 phát hiện **3 scaffold Zalo cùng tồn tại** — des
 ### 3.1 Trigger conditions
 
 Phase 1.5 paid tier unlock khi:
-- Tenant chuyển từ FREE → STARTER/PRO subscription
+- Tenant chuyển từ FREE → BASIC/PREMIUM subscription (paid tier)
 - Tenant verify Zalo OA ownership (cung cấp `zalo_oa_id` + ZNS template approval từ Zalo)
 - Notification preference user-level enable kênh `ZALO`
 

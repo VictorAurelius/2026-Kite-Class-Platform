@@ -37,7 +37,7 @@ Single-page marketing landing covering 6 sections in scroll order:
 4. **Trước &amp; Sau Kite** — drag-handle slider (manual workflow vs KiteHub)
 5. **Một ngày của chủ trung tâm** — scroll-driven 6-step day timeline + active scene panel
 6. **Mock dashboard** — animated chart-rising + notification pop-in
-7. **Pricing CTA** — 3 tiers (FREE / PRO / PREMIUM) + final conversion button + footer
+7. **Pricing CTA** — 3 tiers (FREE / BASIC / PREMIUM) + final conversion button + footer
 
 Each section is also broken into a standalone `sections/*.html` fragment for review
 (opens in browser as-is; references shared `styles.css` + `scripts.js`).
@@ -109,7 +109,7 @@ pts lower per memory `feedback_audit_calibration.md`. Honest baseline targeting 
 | 3 | Before/After slider                  | 108 | Interactive drag + keyboard ARIA-slider; 6 mock rows each side |
 | 4 | Một ngày của chủ trung tâm           | 112 | Scroll-driven IO + click-to-jump + aria-live scene panel |
 | 5 | Mock dashboard (chart + notif)       | 109 | CSS @keyframes draw + dot-pop + notif fade in/out |
-| 6 | Pricing CTA                          | 107 | 3 tiers, featured PRO, footer CTA + phone trust signal |
+| 6 | Pricing CTA                          | 107 | 3 tiers, featured BASIC, footer CTA + phone trust signal |
 
 **Aggregate**
 

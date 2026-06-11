@@ -93,14 +93,14 @@ Target SLO per-service tổng hợp từ ops-readiness audit + skeleton `nfr-cat
 | **kitehub-gateway** (BFF + JWT validation) | Platform-wide | 99.9% PREMIUM tier (per `nfr-catalog.md` §2) | TBD <200ms (Read GET cached per §4.1) | <0.1% 5xx | CloudWatch ALB target group metrics; Wave 89 Bucket C JWT validation Hardening shipped; ops audit Wave 92 PASS |
 | **kitehub-subscription** (billing + tenant lifecycle + admin audit) | Platform-wide | 99.9% PREMIUM | TBD <800ms (Write POST per §4.1) | <0.5% 5xx | Postgres connection pool monitored; HikariCP GUC reset Wave 85; ops audit Wave 91 baseline 77/100 |
 | **kitehub-platform** (admin + cross-cutting) | Platform-wide | 99.9% PREMIUM | TBD <400ms (Read GET DB per §4.1) | <0.5% 5xx | Admin endpoint @PreAuthorize coverage 3/3 Wave 92 audit; GAP-637 P0 fix unblocks SLO measure |
-| **kitehub-email** (transactional email worker) | Background async | 99.5% PRO best-effort (queue retry safety net) | TBD outbox dispatcher <30s per message (per Wave 91 Bucket D) | <1% delivery failure | DLQ + outbox pattern shipped Wave 91 Bucket D; Resend + AWS SES dual-provider failover |
-| **kitehub-branding** (AI inference async) | PRO+ tier | 99% PRO (best-effort async) | 30s P50 / 90s P95 / 180s P99 (per `nfr-catalog.md` §4.1 AI inference async) | <2% job failure | Ollama 24GB constraint bulkhead per `ai-branding-guidelines.md` §11.4.4; Wave 4 baseline 62/100 |
+| **kitehub-email** (transactional email worker) | Background async | 99.5% BASIC best-effort (queue retry safety net) | TBD outbox dispatcher <30s per message (per Wave 91 Bucket D) | <1% delivery failure | DLQ + outbox pattern shipped Wave 91 Bucket D; Resend + AWS SES dual-provider failover |
+| **kitehub-branding** (AI inference async) | BASIC+ tier | 99% BASIC (best-effort async) | 30s P50 / 90s P95 / 180s P99 (per `nfr-catalog.md` §4.1 AI inference async) | <2% job failure | Ollama 24GB constraint bulkhead per `ai-branding-guidelines.md` §11.4.4; Wave 4 baseline 62/100 |
 | **kitehub-admin** (platform admin portal BE) | Platform admin only | 99.95% (admin-only — internal tier) | TBD <500ms | <0.5% 5xx | Wave 92 Bucket D admin v1 audit; GAP-637 P0 fix prerequisite |
 | **kitehub-base** (shared library — no runtime) | N/A | N/A | N/A | N/A | Library only; SLO inherits từ services consuming it |
-| **kiteclass-core** (multi-tenant education domain) | Per-tenant | 99.5% PRO / 99.9% PREMIUM per `nfr-catalog.md` §10 | TBD <800ms (Write POST) | <0.5% 5xx | RLS isolation Wave 85 Bucket B verified; tenant_id propagation per GAP-604 |
-| **kiteclass-gateway** (per-tenant BFF) | Per-tenant | 99.5% PRO / 99.9% PREMIUM | TBD <200ms (cached) | <0.1% 5xx | ALB target group per tenant; Wave 89 JWT validation hardening |
+| **kiteclass-core** (multi-tenant education domain) | Per-tenant | 99.5% BASIC / 99.9% PREMIUM per `nfr-catalog.md` §10 | TBD <800ms (Write POST) | <0.5% 5xx | RLS isolation Wave 85 Bucket B verified; tenant_id propagation per GAP-604 |
+| **kiteclass-gateway** (per-tenant BFF) | Per-tenant | 99.5% BASIC / 99.9% PREMIUM | TBD <200ms (cached) | <0.1% 5xx | ALB target group per tenant; Wave 89 JWT validation hardening |
 | **kitehub-frontend** (Next.js SSR) | Platform-wide | 99.9% (CDN + EC2 self-host per Wave 82 pivot) | LCP <2.5s P75 / INP <200ms P75 / CLS <0.1 (per `nfr-catalog.md` §4.3 Web Vitals) | <0.5% client errors | CDN cache hit ratio TBD; Lighthouse CI gate planned Phase 2 |
-| **kiteclass-frontend** (per-tenant Next.js) | Per-tenant | 99.5% PRO / 99.9% PREMIUM | Same as kitehub-frontend §4.3 | <0.5% client errors | Per-tenant deploy isolation; subdomain routing via gateway |
+| **kiteclass-frontend** (per-tenant Next.js) | Per-tenant | 99.5% BASIC / 99.9% PREMIUM | Same as kitehub-frontend §4.3 | <0.5% client errors | Per-tenant deploy isolation; subdomain routing via gateway |
 
 **Số service trong SLO registry:** 11 service (10 active + 1 library N/A).
 
@@ -143,7 +143,7 @@ Tổng hợp từ BRD `nfr-catalog.md` rải rác + audit report post-wave. Theo
 | Attribute | Target | Source |
 |---|:---:|---|
 | Uptime FREE tier | None (best-effort) | `nfr-catalog.md` §2 |
-| Uptime PRO tier | 99.5% | `nfr-catalog.md` §2 |
+| Uptime BASIC tier | 99.5% | `nfr-catalog.md` §2 |
 | Uptime PREMIUM tier | 99.9% | `nfr-catalog.md` §2 |
 | Uptime ENTERPRISE tier | 99.95% | `nfr-catalog.md` §2 |
 | RTO single service crash | <5m | `nfr-catalog.md` §3 |
@@ -155,7 +155,7 @@ Tổng hợp từ BRD `nfr-catalog.md` rải rác + audit report post-wave. Theo
 
 ### 3.3 Scalability NFRs
 
-| Attribute | PRO target | PREMIUM target | Source |
+| Attribute | BASIC target | PREMIUM target | Source |
 |---|:---:|:---:|---|
 | Concurrent users per tenant | 50 | 500 | `nfr-catalog.md` §5.1 |
 | Request rate per tenant (req/s) | 5 | 50 | `nfr-catalog.md` §5.1 |
@@ -234,7 +234,7 @@ Top rủi ro tổng hợp từ threat model + carry-forward P0 ops audit Wave 91
 
 ## 5. Tech Lead Persona 4 self-test — walkthrough "review billing PR"
 
-**Scenario:** Tech Lead nhận PR thêm endpoint mới `POST /api/subscription/upgrade` (đổi tier PRO → PREMIUM).
+**Scenario:** Tech Lead nhận PR thêm endpoint mới `POST /api/subscription/upgrade` (đổi tier BASIC → PREMIUM).
 
 **Áp dụng Compliance × Code Map (§1) — tìm rule liên quan trong ≤5 phút:**
 

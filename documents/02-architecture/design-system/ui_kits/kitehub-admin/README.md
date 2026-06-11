@@ -1,5 +1,7 @@
 # kitehub-admin — K-12 School Principal control plane
 
+> ⚠️ **Surface (per `kitehub-kiteclass-boundary.md` §2.1 — bẫy trùng-tên "admin", sweep GAP-1227-class 2026-06-11):** nội dung kit là **nghiệp vụ trường K-12** (report-card MoET / conduct / bulk-import HS / fees học phí / parent-comms) = **KiteClass per-tenant** (`kiteclass-frontend` `:3000`, scope phase-3 P5 per GAP-271). Tên folder `kitehub-admin` là **legacy naming** từ Round 3 — KHÔNG phải KH platform admin console (`kitehub-frontend (admin)/admin` `:3001` = beta-requests / staff / audit logs). Giữ tên folder (archive/link stability); production port đích = KC side.
+
 **Wave UI Kits Round 3 · Bucket B** (initial) · **Wave 22 Bucket B polish** (school-profile rebuild)
 **Persona:** P5 K–12 School Principal/Admin (Tier 1) — desktop-first, dense data, 50+ teachers / 500–3.000 students
 **Status:** prototype (HTML for human vibe-check; production port deferred to Track 2 follow-up gap)

@@ -223,7 +223,7 @@
 
 **Steps:**
 1. Owner sees trial countdown banner (X days left)
-2. Click "Nâng cấp ngay" → tier selection (BASIC / PRO / PREMIUM / ENTERPRISE)
+2. Click "Nâng cấp ngay" → tier selection (BASIC / PREMIUM / ENTERPRISE)
 3. Each tier shows: price, AI quota, regenerate quota, feature list
 4. Owner picks tier + payment method
 5. System validates `migration_phase=NONE`, sets `INITIATED`
@@ -240,9 +240,8 @@
 **Mock data (tier table):**
 | Tier | Price/month | AI quota | Regenerate | Storage |
 |------|------------|----------|-----------|---------|
-| BASIC | `199.000đ` | 1 GB AI calls | 3/session | 10 GB |
-| PRO | `499.000đ` | 5 GB | 10 | 50 GB |
-| PREMIUM | `1.499.000đ` | unlimited | 30 | 200 GB |
+| BASIC | `199.000đ` | 1 GB AI calls | 10/ngày | 10 GB |
+| PREMIUM | `499.000đ` | 5 GB | 30/ngày | 50 GB |
 | ENTERPRISE | `Liên hệ` | unlimited | unlimited | unlimited |
 
 ---

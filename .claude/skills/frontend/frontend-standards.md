@@ -255,7 +255,7 @@ export function StudentListPage() {
 ```typescript
 // 3-layer theme resolution:
 // 1. Base theme (free for all)
-// 2. Template theme (tier-based: FREE/PRO/ENTERPRISE)
+// 2. Template theme (tier-based: FREE/BASIC/PREMIUM/ENTERPRISE)
 // 3. Custom branding (override: logo, colors, fonts)
 
 interface ThemeConfig {

@@ -28,7 +28,7 @@ Review sau khi dự án mature, decide support hay không.
 #### P1. Solo Teacher (Gia sư tự do)
 - **Scale:** 1 teacher, 5-50 students, 1-5 courses
 - **Profile:** Tự do, part-time, có thể là giáo viên chính thức ngoài giờ
-- **Revenue:** FREE → PRO tier
+- **Revenue:** FREE → BASIC tier
 - **Key needs:**
   - Simple scheduling
   - Payment tracking (học phí cá nhân)
@@ -43,7 +43,7 @@ Review sau khi dự án mature, decide support hay không.
 #### P2. Small Tutoring Center (Trung tâm nhỏ / Lớp học thêm)
 - **Scale:** 1-3 teachers, 20-100 students, 3-10 classes
 - **Profile:** Chủ trung tâm tự dạy + thuê 1-2 giáo viên, thường là dạy thêm văn-toán-anh-lý-hóa
-- **Revenue:** PRO → PREMIUM
+- **Revenue:** BASIC → PREMIUM
 - **Key needs:**
   - Class management (schedule, roster)
   - Enrollment + payment collection
