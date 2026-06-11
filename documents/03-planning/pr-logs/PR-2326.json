@@ -1,0 +1,39 @@
+{
+  "pr": 2326,
+  "title": "fix(kc-frontend): suspended redirect loop + landing-100 G2\u2605 nip.io walk pack (GAP-1199..1202)",
+  "branch": "wave/landing-100-g2-walk-2026-06-11",
+  "created_at": null,
+  "merged_at": "2026-06-11T16:12:42Z",
+  "checklist": {
+    "tests_written": true,
+    "ci_green_before_merge": false,
+    "business_docs_updated": false,
+    "audits_required": [
+      "ui-review",
+      "api-contract-audit"
+    ],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-06-11T16:12:48.019326",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 100,
+        "java_files": 12,
+        "test_files": 5,
+        "business_docs": false,
+        "missing_audits": [
+          "ui-review",
+          "api-contract-audit"
+        ]
+      }
+    }
+  ],
+  "compliance_score": "1/5",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-1884778"
+  }
+}
