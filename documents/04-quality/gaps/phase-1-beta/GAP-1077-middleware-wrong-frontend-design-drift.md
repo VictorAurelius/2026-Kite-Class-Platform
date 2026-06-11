@@ -1,12 +1,12 @@
 ---
 id: GAP-1077
 title: Host→tenant middleware build SAI frontend (kitehub-frontend) vs design (kiteclass-frontend) — GAP-811 reconcile
-status: OPEN
+status: PARTIAL
 priority: P1
 phase: phase-1-beta
 domain: Frontend
 created: 2026-06-08
-last_verified: 2026-06-08
+last_verified: 2026-06-11
 ---
 
 # GAP-1077 — Host→tenant middleware sai frontend (design↔code drift)
@@ -51,6 +51,7 @@ Implement GAP-811 đặt middleware nhầm vào `kitehub-frontend` thay vì `kit
 
 ## Log
 
+- 2026-06-11 — **Status sync OPEN → PARTIAL (state-check).** 3/4 AC `[x]` DONE (middleware port ✅, kitehub-frontend m/w removed ✅, design-doc consistency ✅); chỉ còn `[ ]` nip.io subdomain production-accurate walk (= G2★ landing-100). OPEN under-sold reality (code đã ship 06-09) → PARTIAL chính xác. KHÔNG flip DONE — chờ nip.io subdomain walk per `g1-browser-walk-before-flip` §3.1+§3.2 (cấm `?tenant=` làm bằng chứng; landing-100 G1 dùng `?tenant=` probe = bằng chứng giả cho access-mode). Walk này = đúng phần G2★ pending của landing-100 (campaign §1 G2★-absorbs-G3-functional, 2026-06-11). Per `gap-architecture-v2.md` §3 + `audit-to-gap-pipeline.md` §2.8 fix-time state-check.
 - 2026-06-09 — **Move verified CLEAN.** `kiteclass-frontend/src/middleware.ts` exists (host→tenant, GAP-1077/811 tag in comments); `kitehub-frontend/src/middleware.ts` REMOVED (`find kitehub/kitehub-frontend/src -name middleware.ts` → 0 file). Design (`tenant-domain-landing-architecture.md`) + middleware code + tests all consistent on `kiteclass-frontend` + `*.kiteclass.com`. 41/41 FE unit tests PASS + `pnpm --filter kiteclass-frontend build` exit 0. 3/4 AC met; remaining = live production-accurate walk (coordinator G2) + DONE flip.
 
 ## Related
