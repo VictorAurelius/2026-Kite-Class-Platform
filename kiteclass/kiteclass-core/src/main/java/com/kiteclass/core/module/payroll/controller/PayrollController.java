@@ -59,7 +59,7 @@ public class PayrollController {
      * @return paged config DTOs
      */
     @GetMapping("/configs")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','OWNER')")
     @Operation(summary = "List payroll configs",
             description = "Returns paged teacher payroll configs (Phase 1 read-only).")
     public ApiResponse<PageResponse<PayrollConfigResponse>> listConfigs(
@@ -86,7 +86,7 @@ public class PayrollController {
      * @return paged period DTOs
      */
     @GetMapping("/periods")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','OWNER')")
     @Operation(summary = "List payroll periods",
             description = "Returns paged payroll periods filterable by teacher + date range.")
     public ApiResponse<PageResponse<PayrollPeriodResponse>> listPeriods(
@@ -117,7 +117,7 @@ public class PayrollController {
      * @return PayrollPeriodResponse
      */
     @GetMapping("/periods/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','OWNER')")
     @Operation(summary = "Get payroll period by ID",
             description = "Returns a single payroll period detail (Phase 1 read-only).")
     public ApiResponse<PayrollPeriodResponse> getPeriod(
