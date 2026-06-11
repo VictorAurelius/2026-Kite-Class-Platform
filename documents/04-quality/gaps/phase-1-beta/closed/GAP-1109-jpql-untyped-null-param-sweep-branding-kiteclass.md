@@ -1,6 +1,6 @@
 # GAP-1109: JPQL untyped-null-param 42P18 sweep — branding + kiteclass residual sites
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-06-10
 **Priority:** 🟠 P1
 **Domain:** Backend
 **Found:** 2026-06-10 (GAP-1106 detector `check-jpql-untyped-null-param.sh` surfaced sister sites)
@@ -23,11 +23,11 @@ Per GAP-1028 / GAP-1106 precedent cho từng site:
 
 ## Acceptance Criteria
 
-- [ ] 10 site (1 branding + 9 kiteclass) fixed theo split-query / typed-cast precedent
-- [ ] Testcontainers Postgres IT cho mỗi repo touched, PASS, verify no 42P18
-- [ ] Caller sweep clean (signature unchanged hoặc callers migrated)
-- [ ] `check-jpql-untyped-null-param.sh` full-repo scan = 0 hit
-- [ ] (tùy chọn) detector flip WARN → HARD-STOP sau khi clean
+- [x] 9 kiteclass site fixed via Spring Data Specification (branding site self-corrected qua GAP-1105 → detector 0 branding hit); signature-stable
+- [x] Testcontainers Postgres IT `JpqlUntypedNullParam42P18IT` (4 repos: Course/Incident/Vetting/PayrollPeriod), PASS, verify no 42P18
+- [x] Caller sweep clean (signatures unchanged — `@Query` → `default` method, prod + test mock unaffected)
+- [x] `check-jpql-untyped-null-param.sh` full-repo scan = 0 hit
+- [x] Detector giữ WARN mode (decision: shared-detector HARD-STOP flip = wave meta riêng, ngoài scope wave này)
 
 ## Related
 
@@ -39,4 +39,5 @@ Per GAP-1028 / GAP-1106 precedent cho từng site:
 
 ## Log
 
+- **2026-06-10 (DONE):** Fixed 9 kiteclass JPQL 42P18 sites via Spring Data `Specification` (predicate add chỉ khi param non-null → không bao giờ bind untyped null ở vị trí IS NULL; giữ tenant `@Filter`, signature-stable). Testcontainers IT `JpqlUntypedNullParam42P18IT` 4/4 PASS; `check-jpql-untyped-null-param.sh` = 0 hit repo-wide (branding site đã tự khỏi qua GAP-1105). Wave branding-fix-2026-06-10 (agent a160bdac, SHA 7aa22976).
 - **2026-06-10:** Filed từ GAP-1106 detector output (1 branding + 9 kiteclass residual sites). DEFER sang wave-fix riêng — cần Testcontainers IT per repo + caller sweep; vượt scope PR #2279 (subscription-only). Per `discovery-to-gap-inline-filing.md`.

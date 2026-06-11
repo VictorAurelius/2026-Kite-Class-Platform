@@ -130,7 +130,7 @@ export function AudienceStep({ wizardState, onNext, onBack }: AudienceStepProps)
   return (
     <div className="mx-auto w-full max-w-3xl space-y-6">
       <div className="space-y-2">
-        <p className="text-sm font-semibold uppercase tracking-wide text-primary">Bước 3 / 6</p>
+        <p className="text-sm font-semibold uppercase tracking-wide text-primary">Bước 4 / 7</p>
         <h1 className="text-2xl font-bold text-foreground">Trung tâm bạn dạy ai?</h1>
         <p className="text-muted-foreground">
           AI sẽ chọn màu sắc, hình ảnh, và ngôn ngữ phù hợp với đối tượng học viên. Chọn 1 — có thể đổi sau.
@@ -188,7 +188,7 @@ export function AudienceStep({ wizardState, onNext, onBack }: AudienceStepProps)
           Quay lại
         </Button>
         <p className="text-xs text-muted-foreground">
-          Bước 3 / 6 ·{' '}
+          Bước 4 / 7 ·{' '}
           {selectedOption ? `Đã chọn: ${selectedOption.title}` : 'Chọn 1 đối tượng để tiếp tục'}
         </p>
         <Button onClick={handleContinue} disabled={!selected}>

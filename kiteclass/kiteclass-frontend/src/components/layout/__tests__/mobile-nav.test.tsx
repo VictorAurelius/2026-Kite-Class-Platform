@@ -58,7 +58,7 @@ describe('Header mobile navigation', () => {
       />
     );
 
-    expect(screen.getByText('Dashboard')).toBeInTheDocument();
+    expect(screen.getByText('Tổng quan')).toBeInTheDocument();
     expect(screen.getByText('Học viên')).toBeInTheDocument();
     expect(screen.getByText('Cài đặt')).toBeInTheDocument();
   });
@@ -68,7 +68,7 @@ describe('Sidebar', () => {
   it('renders all nav items', () => {
     render(<Sidebar />);
 
-    expect(screen.getByText('Dashboard')).toBeInTheDocument();
+    expect(screen.getByText('Tổng quan')).toBeInTheDocument();
     expect(screen.getByText('Học viên')).toBeInTheDocument();
     expect(screen.getByText('Giáo viên')).toBeInTheDocument();
     expect(screen.getByText('Lớp học')).toBeInTheDocument();

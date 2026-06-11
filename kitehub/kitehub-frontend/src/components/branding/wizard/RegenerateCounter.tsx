@@ -86,19 +86,19 @@ function buildComparisonRows(activeTier: PricingTier): ComparisonRow[] {
     {
       tier: 'FREE',
       label: 'Gói miễn phí',
-      quotaText: '3 lượt / phiên',
+      quotaText: '3 lượt / ngày',
       highlight: activeTier === 'FREE',
     },
     {
       tier: 'BASIC',
-      label: '249.000đ / tháng',
-      quotaText: '10 lượt / phiên',
+      label: '500.000đ / tháng',
+      quotaText: '10 lượt / ngày',
       highlight: activeTier === 'BASIC',
     },
     {
       tier: 'PREMIUM',
-      label: '499.000đ / tháng',
-      quotaText: '30 lượt / phiên',
+      label: '1.500.000đ / tháng',
+      quotaText: '30 lượt / ngày',
       highlight: activeTier === 'PREMIUM',
     },
     {
@@ -268,7 +268,7 @@ export function RegenerateCounter(props: RegenerateCounterProps) {
           <DialogHeader>
             <DialogTitle>Đã hết quota tạo lại</DialogTitle>
             <DialogDescription>
-              Gói {TIER_LABEL[tier]} hỗ trợ {regenerateQuota} lượt / phiên onboarding
+              Gói {TIER_LABEL[tier]} hỗ trợ {regenerateQuota} lượt / ngày onboarding
             </DialogDescription>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">

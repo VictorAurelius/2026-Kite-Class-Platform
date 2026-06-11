@@ -163,7 +163,7 @@ export function ToneStep({ wizardState, onNext, onBack }: ToneStepProps) {
   return (
     <div className="mx-auto w-full max-w-3xl space-y-6">
       <div className="space-y-2">
-        <p className="text-sm font-semibold uppercase tracking-wide text-primary">Bước 4 / 6</p>
+        <p className="text-sm font-semibold uppercase tracking-wide text-primary">Bước 5 / 7</p>
         <h1 className="text-2xl font-bold text-foreground">Chọn phong cách thương hiệu</h1>
         <p className="text-muted-foreground">
           Mỗi thẻ hiển thị xem trước nhỏ — bấm để cảm nhận tone trước khi chọn.
@@ -217,7 +217,7 @@ export function ToneStep({ wizardState, onNext, onBack }: ToneStepProps) {
           Quay lại
         </Button>
         <p className="text-xs text-muted-foreground">
-          Bước 4 / 6 ·{' '}
+          Bước 5 / 7 ·{' '}
           {selectedTone ? `Đã chọn: ${selectedTone.title}` : 'Chọn 1 phong cách'}
         </p>
         <Button onClick={handleContinue} disabled={!selected}>

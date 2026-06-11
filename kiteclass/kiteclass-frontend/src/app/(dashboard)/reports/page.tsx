@@ -42,7 +42,12 @@ const formatPercent = (n: number | null | undefined): string => {
 
 export default function ReportsPage() {
   const user = useAuthStore((s) => s.user);
-  const isAdmin = user?.userType === UserType.ADMIN;
+  // Reports is "dành cho chủ trung tâm (quản trị viên)" — both OWNER and ADMIN
+  // qualify. The BE grants OWNER access (reports endpoints return 200 for an
+  // OWNER JWT); mirror that here so a center Owner is not wrongly blocked.
+  // Matches the admin/layout.tsx RoleGuard allow={[OWNER, ADMIN]} pattern.
+  const isAdmin =
+    user?.userType === UserType.ADMIN || user?.userType === UserType.OWNER;
 
   const {
     data: revenue,
