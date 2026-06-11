@@ -2,6 +2,10 @@
  * Sidebar navigation component for dashboard layout.
  * Desktop: fixed sidebar. Mobile: hidden (use MobileSidebar with Sheet).
  *
+ * Wave RBAC-Shell 1 Bucket B (GAP-1119): the nav is now role-aware. OWNER / ADMIN
+ * get the full school-management surface; STAFF gets the operational subset only
+ * (enrollment + attendance + invoice). Items come from {@link navItemsForRole}.
+ *
  * @author KiteClass Team
  * @since 1.0.0
  */
@@ -10,43 +14,19 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import {
-  Home,
-  Users,
-  GraduationCap,
-  BookOpen,
-  Calendar,
-  ClipboardCheck,
-  Settings,
-  DollarSign,
-  BarChart,
-  type LucideIcon,
-} from 'lucide-react';
+import { GraduationCap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-
-interface NavItem {
-  title: string;
-  href: string;
-  icon: LucideIcon;
-  badge?: string;
-}
-
-const navItems: NavItem[] = [
-  { title: 'Dashboard', href: '/dashboard', icon: Home },
-  { title: 'Học viên', href: '/students', icon: Users },
-  { title: 'Giáo viên', href: '/teachers', icon: GraduationCap },
-  { title: 'Khóa học', href: '/courses', icon: BookOpen },
-  { title: 'Lớp học', href: '/classes', icon: Calendar },
-  { title: 'Điểm danh', href: '/attendance', icon: ClipboardCheck },
-  { title: 'Thu chi', href: '/billing', icon: DollarSign },
-  { title: 'Báo cáo', href: '/reports', icon: BarChart },
-  { title: 'Cài đặt', href: '/settings', icon: Settings },
-];
+import { useAuthStore } from '@/stores/auth-store';
+import { normalizeRole } from '@/lib/auth/roles';
+import { navItemsForRole } from './dashboard-nav';
 
 /** Shared nav content — used by both desktop Sidebar and mobile Sheet */
 export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
+  // Role-aware nav: owner/staff/admin see different surfaces per GAP-1119.
+  const rawRole = useAuthStore((s) => s.user?.userType);
+  const navItems = navItemsForRole(normalizeRole(rawRole));
 
   return (
     <div className="flex h-full flex-col">

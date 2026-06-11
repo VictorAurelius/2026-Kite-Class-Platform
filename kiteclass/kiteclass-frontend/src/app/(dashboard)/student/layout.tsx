@@ -11,11 +11,15 @@
  * role-home). Student login itself is still gated by KC-9 — the route group
  * shell is scaffolded but the KC-native student auth path is not yet functional.
  *
- * @since Wave 49 Bucket C (GAP-269); Wave RBAC-Shell 1 RoleGuard
+ * Wave RBAC-Shell 1 Bucket B (GAP-1119): a {@link StudentAuthGatedBanner} marks
+ * the KC-9 scaffold state above every student route.
+ *
+ * @since Wave 49 Bucket C (GAP-269); Wave RBAC-Shell 1 RoleGuard + scaffold banner
  */
 'use client';
 
 import { RoleGuard } from '@/components/auth/role-guard';
+import { StudentAuthGatedBanner } from '@/components/student/student-auth-gated-banner';
 import { UserType } from '@/types/auth';
 
 export default function StudentLayout({
@@ -23,5 +27,10 @@ export default function StudentLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <RoleGuard allow={[UserType.STUDENT]}>{children}</RoleGuard>;
+  return (
+    <RoleGuard allow={[UserType.STUDENT]}>
+      <StudentAuthGatedBanner />
+      {children}
+    </RoleGuard>
+  );
 }
