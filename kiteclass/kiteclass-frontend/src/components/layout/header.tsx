@@ -38,7 +38,23 @@ export function Header({
   onMobileSidebarToggle,
   onMobileSidebarClose,
 }: HeaderProps) {
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
+
+  // Map the canonical role token → Vietnamese label for the user menu. The header
+  // previously hardcoded "Chủ trung tâm / owner@example.com" (GAP-1168) which hid
+  // the real signed-in identity regardless of who logged in.
+  const roleLabels: Record<string, string> = {
+    ADMIN: 'Quản trị viên',
+    OWNER: 'Chủ trung tâm',
+    TEACHER: 'Giáo viên',
+    PARENT: 'Phụ huynh',
+    STUDENT: 'Học viên',
+  };
+  const roleLabel = user?.userType
+    ? roleLabels[String(user.userType)] ?? String(user.userType)
+    : 'Khách';
+  const displayEmail = user?.email ?? 'Chưa đăng nhập';
+  const avatarText = (user?.email ?? 'KC').slice(0, 2).toUpperCase();
 
   return (
     <>
@@ -92,16 +108,16 @@ export function Header({
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                 <Avatar>
-                  <AvatarFallback>KC</AvatarFallback>
+                  <AvatarFallback>{avatarText}</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">Chủ trung tâm</p>
+                  <p className="text-sm font-medium leading-none">{roleLabel}</p>
                   <p className="text-xs leading-none text-muted-foreground">
-                    owner@example.com
+                    {displayEmail}
                   </p>
                 </div>
               </DropdownMenuLabel>
