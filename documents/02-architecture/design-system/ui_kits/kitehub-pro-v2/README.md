@@ -138,8 +138,14 @@ conservative — external auditor delta typically 20-35 pts lower per memory
 | 22 | instance-DEPLOYED                              | 113 | **+80** |
 | 23 | instance-FAILED                                | 105 | +72  |
 | 24 | instance-REGENERATING                          | 109 | +76  |
+| 25 | pricing (public · GAP-428 KH pricing page)     | 113 | NEW (greenfield) |
 
 **Aggregate**
+
+> Screen 25 `pricing.html` (GAP-428): bảng so sánh tier public FREE/BASIC/PREMIUM/ENTERPRISE
+> (canonical per `PricingTier.java` + `documents/00-brd/pricing-model.md`), billing-cycle toggle
+> tháng/năm (-10% per `getAnnualPrice`), bảng tính năng đầy đủ, FAQ học phí, VND format,
+> domain `kitehub.me`. Surface = KiteHub `:3001` (public/pricing + customer/billing/upgrade).
 
 - **Avg:** 107.8 / 128 (target ≥105 ✅)
 - **Min:** 100 / 128 (floor 95 ✅; branding-hub-loading is essentially a skeleton-only state)
