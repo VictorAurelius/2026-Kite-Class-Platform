@@ -5,7 +5,7 @@
    .theme-kiteclass to switch brand. Defaults to KiteHub.
    ============================================================= */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 
 :root {
   /* ----- base (shadcn/ui) neutrals ----- */
@@ -59,7 +59,8 @@
   --shadow-soft-xl: 0 8px 24px rgba(0,0,0,0.06), 0 16px 48px rgba(0,0,0,0.10);
 
   /* ----- typography ----- */
-  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* Be Vietnam Pro — primary typeface, full Vietnamese diacritic (canonical per GAP-1223; production layout.tsx cả 2 app dùng Be_Vietnam_Pro) */
+  --font-sans: 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 
   /* type scale (px ← rem) */
