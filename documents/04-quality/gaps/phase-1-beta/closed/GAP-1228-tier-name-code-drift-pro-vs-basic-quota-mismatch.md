@@ -41,3 +41,4 @@ Tier rename PRO→BASIC chỉ đổi `PricingTier` enum (platform) — chuỗi b
 ## Log
 
 - **2026-06-11 (DONE — Wave ui-kits-100 Bucket H, coordinator inline):** RegenerateQuotaService case "BASIC","PRO"→proLimit + canonicalTier PRO/BASIC→"BASIC" (persist canonical); V72 migrate data + CHECK canonical; FE Tier type +BASIC; 4 docs contract sync. Verify: BE 22/22 (RegenerateQuotaServiceTest+AIJobConsumerTest+BrandingWizardControllerTest) + FE wizard 30/30 + `next build` compiled. AIJobPriority dual-accept giữ nguyên (queue-group nội bộ).
+- **2026-06-11:** Merged PR #2337 (squash ebff9fa73) — Log ref bổ sung post-merge per audit-gate doc-drift flag.

@@ -1,6 +1,6 @@
 # GAP-348: Round 3 UI Kits Persona-Driven Review (kiteclass-student + kitehub-admin)
 
-**Status:** 🟡 PARTIAL — Bucket A + B external reviews SHIPPED 2026-05-05 (Wave 20, PRs #803 + #805); both kits APPROVE WITH POLISH; 3 follow-up gaps filed (GAP-363/364/365); Track 2 ports GAP-269/271 BLOCKED until polish gaps close
+**Status:** 🟢 DONE 2026-06-11 — Wave ui-kits-100: GAP-363b/363 (#2333) + GAP-364b/364 (#2334) DONE, GAP-365 DONE Wave 22 → umbrella đóng. Track 2 ports unblocked.
 **Priority:** 🟠 P1 (pre-port quality gate — blocks Track 2 Phase 2 trustworthiness)
 **Domain:** Quality / Design System
 **Found:** 2026-05-04 (session audit — UI kits review coverage gap)
@@ -85,3 +85,5 @@ Per `meta-gap-priority.md` §3 priority matrix — this is **Business-Logic / Qu
   - **Track 2 ports BLOCKED** per AC last bullet: GAP-269 (student) blocks on GAP-363 + GAP-365; GAP-271 (admin) blocks on GAP-364
   - **Status remains PARTIAL** because: (a) AC item "follow-up kit polish gap filed BEFORE Track 2 port for that kit can start" → 3 gaps filed (✅), but kit polish not yet executed; (b) AC item "If external avg < 105, follow-up gap filed" → both kits below 105, gaps filed (✅). Bucket A + B + C all shipped per plan.
 - **2026-05-04:** Filed after session audit found Round 3 kits merged with self-report only — no external review through `ui-review` skill, no persona AC mapping. Track 2 Phase 2 plan (GAP-349) cannot trust agent self-scores when porting prototypes to production code.
+
+- **2026-06-11 (DONE — Wave ui-kits-100 closure):** Umbrella đóng: kiteclass-student external avg 105.2/128 (GAP-363b/363 DONE #2333) + kitehub-admin external avg 106.2/128 (GAP-364b/364 DONE #2334) — cả 2 kit ≥105 floor ≥95; GAP-365 S-student.md đã DONE Wave 22. AC cuối "kit polish gap filed BEFORE Track 2 port" hoàn thành trọn: polish EXECUTED. GAP-269 (student port) + GAP-271 (admin port) hết blocker.
