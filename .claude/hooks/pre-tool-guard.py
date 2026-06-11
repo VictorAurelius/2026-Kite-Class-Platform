@@ -277,6 +277,64 @@ def check_concurrent_mutation(command: str):
     )
 
 
+# ── Rule 6: worktree-only-branch-work — in-repo worktree path ──
+
+WORKTREE_ADD_RE = re.compile(
+    r"(?:^|[;&|(\n])\s*(?:[A-Z_][A-Z0-9_]*=\S+\s+)*git\s+worktree\s+add\b([^\n;&|]*)"
+)
+_WT_VALUE_FLAGS = {"-b", "-B", "--reason"}
+
+
+def _worktree_path_arg(args: str):
+    """First positional after `git worktree add` = destination path.
+    Skips flags (-b/-B/--reason take a value; other -flags standalone)."""
+    toks = args.split()
+    i = 0
+    while i < len(toks):
+        t = toks[i]
+        if t in _WT_VALUE_FLAGS:
+            i += 2
+            continue
+        if t.startswith("-"):
+            i += 1
+            continue
+        return t.strip("'\"")
+    return None
+
+
+def check_worktree_in_repo(command: str):
+    m = WORKTREE_ADD_RE.search(command)
+    if not m:
+        return
+    path = _worktree_path_arg(m.group(1))
+    if not path:
+        return
+    in_repo = False
+    if ".claude/worktrees/" in path:
+        in_repo = True
+    elif path.startswith("../"):
+        in_repo = False  # sibling/parent — outside repo root
+    elif path.startswith("/"):
+        try:
+            in_repo = str(Path(path).resolve()).startswith(str(PROJECT_ROOT) + os.sep)
+        except Exception:
+            in_repo = False
+    else:
+        in_repo = True  # relative path not escaping cwd (repo root)
+    if not in_repo:
+        return
+    if _has_trailer_in_pr(None, "WORKTREE_ONLY_OVERRIDE"):
+        return
+    _deny(
+        "worktree-only-branch-work §3: `git worktree add` IN-REPO path "
+        f"('{path}') makes the worktree's .claude/ a nested project-config → harness "
+        "auto-loads DUPLICATE CLAUDE.md + rules (context ~2x). Use a SIBLING path OUTSIDE "
+        "the repo: `git worktree add ../kite-wt-<slug> <branch>`. "
+        "See .claude/rules/worktree-only-branch-work.md §3.1. Add "
+        "`WORKTREE_ONLY_OVERRIDE: <reason>` trailer to HEAD commit if genuinely single-session/recovery."
+    )
+
+
 # ── Main ───────────────────────────────────────────────────────
 
 
@@ -295,6 +353,7 @@ def main():
         check_aws_tier3(command)
         check_terraform_retry(command)
         check_concurrent_mutation(command)
+        check_worktree_in_repo(command)
     if tool_name in ("Edit", "Write"):
         check_sg_ascii(tool_name, tool_input)
 
