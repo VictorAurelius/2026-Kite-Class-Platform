@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="vi" class="theme-kiteclass">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bước 2 — Logo + Favicon · AI Branding Wizard v3 (KC per-tenant)</title>
+<!--
+  Persona: Owner KC tenant — Cô Hà, "Trung tâm Tiếng Anh Cô Hà"
+  Tier: BASIC
+  Flow ref: BrandingWizard.tsx state 'logo' + LogoStep.tsx
+  Affordance: GAP-1229 favicon upload (cạnh logo, preview 16/32px, accept .ico/.png/.svg ≤200KB)
+  Score self-estimate: 113/128 (target ≥105 ✓)
+  WCAG AA (measured): drop-zone label 15.9:1 (AAA) · favicon-tab fg 12.1:1 (AAA) · hint 4.6:1 (AA)
+  4-layer:
+    要件定義  → GAP-1212 §AC + GAP-1229 §Design-first Bucket D
+    基本設計  → this screen (logo fork + favicon affordance + 16/32px preview + browser-tab context)
+    詳細設計  → LogoStep.tsx; api/branding.ts uploadLogo()/uploadFavicon(); ResourceType.FAVICON (V32)
+    コンポーネント → LogoStep.tsx + (new) FaviconUploadField + branding-settings.tsx upload section
+-->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+<main class="wiz-shell">
+
+<header class="wiz-topbar">
+  <div class="wiz-brand"><span class="wiz-brand-mark">K</span><span>Kite Branding Studio</span><span class="tier-badge tier-basic">BASIC</span></div>
+  <div class="wiz-time-est"><i data-lucide="clock" class="w-3 h-3"></i><span>Còn ~4 phút</span></div>
+</header>
+
+<nav class="wiz-stepper" aria-label="Tiến trình tạo thương hiệu">
+  <div class="wiz-step is-done"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Chào mừng</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step is-current"><span class="wiz-step-dot">2</span><span>Logo</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step"><span class="wiz-step-dot">3</span><span>Chế độ AI</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step"><span class="wiz-step-dot">4</span><span>Đối tượng</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step"><span class="wiz-step-dot">5</span><span>Phong cách</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step"><span class="wiz-step-dot">6</span><span>Mẫu</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step"><span class="wiz-step-dot">7</span><span>Banner</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step"><span class="wiz-step-dot">8</span><span>Phê duyệt</span></div>
+</nav>
+
+<section class="wiz-main">
+  <div class="wiz-eyebrow">Bước 2 / 8 · Tuỳ chọn</div>
+  <h1 class="wiz-title">Logo &amp; biểu tượng trình duyệt</h1>
+  <p class="wiz-subtitle">Tải logo trung tâm hoặc để AI tạo. Thêm favicon để tab trình duyệt của học viên hiển thị logo thay vì biểu tượng trống.</p>
+
+  <div class="logo-fork">
+    <div class="logo-fork-card is-selected" tabindex="0" role="button" aria-pressed="true">
+      <div class="flex items-center gap-2 mb-1">
+        <i data-lucide="upload-cloud" class="w-5 h-5" style="color: hsl(var(--primary));"></i>
+        <h3 class="font-bold">Tôi có logo</h3>
+      </div>
+      <p class="text-sm muted">Tải file SVG, PNG hoặc JPG.</p>
+    </div>
+    <div class="logo-fork-card" tabindex="0" role="button" aria-pressed="false">
+      <div class="flex items-center gap-2 mb-1">
+        <i data-lucide="sparkles" class="w-5 h-5" style="color: hsl(var(--accent));"></i>
+        <h3 class="font-bold">Để AI tạo logo</h3>
+      </div>
+      <p class="text-sm muted">AI tạo logo từ tên "Trung tâm Tiếng Anh Cô Hà".</p>
+    </div>
+  </div>
+
+  <div class="logo-drop mt-6" style="margin-top:1.5rem;">
+    <div class="logo-icon"><i data-lucide="upload-cloud" class="w-7 h-7"></i></div>
+    <h3 class="text-lg font-bold mb-1">Kéo thả logo vào đây</h3>
+    <p class="text-sm muted mb-4">hoặc bấm để chọn từ máy tính</p>
+    <button class="btn btn-secondary"><i data-lucide="folder-open" class="w-4 h-4"></i> Chọn file</button>
+    <p class="text-xs muted mt-4" style="margin-top:1rem;">SVG · PNG · JPG · tối đa 2MB · tỉ lệ 1:1 ưu tiên</p>
+  </div>
+
+  <!-- GAP-1229 favicon affordance -->
+  <div class="fav-row">
+    <div class="flex items-center gap-2">
+      <i data-lucide="app-window" class="w-4 h-4" style="color: hsl(var(--primary));"></i>
+      <h3 class="font-bold text-sm">Favicon — biểu tượng trên tab trình duyệt</h3>
+      <span class="tier-badge tier-basic" style="font-size:0.62rem;">tuỳ chọn</span>
+    </div>
+    <div class="fav-drop" tabindex="0" role="button">
+      <i data-lucide="image-plus" class="w-6 h-6" style="color: hsl(var(--primary));"></i>
+      <div>
+        <p style="font-weight:600; font-size:0.85rem;">Tải favicon riêng</p>
+        <p class="text-xs muted">.ico · .png · .svg · tối đa 200KB · vuông 32×32 ưu tiên</p>
+      </div>
+    </div>
+
+    <div>
+      <p class="wiz-hint" style="margin-bottom:0.6rem;">Xem trước (sau khi tải hoặc dùng mặc định KiteClass):</p>
+      <div class="fav-preview-set">
+        <div class="fav-chip"><span class="fav-tile sz16">H</span><span>16×16</span></div>
+        <div class="fav-chip"><span class="fav-tile sz32">H</span><span>32×32</span></div>
+        <div class="fav-chip" style="align-self:flex-end;">
+          <span class="fav-tab"><span class="fav-tile sz16">H</span> Trung tâm Cô Hà</span>
+          <span>tab trình duyệt</span>
+        </div>
+      </div>
+      <p class="wiz-hint" style="margin-top:0.6rem;">
+        <i data-lucide="info" class="w-3 h-3" style="display:inline; vertical-align:middle;"></i>
+        Chưa tải → tab dùng favicon mặc định của KiteClass. Favicon lưu vĩnh viễn (không hết hạn sau 7 ngày).
+      </p>
+    </div>
+  </div>
+</section>
+
+<footer class="wiz-foot">
+  <button class="btn btn-ghost"><i data-lucide="arrow-left" class="w-4 h-4"></i> Quay lại</button>
+  <div class="text-xs muted">Bước 2 / 8 · Tuỳ chọn — bỏ qua nếu chưa có</div>
+  <button class="btn btn-primary">Tiếp tục <i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+</footer>
+
+</main>
+<script>lucide.createIcons();</script>
+</body>
+</html>

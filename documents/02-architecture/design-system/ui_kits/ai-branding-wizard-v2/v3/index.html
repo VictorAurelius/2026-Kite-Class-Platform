@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="vi" class="theme-kiteclass">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AI Branding Wizard v3 — KC per-tenant (ADR-037) · kit index</title>
+<!--
+  v3 hub — KiteClass per-tenant branding wizard refresh per ADR-037.
+  Canonical: 6 bước production (BrandingWizard.tsx) + bước ADR-037 (mode/portrait/banner/SSE).
+  Tier canonical FREE/BASIC/PREMIUM/ENTERPRISE (PricingTier.java) — KHÔNG dùng PRO.
+  Wave ui-kits-100 Bucket D · GAP-1212.
+-->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="stylesheet" href="styles.css" />
+<style>
+  .screen-link {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0.5rem 0.75rem; border-radius: var(--radius-sm);
+    border:1px solid hsl(var(--border)); background: hsl(var(--card));
+    text-decoration:none; color: hsl(var(--foreground)); font-size:0.875rem;
+    transition: all 100ms;
+  }
+  .screen-link:hover { border-color: hsl(var(--primary)); background: hsl(var(--primary) / 0.04); }
+  .screen-link .score { font-family: var(--font-mono); font-size:0.75rem; color: hsl(var(--success)); font-weight:600; }
+  .sect { background: hsl(var(--card)); border:1px solid hsl(var(--border)); border-radius: var(--radius); padding:1.5rem; }
+  .layer-table td, .layer-table th { padding:0.4rem 0.65rem; border-bottom:1px solid hsl(var(--border)); font-size:0.8rem; text-align:left; vertical-align:top; }
+</style>
+</head>
+<body style="background: hsl(var(--muted) / 0.4);">
+
+<header class="wiz-topbar">
+  <div class="wiz-brand"><span class="wiz-brand-mark">K</span>
+    <div>
+      <div style="font-weight:700;">AI Branding Wizard v3</div>
+      <div class="text-xs muted">KiteClass per-tenant · ADR-037 · GAP-1212</div>
+    </div>
+  </div>
+  <div class="flex items-center gap-2 text-xs">
+    <span class="tier-badge tier-free">FREE</span>
+    <span class="tier-badge tier-basic">BASIC</span>
+    <span class="tier-badge tier-premium">PREMIUM</span>
+    <span class="tier-badge tier-enterprise">ENTERPRISE</span>
+  </div>
+</header>
+
+<main class="max-w-5xl mx-auto px-6 py-8 space-y-6">
+
+  <section class="sect">
+    <h1 class="text-2xl font-extrabold mb-2">Wizard tạo thương hiệu KiteClass (per-tenant)</h1>
+    <p class="muted text-sm">
+      Refresh v2 (Direction C / KH-provisioning) → khớp wizard production hiện hành
+      (<code style="background:hsl(var(--muted)); padding:0.1rem 0.35rem; border-radius:4px;">BrandingWizard.tsx</code>: Welcome → Logo → Đối tượng → Phong cách → Mẫu → Phê duyệt)
+      cộng các bước AI mới theo <strong>ADR-037</strong>: chọn chế độ AI (TEMPLATE/FULL_AI), upload ảnh chân dung,
+      trạng thái tạo banner (GENERATING/FAILED/READY), tiến trình SSE preview/deploy.
+      Chạy ở <strong>kiteclass-frontend :3000</strong> (KC nghiệp vụ trường).
+    </p>
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 text-sm">
+      <div class="p-3 rounded-lg" style="background:hsl(var(--primary) / 0.08);">
+        <div class="text-2xl font-extrabold" style="color:hsl(var(--primary));">11</div>
+        <div class="text-xs">màn hình v3</div>
+      </div>
+      <div class="p-3 rounded-lg" style="background:hsl(var(--success) / 0.08);">
+        <div class="text-2xl font-extrabold" style="color:hsl(var(--success));">8</div>
+        <div class="text-xs">bước wizard</div>
+      </div>
+      <div class="p-3 rounded-lg" style="background:hsl(var(--accent) / 0.08);">
+        <div class="text-2xl font-extrabold" style="color:hsl(var(--accent));">4</div>
+        <div class="text-xs">affordance ADR-037</div>
+      </div>
+      <div class="p-3 rounded-lg" style="background:hsl(var(--warning) / 0.1);">
+        <div class="text-2xl font-extrabold" style="color:hsl(38 92% 42%);">~114</div>
+        <div class="text-xs">avg /128 (≥105 ✓)</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sect">
+    <h2 class="text-lg font-bold mb-4">6 bước production hiện hành</h2>
+    <div class="grid sm:grid-cols-2 gap-2">
+      <a class="screen-link" href="screens/step1-welcome.html">1 · Chào mừng + tenant <span class="score">112</span></a>
+      <a class="screen-link" href="screens/step2-logo.html">2 · Logo + favicon (GAP-1229) <span class="score">113</span></a>
+      <a class="screen-link" href="screens/step4-audience.html">4 · Đối tượng <span class="score">113</span></a>
+      <a class="screen-link" href="screens/step5-tone.html">5 · Phong cách <span class="score">116</span></a>
+      <a class="screen-link" href="screens/step7-template.html">6 · Mẫu thiết kế (TEMPLATE) <span class="score">114</span></a>
+      <a class="screen-link" href="screens/step9-preview.html"><strong>8 · Phê duyệt + SSE deploy</strong> <span class="score">118</span></a>
+    </div>
+  </section>
+
+  <section class="sect" style="border-color:hsl(var(--accent) / 0.4); background:linear-gradient(135deg, hsl(var(--accent) / 0.04), hsl(var(--primary) / 0.04));">
+    <div class="flex items-center gap-2 mb-4">
+      <i data-lucide="sparkles" class="w-5 h-5" style="color:hsl(var(--accent));"></i>
+      <h2 class="text-lg font-bold">Bước mới theo ADR-037</h2>
+    </div>
+    <div class="grid sm:grid-cols-2 gap-2">
+      <a class="screen-link" href="screens/step3-mode.html"><strong>3 · Chế độ AI — TEMPLATE vs FULL_AI</strong> (GAP-1147) <span class="score">115</span></a>
+      <a class="screen-link" href="screens/step6-portrait.html">7a · Ảnh chân dung FULL_AI (GAP-1134) <span class="score">110</span></a>
+      <a class="screen-link" href="screens/step8-banner-generating.html">7 · Banner GENERATING + SSE (GAP-1135/1021) <span class="score">112</span></a>
+      <a class="screen-link" href="screens/step8-banner-failed.html">7 · Banner FAILED + fallback (GAP-1135) <span class="score">113</span></a>
+      <a class="screen-link" href="screens/step8-banner-ready.html">7 · Banner READY + regen counter (GAP-1135) <span class="score">115</span></a>
+    </div>
+  </section>
+
+  <section class="sect">
+    <h2 class="text-lg font-bold mb-3">4-layer coverage (per design-layer-coverage §2.2)</h2>
+    <table class="layer-table" style="width:100%; border-collapse:collapse;">
+      <thead><tr><th>Layer</th><th>Artifact pointer</th></tr></thead>
+      <tbody>
+        <tr><td><strong>要件定義</strong><br>(Requirements)</td><td>GAP-1212 §AC · GAP-1229 (favicon) · GAP-1147/1134/1135/1021 (cụm AI chain) · ADR-037 Context/Decision · types.ts unions (Audience/Tone/Tier)</td></tr>
+        <tr><td><strong>基本設計</strong><br>(External design)</td><td>11 màn hình v3 trong <code>v3/screens/*.html</code> (Welcome→Logo→Mode→Audience→Tone→Portrait→Template→Banner{generating/failed/ready}→Preview)</td></tr>
+        <tr><td><strong>詳細設計</strong><br>(Internal design)</td><td><code>BrandingWizard.tsx</code> + <code>wizard-machine.ts</code> state machine · ADR-037 generation route (Gemini text/template · GPT-5.5 FULL_AI) · GenerationMode.forTier · FullAiQuotaService · SSE <code>GET /api/v1/branding/{id}/events</code></td></tr>
+        <tr><td><strong>コンポーネント設計</strong><br>(Component design)</td><td>WelcomeStep/LogoStep/AudienceStep/ToneStep/TemplateStep/PreviewStep.tsx · RegenerateCounter/SegmentPicker/WizardProgress.tsx · (mới) ModeSelectorStep/PortraitUploadStep/BannerGenerateStage/SseLog/FaviconUploadField</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="text-center pt-2 pb-8">
+    <p class="text-xs muted">
+      <a href="../README.md" class="wiz-help-link">README kit</a> ·
+      <a href="../../../adr/ADR-037-ai-branding-generation-stack.md" class="wiz-help-link">ADR-037</a> ·
+      <a href="../index.html" class="wiz-help-link">v2 (archive Direction C)</a>
+    </p>
+  </section>
+
+</main>
+<script>lucide.createIcons();</script>
+</body>
+</html>

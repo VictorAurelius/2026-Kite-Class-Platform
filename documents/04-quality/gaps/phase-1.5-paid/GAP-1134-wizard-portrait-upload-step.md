@@ -36,4 +36,5 @@ Số lượng chân dung phụ thuộc **user-type** ([[GAP-1133]]): GV đơn l�
 
 ## Log
 
+- **2026-06-11:** Design source: `ui_kits/ai-branding-wizard-v2/v3/screens/step6-portrait.html` (GAP-1212 DONE 2026-06-11, Wave ui-kits-100 Bucket D) — portrait upload affordance cho FULL_AI banner làm 基本設計 layer.
 - **2026-06-10:** Filed từ discuss wizard với user — banner cần chân dung (asset chính) nhưng wizard chỉ upload logo. Count theo user-type ([[GAP-1133]]). Per `discovery-to-gap-inline-filing.md`. GAP-ID từ block reserve 1115-1118.

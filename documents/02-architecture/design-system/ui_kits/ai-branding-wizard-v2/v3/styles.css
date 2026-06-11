@@ -1,0 +1,343 @@
+/* =============================================================
+   ai-branding-wizard-v2 / v3 — KC per-tenant branding wizard
+   Refresh per ADR-037 (AI generation stack) + wizard production
+   (BrandingWizard.tsx state machine) + GAP-1229 favicon affordance.
+
+   Reuses v2 kit primitives (wiz-shell, wiz-stepper, choice-card, btn,
+   tier-badge, switch, qgate, regen-bar, lifecycle, modal) by importing
+   ../styles.css (which imports _shared/colors_and_type.css).
+
+   Token discipline: ZERO hardcoded hex outside this header note — every
+   color reads hsl(var(--token)) from _shared/colors_and_type.css
+   (Be Vietnam Pro canonical font per GAP-1223).
+   Theme: .theme-kiteclass (per-tenant KC blue) — wizard chạy ở
+   kiteclass-frontend :3000 (KC nghiệp vụ trường, per kitehub-kiteclass-boundary.md §2).
+   ============================================================= */
+
+@import url('../styles.css');
+
+/* ============== Mode selector (ADR-037 GAP-1147 — TEMPLATE vs FULL_AI) ============== */
+
+.mode-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+@media (max-width: 720px) {
+  .mode-grid { grid-template-columns: 1fr; }
+}
+.mode-card {
+  position: relative;
+  padding: 1.5rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--card));
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  cursor: pointer;
+  transition: all 180ms ease-out;
+}
+.mode-card:hover {
+  border-color: hsl(var(--primary));
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-soft-lg);
+}
+.mode-card.is-selected {
+  border-color: hsl(var(--primary));
+  background: hsl(var(--primary) / 0.05);
+  box-shadow: 0 0 0 2px hsl(var(--primary) / 0.25);
+}
+.mode-card.is-locked {
+  opacity: 0.7;
+  cursor: not-allowed;
+  background: hsl(var(--muted) / 0.35);
+}
+.mode-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.mode-card-title {
+  font-weight: 800;
+  font-size: 1.05rem;
+  color: hsl(var(--foreground));
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.mode-card-desc {
+  font-size: 0.85rem;
+  color: hsl(var(--muted-foreground));
+  line-height: var(--leading-snug);
+}
+.mode-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+.mode-chip {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.mode-chip.free  { background: hsl(var(--success) / 0.12); color: hsl(var(--success)); }
+.mode-chip.cost  { background: hsl(var(--warning) / 0.14); color: hsl(38 92% 38%); }
+.mode-recommended {
+  position: absolute;
+  top: -0.7rem;
+  left: 1.25rem;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  background: hsl(var(--success));
+  color: hsl(var(--success-foreground));
+}
+.mode-lock-note {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  color: hsl(var(--muted-foreground));
+  padding: 0.55rem 0.75rem;
+  border-radius: var(--radius-sm);
+  background: hsl(var(--muted));
+  border: 1px dashed hsl(var(--border));
+}
+
+/* quota meter (PREMIUM FULL_AI 5 banner GPT-5.5/tháng) */
+.quota-meter {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  color: hsl(var(--muted-foreground));
+}
+.quota-dots { display: flex; gap: 0.25rem; }
+.quota-dots > span {
+  width: 9px; height: 9px;
+  border-radius: 999px;
+  background: hsl(var(--primary));
+}
+.quota-dots > span.spent { background: hsl(var(--border)); }
+
+/* ============== Favicon affordance (GAP-1229) ============== */
+
+.fav-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px dashed hsl(var(--border));
+}
+.fav-drop {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border: 2px dashed hsl(var(--border));
+  border-radius: var(--radius-md);
+  background: hsl(var(--muted) / 0.4);
+  cursor: pointer;
+  transition: all 150ms;
+}
+.fav-drop:hover {
+  border-color: hsl(var(--primary));
+  background: hsl(var(--primary) / 0.05);
+}
+.fav-preview-set {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+}
+.fav-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.68rem;
+  color: hsl(var(--muted-foreground));
+  font-family: var(--font-mono);
+}
+.fav-tile {
+  border-radius: 4px;
+  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--theme-secondary, var(--accent))));
+  display: grid;
+  place-items: center;
+  color: white;
+  font-weight: 800;
+  box-shadow: var(--shadow-soft);
+}
+.fav-tile.sz16 { width: 16px; height: 16px; font-size: 9px; border-radius: 3px; }
+.fav-tile.sz32 { width: 32px; height: 32px; font-size: 15px; }
+/* faux browser-tab preview so user sees real context */
+.fav-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.7rem 0.3rem 0.5rem;
+  border-radius: 8px 8px 0 0;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-bottom: none;
+  font-size: 0.74rem;
+  color: hsl(var(--foreground));
+  max-width: 180px;
+}
+.fav-tab .fav-tile.sz16 { flex-shrink: 0; }
+
+/* ============== Portrait upload (ADR-037 GAP-1134) ============== */
+
+.portrait-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.875rem;
+}
+.portrait-tile {
+  position: relative;
+  aspect-ratio: 3/4;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid hsl(var(--border));
+  background: linear-gradient(160deg, hsl(var(--primary) / 0.18), hsl(var(--accent) / 0.14));
+  display: grid;
+  place-items: center;
+  color: hsl(var(--primary));
+}
+.portrait-tile .ptag {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.7rem;
+  background: hsl(var(--card) / 0.92);
+  color: hsl(var(--foreground));
+  text-align: center;
+  border-top: 1px solid hsl(var(--border));
+}
+.portrait-tile.add {
+  border-style: dashed;
+  background: hsl(var(--muted) / 0.4);
+  cursor: pointer;
+  color: hsl(var(--muted-foreground));
+  transition: all 150ms;
+}
+.portrait-tile.add:hover { border-color: hsl(var(--primary)); color: hsl(var(--primary)); }
+
+/* ============== Banner generation states (ADR-037 GAP-1135) ============== */
+
+.banner-stage {
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: hsl(var(--card));
+  box-shadow: var(--shadow-soft);
+}
+.banner-canvas {
+  aspect-ratio: 16/6;
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+.banner-canvas.generating {
+  background:
+    linear-gradient(110deg, hsl(var(--muted)) 30%, hsl(var(--primary) / 0.12) 50%, hsl(var(--muted)) 70%);
+  background-size: 220% 100%;
+  animation: bannerShimmer 1.4s linear infinite;
+}
+@keyframes bannerShimmer { to { background-position: -220% 0; } }
+.banner-canvas.failed {
+  background: hsl(var(--destructive) / 0.06);
+  color: hsl(var(--destructive));
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: center;
+  padding: 1rem;
+}
+.banner-canvas.ready {
+  background: linear-gradient(120deg, hsl(var(--primary)), hsl(var(--theme-secondary, var(--accent))));
+  color: white;
+}
+.banner-ready-inner {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1rem;
+}
+.banner-ready-inner h3 { font-size: clamp(1.1rem, 2.4vw, 1.6rem); font-weight: 800; }
+.banner-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid hsl(var(--border));
+  font-size: 0.8rem;
+}
+.banner-mode-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: hsl(var(--primary) / 0.1);
+  color: hsl(var(--primary));
+}
+
+/* ============== SSE log (ADR-037 GAP-1021 deploy/preview progress) ============== */
+
+.sse-log {
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  background: hsl(222 47% 11%);
+  color: hsl(160 70% 75%);
+  border-radius: var(--radius-md);
+  padding: 0.875rem 1rem;
+  max-height: 180px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  border: 1px solid hsl(var(--border));
+}
+.sse-log .ts { color: hsl(215 20% 55%); }
+.sse-log .ok { color: hsl(160 70% 65%); }
+.sse-log .run { color: hsl(199 89% 70%); }
+.sse-cursor {
+  display: inline-block;
+  width: 8px; height: 14px;
+  background: hsl(160 70% 65%);
+  animation: sseBlink 1s steps(2) infinite;
+  vertical-align: middle;
+}
+@keyframes sseBlink { 50% { opacity: 0; } }
+
+/* ============== Superseded banner (v2 archive notice) ============== */
+
+.supersede-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  background: hsl(var(--warning) / 0.1);
+  border: 1px solid hsl(var(--warning) / 0.4);
+  font-size: 0.8rem;
+  color: hsl(var(--foreground));
+  margin-bottom: 1.25rem;
+}
