@@ -73,11 +73,17 @@ const nextConfig = {
       'https://*.kiteclass.com',
       'wss://*.kiteclass.com',
     ].filter(Boolean).join(' ');
+    // Dev stack serves MinIO logo/branding assets over http://localhost:9100.
+    // Allow that host in non-prod so logo previews don't trip CSP once it flips
+    // to enforce. Production stays https-only (mirrors kitehub-frontend devImg
+    // pattern, GAP-1112 kitehub side; GAP-1198 kiteclass side).
+    const isDev = process.env.NODE_ENV !== 'production';
+    const devImg = isDev ? ' http://localhost:9100' : '';
     const cspDirectives = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      "img-src 'self' data: https: blob: https://cdn.kiteclass.com",
+      `img-src 'self' data: https: blob: https://cdn.kiteclass.com${devImg}`,
       "font-src 'self' https://fonts.gstatic.com data:",
       `connect-src ${connectSrc}`,
       "frame-ancestors 'none'",
