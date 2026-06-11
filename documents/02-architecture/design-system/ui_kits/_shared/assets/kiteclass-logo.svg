@@ -4,7 +4,7 @@
     <path d="M24 4V44M8 24H40" stroke="white" stroke-width="2" stroke-opacity="0.3"></path>
     <circle cx="24" cy="24" r="4" fill="#F59E0B"></circle>
   </g>
-  <text x="56" y="32" font-family="Inter, system-ui, sans-serif" font-weight="700" font-size="22" letter-spacing="-0.5">
+  <text x="56" y="32" font-family="'Be Vietnam Pro', system-ui, sans-serif" font-weight="700" font-size="22" letter-spacing="-0.5">
     <tspan fill="#3B82F6">Kite</tspan><tspan fill="#0F172A">Class</tspan>
   </text>
 </svg>
