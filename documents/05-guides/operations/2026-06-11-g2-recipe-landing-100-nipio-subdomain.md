@@ -34,6 +34,7 @@ Bạn (human) walk landing page per-tenant qua **đúng access-mode production**
 - **Action:** mở `http://co-ha-toan.127.0.0.1.nip.io:3000/`
 - **Expected:**
   - Hero "Lấy lại căn bản môn Toán cùng cô Hà" + tagline Toán tiểu học
+  - **Hero background = ảnh AI-scene cô giáo** (không phải gradient trơn — gradient = asset 404, xem GAP-1203 troubleshooting)
   - Màu chủ đạo **XANH DƯƠNG #2563EB** (nút CTA, nav hover, link)
   - Template PERSONAL (ít section hơn organization — không có section đội ngũ giáo viên đông)
   - Tab title + OG: "Lấy lại căn bản môn Toán cùng cô Hà"
