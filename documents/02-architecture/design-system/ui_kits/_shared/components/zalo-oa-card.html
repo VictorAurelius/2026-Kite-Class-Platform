@@ -1,0 +1,71 @@
+<!-- =============================================================
+  zalo-oa-card.html — reusable Zalo OA notify card (GAP-364b item 5)
+
+  Extracted from kitehub-admin/parent-comms.html. The Zalo OA
+  channel is KiteHub/KiteClass's primary parent-notification surface
+  (P5 K-12 AC-COMM + AC-PARENT Luật GD 2019 Đ.83 legal mandate).
+  This card visualises a single OA broadcast/notify action so every
+  screen with a "notify parent" touch-point (conduct escalation,
+  report-card release, fee reminder) reuses ONE pattern.
+
+  -------------------------------------------------------------------
+  Props (set via data-* on the .zalo-oa-card root):
+    data-zalo-state   = "ready" | "sent" | "scheduled" | "failed"
+                        → drives the state pill colour + label
+    data-zalo-reach   = audience count string (e.g. "3.241 PH")
+  Slots (replace inline text):
+    .zalo-oa-card__caption  → 1-line message preview
+    .zalo-oa-card__meta     → audience + channel context line
+    .zalo-oa-card__action   → primary CTA button label
+  -------------------------------------------------------------------
+  Styling: relies only on _shared/colors_and_type.css tokens +
+  kitehub-admin styles.css (.card-base / .pill / .btn / .tag).
+  Zalo brand accent uses --info (Zalo blue family) — token-safe in
+  both light + dark mode.
+  ============================================================= -->
+
+<style>
+  /* Scoped helper — safe to inline once per kit; token-driven so it
+     recolours automatically under .dark. */
+  .zalo-oa-card {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 0.875rem;
+    align-items: center;
+    padding: 0.875rem 1rem;
+    border: 1px solid hsl(var(--info) / 0.30);
+    border-left: 4px solid hsl(var(--info));
+    border-radius: var(--radius-lg);
+    background: hsl(var(--info) / 0.05);
+  }
+  .zalo-oa-card__logo {
+    width: 36px; height: 36px;
+    border-radius: var(--radius-md);
+    background: hsl(var(--info)); color: #fff;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: var(--text-xs); flex: 0 0 auto;
+  }
+  .zalo-oa-card__caption { font-weight: 600; font-size: var(--text-sm); }
+  .zalo-oa-card__meta { color: hsl(var(--muted-foreground)); font-size: var(--text-xs); margin-top: 0.125rem; }
+  .zalo-oa-card[data-zalo-state="sent"]      { border-left-color: hsl(var(--success)); }
+  .zalo-oa-card[data-zalo-state="scheduled"] { border-left-color: hsl(var(--warning)); }
+  .zalo-oa-card[data-zalo-state="failed"]    { border-left-color: hsl(var(--destructive)); }
+</style>
+
+<!-- Example instance (copy into a screen + adjust props/slots) -->
+<div class="zalo-oa-card" data-zalo-state="ready" data-zalo-reach="3.241 PH">
+  <span class="zalo-oa-card__logo" aria-hidden="true">Zalo</span>
+  <div>
+    <div class="zalo-oa-card__caption">Gửi thông báo qua Zalo OA tới phụ huynh</div>
+    <div class="zalo-oa-card__meta">
+      <i data-lucide="users" class="w-3 h-3 inline"></i>
+      3.241 PH theo dõi · Kênh chính thức · Đã liên kết Zalo OA
+    </div>
+  </div>
+  <div class="cluster">
+    <span class="pill pill--info"><i data-lucide="check-circle-2" class="w-3 h-3"></i>Sẵn sàng</span>
+    <button class="btn btn--primary btn--sm" type="button">
+      <i data-lucide="send" class="w-3 h-3"></i><span class="zalo-oa-card__action">Gửi Zalo OA</span>
+    </button>
+  </div>
+</div>

@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="../styles.css" />
   <script src="https://cdn.tailwindcss.com"></script><script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body>
+<body data-skeleton="calendar" data-empty-icon="calendar-days" data-empty-title="Chưa có sự kiện học vụ nào" data-empty-msg="Thêm mốc học kỳ, kỳ thi và ngày nghỉ lễ để bắt đầu lập lịch năm học 2026–2027." data-empty-cta="Thêm sự kiện">
   <nav class="state-tabs"><a href="academic-calendar.html" data-active="true">Default</a><a href="../index.html">Index</a></nav>
   <div class="shell">
     <aside class="shell__nav stack-3" aria-label="Điều hướng chính">
@@ -151,5 +151,6 @@
     </main>
   </div>
   <script>if (window.lucide) lucide.createIcons();</script>
+  <script src="../../_shared/scripts/admin-states.js"></script>
 </body>
 </html>

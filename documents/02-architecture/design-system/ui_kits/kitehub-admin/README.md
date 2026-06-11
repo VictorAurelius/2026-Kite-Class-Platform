@@ -5,7 +5,7 @@
 **Wave UI Kits Round 3 · Bucket B** (initial) · **Wave 22 Bucket B polish** (school-profile rebuild)
 **Persona:** P5 K–12 School Principal/Admin (Tier 1) — desktop-first, dense data, 50+ teachers / 500–3.000 students
 **Status:** prototype (HTML for human vibe-check; production port deferred to Track 2 follow-up gap)
-**Last Updated:** 2026-05-06
+**Last Updated:** 2026-06-11
 
 ---
 
@@ -15,16 +15,20 @@ Per [GAP-364](../../../../04-quality/gaps/GAP-364-kitehub-admin-polish-school-pr
 
 **New self-score:** ~107/128 (T28/H30/A26/U23) — clears ≥105 target.
 
-**Cross-screen polish items deferred to GAP-364b** (filed in Wave 22 closure PR — covers cross-screen scope independent of the school-profile rebuild):
+---
 
-- Per-screen loading skeletons (currently dashboard-only)
-- Per-screen empty states in-context (currently relies on shared `empty-states.html` gallery)
-- Dark-mode parity across all 12 screens (token layer ready via `.dark` class)
-- Staff vetting workflow visualization — AC-ONBOARD-005 (likely new `staff-vetting.html` OR extend `teacher-management.html`)
-- Cross-screen Zalo OA reusable pattern — extract from `parent-comms.html` to `_shared/components/zalo-oa-card.html`
-- Re-score full kit avg ≥105 via `quality/ui-review-prototype` skill (was 101.1)
+## Round 4 cross-screen polish (2026-06-11, Wave ui-kits-100 Bucket B) — GAP-364b ✅ DONE
 
-These items remain open and tracked under GAP-364b. GAP-364 itself stays 🟡 PARTIAL until they ship.
+All 5 cross-screen polish items shipped; both [GAP-364](../../../../04-quality/gaps/phase-2/closed/GAP-364-kitehub-admin-polish-school-profile-rebuild.md) + [GAP-364b](../../../../04-quality/gaps/phase-2/closed/GAP-364b-kitehub-admin-cross-screen-polish.md) → **DONE**.
+
+- ✅ Per-screen loading skeletons — shared `_shared/scripts/admin-states.js` injects context-aware shimmer per `body[data-skeleton]` (`?state=loading`); was dashboard-only
+- ✅ Per-screen empty states in-context — same script injects `.empty-state` from `body[data-empty-*]` (`?state=empty`); own copy + CTA per screen (was shared gallery only)
+- ✅ Dark-mode parity 12/12 — toggle injected into `.state-tabs` wires the `.dark` token layer; every colour `hsl(var(--token))` so flip recolours all 12; persists localStorage + `prefers-color-scheme`
+- ✅ Staff vetting workflow (AC-ONBOARD-005) — 4-column board in `teacher-management.html` (Chờ nộp / Đang thẩm định / Đã duyệt / Từ chối) + CCCD/bằng cấp/LLTP checklist + child-protection auto-reject
+- ✅ Zalo OA reusable component — `_shared/components/zalo-oa-card.html` extracted (props/slots) + reused at conduct + report-cards notify points
+- ✅ Re-score — external Round 4 re-audit **avg 106.2/128** (≥105 ✓, floor 103 ≥95 ✓), +5.1 vs 2026-05-05 baseline 101.1 — `documents/04-quality/audits/ui-review/2026-06-11-round-4-kitehub-admin-reaudit.md`
+
+**State demo:** every screen's loading + empty state is runtime-demonstrable via the injected `Tải` / `Trống` state-tabs (`?state=loading` / `?state=empty`).
 
 ---
 
@@ -129,7 +133,8 @@ Per `dossier/10-acceptance-criteria.md` (100-item AC checklist, 4 dimensions × 
 - **Avg (self):** 107.4 / 128 (target ≥105 ✓) — pending external re-audit per GAP-364b
 - **Min:** 106 / 128 (login — minimal-density auth screen) · school-profile rebuild moved off floor 91 → 107
 - **Max:** 109 / 128 (report-cards — strongest persona alignment; MoET stamp + ký số + Zalo gửi PH integration)
-- **External Round 3 baseline (2026-05-05, pre-Wave-22):** 101.1 / 128 — Wave 22 polish lifts school-profile but cross-screen items in GAP-364b remain
+- **External Round 3 baseline (2026-05-05, pre-Wave-22):** 101.1 / 128
+- **External Round 4 re-audit (2026-06-11, post-GAP-364b):** **106.2 / 128** avg (floor 103 login · max 109) — +5.1 vs baseline; 11/12 ≥105 — `documents/04-quality/audits/ui-review/2026-06-11-round-4-kitehub-admin-reaudit.md`
 - **Per-screen lift vs current production baseline 33–80/128:** average **+50 points** (range +24 to +76)
 
 **Self-verdict:** **SHIP**
