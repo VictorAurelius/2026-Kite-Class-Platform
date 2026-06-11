@@ -28,6 +28,21 @@
       </button>
     </header>
 
+    <!-- Weekly progress info-scent strip -->
+    <div style="margin: 0 16px 12px; padding: 12px 14px; background: hsl(var(--surface-soft)); border-radius: 12px;" role="region" aria-label="Tiến độ bài tập tuần này">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
+        <span style="font-size:var(--text-xs);font-weight:600;color:hsl(var(--foreground))">Tiến độ tuần này</span>
+        <span style="font-size:var(--text-xs);color:hsl(var(--muted-foreground))">8/20 đã nộp · 40%</span>
+      </div>
+      <div style="height:8px;border-radius:999px;background:hsl(var(--muted));overflow:hidden" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" aria-label="40 phần trăm bài tập đã nộp">
+        <div style="height:100%;width:40%;border-radius:999px;background:linear-gradient(90deg,hsl(var(--primary)),hsl(var(--accent)))"></div>
+      </div>
+      <div style="margin-top:8px;font-size:11px;color:hsl(var(--warning));font-weight:600;display:flex;align-items:center;gap:4px">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        1 bài hết hạn hôm nay — ưu tiên nộp trước
+      </div>
+    </div>
+
     <!-- Tabs (3 wide) — counts MUST match subtitle "12 chờ nộp · 8 đã nộp · 24 có điểm" (GAP-363 polish) -->
     <div class="tabs" role="tablist">
       <button class="tab" role="tab" aria-selected="true">Chờ nộp (12)</button>

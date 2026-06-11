@@ -1,6 +1,6 @@
 # GAP-363b: kiteclass-student kit — external re-audit + delta-to-≥105 polish
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE (2026-06-11 — Wave ui-kits-100 Bucket A; external re-audit avg 105.2/128 ≥105 + floor 104 ≥95)
 **Priority:** 🟡 P2 (kit avg target — not BLOCKING; floor ≥95 restored, P0 persona violation cleared in GAP-363)
 **Domain:** Frontend / Design System
 **Found:** 2026-05-06 (Wave 22 closure correction — GAP-363 §2 AC threshold genuinely unmet)
@@ -54,12 +54,12 @@ If external re-audit (Step 1) reveals 102-104 avg (already close), Step 3 may be
 
 ## Acceptance Criteria
 
-- [ ] External re-audit completed via `quality/ui-review-prototype` skill — per-screen /128 documented
-- [ ] Calibration delta (self vs external) recorded for `feedback_audit_calibration.md` learning
-- [ ] 5-6 polish targets identified + scoped
-- [ ] Polish PR shipped lifting avg to ≥105
-- [ ] Final external re-audit confirms ≥105
-- [ ] GAP-363 retroactively flipped 🟡 PARTIAL → 🟢 DONE on completion of this gap
+- [x] External re-audit completed — per-screen /128 documented (`audits/ui-review/2026-06-11-round-4-kiteclass-student-reaudit.md`, 13 screens)
+- [x] Calibration delta (self vs external) recorded for `feedback_audit_calibration.md` learning (delta −10.7, within band)
+- [x] Polish targets identified + scoped (8 screens: login / notifications / my-classes / today / class-detail / profile / assignments / attendance)
+- [x] Polish shipped lifting avg to ≥105 (avg 105.2/128, +4.8 vs baseline 100.4)
+- [x] Final external re-audit confirms ≥105 (105.2 avg + floor 104 ≥95; 5/5 persona FAIL/partial closed)
+- [x] GAP-363 flipped 🟡 PARTIAL → 🟢 DONE on completion of this gap
 
 ## Related
 
@@ -75,3 +75,4 @@ If external re-audit (Step 1) reveals 102-104 avg (already close), Step 3 may be
 ## Log
 
 - **2026-05-06:** Filed at Wave 22 closure per `gap-done-discipline.md` §3 PARTIAL exit ramp. GAP-363 §AC threshold ≥105 unmet by self-rescore ~102.5; coordinator downgraded GAP-363 DONE → PARTIAL and filed this follow-up to honor `gap-done-discipline.md` §2. Tracked under Wave 22 closure ROADMAP entry.
+- **2026-06-11 (DONE):** Wave ui-kits-100 Bucket A — external re-audit + polish. Re-audit GATE first (calibration trap): pre-polish external ~102-103 (above worst-case 85-95). Polished 8 lowest screens: login (SVG brand mark thay 🎓 emoji + parent-reset workflow AC-EDGE-001), notifications (parent-kép dual-delivery badges AC-COMM-001), my-classes (favorite-star indicators), today (CTA-hierarchy section heading), class-detail (320px hero clamp + "Nhắn tin" label), profile (edit-profile affordance), assignments (weekly-progress strip), attendance (streak-insight card). Final external avg **105.2/128** (+4.8 vs baseline 100.4) · floor **104** ≥95 · 5/5 persona FAIL/partial closed (payments AC-FIN-001 Wave 22 + login AC-EDGE-001 + notifications AC-COMM-001 this round). Systemic lift: font token Inter → Be Vietnam Pro (production-parity). Calibration delta self−ext −10.7 (within band per `feedback_audit_calibration.md`). Evidence: `documents/04-quality/audits/ui-review/2026-06-11-round-4-kiteclass-student-reaudit.md` (per-screen table) + `audits-index.csv` row AUDIT-2026-06-11-round-4-kiteclass-student-reaudit. Residual (non-blocking): dark-mode per-screen parity ⚠️ implicit; WCAG axe-core deferred GAP-227. GAP-363 flipped DONE (closed via this gap).
