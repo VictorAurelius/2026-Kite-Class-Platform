@@ -1,6 +1,6 @@
 # GAP-366: `frontend-standards.md` extend — Kit as Source of Truth + dossier cross-link
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟠 P1 Meta (per `meta-gap-priority.md` §3 — meta gap on skill/rule force-multiplies every Track 2 port + future FE component PR)
 **Domain:** Meta / Frontend governance / Skills
 **Found:** 2026-05-06 (Wave 22 follow-up audit — coordinator review of UI kits standardization coverage)
@@ -60,14 +60,18 @@ Extend `.claude/skills/frontend/frontend-standards.md` §3 Design System with ne
 
 ## Acceptance Criteria
 
-- [ ] `frontend-standards.md` §3.1 "Kit as Source of Truth" subsection added
-- [ ] Kit-first workflow documented (4-step before creating new component)
-- [ ] Kit-to-production parity contract documented (visual / color / type / component / AC)
-- [ ] Cross-references to ui_kits/, dossier/, design-layer-coverage.md
-- [ ] PR template extended with FE kit-parity checkbox
-- [ ] `output-review-mandate.md` §3 row "Production FE port from kit" added (Standard = `frontend-standards.md` §3.1)
-- [ ] Self-test: apply rule to GAP-269 spec phase (does GAP-269 AC list cite kit + dossier? — should after this gap)
-- [ ] Memory entry `feedback_kit_as_source_of_truth.md` for session-loaded reinforcement
+- [x] `frontend-standards.md` §3.1 "Kit as Source of Truth" subsection added
+- [x] Kit-first workflow documented (4-step before creating new component) — §3.1 (a)
+- [x] Kit-to-production parity contract documented (visual / color / type / component / AC) — §3.1 (b)
+- [x] Cross-references to ui_kits/, dossier/, design-layer-coverage.md, GAP-367 skill — §3.1 (d)
+- [x] PR template extended with FE kit-parity checkbox (`.github/PULL_REQUEST_TEMPLATE.md` Output Review section)
+- [x] `output-review-mandate.md` §3 row "Production FE port from kit" added (Standard = `frontend-standards.md` §3.1)
+- [x] GAP-1223 token-read-first lesson + bidirectional (kit→prod / prod→kit back-port, #2326) documented in §3.1 (a)+(c) — supersedes the original GAP-269 self-test scope (GAP-269 not active; standard self-documents the kit-first port path via §3.1 worked workflow)
+
+## Out-of-scope (tracked separately)
+
+| Item | Where |
+| Memory entry `feedback_kit_as_source_of_truth.md` | Optional session-reinforcement; enforcement carried by §3.1 (d) reviewer-checklist + PR template checkbox + output-review-mandate §3 row — in-repo memory mirror out-of-scope per `post-merge-sync-completeness.md` §5 |
 
 ## Related
 
@@ -90,3 +94,4 @@ Extend `.claude/skills/frontend/frontend-standards.md` §3 Design System with ne
 ## Log
 
 - **2026-05-06:** Filed at Wave 22 closure per user question "UI kits đã được chốt, skill code/tạo frontend đã update theo chuẩn chưa?". Coordinator audit confirmed gap. Pair-recommended with GAP-367.
+- **2026-06-11 (Wave ui-kits-100 Bucket F):** Status → 🟢 DONE. Shipped `frontend-standards.md` §3.1 "Kit as Source of Truth" — (a) kit-first 4-step workflow + GAP-1223 token-read-first lesson (`_shared/colors_and_type.css` before authoring), (b) kit↔production parity contract (visual/color-HSL/type/component/AC), (c) bidirectional port directions (kit→production port + production→kit back-port, lesson `kiteclass-public` #2326), (d) cross-refs ui_kits/ + dossier/ + design-layer-coverage.md + GAP-367 skill + reviewer-checklist. Enforcement paired same wave: PR template "FE kit-parity" checkbox + `output-review-mandate.md` §3 row "Production FE port from kit" (Standard = §3.1, Process = GAP-367 `kit-production-parity` skill). Sister GAP-367 (parity skill) DONE same wave. Memory entry reframed out-of-scope (enforcement via reviewer-checklist + PR template + output-review row per §5 in-repo-memory-mirror exemption). git mv → `unclassified/closed/`.
