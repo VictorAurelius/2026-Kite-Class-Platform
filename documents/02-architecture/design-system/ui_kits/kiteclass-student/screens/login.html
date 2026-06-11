@@ -20,7 +20,9 @@
 
     <!-- Logo + welcome -->
     <div style="text-align:center;padding:32px 24px 16px">
-      <div style="width:80px;height:80px;margin:0 auto 16px;border-radius:24px;background:linear-gradient(135deg,hsl(var(--primary)),hsl(var(--accent)));color:#fff;display:flex;align-items:center;justify-content:center;font-size:36px" aria-hidden="true">🎓</div>
+      <div style="width:80px;height:80px;margin:0 auto 16px;border-radius:24px;background:linear-gradient(135deg,hsl(var(--primary)),hsl(var(--accent)));color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-soft-lg)" role="img" aria-label="KiteClass">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 21 11l-9 9-9-9z"/><path d="M12 2v18"/><path d="M3 11h18"/><path d="m12 20 3.5 2"/></svg>
+      </div>
       <h1 style="margin:0;font-size:24px;font-weight:800;letter-spacing:-0.02em">Chào mừng bạn quay lại 👋</h1>
       <p style="margin:8px 0 0;font-size:var(--text-sm);color:hsl(var(--muted-foreground))">Đăng nhập để xem lớp học, bài tập và điểm số của bạn</p>
     </div>
@@ -59,7 +61,27 @@
           </button>
         </div>
         <div style="display:flex;justify-content:flex-end;margin-top:4px">
-          <a href="login.html" style="font-size:var(--text-xs);color:hsl(var(--primary));font-weight:600;text-decoration:none">Quên mật khẩu?</a>
+          <button
+            type="button"
+            aria-expanded="false"
+            aria-controls="reset-help"
+            onclick="(function(b){var t=document.getElementById('reset-help');var open=t.hidden;t.hidden=!open;b.setAttribute('aria-expanded',String(open));})(this)"
+            style="font-size:var(--text-xs);color:hsl(var(--primary));font-weight:600;min-height:auto;padding:2px 0">Quên mật khẩu?</button>
+        </div>
+      </div>
+
+      <!-- Parent-mediated reset (AC-EDGE-001 child-protection — student dưới 18 không tự reset qua email) -->
+      <div id="reset-help" hidden role="region" aria-label="Cách đặt lại mật khẩu" style="margin: 0 0 12px; padding: 12px 14px; background: hsl(var(--surface-soft)); border-left: 3px solid hsl(var(--primary)); border-radius: 8px; font-size: var(--text-xs); line-height: 1.6; color: hsl(var(--foreground))">
+        <div style="display:flex;gap:8px;align-items:flex-start">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" style="flex-shrink:0;margin-top:2px;color:hsl(var(--primary))"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <div>
+            <strong style="display:block;margin-bottom:2px">Nhờ ba/mẹ hoặc GVCN đặt lại</strong>
+            Tài khoản học sinh được đặt lại qua ba/mẹ (KiteClass Parent Portal) hoặc giáo viên chủ nhiệm — không gửi link đổi mật khẩu qua email riêng. <em>Quy định bảo vệ trẻ vị thành niên (AC-EDGE-001).</em>
+            <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+              <a href="notifications.html" class="pill info" style="text-decoration:none;font-size:11px">Gửi yêu cầu tới ba/mẹ</a>
+              <a href="notifications.html" class="pill neutral" style="text-decoration:none;font-size:11px">Liên hệ GVCN</a>
+            </div>
+          </div>
         </div>
       </div>
 

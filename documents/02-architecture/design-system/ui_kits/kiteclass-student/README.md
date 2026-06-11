@@ -399,3 +399,45 @@ External /128 review (`audits/ui-review/2026-05-05-round-3-kiteclass-student-rev
 - Persona AC source: [`secondary/student-in-P2.md`](../../../../00-brd/persona-criteria/secondary/student-in-P2.md) AC-FIN-001 (line 118) + AC-ONBOARD-003 (line 76) + AC-EDGE-001 (line 154)
 - Wave plan: [`waves/wave-2026-05-06-22-ui-kits-polish.md`](../../../../03-planning/waves/wave-2026-05-06-22-ui-kits-polish.md) §3 Bucket A
 - Tier-1 doc absence (Bucket C scope): GAP-365 — `S-student.md` Tier-1 AC doc, citing this kit as primary 基本設計 artifact
+
+---
+
+## Polish history (Wave ui-kits-100 Bucket A — GAP-363b, 2026-06-11)
+
+External Round-4 re-audit ([`audits/ui-review/2026-06-11-round-4-kiteclass-student-reaudit.md`](../../../../04-quality/audits/ui-review/2026-06-11-round-4-kiteclass-student-reaudit.md)) — kit avg **105.2/128** (≥105 target MET) · floor **104** (≥95 MET) · delta +4.8 vs 2026-05-05 baseline. Calibration discipline: external band 104-108 held, NOT self-band (delta self−ext −10.7, within band).
+
+### External per-screen (post-polish)
+
+| Screen | Ext 2026-05-05 | Round-4 ext /128 | Polish (Bucket A) |
+|--------|:---:|:---:|---|
+| `today.html` | 101 | **105** | section heading "Lớp tiếp theo" → CTA hierarchy |
+| `my-classes.html` | 99 | **105** | favorite-star indicators (5 lớp khớp chip) |
+| `class-detail.html` | 100 | **104** | 320px hero clamp + "Nhắn tin" text label |
+| `assignments.html` | 100 | **105** | weekly-progress strip (progressbar + due-soon) |
+| `assignment-detail.html` | 102 | **104** | (Wave 22 saved-draft; in-scope Tier-1) |
+| `grades.html` | 103 | **106** | (read-only AC-OPS-004 + GVCN, strong) |
+| `grade-detail.html` | 100 | **104** | (Wave 22 TT22 info-icon) |
+| `attendance.html` | 102 | **105** | streak-insight cross-link card |
+| `payments.html` | 92 | **108** | (Wave 22 Option C parent-trigger AC-FIN-001) |
+| `notifications.html` | 102 | **105** | parent-kép dual-delivery badges (AC-COMM-001) |
+| `profile.html` | 100 | **104** | edit-profile affordance + linkable pill |
+| `login.html` | 100 | **106** | SVG brand mark (thay 🎓) + parent-reset (AC-EDGE-001) |
+| `empty-states.html` | 104 | **106** | (highest — 5 empathic variants) |
+| **Avg** | **100.4** | **105.2** | **+4.8 · floor 104 ≥95** |
+
+Systemic lifts: font token Inter → **Be Vietnam Pro** (production-parity, Bucket E0) + Wave 22 payments rebuild + 5/5 persona FAIL/partial closed (AC-FIN-001 / AC-EDGE-001 / AC-COMM-001 / AC-OPS-001..004).
+
+### Acceptance gate
+
+| Gate | Result |
+|------|:----:|
+| Avg ≥105 | ✅ 105.2 |
+| Floor ≥95 | ✅ 104 |
+| Persona AC FAIL/partial | ✅ 5/5 closed |
+
+### Cross-references
+
+- Re-audit: [`audits/ui-review/2026-06-11-round-4-kiteclass-student-reaudit.md`](../../../../04-quality/audits/ui-review/2026-06-11-round-4-kiteclass-student-reaudit.md)
+- Gaps: GAP-363b (delta-to-105) + GAP-363 (parent) — `04-quality/gaps/phase-2/closed/`
+
+**Last Updated:** 2026-06-11
