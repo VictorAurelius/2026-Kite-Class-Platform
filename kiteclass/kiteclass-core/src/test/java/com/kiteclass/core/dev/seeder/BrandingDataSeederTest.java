@@ -11,9 +11,12 @@ import com.kiteclass.core.module.settings.repository.BrandingRepository;
 import com.kiteclass.core.module.instance.entity.FrontendInstance;
 import com.kiteclass.core.module.instance.entity.FrontendInstanceStatus;
 import com.kiteclass.core.module.instance.repository.FrontendInstanceRepository;
+import com.kiteclass.core.module.marketing.entity.LandingPage;
 import com.kiteclass.core.module.marketing.repository.LandingPageRepository;
 import com.kiteclass.core.module.quality.entity.QualityReport;
 import com.kiteclass.core.module.quality.entity.QualityReportRepository;
+import com.kiteclass.core.module.settings.entity.Branding;
+import org.springframework.cache.Cache;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,10 +28,16 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.List;
 
+import java.util.Optional;
+import java.util.function.Consumer;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -45,6 +54,7 @@ class BrandingDataSeederTest {
     @Mock private BrandingRepository brandingRepository;
     @Mock private OutboxEventWriter outbox;
     @Mock private TransactionTemplate transactionTemplate;
+    @Mock private org.springframework.cache.CacheManager cacheManager;
 
     private ObjectMapper objectMapper;
     private BrandingDataSeeder seeder;
@@ -60,7 +70,8 @@ class BrandingDataSeederTest {
                 brandingRepository,
                 outbox,
                 objectMapper,
-                transactionTemplate);
+                transactionTemplate,
+                cacheManager);
     }
 
     @Test
@@ -166,5 +177,50 @@ class BrandingDataSeederTest {
         seeder.seed();
 
         verify(outbox, times(1)).enqueue(anyString(), anyString(), anyString(), anyString());
+    }
+
+    @Test
+    @DisplayName("GAP-1203/1083: seedDemoTrio upserts landing (centerName + F-sections + stable logo) and evicts landingPages cache")
+    void seedDemoTrioUpsertsLandingAndEvictsCache() {
+        // transactionTemplate runs the callback synchronously.
+        doAnswer(inv -> {
+            inv.getArgument(0, Consumer.class).accept(null);
+            return null;
+        }).when(transactionTemplate).executeWithoutResult(any());
+        // Instances already exist → instance creation + seed(slug) heavy path skip.
+        when(instanceRepo.existsBySlugAndDeletedFalse(anyString())).thenReturn(true);
+        // No existing branding/landing rows → orElseGet creates new, then upsert sets fields
+        // (GAP-1203: upsert path runs even when row absent — same code path reconciles existing).
+        when(brandingRepository.findByInstanceIdAndDeletedFalse(any())).thenReturn(Optional.empty());
+        when(landingPageRepository.findByInstanceIdAndDeletedFalse(any())).thenReturn(Optional.empty());
+        Cache landingCache = mock(Cache.class);
+        when(cacheManager.getCache("landingPages")).thenReturn(landingCache);
+
+        seeder.onApplicationReady();
+
+        // Landing upsert: Hà row carries the short centerName + stable logo + F-section JSONB.
+        ArgumentCaptor<LandingPage> lpCaptor = ArgumentCaptor.forClass(LandingPage.class);
+        verify(landingPageRepository, atLeastOnce()).save(lpCaptor.capture());
+        LandingPage ha = lpCaptor.getAllValues().stream()
+                .filter(lp -> BrandingDataSeeder.HA_TENANT_ID.equals(lp.getInstanceId()))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Hà landing page not seeded"));
+        assertThat(ha.getCenterName()).isEqualTo("Cô Hà Toán");
+        assertThat(ha.getLogoUrl()).isEqualTo("/demo-banners/co-ha-toan-logo.webp");
+        assertThat(ha.getZaloUrl()).isEqualTo("https://zalo.me/co-ha-toan");
+        assertThat(ha.getTemplateType()).isEqualTo("personal");
+        assertThat(ha.getProblemSolution()).isNotNull();
+        assertThat(ha.getProblemSolution().toString()).contains("mất gốc");
+        assertThat(ha.getHowItWorks()).isNotNull();
+        assertThat(ha.getTrustStrip()).isNotNull();
+
+        // Branding upserted (reconciled content) for the demo-trio rows.
+        ArgumentCaptor<Branding> bCaptor = ArgumentCaptor.forClass(Branding.class);
+        verify(brandingRepository, atLeastOnce()).save(bCaptor.capture());
+        assertThat(bCaptor.getAllValues())
+                .anySatisfy(b -> assertThat(b.getLogoUrl()).isEqualTo("/demo-banners/co-ha-toan-logo.webp"));
+
+        // GAP-1203: public landing cache evicted so the next read repopulates the reconciled row.
+        verify(landingCache, atLeastOnce()).evict(any());
     }
 }

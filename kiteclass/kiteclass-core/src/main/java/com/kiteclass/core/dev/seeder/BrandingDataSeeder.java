@@ -20,6 +20,8 @@ import com.kiteclass.core.module.settings.entity.Branding;
 import com.kiteclass.core.module.settings.repository.BrandingRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.EventListener;
@@ -155,6 +157,92 @@ public class BrandingDataSeeder {
     static final String KHANH_BANNER_URL = "/demo-banners/co-khanh-phapluat.webp";
     static final String KHANH_LOGO_URL = "/demo-banners/co-khanh-phapluat-logo.webp";
 
+    // ── GAP-1083 / GAP-1205 / GAP-1206 — short center name + landing-100 F-section content ──
+    // centerName = the center's own short display name (nav/footer/JsonLd prefer this over the
+    // heroTitle marketing slogan, per GAP-1083). Distinct from Branding.displayName (longer form).
+    static final String HA_CENTER_NAME = "Cô Hà Toán";
+    static final String NHI_CENTER_NAME = "Thầy Nhì Hóa";
+    static final String SKY_CENTER_NAME = "Sky Education";
+
+    // F-section JSONB shapes mirror the FE consumer contract in kiteclass-frontend
+    // (public)/page.tsx: problemSolution=[{title (pain),description (problem),items[] (fixes)}];
+    // howItWorks=[{title (step),description}]; trustStrip=[{icon,title,description}] where icon ∈
+    // {"shield","lock","support","vn","spark"}. Audience = phụ huynh/học viên (NOT platform-pitch),
+    // tiếng Việt, khớp persona từng giáo viên. Non-empty → FE renders per-tenant; null → VN default.
+
+    static final String HA_PROBLEM_SOLUTION_JSON = """
+            [{"title":"Con mất gốc, sợ môn Toán",
+              "description":"Nhiều bé tiểu học hổng kiến thức nền nên càng học càng nản.",
+              "items":["Kiểm tra đầu vào miễn phí để biết con đang hổng phần nào",
+                       "Lộ trình kèm sát, lấp lỗ hổng từ gốc"]},
+             {"title":"Học mãi chưa tiến bộ",
+              "description":"Lớp đông khiến con ngại hỏi, cô khó theo sát từng bạn.",
+              "items":["Lớp nhỏ 6 học viên, cô kèm sát từng con",
+                       "Báo cáo tiến độ gửi phụ huynh hằng tuần"]}]""";
+    static final String HA_HOW_IT_WORKS_JSON = """
+            [{"title":"Kiểm tra đầu vào miễn phí",
+              "description":"Đánh giá đúng trình độ, xác định lỗ hổng kiến thức của con."},
+             {"title":"Học theo lộ trình riêng",
+              "description":"Lộ trình cá nhân hóa, lớp nhỏ, cô bám sát từng buổi học."},
+             {"title":"Phụ huynh nhận báo cáo hằng tuần",
+              "description":"Tiến độ và nhận xét của con được gửi qua Zalo mỗi tuần."}]""";
+    static final String HA_TRUST_STRIP_JSON = """
+            [{"icon":"spark","title":"6+ năm kinh nghiệm",
+              "description":"Cô Hà kèm Toán tiểu học, bám sát từng học viên."},
+             {"icon":"support","title":"Lớp nhỏ 6 học viên",
+              "description":"Sĩ số nhỏ để cô theo sát từng con."},
+             {"icon":"shield","title":"Báo cáo hằng tuần",
+              "description":"Phụ huynh nắm tiến độ con qua báo cáo Zalo mỗi tuần."}]""";
+
+    static final String NHI_PROBLEM_SOLUTION_JSON = """
+            [{"title":"Hóa học khó, dễ mất căn bản",
+              "description":"Hóa THCS nhiều khái niệm trừu tượng nên học sinh dễ hổng kiến thức.",
+              "items":["Hệ thống lại kiến thức nền theo từng chuyên đề",
+                       "Luyện đề bài bản từ cơ bản đến nâng cao"]},
+             {"title":"Lo lắng kỳ thi vào 10",
+              "description":"Áp lực thi chuyển cấp khiến nhiều em mất phương hướng ôn tập.",
+              "items":["Lộ trình luyện thi vào 10 rõ ràng theo tuần",
+                       "Thi thử định kỳ kèm chữa đề chi tiết"]}]""";
+    static final String NHI_HOW_IT_WORKS_JSON = """
+            [{"title":"Kiểm tra đầu vào miễn phí",
+              "description":"Xác định trình độ Hóa hiện tại để xếp lộ trình phù hợp."},
+             {"title":"Học theo lộ trình chuyên đề",
+              "description":"Học bài bản theo chuyên đề, lớp tách theo trình độ 8 và 9."},
+             {"title":"Báo cáo chuyên cần & tiến độ",
+              "description":"Phụ huynh nhận báo cáo chuyên cần và kết quả thi thử định kỳ."}]""";
+    static final String NHI_TRUST_STRIP_JSON = """
+            [{"icon":"spark","title":"Thạc sĩ Hóa học",
+              "description":"Thầy Nhì — Thạc sĩ Hóa, ĐH Khoa học Tự nhiên."},
+             {"icon":"shield","title":"Cam kết đầu ra",
+              "description":"Lộ trình luyện thi vào 10 cam kết tiến bộ rõ rệt."},
+             {"icon":"support","title":"Chuyên cần 94%",
+              "description":"Theo sát chuyên cần, báo cáo chi tiết cho phụ huynh."}]""";
+
+    // Sky / cô Khánh — Anh ngữ (§4.1 walkthrough tenant on the Sky instance).
+    static final String SKY_PROBLEM_SOLUTION_JSON = """
+            [{"title":"Con ngại nói tiếng Anh",
+              "description":"Nhiều bé mất gốc, ngại giao tiếp vì thiếu môi trường luyện tập.",
+              "items":["Lộ trình lấy lại căn bản từ đầu",
+                       "Luyện phản xạ nghe – nói ngay mỗi buổi"]},
+             {"title":"Học nhiều nhưng chưa hiệu quả",
+              "description":"Học thêm tràn lan mà con vẫn chưa tự tin dùng tiếng Anh.",
+              "items":["Lớp nhỏ, giáo viên kèm sát phát âm",
+                       "Báo cáo tiến bộ thường xuyên cho phụ huynh"]}]""";
+    static final String SKY_HOW_IT_WORKS_JSON = """
+            [{"title":"Kiểm tra trình độ miễn phí",
+              "description":"Đánh giá nghe – nói – đọc – viết để xếp lớp phù hợp."},
+             {"title":"Học theo lộ trình cá nhân",
+              "description":"Lộ trình bám sát mục tiêu, lớp nhỏ, giáo viên tận tâm."},
+             {"title":"Phụ huynh theo dõi tiến bộ",
+              "description":"Nhận báo cáo kết quả học tập của con định kỳ qua Zalo."}]""";
+    static final String SKY_TRUST_STRIP_JSON = """
+            [{"icon":"spark","title":"Giáo viên tận tâm",
+              "description":"Đội ngũ giàu kinh nghiệm luyện Anh ngữ cho mọi lứa tuổi."},
+             {"icon":"support","title":"Lớp nhỏ kèm sát",
+              "description":"Sĩ số nhỏ giúp con được luyện nói nhiều hơn mỗi buổi."},
+             {"icon":"vn","title":"Lộ trình rõ ràng",
+              "description":"Cam kết tiến bộ với lộ trình minh bạch theo từng giai đoạn."}]""";
+
     private final FrontendInstanceRepository instanceRepo;
     private final BrandingResourceRepository resourceRepo;
     private final QualityReportRepository qualityRepo;
@@ -163,6 +251,10 @@ public class BrandingDataSeeder {
     private final OutboxEventWriter outbox;
     private final ObjectMapper objectMapper;
     private final TransactionTemplate transactionTemplate;
+    // GAP-1203: evict the public landing cache after an upsert so the next anonymous
+    // visit re-reads the reconciled row instead of a stale cached response. Nullable
+    // (no caching configured / unit tests) — guarded in {@link #evictLandingCache}.
+    private final CacheManager cacheManager;
 
     /** Triggered after the Spring context is fully initialized. */
     @EventListener(ApplicationReadyEvent.class)
@@ -181,30 +273,34 @@ public class BrandingDataSeeder {
      */
     private void seedDemoTrio() {
         seedTrioTenant(new TrioSpec(HA_TENANT_ID, HA_TENANT_SLUG, HA_TENANT_REF, HA_FRONTEND_URL,
-                HA_DISPLAY_NAME, HA_TAGLINE, HA_PRIMARY_COLOR, HA_SECONDARY_COLOR, HA_ACCENT_COLOR,
+                HA_DISPLAY_NAME, HA_CENTER_NAME, HA_TAGLINE, HA_PRIMARY_COLOR, HA_SECONDARY_COLOR, HA_ACCENT_COLOR,
                 HA_BANNER_URL, HA_LOGO_URL,
                 "Lấy lại căn bản môn Toán cùng cô Hà",
                 "Lộ trình Toán tiểu học bài bản, lớp nhỏ, kèm sát từng học viên.",
                 "https://zalo.me/co-ha-toan", "https://facebook.com/cohatoan",
-                HA_TEACHERS_JSON, HA_PRICING_JSON, HA_STATS_JSON));
+                HA_TEACHERS_JSON, HA_PRICING_JSON, HA_STATS_JSON,
+                HA_PROBLEM_SOLUTION_JSON, HA_HOW_IT_WORKS_JSON, HA_TRUST_STRIP_JSON));
         seedTrioTenant(new TrioSpec(NHI_TENANT_ID, NHI_TENANT_SLUG, NHI_TENANT_REF, NHI_FRONTEND_URL,
-                NHI_DISPLAY_NAME, NHI_TAGLINE, NHI_PRIMARY_COLOR, NHI_SECONDARY_COLOR, NHI_ACCENT_COLOR,
+                NHI_DISPLAY_NAME, NHI_CENTER_NAME, NHI_TAGLINE, NHI_PRIMARY_COLOR, NHI_SECONDARY_COLOR, NHI_ACCENT_COLOR,
                 NHI_BANNER_URL, NHI_LOGO_URL,
                 "Hóa học THCS — học là hiểu cùng thầy Nhì",
                 "Khóa Hóa học THCS đầy đủ, bộ nhận diện sinh tự động bằng AI Branding.",
                 "https://zalo.me/thay-nhi-hoa", "https://facebook.com/thaynhihoa",
-                NHI_TEACHERS_JSON, NHI_PRICING_JSON, NHI_STATS_JSON));
+                NHI_TEACHERS_JSON, NHI_PRICING_JSON, NHI_STATS_JSON,
+                NHI_PROBLEM_SOLUTION_JSON, NHI_HOW_IT_WORKS_JSON, NHI_TRUST_STRIP_JSON));
         seedKhanhBranding();
     }
 
     /** Immutable spec for one demo-trio tenant seed (keeps {@link #seedTrioTenant} param count sane). */
     private record TrioSpec(UUID tenantId, String slug, String tenantRef, String frontendUrl,
-                            String displayName, String tagline,
+                            String displayName, String centerName, String tagline,
                             String primary, String secondary, String accent,
                             String bannerUrl, String logoUrl,
                             String heroTitle, String heroSubtitle, String zaloUrl, String facebookUrl,
                             // GAP-1194 — JSONB landing sections (FE-contract shapes; see constants above).
-                            String teachersJson, String pricingJson, String statsJson) {
+                            String teachersJson, String pricingJson, String statsJson,
+                            // GAP-1083/1205 — landing-100 F-section JSONB (problem/how/trust).
+                            String problemSolutionJson, String howItWorksJson, String trustStripJson) {
     }
 
     /**
@@ -232,42 +328,49 @@ public class BrandingDataSeeder {
                     instance.transitionTo(FrontendInstanceStatus.DEPLOYED);
                     instanceRepo.save(instance);
                 }
-                // 2. Branding settings row — idempotent by instance.
-                if (!brandingRepository.existsByInstanceIdAndDeletedFalse(spec.tenantId())) {
-                    Branding branding = new Branding();
-                    branding.setDisplayName(spec.displayName());
-                    branding.setTagline(spec.tagline());
-                    branding.setPrimaryColor(spec.primary());
-                    branding.setSecondaryColor(spec.secondary());
-                    branding.setAccentColor(spec.accent());
-                    branding.setThemeConfigJson(
-                            buildTrioThemeConfigJson(spec.displayName(), spec.tagline(),
-                                    spec.primary(), spec.secondary(), spec.accent(),
-                                    spec.zaloUrl(), spec.facebookUrl(), spec.frontendUrl()));
-                    branding.setLogoUrl(spec.logoUrl());
-                    branding.setZaloUrl(spec.zaloUrl());
-                    branding.setFacebookUrl(spec.facebookUrl());
-                    branding.setWebsiteUrl(spec.frontendUrl());
-                    brandingRepository.save(branding);
-                }
-                // 3. LandingPage hero — upsert (lazily created on first GET otherwise, BR-MKT-001).
+                // 2. Branding settings row — UPSERT (GAP-1203): reconcile content to the current
+                //    seed constants even when the row already exists, so a row seeded by an older
+                //    constant set (e.g. stale .png logo) is refreshed instead of skipped. Fixed
+                //    demo UUID → only the demo row is touched, never user-created rows.
+                Branding branding = brandingRepository.findByInstanceIdAndDeletedFalse(spec.tenantId())
+                        .orElseGet(Branding::new);
+                branding.setDisplayName(spec.displayName());
+                branding.setTagline(spec.tagline());
+                branding.setPrimaryColor(spec.primary());
+                branding.setSecondaryColor(spec.secondary());
+                branding.setAccentColor(spec.accent());
+                branding.setThemeConfigJson(
+                        buildTrioThemeConfigJson(spec.displayName(), spec.tagline(),
+                                spec.primary(), spec.secondary(), spec.accent(),
+                                spec.zaloUrl(), spec.facebookUrl(), spec.frontendUrl()));
+                branding.setLogoUrl(spec.logoUrl());
+                branding.setZaloUrl(spec.zaloUrl());
+                branding.setFacebookUrl(spec.facebookUrl());
+                branding.setWebsiteUrl(spec.frontendUrl());
+                brandingRepository.save(branding);
+
+                // 3. LandingPage — UPSERT (lazily created on first GET otherwise, BR-MKT-001).
                 LandingPage lp = landingPageRepository.findByInstanceIdAndDeletedFalse(spec.tenantId())
                         .orElseGet(() -> {
                             LandingPage created = new LandingPage();
                             created.setInstanceId(spec.tenantId());
                             return created;
                         });
+                lp.setCenterName(spec.centerName());
                 lp.setHeroTitle(spec.heroTitle());
                 lp.setHeroSubtitle(spec.heroSubtitle());
                 lp.setHeroImageUrl(spec.bannerUrl());
+                // GAP-1203/1204: store the stable static logo path (NOT a presigned MinIO URL) so
+                // the public landing header logo never expires. Reconciled each boot from constants.
+                lp.setLogoUrl(spec.logoUrl());
                 lp.setTagline(spec.tagline());
                 lp.setPrimaryColor(spec.primary());
                 lp.setSecondaryColor(spec.secondary());
+                // GAP-1083: surface the tenant's Zalo OA in the FloatingCTA.
+                lp.setZaloUrl(spec.zaloUrl());
                 // template_type NOT NULL (DB constraint) — trio đều là GV cá nhân → "personal"
-                // ("personal" GV độc lập | "organization" trung tâm, per LandingPage entity §106).
-                if (lp.getTemplateType() == null) {
-                    lp.setTemplateType("personal");
-                }
+                // ("personal" GV độc lập | "organization" trung tâm, per LandingPage entity).
+                lp.setTemplateType("personal");
                 // GAP-1194 — data-driven sections (teachers / pricing / stats). Re-set each boot:
                 // idempotent (columns on the single landing row; overwrite, never duplicates).
                 // FE (public)/page.tsx maps these JSONB shapes → section slots; null/empty → section
@@ -276,11 +379,37 @@ public class BrandingDataSeeder {
                 lp.setTeachers(landingJson(spec.teachersJson()));
                 lp.setPricingTiers(landingJson(spec.pricingJson()));
                 lp.setStats(landingJson(spec.statsJson()));
+                // GAP-1083/1205 — landing-100 F-sections (problem→solution / how-it-works / trust).
+                // Per-tenant phụ huynh/học viên copy (not platform-pitch); FE falls back to generic
+                // VN default when null.
+                lp.setProblemSolution(landingJson(spec.problemSolutionJson()));
+                lp.setHowItWorks(landingJson(spec.howItWorksJson()));
+                lp.setTrustStrip(landingJson(spec.trustStripJson()));
                 landingPageRepository.save(lp);
             });
+            // GAP-1203: evict AFTER the transaction commits so the next read repopulates
+            // the cache from the reconciled row (not a stale pre-upsert cached response).
+            evictLandingCache(spec.tenantId());
             log.info("Seeded demo-trio tenant (slug={}, primary={})", spec.slug(), spec.primary());
         } finally {
             TenantContext.clear();
+        }
+    }
+
+    /**
+     * Evicts the public landing-page cache entry for {@code instanceId} so the next
+     * anonymous visit re-reads the freshly upserted row (GAP-1203). The cache name +
+     * key mirror {@code LandingPageServiceImpl} ({@code @Cacheable("landingPages",
+     * key="#tenantId")}). No-op when caching is not configured (unit tests / nooop
+     * cache) — never fails the boot-time seed.
+     */
+    private void evictLandingCache(UUID instanceId) {
+        if (cacheManager == null) {
+            return;
+        }
+        Cache cache = cacheManager.getCache("landingPages");
+        if (cache != null) {
+            cache.evict(instanceId);
         }
     }
 
@@ -293,16 +422,17 @@ public class BrandingDataSeeder {
         try {
             TenantContext.setCurrentTenant(SKY_TENANT_ID);
             transactionTemplate.executeWithoutResult(status -> {
-                if (brandingRepository.existsByInstanceIdAndDeletedFalse(SKY_TENANT_ID)) {
-                    return;
-                }
-                Branding branding = new Branding();
+                // UPSERT (GAP-1203): reconcile to current constants — refresh a stale row
+                // (e.g. presigned logo) instead of skipping. Fixed Sky UUID → demo row only.
+                Branding branding = brandingRepository.findByInstanceIdAndDeletedFalse(SKY_TENANT_ID)
+                        .orElseGet(Branding::new);
                 branding.setDisplayName(KHANH_DISPLAY_NAME);
                 branding.setTagline(SKY_TAGLINE);
                 branding.setPrimaryColor(SKY_PRIMARY_COLOR);
                 branding.setSecondaryColor(SKY_SECONDARY_COLOR);
                 branding.setAccentColor(SKY_ACCENT_COLOR);
                 branding.setThemeConfigJson(buildSkyThemeConfigJson());
+                // GAP-1204: stable static logo path (NOT a presigned MinIO URL that expires).
                 branding.setLogoUrl(KHANH_LOGO_URL);
                 brandingRepository.save(branding);
             });
@@ -381,13 +511,29 @@ public class BrandingDataSeeder {
                     created.setInstanceId(tenantId);
                     return created;
                 });
+        // GAP-1083: short center name preferred over the hero slogan in nav/footer/JsonLd.
+        lp.setCenterName(SKY_CENTER_NAME);
         lp.setHeroTitle("Mất gốc tiếng Anh? Đã có cô Khánh");
         lp.setHeroSubtitle("Lộ trình lấy lại căn bản tiếng Anh, học cùng giáo viên tận tâm.");
-        lp.setHeroImageUrl("/demo-banners/co-khanh-phapluat.webp");
+        lp.setHeroImageUrl(KHANH_BANNER_URL);
+        // GAP-1204: overwrite any stale presigned logo with the stable static demo logo so
+        // the Sky landing header never renders a broken (403) image after the 7-day TTL.
+        lp.setLogoUrl(KHANH_LOGO_URL);
         lp.setTagline(SKY_TAGLINE);
         lp.setPrimaryColor(SKY_PRIMARY_COLOR);
         lp.setSecondaryColor(SKY_SECONDARY_COLOR);
+        if (lp.getTemplateType() == null) {
+            lp.setTemplateType("personal");
+        }
+        // GAP-1083/1205 — landing-100 F-sections (Anh ngữ, cô Khánh). Per-tenant VN copy.
+        lp.setProblemSolution(landingJson(SKY_PROBLEM_SOLUTION_JSON));
+        lp.setHowItWorks(landingJson(SKY_HOW_IT_WORKS_JSON));
+        lp.setTrustStrip(landingJson(SKY_TRUST_STRIP_JSON));
         landingPageRepository.save(lp);
+        // GAP-1203: evict so the next read repopulates from the reconciled row. seedSkyLanding
+        // runs inside the seedTenant transaction; eviction here (pre-commit) is still correct
+        // because @Cacheable repopulates lazily on the next anonymous GET after commit.
+        evictLandingCache(tenantId);
         log.info("Seeded Sky landing hero (instance={})", tenantId);
     }
 

@@ -9,8 +9,9 @@ import com.kiteclass.core.module.marketing.service.LandingPageContentSanitizer;
 import com.kiteclass.core.module.marketing.service.LandingPageService;
 import com.kiteclass.core.module.settings.entity.Branding;
 import com.kiteclass.core.module.settings.repository.BrandingRepository;
-import lombok.RequiredArgsConstructor;
+import com.kiteclass.core.module.settings.storage.BrandingAssetUrlResolver;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -28,7 +29,6 @@ import java.util.UUID;
  */
 @Slf4j
 @Service
-@RequiredArgsConstructor
 @org.springframework.validation.annotation.Validated
 public class LandingPageServiceImpl implements LandingPageService {
 
@@ -36,6 +36,23 @@ public class LandingPageServiceImpl implements LandingPageService {
     private final LandingPageMapper landingPageMapper;
     private final BrandingRepository brandingRepository;
     private final LandingPageContentSanitizer contentSanitizer;
+    // GAP-1204: re-derive a fresh presigned URL for logo/hero on read so the public
+    // landing never renders a broken (403) asset after the stored presigned URL's
+    // 7-day TTL expires. Optional — null when no MinIO storage bean is configured.
+    private final BrandingAssetUrlResolver assetUrlResolver;
+
+    public LandingPageServiceImpl(
+            LandingPageRepository landingPageRepository,
+            LandingPageMapper landingPageMapper,
+            BrandingRepository brandingRepository,
+            LandingPageContentSanitizer contentSanitizer,
+            @Autowired(required = false) BrandingAssetUrlResolver assetUrlResolver) {
+        this.landingPageRepository = landingPageRepository;
+        this.landingPageMapper = landingPageMapper;
+        this.brandingRepository = brandingRepository;
+        this.contentSanitizer = contentSanitizer;
+        this.assetUrlResolver = assetUrlResolver;
+    }
 
     /**
      * Gets landing page for tenant, creates default if not exists.
@@ -61,7 +78,7 @@ public class LandingPageServiceImpl implements LandingPageService {
 
         LandingPage landingPage = getOrCreateDefault(tenantId);
 
-        return landingPageMapper.toResponse(landingPage);
+        return withFreshAssetUrls(landingPageMapper.toResponse(landingPage));
     }
 
     /**
@@ -90,7 +107,29 @@ public class LandingPageServiceImpl implements LandingPageService {
         LandingPage updated = landingPageRepository.save(landingPage);
 
         log.info("Updated landing page for tenant: {}", tenantId);
-        return landingPageMapper.toResponse(updated);
+        return withFreshAssetUrls(landingPageMapper.toResponse(updated));
+    }
+
+    /**
+     * Re-derive fresh presigned URLs for the response's asset fields (GAP-1204).
+     *
+     * <p>The branding pipeline can persist a presigned MinIO URL into
+     * {@code landing_pages.logo_url} (inherited from the tenant's Branding row)
+     * whose signature expires after the 7-day storage TTL → the public landing
+     * renders a broken (403) logo. Mirroring the settings Branding surface
+     * (GAP-1072), we regenerate from the stable object key on every read instead
+     * of returning the stale stored value. {@code heroImageUrl} is swept too;
+     * static {@code /demo-banners/...} paths are non-presigned → returned as-is.
+     *
+     * <p>Transient only — the regenerated URL is never written back to the DB.
+     */
+    private LandingPageResponse withFreshAssetUrls(LandingPageResponse response) {
+        if (assetUrlResolver == null || response == null) {
+            return response;
+        }
+        response.setLogoUrl(assetUrlResolver.regenerate(response.getLogoUrl()));
+        response.setHeroImageUrl(assetUrlResolver.regenerate(response.getHeroImageUrl()));
+        return response;
     }
 
     /**

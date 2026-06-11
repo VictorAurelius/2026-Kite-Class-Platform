@@ -12,6 +12,7 @@ import com.kiteclass.core.module.settings.entity.Branding;
 import com.kiteclass.core.module.settings.mapper.BrandingMapper;
 import com.kiteclass.core.module.settings.repository.BrandingRepository;
 import com.kiteclass.core.module.settings.storage.BrandingAssetStorage;
+import com.kiteclass.core.module.settings.storage.BrandingAssetUrlResolver;
 import com.kiteclass.core.testutil.BrandingTestDataBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -66,8 +67,12 @@ class BrandingServiceTest {
                 new LandingPageContentSanitizerImpl(new ObjectMapper(), new LandingPageSafetyProperties());
         // Pass nulls for branding event publisher and version service —
         // they're optional and unrelated to the behavior under test.
+        // GAP-1204: the regenerate-on-read logic now lives in BrandingAssetUrlResolver
+        // (shared with the LandingPage surface). Wrap the same storage mock so the
+        // GAP-1072 presigned-regen assertions keep verifying renderableUrl(...) calls.
         brandingService = new BrandingServiceImpl(
-                brandingRepository, brandingMapper, null, null, brandingAssetStorage, contentSanitizer);
+                brandingRepository, brandingMapper, null, null, brandingAssetStorage, contentSanitizer,
+                new BrandingAssetUrlResolver(brandingAssetStorage));
     }
 
     @AfterEach

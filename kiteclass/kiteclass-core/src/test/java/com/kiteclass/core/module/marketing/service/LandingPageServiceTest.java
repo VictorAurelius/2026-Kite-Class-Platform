@@ -7,6 +7,7 @@ import com.kiteclass.core.module.marketing.mapper.LandingPageMapper;
 import com.kiteclass.core.module.marketing.repository.LandingPageRepository;
 import com.kiteclass.core.module.marketing.service.impl.LandingPageServiceImpl;
 import com.kiteclass.core.module.settings.repository.BrandingRepository;
+import com.kiteclass.core.module.settings.storage.BrandingAssetUrlResolver;
 import com.kiteclass.core.testutil.LandingPageTestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,6 +44,9 @@ class LandingPageServiceTest {
 
     @Mock
     private LandingPageContentSanitizer contentSanitizer;
+
+    @Mock
+    private BrandingAssetUrlResolver assetUrlResolver;
 
     @InjectMocks
     private LandingPageServiceImpl landingPageService;
@@ -111,5 +115,28 @@ class LandingPageServiceTest {
         // GAP-827: sanitize-on-write runs after mapper, before persist.
         verify(contentSanitizer).sanitize(landingPage);
         verify(landingPageRepository).save(landingPage);
+    }
+
+    @Test
+    void getLandingPage_regeneratesPresignedAssetUrlsOnRead() {
+        // GAP-1204: a persisted presigned logo URL would 403 after its 7-day TTL; the
+        // service re-derives a fresh URL on read (heroImageUrl swept too).
+        String expiredLogo = "http://localhost:9100/kite-branding-assets/static/abc/LOGO/x.png?X-Amz-Signature=stale";
+        String freshLogo = "http://localhost:9100/kite-branding-assets/static/abc/LOGO/x.png?X-Amz-Signature=fresh";
+        String staticHero = "/demo-banners/co-ha-toan.webp";
+        landingPageResponse.setLogoUrl(expiredLogo);
+        landingPageResponse.setHeroImageUrl(staticHero);
+        when(landingPageRepository.findByInstanceIdAndDeletedFalse(tenantId)).thenReturn(Optional.of(landingPage));
+        when(landingPageMapper.toResponse(any(LandingPage.class))).thenReturn(landingPageResponse);
+        when(assetUrlResolver.regenerate(expiredLogo)).thenReturn(freshLogo);
+        when(assetUrlResolver.regenerate(staticHero)).thenReturn(staticHero); // non-presigned → unchanged
+
+        // When
+        LandingPageResponse result = landingPageService.getLandingPage(tenantId);
+
+        // Then — stale presigned URL replaced with a fresh one; static hero untouched.
+        assertThat(result.getLogoUrl()).isEqualTo(freshLogo);
+        assertThat(result.getHeroImageUrl()).isEqualTo(staticHero);
+        verify(assetUrlResolver).regenerate(expiredLogo);
     }
 }
