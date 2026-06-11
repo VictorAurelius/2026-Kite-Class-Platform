@@ -37,5 +37,6 @@ CSP Report-Only → cosmetic dev-noise only, không functional block. Fix = verb
 ## Related
 
 - Discovered in: demo-seed-1 G2 walk 2026-06-11 (CSP console paste)
+- Fixed + closed via PR #2321 (2026-06-11) — `kiteclass-frontend/next.config.js` devImg + gap archived to `closed/`
 - Sister gap: GAP-1112 (kitehub-frontend devImg dev-override — same MinIO `:9100` class)
 - Rule: `cross-flow-bug-class-sweep.md` §1 (fix once → sweep sister flow); `small-gap-inline-fix.md` (P3 cosmetic + verify-by-mirror → fix inline)
