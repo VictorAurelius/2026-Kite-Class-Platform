@@ -44,6 +44,22 @@ describe('TeachersSection', () => {
     expect(screen.getByText(/đội ngũ giáo viên/i)).toBeInTheDocument();
     expect(screen.getAllByRole('article').length).toBe(2);
   });
+
+  // GAP-1208: personal template overrides the center-voice heading/subheading.
+  it('uses the heading/subheading override when provided (personal voice)', () => {
+    const teachers: SlotItem[] = [{ title: 'Cô Hà', description: 'Toán', items: ['10 năm KN'] }];
+    render(
+      <TeachersSection
+        slots={{ teachers }}
+        heading="Giáo viên đồng hành"
+        subheading="Người trực tiếp giảng dạy và theo sát từng học viên"
+      />,
+    );
+    expect(screen.getByRole('heading', { level: 2, name: /giáo viên đồng hành/i })).toBeInTheDocument();
+    expect(screen.getByText(/người trực tiếp giảng dạy/i)).toBeInTheDocument();
+    // Center-voice default must NOT appear when override is set.
+    expect(screen.queryByText(/^đội ngũ giáo viên$/i)).not.toBeInTheDocument();
+  });
 });
 
 describe('CertificatesSection', () => {
@@ -114,6 +130,14 @@ describe('PricingSection', () => {
     expect(screen.getByText(/bảng giá/i)).toBeInTheDocument();
     expect(screen.getAllByRole('article').length).toBe(2);
     expect(screen.getAllByRole('link', { name: /liên hệ/i }).length).toBeGreaterThanOrEqual(1);
+  });
+
+  // GAP-1208: personal template renders "Học phí" instead of center-voice "Bảng giá".
+  it('uses the heading override "Học phí" when provided (personal voice)', () => {
+    const plans: SlotItem[] = [{ title: 'Theo buổi', description: '200.000đ / buổi', items: ['1-1'] }];
+    render(<PricingSection slots={{ plans }} heading="Học phí" subheading="Học phí rõ ràng" />);
+    expect(screen.getByRole('heading', { level: 2, name: /^học phí$/i })).toBeInTheDocument();
+    expect(screen.queryByText(/^bảng giá$/i)).not.toBeInTheDocument();
   });
 });
 

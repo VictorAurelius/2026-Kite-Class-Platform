@@ -25,9 +25,13 @@ import { ScrollReveal } from './ScrollReveal';
 
 interface ProblemSolutionSectionProps {
   slots?: SlotData;
+  /** Title override (GAP-1208); defaults to center voice. */
+  heading?: string;
+  /** Sub-heading override; defaults to center voice. */
+  subheading?: string;
 }
 
-export function ProblemSolutionSection({ slots }: ProblemSolutionSectionProps) {
+export function ProblemSolutionSection({ slots, heading, subheading }: ProblemSolutionSectionProps) {
   const items = slots?.items as SlotItem[] | undefined;
   if (!items || items.length === 0) return null;
 
@@ -38,9 +42,9 @@ export function ProblemSolutionSection({ slots }: ProblemSolutionSectionProps) {
           <span className="mb-3 inline-block text-sm font-semibold uppercase tracking-wide text-theme-cta">
             Vấn đề quen thuộc
           </span>
-          <h2 className="text-3xl font-bold md:text-4xl">Những trăn trở quen thuộc — và cách chúng tôi đồng hành</h2>
+          <h2 className="text-3xl font-bold md:text-4xl">{heading ?? 'Những trăn trở quen thuộc — và cách chúng tôi đồng hành'}</h2>
           <p className="mt-3 text-muted-foreground">
-            Mỗi học viên một xuất phát điểm. Đây là những khó khăn thường gặp và cách chúng tôi giúp các em vượt qua.
+            {subheading ?? 'Mỗi học viên một xuất phát điểm. Đây là những khó khăn thường gặp và cách chúng tôi giúp các em vượt qua.'}
           </p>
         </div>
         <div className="grid gap-6 md:grid-cols-3">

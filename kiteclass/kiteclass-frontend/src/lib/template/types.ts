@@ -29,9 +29,20 @@ export type SectionId =
 
 export interface SectionConfig {
   id: SectionId;
+  /** Admin-panel section name (section list / toggles) — NOT the rendered title. */
   label: string;
   enabled: boolean;
   order: number;
+  /**
+   * Rendered section title override. When set, flows into the section component's
+   * `heading` prop so the on-page <h2> matches the template voice (e.g. personal
+   * vs organization). When omitted, the component keeps its own default heading.
+   * (GAP-1208: personal template read as a center because `label` never flowed
+   * into the rendered heading.)
+   */
+  heading?: string;
+  /** Rendered sub-heading / lead paragraph override; falls back to component default. */
+  subheading?: string;
 }
 
 export interface TemplateConfig {

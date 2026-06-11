@@ -24,16 +24,23 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
 
 interface FeaturesSectionProps {
   slots?: SlotData;
+  /** Title override (GAP-1208); defaults to "Tính năng nổi bật". */
+  heading?: string;
+  /** Optional lead paragraph; only rendered when provided. */
+  subheading?: string;
 }
 
-export function FeaturesSection({ slots }: FeaturesSectionProps) {
+export function FeaturesSection({ slots, heading, subheading }: FeaturesSectionProps) {
   const features = slots?.features as SlotItem[] | undefined;
   if (!features || features.length === 0) return null;
 
   return (
     <section className="py-16">
       <div className="container mx-auto px-4">
-        <h2 className="text-3xl font-bold text-center mb-12">Tính năng nổi bật</h2>
+        <h2 className={`text-3xl font-bold text-center ${subheading ? 'mb-4' : 'mb-12'}`}>{heading ?? 'Tính năng nổi bật'}</h2>
+        {subheading && (
+          <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">{subheading}</p>
+        )}
         <div className="grid md:grid-cols-3 gap-8">
           {features.map((feature) => {
             const IconComponent = ICON_MAP[feature.icon || 'star'] || Star;

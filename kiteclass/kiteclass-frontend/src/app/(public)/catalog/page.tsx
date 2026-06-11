@@ -50,7 +50,7 @@ export default function CoursesPage() {
       <div className="mb-8">
         <h1 className="text-4xl font-bold mb-4">Khóa học</h1>
         <p className="text-muted-foreground text-lg">
-          Khám phá các khóa học tiếng Anh chất lượng cao phù hợp với mọi trình độ
+          Khám phá các khóa học chất lượng cao phù hợp với mọi trình độ
         </p>
       </div>
 

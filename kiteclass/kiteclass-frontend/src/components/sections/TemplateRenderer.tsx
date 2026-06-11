@@ -70,34 +70,51 @@ const SECTION_LABELS: Record<SectionId, string> = {
   contact: 'Liên hệ',
 };
 
-function renderSection(sectionId: SectionId, data: LandingData, sectionSlots?: SlotData) {
+/**
+ * Per-section title overrides sourced from the template config (GAP-1208).
+ * Threaded into each section so the rendered <h2> matches template voice
+ * (e.g. personal "Giáo viên đồng hành" vs organization "Đội ngũ giáo viên").
+ * Components fall back to their own default heading when these are undefined.
+ */
+interface SectionHeadingOverride {
+  heading?: string;
+  subheading?: string;
+}
+
+function renderSection(
+  sectionId: SectionId,
+  data: LandingData,
+  sectionSlots?: SlotData,
+  headingOverride: SectionHeadingOverride = {},
+) {
+  const { heading, subheading } = headingOverride;
   switch (sectionId) {
     case 'hero':
       return <HeroSection slots={sectionSlots} title={data.heroTitle as string} subtitle={data.heroSubtitle as string} tagline={data.tagline as string} />;
     case 'stats':
       return <StatsSection slots={sectionSlots} />;
     case 'problemSolution':
-      return <ProblemSolutionSection slots={sectionSlots} />;
+      return <ProblemSolutionSection slots={sectionSlots} heading={heading} subheading={subheading} />;
     case 'howItWorks':
-      return <HowItWorksSection slots={sectionSlots} />;
+      return <HowItWorksSection slots={sectionSlots} heading={heading} subheading={subheading} />;
     case 'trustStrip':
       return <TrustStripSection slots={sectionSlots} />;
     case 'timeline':
-      return <TimelineSection slots={sectionSlots} />;
+      return <TimelineSection slots={sectionSlots} heading={heading} subheading={subheading} />;
     case 'about':
-      return <AboutSection slots={sectionSlots} />;
+      return <AboutSection slots={sectionSlots} heading={heading} />;
     case 'courses':
-      return <FeaturesSection slots={sectionSlots} />;
+      return <FeaturesSection slots={sectionSlots} heading={heading} subheading={subheading} />;
     case 'testimonials':
-      return <TestimonialsSection slots={sectionSlots} />;
+      return <TestimonialsSection slots={sectionSlots} heading={heading} />;
     case 'contact':
       return <ContactSection slots={sectionSlots} email={data.contactEmail} phone={data.contactPhone} address={data.address} />;
     case 'pricing':
-      return <PricingSection slots={sectionSlots} />;
+      return <PricingSection slots={sectionSlots} heading={heading} subheading={subheading} />;
     case 'teachers':
-      return <TeachersSection slots={sectionSlots} />;
+      return <TeachersSection slots={sectionSlots} heading={heading} subheading={subheading} />;
     case 'certificates':
-      return <CertificatesSection slots={sectionSlots} />;
+      return <CertificatesSection slots={sectionSlots} heading={heading} subheading={subheading} />;
     case 'gallery':
       return <PlaceholderSection title={SECTION_LABELS.gallery} description="Hình ảnh hoạt động." />;
     case 'news':
@@ -127,7 +144,10 @@ export function TemplateRenderer({ template, data, slots = {} }: TemplateRendere
         const striped = !isHero && bandIndex++ % 2 === 1;
         return (
           <div key={section.id} className={striped ? 'bg-muted/40' : undefined}>
-            {renderSection(section.id, data, slots[section.id])}
+            {renderSection(section.id, data, slots[section.id], {
+              heading: section.heading,
+              subheading: section.subheading,
+            })}
             {section.id === 'courses' && <CTASection />}
           </div>
         );

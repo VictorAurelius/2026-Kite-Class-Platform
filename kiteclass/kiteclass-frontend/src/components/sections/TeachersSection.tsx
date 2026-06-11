@@ -15,25 +15,33 @@ import type { SlotData, SlotItem } from '@/lib/template/slots';
 
 interface TeachersSectionProps {
   slots?: SlotData;
+  /** Title override (GAP-1208) — e.g. personal "Giáo viên đồng hành"; defaults to center voice. */
+  heading?: string;
+  /** Sub-heading override; defaults to center voice. */
+  subheading?: string;
 }
 
-export function TeachersSection({ slots }: TeachersSectionProps) {
+export function TeachersSection({ slots, heading, subheading }: TeachersSectionProps) {
   const teachers = slots?.teachers as SlotItem[] | undefined;
   if (!teachers || teachers.length === 0) return null;
+
+  // Single independent teacher (GAP-1208): render one large centered profile card
+  // instead of a 3-column grid that reads as a center's staff roster.
+  const isSolo = teachers.length === 1;
 
   return (
     <section className="py-16 bg-muted/30">
       <div className="container mx-auto px-4">
-        <h2 className="text-3xl font-bold text-center mb-4">Đội ngũ giáo viên</h2>
+        <h2 className="text-3xl font-bold text-center mb-4">{heading ?? 'Đội ngũ giáo viên'}</h2>
         <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
-          Giáo viên giàu kinh nghiệm, nhiệt tình và tận tâm với học viên
+          {subheading ?? 'Giáo viên giàu kinh nghiệm, nhiệt tình và tận tâm với học viên'}
         </p>
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className={isSolo ? 'mx-auto max-w-xl' : 'grid md:grid-cols-3 gap-8'}>
           {teachers.map((teacher) => (
             <article key={teacher.title}>
-              <Card className="h-full rounded-xl text-center shadow-md transition-shadow hover:shadow-xl">
+              <Card className={`h-full rounded-xl text-center shadow-md transition-shadow hover:shadow-xl${isSolo ? ' p-2' : ''}`}>
                 <CardContent className="pt-8 pb-6">
-                  <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-theme-primary/10 ring-4 ring-theme-primary/20">
+                  <div className={`mx-auto mb-4 flex items-center justify-center rounded-full bg-theme-primary/10 ring-4 ring-theme-primary/20 ${isSolo ? 'h-32 w-32' : 'h-24 w-24'}`}>
                     {teacher.image ? (
                       <Image
                         src={teacher.image}

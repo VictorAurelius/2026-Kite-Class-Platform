@@ -210,6 +210,11 @@ public class DemoAcademicSeeder {
                     spec.markerCourseCode(), spec.tenantId())) {
                 log.info("Academic demo data already present for tenant {} (marker {}). Skipping.",
                         spec.tenantId(), spec.markerCourseCode());
+                // Reconcile pass (GAP-1209): rows seeded by older seeder versions
+                // stayed DRAFT → invisible on the public catalog (PUBLISHED filter).
+                // Mirror the GAP-1203 upsert spirit: bring demo courses to the
+                // state the current seeder would produce.
+                publishDemoCourses(spec);
                 return;
             }
 
@@ -243,22 +248,75 @@ public class DemoAcademicSeeder {
         }
     }
 
+    /**
+     * Publishes any still-DRAFT demo course of this tenant spec (GAP-1209).
+     * The public catalog filters status=PUBLISHED, so DRAFT demo courses made
+     * the per-tenant "Khóa học" page empty.
+     */
+    private void publishDemoCourses(TenantSpec spec) {
+        for (ClassSpec cs : spec.classes()) {
+            courseRepository.findByCodeAndDeletedFalse(cs.courseCode())
+                    .filter(c -> spec.tenantId().equals(c.getInstanceId()))
+                    .filter(c -> "DRAFT".equalsIgnoreCase(String.valueOf(c.getStatus())))
+                    .ifPresent(c -> {
+                        try {
+                            // Rows seeded by older seeder versions miss the
+                            // publish-required fields — backfill before publish.
+                            if (c.getSyllabus() == null || c.getSyllabus().isBlank()) {
+                                c.setSyllabus(demoSyllabus(cs));
+                            }
+                            if (c.getObjectives() == null || c.getObjectives().isBlank()) {
+                                c.setObjectives(demoObjectives(cs));
+                            }
+                            if (c.getDurationWeeks() == null || c.getDurationWeeks() <= 0) {
+                                c.setDurationWeeks(Math.max(8, cs.sessionCount() * 2));
+                            }
+                            courseRepository.save(c);
+                            courseService.publishCourse(c.getId());
+                            log.info("Published demo course {} for tenant {} (GAP-1209 reconcile).",
+                                    cs.courseCode(), spec.tenantId());
+                        } catch (Exception e) {
+                            log.warn("Publish demo course {} failed: {}", cs.courseCode(), e.getMessage());
+                        }
+                    });
+        }
+    }
+
+    private String demoSyllabus(ClassSpec cs) {
+        return "Lộ trình " + cs.courseName() + ": củng cố nền tảng theo chuyên đề, "
+                + "bài tập thực hành mỗi buổi, kiểm tra định kỳ và ôn tập tổng hợp cuối khóa.";
+    }
+
+    private String demoObjectives(ClassSpec cs) {
+        return "Học viên nắm vững kiến thức " + cs.category()
+                + ", tự tin làm bài, tiến bộ đo được qua bài kiểm tra định kỳ.";
+    }
+
     /** Seeds one class end-to-end. Returns the number of students enrolled. */
     private int seedClass(TenantSpec spec, TeacherResponse teacher, ClassSpec cs, String tenantSuffix) {
         LocalDate today = LocalDate.now();
 
         // Course (code is the per-tenant marker for the first class).
+        // Syllabus/objectives/durationWeeks are publish-required fields
+        // (CourseServiceImpl.validatePublishRequirements) — the public catalog
+        // only lists PUBLISHED courses, so demo courses must satisfy them (GAP-1209).
         CourseResponse course = courseService.createCourse(new CreateCourseRequest(
                 cs.courseName(),
                 cs.courseCode(),
                 "Khóa " + cs.courseName() + " — dữ liệu demo cho luận văn (thesis §4.3/4.4).",
-                null, null, null, null,
+                demoSyllabus(cs),
+                demoObjectives(cs),
+                null, null,
                 teacher.id(),
-                null,
+                Math.max(8, cs.sessionCount() * 2),
                 cs.sessionCount(),
                 cs.tuition(),
                 null,
                 cs.category()));
+
+        // Publish immediately (GAP-1209): the public per-tenant catalog filters
+        // status=PUBLISHED — a DRAFT demo course never shows up there.
+        courseService.publishCourse(course.id());
 
         // Class — SCHEDULED on create (enrollable).
         ClassResponse clazz = classService.createClass(course.id(), new CreateClassRequest(

@@ -14,18 +14,22 @@ import type { SlotData, SlotItem } from '@/lib/template/slots';
 
 interface CertificatesSectionProps {
   slots?: SlotData;
+  /** Title override (GAP-1208); defaults to "Chương trình giảng dạy". */
+  heading?: string;
+  /** Sub-heading override; defaults to center voice. */
+  subheading?: string;
 }
 
-export function CertificatesSection({ slots }: CertificatesSectionProps) {
+export function CertificatesSection({ slots, heading, subheading }: CertificatesSectionProps) {
   const certificates = slots?.certificates as SlotItem[] | undefined;
   if (!certificates || certificates.length === 0) return null;
 
   return (
     <section className="py-16">
       <div className="container mx-auto px-4">
-        <h2 className="text-3xl font-bold text-center mb-4">Chương trình giảng dạy</h2>
+        <h2 className="text-3xl font-bold text-center mb-4">{heading ?? 'Chương trình giảng dạy'}</h2>
         <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
-          Các chương trình và lộ trình học được thiết kế theo từng nhóm học viên
+          {subheading ?? 'Các chương trình và lộ trình học được thiết kế theo từng nhóm học viên'}
         </p>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {certificates.map((cert) => (

@@ -20,9 +20,13 @@ import { ScrollReveal } from './ScrollReveal';
 
 interface HowItWorksSectionProps {
   slots?: SlotData;
+  /** Title override (GAP-1208); defaults to "Bắt đầu học thật dễ dàng". */
+  heading?: string;
+  /** Sub-heading override; defaults to center voice. */
+  subheading?: string;
 }
 
-export function HowItWorksSection({ slots }: HowItWorksSectionProps) {
+export function HowItWorksSection({ slots, heading, subheading }: HowItWorksSectionProps) {
   const steps = slots?.steps as SlotItem[] | undefined;
   if (!steps || steps.length === 0) return null;
 
@@ -33,9 +37,9 @@ export function HowItWorksSection({ slots }: HowItWorksSectionProps) {
           <span className="mb-3 inline-block text-sm font-semibold uppercase tracking-wide text-theme-primary">
             Cách hoạt động
           </span>
-          <h2 className="text-3xl font-bold md:text-4xl">Bắt đầu học thật dễ dàng</h2>
+          <h2 className="text-3xl font-bold md:text-4xl">{heading ?? 'Bắt đầu học thật dễ dàng'}</h2>
           <p className="mt-3 text-muted-foreground">
-            Chỉ vài bước đơn giản để các em sẵn sàng cho buổi học đầu tiên.
+            {subheading ?? 'Chỉ vài bước đơn giản để các em sẵn sàng cho buổi học đầu tiên.'}
           </p>
         </div>
         <ol className="mx-auto grid max-w-5xl gap-6 md:grid-cols-3">

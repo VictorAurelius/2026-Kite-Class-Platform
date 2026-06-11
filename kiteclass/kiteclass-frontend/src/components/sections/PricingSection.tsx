@@ -17,9 +17,13 @@ import type { SlotData, SlotItem } from '@/lib/template/slots';
 
 interface PricingSectionProps {
   slots?: SlotData;
+  /** Title override (GAP-1208) — e.g. personal "Học phí"; defaults to center voice "Bảng giá". */
+  heading?: string;
+  /** Sub-heading override; defaults to center voice. */
+  subheading?: string;
 }
 
-export function PricingSection({ slots }: PricingSectionProps) {
+export function PricingSection({ slots, heading, subheading }: PricingSectionProps) {
   const plans = slots?.plans as SlotItem[] | undefined;
   if (!plans || plans.length === 0) return null;
   // Highlight the middle tier when ≥3 tiers exist; otherwise no forced highlight.
@@ -28,9 +32,9 @@ export function PricingSection({ slots }: PricingSectionProps) {
   return (
     <section className="py-16">
       <div className="container mx-auto px-4">
-        <h2 className="text-3xl font-bold text-center mb-4">Bảng giá</h2>
+        <h2 className="text-3xl font-bold text-center mb-4">{heading ?? 'Bảng giá'}</h2>
         <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
-          Học phí minh bạch, linh hoạt — chọn gói phù hợp với mục tiêu và ngân sách
+          {subheading ?? 'Học phí minh bạch, linh hoạt — chọn gói phù hợp với mục tiêu và ngân sách'}
         </p>
         <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
           {plans.map((plan, index) => (
