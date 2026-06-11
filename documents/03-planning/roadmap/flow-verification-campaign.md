@@ -17,13 +17,15 @@ gaps: [GAP-914]
 
 ## 1. Định nghĩa "1 flow THÔNG" — 3 gate (tất cả phải PASS)
 
+> **Mô hình gate cập nhật 2026-06-11 (G2★ absorbs G3-functional):** trước đây G2 (human :3000 localhost FE-direct) và G3 (Claude curl :9000 gateway) tách rời → **không gate nào** test full topology production `access-mode → gateway → FE → core` trong một mạch (chỗ landing-100/GAP-811 lọt: G1 chỉ probe `?tenant=`, bypass Host-resolution). Sửa: **G2 trở thành production-accurate browser walk** (qua đúng access-mode production — vd nip.io subdomain cho host-based flow) **xuyên full chain**, hấp thụ phần **functional** của G3. Phần G3 còn lại = **infra AWS thuần** (TLS/LB/wildcard-cert/real-DNS) không local-reproduce-được → tách thành **G3-infra**, AWS-gated (GAP-612). Khớp `g1-browser-walk-before-flip.md` §3.1+§86 ("nip.io↔prod gap = infra parity = G3 territory").
+
 | Gate | Ai | Tiêu chí |
 |---|---|---|
-| **G1 — Agent runtime walk** | Claude | Walk end-to-end trên stack thật (Postgres + services), happy + ≥1 sad path PASS; fix mọi blocker lòi ra; evidence (HTTP + DB row + side effect). **Flow CÓ FE PHẢI gồm ≥1 browser-real walk qua FE `:3000`** (để FE tự inject auth token + tenant header + route), không chỉ curl `:9000` gắn header tay — per `g1-browser-walk-before-flip.md` §1 (bắt FE↔gateway contract / tenant-resolution / routing drift mà curl-with-manual-header che mất, vd KC-1 G2 GAP-1067/1068/1069) |
-| **G2 — Human real local test** | Dev (user) | Con người tự test flow **qua UI thật trên browser** (đúng FE port per `kitehub-kiteclass-boundary` §2: KH=`:3001`, KC=`:3000`) cho **MỌI affordance FE-wired**; curl/API CHỈ cho phần BE-only (không có FE surface — recipe phải ghi rõ "BE-only" + lý do). Xác nhận trải nghiệm thật đúng — KHÔNG chỉ tin agent walk, KHÔNG dùng curl thay browser cho affordance có FE (per `g2-handoff-md-mandate` §3.4 browser-walk requirement + `g1-browser-walk-before-flip` §1) |
-| **G3 — Production-parity guarantee** | Claude + Dev | Local PASS phải **đảm bảo 100% chạy production**: walk trên production-equivalent (cùng Docker image tag, Postgres+Flyway+RLS thật KHÔNG H2, gateway JWT→header auth, prod-profile config, env-var đủ). Per `local-fix-production-parity-check.md` + bài học H2-giấu-bug (GAP-914). Nếu local≠prod ở điểm nào → note + đảm bảo trước khi flip thông |
+| **G1 — Agent runtime walk** | Claude | Walk end-to-end trên stack thật (Postgres + services), happy + ≥1 sad path PASS; fix mọi blocker lòi ra; evidence (HTTP + DB row + side effect). **Flow CÓ FE PHẢI gồm ≥1 browser-real walk qua FE `:3000`** (để FE tự inject auth token + tenant header + route), không chỉ curl `:9000` gắn header tay — per `g1-browser-walk-before-flip.md` §1. **Flow resolve tenant/context qua Host header (subdomain/custom-domain/host-routing)** → G1 browser-walk PHẢI dùng **subdomain Host thật (nip.io/etc-hosts), CẤM `?tenant=`/localhost làm bằng chứng** (per §3.1 — query-override bypass chính Host-resolution path cần verify; vd KC-1 G2 GAP-1067/1068/1069 + landing-100 GAP-811 `?tenant=` slip) |
+| **G2★ — Human production-accurate browser walk** (absorbs G3-functional) | Dev (user) | Con người tự test flow **qua UI thật trên browser** (đúng FE port per `kitehub-kiteclass-boundary` §2: KH=`:3001`, KC=`:3000`) cho **MỌI affordance FE-wired**, **đi qua đúng access-mode production**: flow host-based → **subdomain Host thật (nip.io `<slug>.127.0.0.1.nip.io:<port>`), CẤM `?tenant=`** (per `g1-browser-walk-before-flip` §3.1); xuyên full chain `access-mode → gateway :9000 → FE → core` trên production-equivalent stack (cùng Docker image tag, **Postgres+Flyway+RLS thật KHÔNG H2**, gateway JWT→header auth, prod-profile config, env-var đủ — bài học H2-giấu-bug GAP-914 + `local-fix-production-parity-check.md`). curl/API CHỈ cho phần BE-only (recipe ghi rõ "BE-only" + lý do). → 1 walk chứng minh CẢ trải nghiệm UX thật LẪN functional production-parity. Per `g2-handoff-md-mandate` §3.4 |
+| **G3-infra — AWS infra parity** (residual, AWS-gated) | Claude + Dev | Phần parity **không local-reproduce-được**: TLS thật, ALB/LB routing, wildcard-cert `*.kiteclass.com`, real-DNS resolution, AWS env-var/secret. Verify trên AWS stack (gated GAP-612 — stack đang stopped). **KHÔNG block `✅ THÔNG` ở local-verifiable layer**; flow đạt G1+G2★ → `🟢 THÔNG (local)`, G3-infra là checkpoint AWS-deploy riêng |
 
-Flow chỉ `✅ THÔNG` khi G1 + G2 + G3 đều PASS. G1 đạt → `🔄 walk-pass-pending-human` chờ G2.
+Flow `🟢 THÔNG (local)` khi **G1 + G2★** PASS (full functional + production-access-mode parity local). **`✅ THÔNG (production)`** khi thêm **G3-infra** PASS trên AWS. G1 đạt → `🔄 walk-pass-pending-human` chờ G2★.
 
 > **Sequencing (chốt 2026-06-06):** hoàn thành **G1 cho TẤT CẢ flow trước** (gồm ~9 secondary KH-5..10 / KC-10..12 chưa G1), **rồi dev mới mở 1 đợt G2 tập trung** (human local walk). KHÔNG interleave G2 per-flow giữa chừng — gom G1 xong toàn bộ tránh dev context-switch + tránh G2 vấp bug G1 đáng lẽ bắt được. Memory: `project_flow_campaign_g1_first_then_g2`.
 
@@ -38,7 +40,7 @@ Flow chỉ `✅ THÔNG` khi G1 + G2 + G3 đều PASS. G1 đạt → `🔄 walk-p
 4. Batch-fix P0/P1 blocker (DB drift / wiring / entity) → single rebuild
 5. Re-walk full flow
 6. Lặp 3-5 đến khi mọi path G1 PASS
-7. Hand cho human (G2) + xác nhận parity (G3)
+7. Hand cho human (G2★ — production-accurate browser walk qua đúng access-mode: subdomain nip.io cho host-based flow). G3-infra (AWS TLS/LB/wildcard/real-DNS) = checkpoint AWS-deploy riêng (gated GAP-612)
 8. Flip flow ✅ + evidence vào wave plan + campaign table
 ```
 
@@ -116,7 +118,7 @@ flowchart TD
 | KC-11 | Notification (Zalo OA+email) + document gen PDF | sec | 🔄 walk-pass-pending-human (G1 PASS — document gen pdf/xlsx/docx 200 + format-injection 400 + reports ADMIN 200/TEACHER 403; no routing collision, no doc-data IDOR; Zalo stub graceful) + **G3 ✅ 2026-06-07** (GAP-1039 reports scoped 2M not 3.5M + GAP-1040 SSRF logoUrl stripped via :9000; 2 P1 fixed) — 2026-06-06 | [wave-2026-06-06-flow-kc11](../waves/wave-2026-06-06-flow-kc11-notification-document-gen.md) + [G2 recipe](../../05-guides/operations/2026-06-06-g2-recipe-kc11-notification-document-gen.md) | ✅ GAP-1039 DONE (reports leak — instance_id predicate + fail-closed) + ✅ GAP-1040 DONE (SSRF — server-branding-wins + host allowlist); GAP-721 Zalo stub (Wave 106 reconcile, non-blocking) |
 | KC-12 | Reschedule / payroll / gamification / analytics | sec | 🔄 walk-pass-pending-human (G1 PASS — reschedule happy 200 + outbox + IDOR DEFENDED + state-machine guard; payroll backend OK; gamification/analytics no walkable surface) + **G3 ✅ 2026-06-07** (payroll GAP-1041 routing → kiteclass-core /configs 200 via :9000) — 2026-06-06 | [wave-2026-06-06-flow-kc12](../waves/wave-2026-06-06-flow-kc12-reschedule-payroll-gamification.md) + [G2 recipe](../../05-guides/operations/2026-06-06-g2-recipe-kc12-reschedule-payroll.md) | 🔴 GAP-1041 P0 payroll routing collision (recurrence #3) + GAP-1042 P1 META gateway route-predicate audit + GAP-1043 P2 reschedule past-date validation |
 
-Status: ⬜ chưa walk · 🔄 G1 pass chờ human (G2) · ✅ THÔNG (G1+G2+G3).
+Status: ⬜ chưa walk · 🔄 G1 pass chờ human (G2★) · 🟢 THÔNG (local) = G1+G2★ · ✅ THÔNG (production) = +G3-infra (AWS). Legacy rows `✅ THÔNG (G1+G2+G3)` = THÔNG (local) theo mô hình cũ; G3-infra AWS-gated chung GAP-612.
 
 ---
 
