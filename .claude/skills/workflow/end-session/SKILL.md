@@ -1,8 +1,8 @@
 ---
 name: end-session
-description: "Dùng khi user nói 'end session', 'đóng session', 'kết thúc session', '/end-session', 'finish work', 'wrap up', hoặc trước khi /clear cho session quan trọng. Verify docs-sync 5-target (CSV/ROADMAP/wave-history/MEMORY/session-handoff per session-end-context-check.md §4.5) + auto-write session-handoff note + archive session-lock + 1-line summary. Symmetric counterpart cho /start-session."
+description: "Dùng khi user nói 'end session', 'đóng session', 'kết thúc session', '/end-session', 'finish work', 'wrap up', hoặc trước khi /clear cho session quan trọng. Working-tree clean + sync gate (Step 0a: no dirty/uncommitted, main synced OR in-flight branch pushed+handed-off) + docs-sync 5-target (CSV/ROADMAP/wave-history/MEMORY/session-handoff per session-end-context-check.md §4.5) + auto-write session-handoff note + archive session-lock + 1-line summary. Symmetric counterpart cho /start-session."
 user-invocable: true
-argument-hint: "[--keep-lock] [--summary-only] [--skip-handoff] [--no-pr]"
+argument-hint: "[--check-only] [--allow-dirty] [--keep-lock] [--summary-only] [--skip-handoff] [--no-pr]"
 ---
 
 # /end-session — Docs-Sync + Handoff + Lock Release
@@ -19,6 +19,25 @@ argument-hint: "[--keep-lock] [--summary-only] [--skip-handoff] [--no-pr]"
 - Khi parallel-agent xong task (tự release lock thay vì chờ stale-purge 4h)
 
 ## Process
+
+### Step 0a — Working-tree clean + sync gate (NEW v1.2.0 — BLOCKING precondition)
+
+Chạy TRƯỚC mọi bước khác. Mục tiêu: next session KHÔNG pickup vào dirty / uncommitted / unsynced state → không mất phương hướng. Skip chỉ khi `--allow-dirty` (rare, document lý do).
+
+```bash
+bash .claude/skills/workflow/end-session/scripts/end-session.sh --check-only   # gate report
+```
+
+1. **Main tree clean** — `git status --porcelain` PHẢI empty. Nếu dirty:
+   - File thuộc task hiện tại → commit vào branch (worktree per `worktree-only-branch-work.md`) + push + PR. KHÔNG để dangling uncommitted.
+   - File rác/experiment → revert HOẶC `git stash push -m "<lý do>"` (note rõ để next session biết).
+2. **Orphan worktrees** — `git worktree list`; mỗi worktree ≠ main tree: `git -C <wt> status --porcelain` PHẢI empty. Dirty worktree = landmine cho next session → commit+push, HOẶC `git worktree remove <wt>` nếu branch đã merged.
+3. **Sync state** — `git fetch origin main`; `git rev-list --count main..origin/main`. Nếu >0 → main tree behind (fast-forward nếu đang trên main + clean; note nếu đang trên branch khác).
+4. **Decision — end CHỈ được phép khi working tree clean AND một trong:**
+   - **(a) Clean-slate:** tất cả session branch đã merged + main synced (rev-list 0). HOẶC
+   - **(b) In-flight-handed-off:** branch dở dang đã `commit` + `push` lên remote + session-handoff note (Step 2.5) §Pickup reference đúng branch name + §Start-next-session có lệnh `git worktree add ../kite-wt-<slug> <branch>` để next session tiếp tục.
+
+   Nếu KHÔNG thỏa (a) hoặc (b) → **KHÔNG propose end**; resolve trước (commit/push/PR hoặc viết handoff trỏ branch). Đây là gate cứng: dirty/unsynced + no-handoff = session sau mất phương hướng.
 
 ### Step 0 — Docs-sync 5-target verify (NEW v1.1.0)
 
@@ -158,6 +177,7 @@ Có thể dùng `scripts/end-session.sh` (kèm theo skill này) để one-shot �
 
 ## Log
 
+- **2026-06-11 (v1.2.0):** MINOR — added Step 0a Working-tree clean + sync gate (BLOCKING precondition before docs-sync) + `end-session.sh` `--check-only`/`--allow-dirty` flags + gate-check function (`git status --porcelain` main tree + orphan-worktree dirty scan + `main..origin/main` behind-count). Triggered by user-flagged 2026-06-11: end-session phải xử lý hết file đang changing + sync main HOẶC check sang nhánh có session-handoff để session sau không mất phương hướng. Skill trước chỉ verify docs-sync + handoff + lock, KHÔNG check uncommitted working files / orphan dirty worktrees / main-behind. Decision gate: end CHỈ khi working tree clean AND (clean-slate merged+synced OR in-flight-branch pushed + handoff §Pickup trỏ branch). Especially relevant với worktree workflow (orphan dirty worktree = landmine). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve — additive precondition, no constraint loosening; existing Steps 0-5 preserved, Step 0a prepended).
 - **2026-06-02 (Wave local-doable-11 Bucket D):** Inline `<!-- TODO Wave 12+ GAP-868 -->` markers added tại 3 scaffold candidate positions (Step 0 post-merge sync sub-script + Step 2.5 handoff template iteration + Step 4.5 context-budget delta surface). Filed GAP-868 P1 META tracking Phase 2 concrete implementations. No skill behavior change này wave; markers signal Wave 12+ scope cho future readers.
 - **2026-06-02 (v1.1.0):** MINOR — extended scope to include docs-sync 5-target verify (Step 0) + auto-write session-handoff note (Step 2.5) + wave-history.jsonl append (Step 2.6) + docs-only PR open (Step 5). Reference template `handoff-template.md` added. Triggered by user-flagged miss Wave local-doable-6 closure 2026-06-02: session ended without handoff doc; `session-end-context-check.md` §4.5 mandates 5-target sync (target #5 = handoff) but rule §2 exception bypasses §4 sequence when user explicit "end session". Skill now enforces docs-sync regardless of trigger. Per `incident-to-rule-pipeline.md` 5-stage applied (extension, not new rule). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve — additive scope, no constraint loosening; existing v1.0.0 lock-archive flow preserved as Steps 1-4).
 - **2026-04-20 (v1.0.0):** Skill created — Phase 2 of GAP-193 (lock archive + 1-line summary).
