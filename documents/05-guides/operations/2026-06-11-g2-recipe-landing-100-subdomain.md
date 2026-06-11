@@ -41,20 +41,29 @@ Yêu cầu (G2★ production-parity per `local-fix-production-parity-check.md`):
 
 ### 2.2 Seed demo-trio (slug có sẵn từ landing-100 Bucket G)
 
-Seeder `BrandingDataSeeder` (dev profile) đã seed:
+`by-subdomain/{slug}` resolve đọc bảng **kitehub `instances`** (DB `kitehub`) qua
+`PublicTenantController` (kitehub-subscription). Demo-trio cần **2 seeder cross-service**
+cùng chạy ở `dev` profile (UUID khớp nhau, shared-DB + RLS per ADR-023):
 
-| Slug | Tên | Màu theme | Template |
-|---|---|---|---|
-| `co-ha-toan` | Cô Hà Toán | `#2563EB` (xanh dương) | personal |
-| `thay-nhi-hoa` | Thầy Nhị Hóa | `#16A34A` (xanh lá) | personal |
+| Seeder | Service | DB | Tạo gì | UUID demo-trio |
+|---|---|---|---|---|
+| `DemoTrioInstanceSeeder` (GAP-1180) | kitehub-subscription | `kitehub` | `instances` row (status=ACTIVE) → **by-subdomain resolve** | `a1100000…0001` / `b1100000…0002` |
+| `BrandingDataSeeder` | kiteclass-core | `kiteclass_shared` | `FrontendInstance` + `Branding` + `LandingPage` → branding/landing | cùng UUID trên |
 
-Verify slug tồn tại trong DB:
+| Slug | Tên | Tier | Màu theme | Template |
+|---|---|---|---|---|
+| `co-ha-toan` | Cô Hà Toán | FREE | `#2563EB` (xanh dương) | personal |
+| `thay-nhi-hoa` | Thầy Nhị Hóa | PREMIUM | `#16A34A` (xanh lá) | personal |
+
+Verify slug resolve qua gateway (production path):
 ```bash
-# qua gateway (production path) — phải trả 200 + tenantId UUID
+# phải trả 200 + tenantId UUID (đọc kitehub instances, KHÔNG phải kiteclass landing)
 curl -s http://localhost:9000/api/v1/public/tenants/by-subdomain/co-ha-toan | head -c 300
-# kỳ vọng: JSON chứa tenantId UUID (KHÔNG 404)
+# kỳ vọng: JSON chứa tenantId UUID a1100000-0000-4000-a000-000000000001 (KHÔNG 404)
 ```
-Nếu 404 → seeder chưa chạy → re-run dev seeder (kiteclass-core dev profile) trước khi walk.
+Nếu 404 → **`DemoTrioInstanceSeeder` (kitehub-subscription dev profile) chưa chạy** (KHÔNG
+phải BrandingDataSeeder — seeder kiteclass chỉ seed branding/landing, không tạo kitehub
+`instances` row mà resolve đọc). Rebuild + restart kitehub-subscription với `dev` profile.
 
 ### 2.3 FE đọc đúng base URL resolve
 
@@ -151,7 +160,7 @@ Sau khi walk, báo theo 1 trong 4:
 |---|---|---|
 | `co-ha-toan.127.0.0.1.nip.io` → DNS không resolve | Mạng chặn nip.io public DNS | Fallback `/etc/hosts` (`!`+sudo): `127.0.0.1 co-ha-toan.kiteclass.local` rồi browse `co-ha-toan.kiteclass.local:3000` |
 | Browse subdomain → vẫn branding fallback `11111111-...` | Middleware không gọi resolve được (base URL sai) | Verify §2.3 — FE local cần `NEXT_PUBLIC_API_URL=http://localhost:9000`; FE Docker cần `kite-gateway:9000` reachable |
-| resolve `by-subdomain/co-ha-toan` → 404 | Seeder chưa chạy / slug khác | Re-run dev seeder; verify slug §2.2 |
+| resolve `by-subdomain/co-ha-toan` → 404 | `DemoTrioInstanceSeeder` (kitehub-subscription dev) chưa chạy / slug khác | Rebuild+restart kitehub-subscription dev profile; verify §2.2 (KHÔNG phải kiteclass BrandingDataSeeder) |
 | resolve → 401/403 | gateway route `public-tenant-resolve` chưa permitAll | Check gateway SecurityConfig (GAP-813 đã ship permitAll — verify còn đúng) |
 | Console `ERR_EMPTY_RESPONSE :3000` | docker-proxy stale (GAP-1067 class) | restart FE container / proxy |
 

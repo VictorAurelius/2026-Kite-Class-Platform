@@ -38,7 +38,7 @@ UPDATE landing_pages SET
   testimonials = '[{"author":"Chị Trần Thị Bình","role":"Phụ huynh em Hoàng Minh — lớp 4","content":"Con tôi tiến bộ rõ sau 2 tháng, từ sợ Toán nay rất thích học. Cô Hà rất kiên nhẫn.","rating":5},{"author":"Anh Lê Văn Tùng","role":"Phụ huynh em Lê Thảo — lớp 5","content":"Lớp nhỏ, cô kèm sát từng em. Con tôi tự tin hơn hẳn khi làm bài kiểm tra.","rating":5}]'::jsonb,
   faqs = '[{"question":"Con tôi học lớp mấy thì tham gia được?","answer":"Lớp nhận học sinh tiểu học từ lớp 1 đến lớp 5, chia nhóm theo trình độ."},{"question":"Buổi học thử có mất phí không?","answer":"Hoàn toàn miễn phí. Phụ huynh đăng ký để con học thử và được tư vấn lộ trình."},{"question":"Sĩ số lớp bao nhiêu?","answer":"Lớp nhóm nhỏ 6-8 học sinh để đảm bảo cô kèm sát từng em."}]'::jsonb,
   stats = '[{"value":"5+","label":"Năm kinh nghiệm"},{"value":"6-8","label":"Học sinh mỗi lớp"},{"value":"100%","label":"Phụ huynh hài lòng"}]'::jsonb
-WHERE instance_id = 'ad0fa96e-af24-49cb-b3e5-19d44f182d85';
+WHERE instance_id = 'a1100000-0000-4000-a000-000000000001';
 
 -- ============================================================
 -- 3. Thầy Nguyễn Đình Nhì — THCS, Hóa (green) — gói PREMIUM
@@ -51,15 +51,15 @@ UPDATE landing_pages SET
   testimonials = '[{"author":"Chị Nguyễn Thị Lan","role":"Phụ huynh em Nguyễn Đức — lớp 9","content":"Con tôi đỗ vào trường THPT công lập tốp đầu, điểm Hóa 9,5. Thầy Nhì dạy rất bài bản.","rating":5},{"author":"Em Phạm Thu Hà","role":"Học sinh lớp 9 — đạt giải HSG cấp quận","content":"Thầy giảng bản chất nên em hiểu sâu, làm bài tập khó không còn ngại nữa.","rating":5},{"author":"Anh Trần Minh Đức","role":"Phụ huynh em Trần Bảo — lớp 8","content":"Lớp có thí nghiệm minh họa nên con rất hứng thú, điểm Hóa tăng từ 6 lên 9.","rating":5}]'::jsonb,
   faqs = '[{"question":"Lớp dạy cho học sinh khối nào?","answer":"Lớp nhận học sinh THCS khối 8, 9, đặc biệt tập trung luyện thi tuyển sinh vào lớp 10 và bồi dưỡng học sinh giỏi."},{"question":"Gói PREMIUM khác gói thường thế nào?","answer":"Gói luyện thi và kèm 1-1 có lộ trình chuyên sâu, thi thử thường xuyên, chữa đề chi tiết và cam kết đầu ra."},{"question":"Có buổi học thử không?","answer":"Có. Học sinh được học thử 1 buổi để đánh giá trình độ và phù hợp phương pháp."},{"question":"Thanh toán học phí ra sao?","answer":"Chuyển khoản ngân hàng hoặc mã VietQR. Hỗ trợ chia học phí theo đợt cho khóa dài."}]'::jsonb,
   stats = '[{"value":"7+","label":"Năm kinh nghiệm"},{"value":"300+","label":"Học sinh đã luyện thi"},{"value":"92%","label":"Đỗ vào lớp 10 công lập"}]'::jsonb
-WHERE instance_id = '0abe093c-4c66-4c99-abab-a756582dc60b';
+WHERE instance_id = 'b1100000-0000-4000-a000-000000000002';
 
 -- ============================================================
 -- Hero banner (demo) — PNG ở kiteclass-frontend/public/demo-banners/
 -- ============================================================
 UPDATE landing_pages SET hero_image_url='/demo-banners/co-khanh-phapluat.png' WHERE instance_id='126eaa8c-1f63-4c30-81b5-a5921b384b3b';
-UPDATE landing_pages SET hero_image_url='/demo-banners/co-ha-toan.png'        WHERE instance_id='ad0fa96e-af24-49cb-b3e5-19d44f182d85';
-UPDATE landing_pages SET hero_image_url='/demo-banners/thay-nhi-hoa.png'      WHERE instance_id='0abe093c-4c66-4c99-abab-a756582dc60b';
+UPDATE landing_pages SET hero_image_url='/demo-banners/co-ha-toan.png'        WHERE instance_id='a1100000-0000-4000-a000-000000000001';
+UPDATE landing_pages SET hero_image_url='/demo-banners/thay-nhi-hoa.png'      WHERE instance_id='b1100000-0000-4000-a000-000000000002';
 
 -- Template type: 3 GV độc lập → personal (7 section phù hợp cá nhân, không "đội ngũ GV"/gallery/tuyển sinh).
 UPDATE landing_pages SET template_type='personal' WHERE instance_id IN (
-  '126eaa8c-1f63-4c30-81b5-a5921b384b3b','ad0fa96e-af24-49cb-b3e5-19d44f182d85','0abe093c-4c66-4c99-abab-a756582dc60b');
+  '126eaa8c-1f63-4c30-81b5-a5921b384b3b','a1100000-0000-4000-a000-000000000001','b1100000-0000-4000-a000-000000000002');
