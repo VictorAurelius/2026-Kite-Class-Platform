@@ -53,6 +53,7 @@ on drift between disk and this index.
 | `quality/ops-readiness-audit/SKILL.md` | Dùng khi 'ops audit', 'production ready?', 'deploy checklist' — ops readiness /100 |
 | `quality/ui-review/SKILL.md` | Dùng khi 'review UI', 'audit screenshots' — auto sau frontend PR; per-screen /128 (KC port 4700, KH 4701) |
 | `quality/ui-review-prototype/SKILL.md` | Dùng khi 'audit prototype', 'review ui kits', 'check landing parity', 'kiểm tra prototype HTML' — HTML kit review (link-checker + landing-parity stricter than Tier 1 + state-coverage); closes GAP-264 |
+| `quality/kit-production-parity/SKILL.md` | Dùng khi 'kit parity', 'review Track 2 port', 'kit vs production', 'back-port kit' — 4-layer V-model parity (要件定義/基本設計/詳細設計/コンポーネント設計) kit ↔ production, bidirectional (kit→prod port + prod→kit back-port); closes GAP-367 |
 | `quality/design-pattern-audit/SKILL.md` | Dùng khi 'design pattern audit', 'God service đâu', 'anti-pattern hotspot' — score /100 vs `design-patterns.md` §3 |
 | `quality/ai-branding-quality-gate/SKILL.md` | Dùng khi PR thay đổi AI Branding behavior (model swap, prompt change, §5 logic) — manual checklist /100; auto-trigger qua audit-gate |
 | `quality/rework-audit/SKILL.md` | Dùng khi 'rework audit', 'context-degraded PRs', 'audit lại wave X' — re-audit PRs từ high-context-pressure sessions (GAP-199) |

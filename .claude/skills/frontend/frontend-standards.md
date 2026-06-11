@@ -246,6 +246,50 @@ export function StudentListPage() {
 }
 ```
 
+### 3.1 Kit as Source of Truth
+
+> **Canonical design source = HTML kits trong `documents/02-architecture/design-system/ui_kits/`.** Khi tạo screen/component mới HOẶC port production theo kit, kit là spec — KHÔNG tự "vẽ lại" component rồi để kit catch up sau (banned anti-pattern).
+
+**🔴 BẮT BUỘC trước khi author kit MỚI hoặc port production:** đọc `ui_kits/_shared/colors_and_type.css` (shared base tokens + per-product primary/accent overrides) TRƯỚC — đừng hardcode hex. Lesson GAP-1223: token-drift (kit dùng hex riêng vs `_shared` HSL var) sinh từ việc skip đọc `colors_and_type.css` trước khi vẽ.
+
+#### (a) Kit-first workflow (4 bước trước khi tạo component/screen mới)
+
+1. Check `ui_kits/{relevant-kit}/screens/*.html` đã có screen chưa → match nó (layout grid + spacing scale + states).
+2. Check `dossier/04-component-gaps.md` cho `G*` component spec → reuse nếu tồn tại.
+3. Nếu cả 2 đều thiếu → file gap để add vào kit TRƯỚC, rồi mới port production.
+4. **Anti-pattern (banned):** "viết component mới luôn, kit catch up sau" — kit phải là source of truth, không phải afterthought.
+
+#### (b) Kit ↔ production parity contract
+
+| Dimension | Contract |
+|---|---|
+| **Visual hierarchy** | Production khớp kit layout grid + spacing scale (`gap-*` / `space-y-*` tokens §10) |
+| **Color tokens** | Production dùng HSL CSS vars derive từ `_shared/colors_and_type.css` — KHÔNG hex literal (trừ token defs) |
+| **Typography** | Production type ramp khớp kit's type scale |
+| **Component library** | Kit-derived components dùng `@kite/shared-ui` (ADR-024 Track 2 Phase 1) khi áp dụng |
+| **AC traceability** | Mỗi item trong kit `dossier/10-acceptance-criteria.md` → 1+ E2E test trong production |
+
+Parity check tự động hóa qua skill `quality/kit-production-parity/SKILL.md` (4-layer V-model parity).
+
+#### (c) Hướng port — hai chiều (bidirectional)
+
+Mặc định kit ĐI TRƯỚC, production port theo (kit→production). NHƯNG production có thể ĐI TRƯỚC kit:
+
+- **kit→production port parity** — kit canonical, production khớp kit (đa số Track 2 ports).
+- **production→kit back-port parity** — khi production ship trước (vd Wave 78 public pages, lesson `kiteclass-public` #2326), kit phải back-port để khớp production state đã live → kit không drift khỏi reality. Skill `kit-production-parity` cover cả 2 chiều.
+
+Dù chiều nào, sau khi reconcile, kit + production PHẢI parity (không có "1 bên đúng 1 bên drift").
+
+#### (d) Cross-references + workflow integration
+
+- `ui_kits/README.md` — kit catalog
+- `ui_kits/_shared/colors_and_type.css` — shared design tokens (đọc TRƯỚC khi author)
+- `documents/02-architecture/design-system/dossier/` — design system internal docs (`04-component-gaps.md` G* specs, `10-acceptance-criteria.md` AC source)
+- `.claude/rules/design-layer-coverage.md` — 4-layer V-model scope completeness
+- `quality/kit-production-parity/SKILL.md` — parity audit skill (companion automation)
+
+**Reviewer checklist** cho FE PR đụng `kiteclass-frontend/src/app/**` hoặc `kitehub-frontend/src/app/**`: production khớp kit spec per §3.1 (visual diff vs kit screenshot + AC traceability spot-check) HOẶC PR là kit-first (file kit gap trước production). PR template có checkbox "FE kit-parity" tracking điều này.
+
 ---
 
 ## 4. Theme System
