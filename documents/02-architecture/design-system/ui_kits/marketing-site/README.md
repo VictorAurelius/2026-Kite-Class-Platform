@@ -1,6 +1,8 @@
-# UI Kit — KiteClass Marketing Site (Beta-signup landing)
+# UI Kit — KitePlatform Marketing Site (Beta-signup landing — KITEHUB surface)
 
-The **product marketing landing for the KiteClass platform itself** — distinct from the per-tenant landing templates (`landing-personal`, `landing-organization`). This is the page that invites **center owners (P2)** to join the Phase 1 **Beta**, and is the design target for production `kiteclass/kiteclass-frontend/src/app/(public)/page.tsx`.
+> **⚠️ Surface = KITEHUB (`:3001`, apex `kitehub.me`) — KHÔNG phải kiteclass-frontend.** Per `kitehub-kiteclass-boundary.md` §2: trang này QUẢNG BÁ sản phẩm KiteClass nhưng là marketing/beta-funnel của PLATFORM → production target = `kitehub/kitehub-frontend/src/app/(public)` (LandingShell + KH-1 request-beta-access). Bẫy trùng-tên "marketing" đúng §2.1. README cũ ghi nhầm design-target = `kiteclass-frontend (public)/page.tsx` (per-tenant landing) — mislabel này là root khiến Bucket F wave landing-100 port platform-copy vào tenant landing (GAP-1205); sửa per GAP-1227, user bắt lần 2 (lần 1 = chuỗi GAP-1205).
+
+The **product marketing landing for the Kite platform** — distinct from the per-tenant landing templates (`landing-personal`, `landing-organization` — those live on kiteclass-frontend `:3000`). This page invites **center owners (P2)** to join the Phase 1 **Beta**.
 
 Open `index.html` for the full interactive landing (cookie consent, persona segmented control, beta form success state).
 
