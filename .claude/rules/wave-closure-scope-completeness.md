@@ -6,9 +6,9 @@ paths:
 # Wave Closure Scope Completeness — every plan §3 Scope item must reconcile at closure
 
 **Priority:** 🟠 MANDATORY — wave-level governance preventing scope-pending orphan items
-**Version:** 1.0.1
+**Version:** 1.1.0
 **Created:** 2026-05-18
-**Last-Reviewed:** 2026-05-27
+**Last-Reviewed:** 2026-06-11
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.0.1 PATCH self-approve per `rule-change-process.md` §5; recurrence #2 documented (Wave meta-6 Bucket B 2026-05-27) — GAP-770 retroactive audit Wave 79 + Wave 92 closure PRs surfaced confirming both PRs predate rule v1.0.0 ship date (Wave 79 closure 2026-05-15; Wave 92 closure 2026-05-18 same-day-as-rule but PR body inspected — Wave 92 #1517 has structured "Buckets shipped" + "Closure protocol" sections but không explicit "Scope-Completeness Reconciliation" header per §3 mandate; both grandfathered legitimately. Recurrence #2 source = GAP-774 D4 admin audit log Wave 92 escape (V62/V63 schema shipped + admin_audit_log table populated 3 BETA_REQUEST_APPROVE rows but NO Controller + NO FE page = orphan class same as Wave 87/88 CF DNS cutover recurrence #1). Per `incident-to-rule-pipeline.md` §3.1 tightened legitimate-deferral conditions, recurrence ≥2 confirmed → §5.3 detector eligibility triggers SHIP-NOW. Detector script `scripts/check-wave-closure-completeness.sh` shipped same PR + CI job `wave-closure-completeness` wired in `quality-docs.yml` WARN-mode initial 30-day grace. v1.0.0 (kept): MINOR self-approve per §5; new rule với built-in enforcement per §6.5 Enforcement Parity Mandate)
 **Applies to:** Every wave closure PR (frontmatter `status: draft → complete` flip) hoặc wave-history.jsonl append entry
 
@@ -39,6 +39,41 @@ Rule KHÔNG fire khi:
 - Wave plan PATCH (mid-flight scope adjustment, không flip complete)
 - Individual bucket PR merge (per-bucket scope, không wave-level)
 - Per-gap closure PR (covered by `gap-done-discipline.md`)
+
+---
+
+## 2.5 Quality-target wave gate (added v1.1.0 — landing-100 incident)
+
+> **Wave có quality-target trong tên/goal (tag suffix score như `-100`, hoặc goal định lượng "rubric ≥N / score target") KHÔNG được flip `status: complete` khi còn gap OPEN/PARTIAL do chính wave tạo ra (qua bucket ship, G1/G2 walk, UI review) nằm trong phạm vi chất lượng đã hứa.** Với quality-target wave, "fix mọi gap surfaced" là closure scope MẶC ĐỊNH — defer cần user explicit approve, KHÔNG defer-by-default.
+
+Phân biệt với §3 baseline: wave thường được reconcile PARTIAL/NOT-IMPLEMENTED bằng gap link (defer hợp lệ). Wave quality-target thì tên wave LÀ lời hứa mức chất lượng — "đã là 100 thì không còn gap"; đóng wave với gap mở = misleading signal mạnh hơn orphan thường.
+
+### Creation-time mandate (wave-pack-planner)
+
+Khi tạo wave plan có quality-target, plan §5 Verification Gates PHẢI khai báo **Quality-target closure gate**:
+- Metric + ngưỡng (vd "landing rubric ≥90/100 re-score")
+- Câu cam kết: "Gap surfaced trong wave (walk/review/audit) thuộc closure scope — fix trong wave trước flip complete"
+- Budget ước lượng cho vòng fix-found-gaps (walk → fix → re-walk loop, per `feature-ship-runtime-walk-mandate.md` §3.4)
+
+### Closure-time gate
+
+```
+For quality-target wave at closure:
+  Mọi gap wave tạo ra (Discoveries filed các PR của wave + walk findings):
+    DONE hết + metric target đạt → flip complete ✅
+    Còn OPEN/PARTIAL in-quality-scope → KHÔNG flip:
+      (a) tiếp tục fix trong wave (default), HOẶC
+      (b) user explicit approve re-scope → override trailer
+          WAVE_QUALITY_TARGET_DEFER: <gap-ids + lý do + user approval ref>
+          + wave plan goal ghi chú "target chưa đạt — re-scoped"
+  Gap ngoài quality-scope (vd meta-script discovery tình cờ) → §3 baseline reconcile bình thường
+```
+
+### Banned shortcuts (bổ sung)
+
+- ❌ Đặt tên wave `-100`/"perfect" rồi closure defer quality gaps bằng reconciliation table thường
+- ❌ "G1 PASS đủ rồi, gap UI để wave sau" trên quality-target wave mà không có user approval
+- ❌ Re-score rubric TRƯỚC khi fix found-gaps để lấy số đẹp (score-then-fix ngược thứ tự)
 
 ---
 
@@ -121,6 +156,8 @@ Khi review wave closure PR (title chứa "closure" / "SHIPPED" / "Wave N closure
 - [ ] PARTIAL items có gap link với Status:PARTIAL + completion_pct?
 - [ ] NOT-IMPLEMENTED items có (a) follow-up gap link, (b) out-of-scope rationale, OR (c) `WAVE_SCOPE_DROP:` trailer?
 - [ ] wave-history.jsonl `followup` field synced với gap files (KHÔNG replace gap)?
+- [ ] **(v1.1.0)** Wave có quality-target trong tên/goal? Nếu CÓ: mọi gap wave tạo ra DONE + metric đạt, HOẶC `WAVE_QUALITY_TARGET_DEFER:` trailer với user approval ref per §2.5?
+- [ ] **(v1.1.0)** Wave plan quality-target có khai báo Quality-target closure gate trong §5 Gates (creation-time per §2.5)?
 
 ### 5.2 PR template extension (deferred per premature-rule guard ≥7 ngày)
 
@@ -221,6 +258,12 @@ Verdict nếu rule áp dụng lúc đó: closure PR sẽ require 3 follow-up gap
 
 **Counterfactual cost-save:** 1-2 user round-trip eliminated per wave closure (no need user surface orphan items manually). Class incident eliminated for future waves.
 
+### 7.3 Recurrence #3 — Wave landing-100 quality-target closure (2026-06-09/11, v1.1.0 originating incident)
+
+**State:** wave tag `landing-100` (target = landing hoàn hảo, goal rubric ≥90/100 từ ~64). Closure 2026-06-09 flip `status: complete` với reconciliation table §3 ĐÚNG chuẩn v1.0.x: GAP-1082/1083 filed defer + per-tenant subdomain ❌ out-of-scope GAP-811/1077 + G2 pending. UI review 2026-06-11 (nip.io walk) surfaced thêm GAP-1200/1203/1204/1205/1206 — trong đó GAP-1205 (P1) platform-copy sai audience chặn thẳng mục tiêu "đẹp ≥90".
+
+**Apply §2.5 retroactively:** wave tên `-100` = quality-target → fire. Closure 06-09 lẽ ra KHÔNG flip complete khi GAP-1082/1083 OPEN/PARTIAL + rubric chưa re-score; đúng quy trình là chạy fix-found-gaps loop trong wave (như fix-pack 2026-06-11 đang làm) rồi mới flip. User flagged: "đã là 100 thì ko còn gap => sửa meta tạo wave". Counterfactual: rule v1.1.0 có từ đầu → wave giữ `draft`, fix-pack nằm trong wave, 0 user round-trip + không có complete-flip misleading. Self-test PASS ✅ — rule fires đúng trên chính incident sinh ra nó.
+
 ---
 
 ## 8. Auto-load justification (per `context-budget-mandate.md` §3)
@@ -257,6 +300,7 @@ Rule này dùng `paths:` frontmatter (`documents/03-planning/waves/**`) — path
 
 ## 11. Log
 
+- **2026-06-11 (v1.1.0):** MINOR — added §2.5 "Quality-target wave gate" + §5.1 2 checklist rows + §7.3 worked self-test (recurrence #3 Wave landing-100). Triggered by user directive 2026-06-11 "fix tất cả gap do wave landing-100 tạo ra; đã là 100 thì ko còn gap => sửa meta tạo wave" — wave tag `landing-100` (quality-target rubric ≥90) closed `complete` 2026-06-09 với GAP-1082/1083 defer per §3 baseline reconcile (hợp lệ v1.0.x) nhưng SEMANTIC quality-promise của tên wave chưa đạt; UI review 2026-06-11 surfaced thêm 5 gap (1200/1203-1206, GAP-1205 P1 chặn rubric). Per `incident-to-rule-pipeline.md` 5-stage: Detect ✓ (user-flagged) → Classify ✓ (v1.0.x cho phép defer-with-gap-link mọi wave; không phân biệt quality-target wave nơi defer mâu thuẫn tên wave; `wave-tag-numbering-convention.md` covers naming format không covers semantic gate; `gap-done-discipline.md` per-gap không per-wave-quality) → Rule+Enforce ✓ (§2.5 closure+creation gate + §5.1 rows + wave-pack-planner SKILL section paired same PR + override trailer `WAVE_QUALITY_TARGET_DEFER:` + rules-index.csv bump per `rule-change-process.md` §6.5) → Self-Test ✓ (§7.3 — fires đúng trên landing-100; counterfactual wave giữ draft + fix-pack in-wave) → Retro Log ✓ (this entry). META P1 force-multiplier per `meta-gap-priority.md` §3 — mọi quality-target wave subsequent auto-comply. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — new constraint tightening closure gate cho quality-target class; no constraint loosening; wave thường giữ §3 baseline; landing-100 đang được fix-pack same PR; prospective + landing-100 retro-applied by user directive). Detector extension (parse quality-target trong wave tag/goal) HONEST-deferred per `incident-to-rule-pipeline.md` §3.1 (semantic goal-parsing non-trivial; recurrence 1; revisit khi recurrence ≥2).
 - **2026-05-27 (v1.0.1):** PATCH — recurrence #2 documented + detector SHIP-NOW closure. Wave meta-6 Bucket B retroactive audit (per GAP-770) Wave 79 + Wave 92 closure PRs: both PRs predate rule v1.0.0 ship date (Wave 79 closure 2026-05-15 = 3 days before rule; Wave 92 closure 2026-05-18 03:50 UTC = same-day-as-rule landing but PR #1517 body has structured "Buckets shipped" + "Closure protocol" sections without explicit "Scope-Completeness Reconciliation" header per §3 mandate; both grandfathered legitimately per `rule-change-process.md` retroactive policy). Recurrence #2 source = GAP-774 (filed 2026-05-27 Wave 106 RST Mảng D4 probe) — V62/V63 admin_audit_log table schema shipped Wave 92 + populated 3 BETA_REQUEST_APPROVE rows BUT NO Controller + NO FE page = orphan class same as recurrence #1 (Wave 87/88 CF DNS cutover workflow code shipped without execute step). Per `incident-to-rule-pipeline.md` §3.1 tightened legitimate-deferral conditions check (3 conditions: non-trivial detector + low recurrence + honest defer documented), recurrence-count ≥2 confirmed → condition 2 fails → §3.1 mandates SHIP detector now (Stage 3 hard requirement). Detector shipped same PR: `scripts/check-wave-closure-completeness.sh` (~90 LOC bash + 2 self-test fixtures PASS + FAIL) + CI job `wave-closure-completeness` wired in `.github/workflows/quality-docs.yml` WARN-mode initial 30-day grace period; HARD STOP eligibility 2026-06-26 sau audit retrospective. §5.3 detector flipped deferred → SHIPPED; §10 Open Items detector row flipped ✅. Audit artifact `documents/04-quality/audits/meta/2026-05-27-wave-92-79-closure-retroactive.md` shipped per `output-review-mandate.md` §3. GAP-770 closure (flip DONE + git mv `phase-1-beta/` → `phase-1-beta/closed/` per `gap-folder-organization.md` v2.0.0 §3.3) paired same PR. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — additive Log entry recurrence record + detector ship per §3.1 SHIP-NOW eligibility; no constraint loosening; existing wave closures Wave 79 + Wave 92 grandfathered per "rule applies prospectively" v1.0.0 Log entry).
 
 - **2026-05-18 (v1.0.0):** Rule created in response to user-flagged 2nd recurrence (CF DNS cutover Wave 87/88 + Wave 92 3-orphan-items) — class pattern "wave shipped status:complete nhưng scope-pending items orphan". Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user "vậy các tasks còn lại của wave 92 sẽ xử lý như thế nào, hay nó thành risk, nên update meta để cover vấn đề wave closure rồi mà vẫn còn vấn đề trong scope, giống như vụ cấu hình DNS từ CF sang self-host không?") → Classify ✓ (no existing rule covers wave-level scope completeness; `gap-done-discipline.md` §3 per-gap; `audit-to-gap-pipeline.md` §5 ROADMAP only; `post-merge-sync-completeness.md` §2 4-targets only; `post-wave-audit-mandate.md` §2.2 cadence catch-after-fact) → Rule+Enforce ✓ (this file + 3 follow-up gap files GAP-619/620/621 cho Wave 92 orphan items + rules-index.csv row + output-review-mandate.md §3 row + ROADMAP backfill + reviewer-checklist + worked self-test on 2 recurrences per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§7 worked example on Wave 87/88 DNS + Wave 92 — rule fires correctly + counterfactual eliminate 1-2 user round-trip per wave) → Retro Log ✓ (this entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new constraint extending sister rule `gap-done-discipline.md`; no constraint loosening; existing wave closures grandfathered; rule applies prospectively từ Wave 93+). Path-scoped per `context-budget-mandate.md` §3.1 (`paths: ["documents/03-planning/waves/**"]`). Detector + PR template + memory auto-load deferred per `incident-to-rule-pipeline.md` premature-rule guard ≥7 ngày — v1.0.0 enforcement = reviewer-checklist + 3 follow-up gaps + worked self-test sufficient.

@@ -264,6 +264,16 @@ Sau khi agents xong → coordinator merge sequential (A → B → C), resolve SO
 
 Nếu output diverge → script bug, fix trước khi dùng skill cho wave mới.
 
+## Quality-target wave gate (added 2026-06-11 — per `.claude/rules/wave-closure-scope-completeness.md` v1.1.0 §2.5)
+
+Khi wave tag/goal chứa **quality-target** (score suffix như `-100`, hoặc goal định lượng "rubric ≥N"), plan §5 Verification Gates BẮT BUỘC khai báo **Quality-target closure gate**:
+
+1. Metric + ngưỡng cụ thể (vd "landing rubric ≥90/100 re-score sau wave").
+2. Cam kết: "Gap surfaced trong wave (bucket ship / G1-G2 walk / UI review) thuộc closure scope — fix trong wave TRƯỚC khi flip `status: complete`. Defer cần user explicit approve qua trailer `WAVE_QUALITY_TARGET_DEFER:`."
+3. Budget cho vòng fix-found-gaps (walk → catalog → batch-fix → re-walk, per `feature-ship-runtime-walk-mandate.md` §3.4) — đừng plan wave quality-target mà 0 giờ cho vòng fix.
+
+Bài học gốc (2026-06-11): wave `landing-100` flip complete khi rubric chưa re-score + gap defer → user flag "đã là 100 thì ko còn gap" → fix-pack re-open. Tên wave là lời hứa — đặt `-100` thì closure gate phải tương xứng, hoặc đừng đặt tên đó.
+
 ## Wave numbering (added 2026-05-23 — per `.claude/rules/wave-tag-numbering-convention.md` v1.0.0)
 
 Từ Wave thesis-1 (2026-05-23) trở đi, wave mới dùng **tag-based format** thay vì sequential counter (Wave 108, Wave 109, ...). Wave 01-107 cũ giữ sequential — KHÔNG backfill.
