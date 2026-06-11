@@ -98,18 +98,35 @@ export const publicApi = {
   },
 
   /**
-   * Submit contact form (lead capture).
+   * Submit a contact message (public lead capture).
+   *
+   * Wired to the real backend endpoint POST /api/v1/contact
+   * (ContactMessageController — public, tenant resolved from the gateway-injected
+   * X-Tenant-Id header). The previous path `/api/v1/marketing/contact` did not exist
+   * on kiteclass-core → silent 404 (GAP-274 phase-2 contract-drift fix).
+   *
+   * Backend `CreateContactMessageRequest` requires `subject` (@NotBlank). The contact
+   * form (per kiteclass-public kit spec) collects họ tên / SĐT / email (optional) /
+   * lời nhắn — no subject field — so a subject is synthesized from the sender name.
+   *
+   * KNOWN BE CONTRACT GAP (reported, not fabricated): the BE marks `email` as
+   * @NotBlank @Email while the kit makes email OPTIONAL. Empty-email submissions
+   * will be rejected (400) until the BE relaxes the constraint. Email is sent as-is.
    */
   submitContactForm: async (data: {
     name: string;
-    email: string;
+    email?: string;
     phone?: string;
     message: string;
+    subject?: string;
   }) => {
-    const response = await publicApiClient.post(
-      '/api/v1/marketing/contact',
-      data
-    );
+    const response = await publicApiClient.post('/api/v1/contact', {
+      name: data.name,
+      email: data.email ?? '',
+      phone: data.phone,
+      message: data.message,
+      subject: data.subject?.trim() || `Liên hệ từ ${data.name}`,
+    });
     return response.data;
   },
 
@@ -123,4 +140,29 @@ export const publicApi = {
     );
     return response.data.data;
   },
+
+  /**
+   * Get the open classes (lịch lớp đang mở) for a course — public preview.
+   * Used by the course-detail "Lịch lớp đang mở" section. The section hides itself
+   * when this returns empty/throws (anti-fabrication: never render fake schedule).
+   */
+  getCourseClasses: async (
+    courseId: number
+  ): Promise<PaginatedResponse<PublicClass>> => {
+    const response = await publicApiClient.get<
+      ApiResponse<PaginatedResponse<PublicClass>>
+    >(`/api/v1/courses/${courseId}/classes`, { params: { page: 0, size: 20 } });
+    return response.data.data!;
+  },
 };
+
+/** Subset of the backend ClassResponse used by the public course-detail schedule. */
+export interface PublicClass {
+  id: number;
+  name: string;
+  schedule?: string;
+  startDate?: string;
+  maxStudents?: number;
+  currentEnrolled?: number;
+  status?: string;
+}

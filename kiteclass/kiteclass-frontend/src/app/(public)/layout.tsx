@@ -6,6 +6,7 @@ import { GraduationCap } from 'lucide-react';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { ConsentBanner } from '@kite/shared-ui';
 import { publicApi } from '@/lib/api/public';
+import { ThemeSync } from '@/components/theme/ThemeSync';
 
 // Resolve the tenant's display name + logo + contact for the public nav/footer.
 // Tenant resolution priority:
@@ -25,6 +26,11 @@ interface TenantIdentity {
   tagline: string | null;
   contactEmail: string | null;
   contactPhone: string | null;
+  // Per-tenant theme colors (GAP-274) — fed to ThemeSync so the catalog/about/
+  // contact/detail pages inherit the tenant brand, not just the landing page.
+  primaryColor: string | null;
+  secondaryColor: string | null;
+  accentColor: string | null;
 }
 
 async function getTenantIdentity(): Promise<TenantIdentity> {
@@ -35,7 +41,10 @@ async function getTenantIdentity(): Promise<TenantIdentity> {
   // showing a DIFFERENT center's name/logo on a mistyped subdomain is confusing
   // and a mild content-leak. The page itself renders the friendly not-found body.
   if (hdrs.get('x-tenant-not-found')) {
-    return { name: 'KiteClass', logoUrl: null, tagline: null, contactEmail: null, contactPhone: null };
+    return {
+      name: 'KiteClass', logoUrl: null, tagline: null, contactEmail: null, contactPhone: null,
+      primaryColor: null, secondaryColor: null, accentColor: null,
+    };
   }
 
   const headerTenantId = hdrs.get('x-tenant-id') ?? undefined;
@@ -51,6 +60,9 @@ async function getTenantIdentity(): Promise<TenantIdentity> {
       tagline?: string;
       contactEmail?: string;
       contactPhone?: string;
+      primaryColor?: string;
+      secondaryColor?: string;
+      accentColor?: string;
     };
     const name = landing.centerName?.trim() || landing.heroTitle?.trim() || 'Trung tâm giáo dục';
     return {
@@ -59,9 +71,15 @@ async function getTenantIdentity(): Promise<TenantIdentity> {
       tagline: landing.tagline?.trim() || null,
       contactEmail: landing.contactEmail?.trim() || null,
       contactPhone: landing.contactPhone?.trim() || null,
+      primaryColor: landing.primaryColor?.trim() || null,
+      secondaryColor: landing.secondaryColor?.trim() || null,
+      accentColor: landing.accentColor?.trim() || null,
     };
   } catch {
-    return { name: 'Trung tâm giáo dục', logoUrl: null, tagline: null, contactEmail: null, contactPhone: null };
+    return {
+      name: 'Trung tâm giáo dục', logoUrl: null, tagline: null, contactEmail: null, contactPhone: null,
+      primaryColor: null, secondaryColor: null, accentColor: null,
+    };
   }
 }
 
@@ -103,9 +121,22 @@ export default async function PublicLayout({
     tagline: tenantTagline,
     contactEmail,
     contactPhone,
+    primaryColor,
+    secondaryColor,
+    accentColor,
   } = await getTenantIdentity();
   return (
     <div className="min-h-screen flex flex-col">
+      {/* Per-tenant theme (GAP-274). SSR-inline `:root{--theme-*}` so the catalog /
+          about / contact / detail pages render the tenant brand on first paint. The
+          landing page emits its own ThemeSync inside children (identical values). */}
+      {(primaryColor || secondaryColor || accentColor) && (
+        <ThemeSync
+          primaryColor={primaryColor ?? undefined}
+          secondaryColor={secondaryColor ?? undefined}
+          accentColor={accentColor ?? undefined}
+        />
+      )}
       {/* Skip to main content (accessibility) */}
       <a
         href="#main-content"
