@@ -26,7 +26,22 @@ references:
 
 **Q3 (user direction 2026-06-11):** "các bước AI branding chưa hợp lý 100%, ui kits cần design lại, thêm bước hoặc sửa layout tùy theo audit" → kit redesign (GAP-1212) là bucket đầu, theo bộ bước hợi tụ từ 3 audit.
 
-## 2. Bộ bước wizard target (hội tụ 3 audit)
+## 2. Task Breakdown
+
+| # | Task | Bucket | Est |
+|---|---|---|---|
+| 1 | Kit v3 screens theo §2.5 bộ bước (states GENERATING/FAILED/quota/approve) | A | 0.5-1d |
+| 2 | Chốt canonical + KC route embed/redirect + retire orphan FSM | B | 0.5d |
+| 3 | Outbox `branding.deployed` + KC-core consumer áp theme + evict cache | C | 1d |
+| 4 | Quality gate ≥70 trong pipeline trước DEPLOYED + per-resource approve | C | 0.5d |
+| 5 | Persist active theme + SSE auth (GAP-1021) + post-deploy summary/link (GAP-1108) | C | 0.5d |
+| 6 | Preview = landing render path (?tenant= preview) + multi-variant | D | 1d |
+| 7 | Reorder output-first: mode đầu + gộp audience/tone + generate sớm | E | 1d |
+| 8 | FAILED retry/back + portrait step + banner generate wire (1134/1135/1160) | E | 1d |
+| 9 | FULL_AI quota/label + regenerate no-op + copy + escape-ramp | F | 0.5d |
+| 10 | Vòng fix-found-gaps: pre-walk sim + G1 browser walk + batch-fix + re-walk | gate | ≥30% |
+
+## 2.5 Bộ bước wizard target (hội tụ 3 audit)
 
 `Welcome+Mode (escape-ramp)` → `Brand personality (gộp Audience+Tone)` → `Assets (Logo/Portrait — optional, branch theo mode; FULL_AI bỏ qua)` → `Generate & Live Preview THẬT (multi-variant + quality gate /100 + per-resource approve)` → `Deploy (SSE + FAILED recovery)` → `Hoàn tất + link landing`. ≤5 bước nhập liệu; generate xảy ra NGAY sau bước 2 với defaults (output-first), các bước sau là refine.
 
