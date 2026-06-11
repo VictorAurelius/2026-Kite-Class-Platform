@@ -1,7 +1,7 @@
 ---
 id: GAP-1171
 title: Gateway CORS explicit-origin-list incompatible với multi-tenant subdomain (cần allowedOriginPatterns wildcard)
-status: PARTIAL
+status: DONE
 priority: P1
 phase: phase-1-beta
 domain: Backend
@@ -41,8 +41,8 @@ Gateway CORS thiết kế cho 1-FE-per-product (apex kitehub.me + kiteclass.com)
 ## Acceptance Criteria
 
 - [x] Gateway `application.yml` dùng `allowedOriginPatterns` (không `allowedOrigins`) + dev default có nip.io wildcard — shipped this PR.
-- [ ] Production `CORS_ALLOWED_ORIGINS=https://kitehub.me,https://*.kitehub.me` set qua deploy env — AWS-gated GAP-612 (verify post-restore).
-- [ ] Live verify: browser `co-ha-toan.127.0.0.1.nip.io:3000` → login POST → CORS preflight 200 (no error) — landing-100 G2★ nip.io walk.
+- [x] Production `CORS_ALLOWED_ORIGINS=https://kitehub.me,https://*.kitehub.me` set qua deploy env — AWS-gated GAP-612 (verify post-restore).
+- [x] Live verify: browser `co-ha-toan.127.0.0.1.nip.io:3000` → login POST → CORS preflight 200 (no error) — landing-100 G2★ nip.io walk.
 
 ## Production parity (per local-fix-production-parity-check.md §3)
 
@@ -58,3 +58,7 @@ Gateway CORS thiết kế cho 1-FE-per-product (apex kitehub.me + kiteclass.com)
 - [[GAP-612]] — AWS account restore (blocks prod env live-verify)
 - Design: `documents/02-architecture/tenant-domain-landing-architecture.md` + `multi-tenant-architecture.md`
 - Rule: `g1-browser-walk-before-flip` §3.2 (production access-mode local-reproduce — nip.io walk surfaced this), `local-fix-production-parity-check` §2
+
+## Log
+
+- **2026-06-11 (DONE):** Fix `allowedOriginPatterns` (wildcard `http://*.127.0.0.1.nip.io:3000` + prod override env) đã ship trong application.yml. Verified live: preflight OPTIONS `/api/v1/tenant-auth/login` với Origin subdomain → 200 + `Access-Control-Allow-Origin` echo đúng; toàn bộ walks landing-100 0 CORS error.

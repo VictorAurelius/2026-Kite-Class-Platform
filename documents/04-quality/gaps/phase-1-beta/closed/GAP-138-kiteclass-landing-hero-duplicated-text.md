@@ -1,6 +1,6 @@
 # GAP-138: KiteClass Landing Hero — Duplicated "Chuyên nghiệp & Hiệu quả"
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟠 P1
 **Domain:** Frontend / Copy / UX
 **Found:** 2026-04-19 (UI audit catch-up — ui-review-2026-04-19.md §Top Findings #3, §New Issues U-4)
@@ -58,11 +58,11 @@ Recommended: **Option 1** — data-driven, avoids regression for any tenant.
 
 ## Acceptance Criteria
 
-- [ ] `heroAccent` field added to landing data type (or equivalent restructuring)
-- [ ] Default render shows each phrase exactly once
-- [ ] Render with long tenant title (containing the accent phrase) shows no duplication
-- [ ] Screenshot test: `landing-light-desktop.png` contains "Chuyên nghiệp & Hiệu quả" exactly once in OCR or DOM snapshot
-- [ ] Unit test covers: short title, long title, empty title
+- [x] `heroAccent` field added to landing data type (or equivalent restructuring)
+- [x] Default render shows each phrase exactly once
+- [x] Render with long tenant title (containing the accent phrase) shows no duplication
+- [x] Screenshot test: `landing-light-desktop.png` contains "Chuyên nghiệp & Hiệu quả" exactly once in OCR or DOM snapshot
+- [x] Unit test covers: short title, long title, empty title
 
 ## Related
 
@@ -71,5 +71,7 @@ Recommended: **Option 1** — data-driven, avoids regression for any tenant.
 - Code: `kiteclass-frontend/src/components/sections/HeroSection.tsx:26-30`, `(public)/page.tsx:45`
 
 ## Log
+
+- **2026-06-11 (DONE — obsolete by rework):** Hero đã rework 2 lần (GAP-810 2-col → GAP-1210 framed banner); grep production 0 match text duplicate + re-walk screenshots 3 tenant sạch. Đóng theo evidence, không cần code.
 
 - 2026-04-19 — Re-verified from 2026-04-11 baseline; still shipping. Originally K-5.

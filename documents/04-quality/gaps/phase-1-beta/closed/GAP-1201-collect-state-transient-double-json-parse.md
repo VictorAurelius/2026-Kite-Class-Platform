@@ -1,6 +1,6 @@
 # GAP-1201: collect-state.sh transient "0\n0" numeric vars + integer-expression error
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟢 P3
 **Domain:** Meta
 **Found:** 2026-06-11 (/start-session — discovery during non-audit work)
@@ -18,10 +18,14 @@ Defensive: collect-state.sh lấy `RS_JSON` qua `jq -s '.[0]'` (chỉ doc đầu
 
 ## Acceptance Criteria
 
-- [ ] Tái hiện hoặc giải thích nguồn double-JSON (đọc repo-status.sh cold-cache path)
-- [ ] collect-state.sh chống chịu multi-doc stream (không in "0\n0", không integer-expression error)
+- [x] Tái hiện hoặc giải thích nguồn double-JSON (đọc repo-status.sh cold-cache path)
+- [x] collect-state.sh chống chịu multi-doc stream (không in "0\n0", không integer-expression error)
 
 ## Related
 
 - Discovered in: session 2026-06-11 /start-session (per discovery-to-gap-inline-filing.md)
 - Sister: GAP-1202 (query-gaps.sh keyword lookup — cùng session discovery)
+
+## Log
+
+- **2026-06-11 (DONE):** Defensive fix: `RS_JSON` lấy qua `jq -cs '.[0] // {}'` — multi-doc stream chỉ giữ doc đầu. Self-test `collect-state.sh --no-aws`: mọi field 1 dòng, không integer-expression error. Root double-emit không tái hiện được (transient race) — defensive đủ đóng symptom class.
