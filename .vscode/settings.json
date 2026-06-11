@@ -38,6 +38,15 @@
   // KEPT — it's a useful maintenance/security nudge.
   "spring-boot.ls.problem.boot2.JAVA_REPOSITORY": "IGNORE",
   "spring-boot.ls.problem.boot3.JAVA_REPOSITORY": "IGNORE",
+  // Silence "Convert @Autowired field into Constructor Parameter" — every real
+  // instance in this codebase is intentional field injection: optional deps
+  // (@Autowired(required=false) RabbitTemplate / NotificationDispatcher — fast-path
+  // + outbox pattern, design-patterns.md §3.5.1 Exception A) and circular-dep config
+  // (EmailTemplateResolverConfig field-injects SpringTemplateEngine + @PostConstruct
+  // to break a constructor cycle — converting would fail startup). Required-dep
+  // injection already uses Lombok @RequiredArgsConstructor, so this hint is net noise.
+  "spring-boot.ls.problem.boot2.JAVA_CONSTRUCTOR_PARAMETER_INJECTION": "IGNORE",
+  "spring-boot.ls.problem.boot3.JAVA_CONSTRUCTOR_PARAMETER_INJECTION": "IGNORE",
   "java.configuration.updateBuildConfiguration": "automatic",
 
   // Java compiler settings - sync with Maven (Java 17)
