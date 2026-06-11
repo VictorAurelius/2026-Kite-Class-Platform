@@ -35,6 +35,19 @@ Browser-walk wizard deploy lộ 2 BE bug (backend mostly succeeds nhưng 2 lỗi
 
 - Rollback-only **best-effort REQUIRES_NEW applied, repro pending**: lỗi `UnexpectedRollbackException` quan sát 2026-06-09 09:57:59 là INTERMITTENT (đa số REGENERATE OK). `BrandingJobService.transitionInstance` đã pre-validate reachability (tránh `IllegalStateException` poison — GAP-1021 fix). Nguồn còn lại: `eventRepo.save`/`outboxEmitter.emit` bên trong `transition` join parent txn của `updateJobProgress`. Cô lập event-insert trong `transition` (vẫn giữ outbox same-txn per `design-patterns.md` §3.5.1) cần refactor sâu state-machine core + repro DB-event-failure dưới concurrent REGENERATE (non-deterministic) → deferred coordinator runtime-walk (REGENERATE × 5).
 
+### Investigation 2026-06-10 (wave/branding-fix) — root cause = optimistic-lock contention, no low-risk clean fix
+
+Empirical investigation per `release-fix-retry-budget.md` §3.5 (investigate-first, không thrash). Đọc code 4 file: `BrandingJobService` + `MockProvisioningService` + `InstanceLifecycleService` + entity `BrandingInstanceState`.
+
+**Root cause cụ thể hơn:** `BrandingInstanceState` có `@Version private Long rowVersion` (optimistic locking, `application.yml` bật `hibernate.jdbc.batch_versioned_data: true`). Trong luồng REGENERATE deploy, transition lifecycle THẬT duy nhất chạy là `REGENERATING → DEPLOYED` (ở bước cuối `updateJobProgress(COMPLETED)`; `REGENERATING → GENERATING` đã bị pre-validate skip per GAP-1021). `InstanceLifecycleService.transition` làm 3 write trong CÙNG txn join parent (`updateJobProgress`): `stateRepo.save(current)` (kiểm version) + `eventRepo.save(event)` + `outboxEmitter.emit(...)`. Dưới **concurrent REGENERATE** (2 job race cùng instance, vd user bấm regenerate 2 lần), 1 thread thắng, thread kia nhận `ObjectOptimisticLockingFailureException` ở `stateRepo.save` → Spring đánh dấu txn rollback-only → commit của `updateJobProgress` ném `UnexpectedRollbackException` → bắt ở `provisionAsync` catch → `markJobFailed("...rollback-only")`. Đặc trưng intermittent (lock conflict hiếm) khớp triệu chứng "chỉ fail 1 lần".
+
+**Tại sao KHÔNG có clean low-risk fix:**
+- KHÔNG thể chuyển `transition()` sang `Propagation.REQUIRES_NEW`: method này là core state-machine dùng chung bởi `createJob`/`createWizardJob`/`updateJobProgress`/`markJobFailed`. REQUIRES_NEW sẽ phá atomicity giữa job-row save (txn cha) ↔ lifecycle state (txn riêng) ở các luồng create → rủi ro broad behavior change.
+- KHÔNG thể catch `ObjectOptimisticLockingFailureException` ở `transitionInstance` để swallow: catch KHÔNG xoá được cờ rollback-only đã set TRONG cùng txn join (bài học `audit-service-isolation.md` §3.11). Txn cha đã poisoned trước khi catch thấy.
+- Event-insert + outbox PHẢI cùng txn với state-change (outbox reliability per `design-patterns.md` §3.5.1; `eventId` được reference vào outbox payload) → không tách riêng được mà không refactor sâu.
+
+**Kết luận:** giữ best-effort PARTIAL. Mitigation hiện có (recordMarker REQUIRES_NEW + reachability pre-validate) đã phủ 2 nguồn poison deterministic. Nguồn còn lại (optimistic-lock dưới concurrent REGENERATE) cần một trong: (a) serialize/retry transition (thêm `@Retryable` ObjectOptimisticLockingFailureException + idempotent same-target guard — moderate complexity), HOẶC (b) redesign tách job-completion khỏi lifecycle-transition atomicity. Cả hai vượt scope low-risk + cần concurrent browser-walk (REGENERATE × 5 đồng thời) để repro/verify → defer coordinator runtime-walk. KHÔNG áp dụng code change rủi ro trong wave này (per `release-fix-retry-budget.md` §3.5 + task best-effort guidance).
+
 ## Related
 
 - Origin: G2 browser-walk (cùng session GAP-1105 deploy-stream FE fixes)

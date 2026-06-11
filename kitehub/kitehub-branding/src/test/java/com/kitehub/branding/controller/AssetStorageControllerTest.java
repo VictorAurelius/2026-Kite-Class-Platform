@@ -82,11 +82,14 @@ class AssetStorageControllerTest {
 
         String expectedPath = "instances/" + instanceId + "/branding/profile/cutout_123456.png";
         String expectedUrl = "https://cdn.kiteclass.com/" + expectedPath;
+        // GAP-1112 #1: response carries the presigned (browser-loadable) preview URL.
+        String presignedUrl = "https://minio.local/" + expectedPath + "?X-Amz-Signature=abc";
 
         when(s3StorageService.generateAssetPath(eq(instanceId), eq(assetType), anyString()))
             .thenReturn(expectedPath);
         when(s3StorageService.uploadAsset(any(), eq(expectedPath), eq("image/png"), anyLong()))
             .thenReturn(expectedUrl);
+        when(s3StorageService.getPresignedAssetUrl(expectedPath)).thenReturn(presignedUrl);
         when(brandingJobService.getJobsByInstance(instanceId))
             .thenReturn(Collections.singletonList(brandingJob));
 
@@ -97,7 +100,7 @@ class AssetStorageControllerTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getType()).isEqualTo(assetType);
-        assertThat(response.getBody().getUrl()).isEqualTo(expectedUrl);
+        assertThat(response.getBody().getUrl()).isEqualTo(presignedUrl);
         assertThat(response.getBody().getSizeBytes()).isEqualTo(file.getSize());
 
         verify(s3StorageService).uploadAsset(any(), eq(expectedPath), eq("image/png"), anyLong());
@@ -121,10 +124,14 @@ class AssetStorageControllerTest {
         String assetsJson = "[{\"type\":\"profile\",\"variant\":\"cutout\"}]";
         brandingJob.setAssetsGenerated(assetsJson);
 
+        String presignedUrl = "https://minio.local/instances/" + instanceId + "/profile.png?X-Amz-Signature=abc";
+
         when(brandingJobService.getJobsByInstance(instanceId))
             .thenReturn(Collections.singletonList(brandingJob));
         when(objectMapper.readValue(eq(assetsJson), any(com.fasterxml.jackson.core.type.TypeReference.class)))
             .thenReturn(expectedAssets);
+        // GAP-1112 #1: getAssets re-presigns stored URLs for browser preview.
+        when(s3StorageService.getPresignedAssetUrl(anyString())).thenReturn(presignedUrl);
 
         // When
         ResponseEntity<List<BrandingAsset>> response = controller.getAssets(instanceId);
@@ -134,6 +141,7 @@ class AssetStorageControllerTest {
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody()).hasSize(1);
         assertThat(response.getBody().get(0).getType()).isEqualTo("profile");
+        assertThat(response.getBody().get(0).getUrl()).isEqualTo(presignedUrl);
 
         verify(brandingJobService).getJobsByInstance(instanceId);
     }
@@ -279,10 +287,12 @@ class AssetStorageControllerTest {
         when(brandingJobService.createJob(eq(instanceId), eq("Draft"), eq("vi"), anyString()))
             .thenReturn(newJob);
 
+        String presignedUrl = "https://minio.local/" + expectedPath + "?X-Amz-Signature=abc";
         when(s3StorageService.generateAssetPath(eq(instanceId), eq(assetType), anyString()))
             .thenReturn(expectedPath);
         when(s3StorageService.uploadAsset(any(), eq(expectedPath), eq("image/png"), anyLong()))
             .thenReturn(expectedUrl);
+        when(s3StorageService.getPresignedAssetUrl(expectedPath)).thenReturn(presignedUrl);
 
         // When: Upload asset
         ResponseEntity<BrandingAsset> response = controller.uploadAsset(instanceId, assetType, file);
@@ -291,7 +301,7 @@ class AssetStorageControllerTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getType()).isEqualTo(assetType);
-        assertThat(response.getBody().getUrl()).isEqualTo(expectedUrl);
+        assertThat(response.getBody().getUrl()).isEqualTo(presignedUrl);
 
         // Verify job was created automatically
         verify(brandingJobService).createJob(eq(instanceId), eq("Draft"), eq("vi"), anyString());
@@ -317,10 +327,12 @@ class AssetStorageControllerTest {
         when(brandingJobService.getJobsByInstance(instanceId))
             .thenReturn(Collections.singletonList(brandingJob));
 
+        String presignedUrl = "https://minio.local/" + expectedPath + "?X-Amz-Signature=abc";
         when(s3StorageService.generateAssetPath(eq(instanceId), eq(assetType), anyString()))
             .thenReturn(expectedPath);
         when(s3StorageService.uploadAsset(any(), eq(expectedPath), eq("image/jpeg"), anyLong()))
             .thenReturn(expectedUrl);
+        when(s3StorageService.getPresignedAssetUrl(expectedPath)).thenReturn(presignedUrl);
 
         // When: Upload asset
         ResponseEntity<BrandingAsset> response = controller.uploadAsset(instanceId, assetType, file);
@@ -328,6 +340,7 @@ class AssetStorageControllerTest {
         // Then: Should use existing job, NOT create new one
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getUrl()).isEqualTo(presignedUrl);
 
         // Verify NO new job created
         verify(brandingJobService, never()).createJob(any(), any(), any(), any());

@@ -23,7 +23,13 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ArrowRight, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
-import { WizardCard, WizardStepHeader, type WizardState, type WizardAction } from './wizard-shared';
+import {
+  WizardCard,
+  WizardStepHeader,
+  ORG_TYPE_OPTIONS,
+  type WizardState,
+  type WizardAction,
+} from './wizard-shared';
 import { useSlugAvailability } from './hooks';
 
 // Debounce window for slug validation (ms). Matches kit's "validating" sub-state expectation.
@@ -39,7 +45,7 @@ export interface WelcomeStepProps {
 }
 
 export function WelcomeStep({ wizardState, dispatch, onNext }: WelcomeStepProps) {
-  const { tenantName, slug, slugStatus, conflictSuggestions } = wizardState;
+  const { tenantName, slug, slugStatus, conflictSuggestions, orgType } = wizardState;
   const { checkSlug } = useSlugAvailability();
 
   // Track active in-flight slug to discard stale responses.
@@ -90,15 +96,16 @@ export function WelcomeStep({ wizardState, dispatch, onNext }: WelcomeStepProps)
     dispatch({ type: 'SET_SLUG', slug: suggestion });
   };
 
-  const canContinue = tenantName.trim().length > 0 && slugStatus === 'available';
+  const canContinue =
+    tenantName.trim().length > 0 && slugStatus === 'available' && orgType !== null;
 
   return (
     <div className="space-y-6">
       <WizardCard>
         <WizardStepHeader
-          eyebrow="Bước 1 / 6"
+          eyebrow="Bước 1 / 7"
           title="Chào mừng đến với Kite Branding Studio"
-          subtitle="Hệ thống AI sẽ tạo trang web cho trung tâm của bạn dựa trên 4 lựa chọn nhỏ. Bạn không cần kỹ năng thiết kế — chỉ cần chọn vài tuỳ chọn, AI sẽ lo phần còn lại."
+          subtitle="Hệ thống AI sẽ tạo trang web cho trung tâm của bạn dựa trên vài lựa chọn nhỏ. Bạn không cần kỹ năng thiết kế — chỉ cần chọn vài tuỳ chọn, AI sẽ lo phần còn lại."
         />
 
         <div className="space-y-5">
@@ -234,6 +241,36 @@ export function WelcomeStep({ wizardState, dispatch, onNext }: WelcomeStepProps)
             )}
           </div>
 
+          {/* Org type — GAP-1133 user-type axis (constrained preset). Orthogonal
+              to Audience (Step 4); drives portrait count (Step 3) + tier hint. */}
+          <div>
+            <p className="block text-sm font-semibold mb-1">
+              Bạn thuộc nhóm nào? <span className="text-destructive">*</span>
+            </p>
+            <p className="text-xs text-muted-foreground mb-3">
+              Giúp AI chuẩn bị đúng số lượng ảnh chân dung và gợi ý phù hợp. Bạn có
+              thể đổi sau.
+            </p>
+            <div
+              role="radiogroup"
+              aria-label="Loại tổ chức"
+              data-testid="wizard-org-type"
+              className="grid grid-cols-1 sm:grid-cols-3 gap-3"
+            >
+              {ORG_TYPE_OPTIONS.map((opt) => (
+                <OrgTypeCard
+                  key={opt.id}
+                  selected={orgType === opt.id}
+                  emoji={opt.emoji}
+                  label={opt.label}
+                  description={opt.description}
+                  onSelect={() => dispatch({ type: 'SET_ORG_TYPE', orgType: opt.id })}
+                  data-testid={`wizard-org-type-${opt.id}`}
+                />
+              ))}
+            </div>
+          </div>
+
           {/* Tip */}
           <div className="bg-sky-50 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-900 rounded-md p-3">
             <p className="text-sm font-semibold text-sky-900 dark:text-sky-200 mb-1">
@@ -253,12 +290,59 @@ export function WelcomeStep({ wizardState, dispatch, onNext }: WelcomeStepProps)
           <ArrowLeft className="mr-2 h-4 w-4" />
           Quay lại
         </Button>
-        <p className="text-xs text-muted-foreground">Bước 1 / 6 · Mất ~5 phút</p>
+        <p className="text-xs text-muted-foreground">Bước 1 / 7 · Mất ~5 phút</p>
         <Button onClick={onNext} disabled={!canContinue} data-testid="wizard-step1-continue">
           Tiếp tục
           <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
       </div>
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// OrgTypeCard — single radio-style card for the user-type axis (GAP-1133)
+// ---------------------------------------------------------------------------
+
+interface OrgTypeCardProps {
+  selected: boolean;
+  emoji: string;
+  label: string;
+  description: string;
+  onSelect: () => void;
+  'data-testid'?: string;
+}
+
+function OrgTypeCard({
+  selected,
+  emoji,
+  label,
+  description,
+  onSelect,
+  ...rest
+}: OrgTypeCardProps) {
+  return (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={selected}
+      aria-label={label}
+      onClick={onSelect}
+      data-testid={rest['data-testid']}
+      className={[
+        'text-left p-3 rounded-lg border transition-all h-full',
+        selected
+          ? 'border-primary bg-primary/5 ring-2 ring-primary/30'
+          : 'border-input bg-background hover:border-primary/50',
+      ].join(' ')}
+    >
+      <div className="flex items-center gap-2 mb-1">
+        <span aria-hidden="true" className="text-lg">
+          {emoji}
+        </span>
+        <h3 className="font-bold text-sm">{label}</h3>
+      </div>
+      <p className="text-xs text-muted-foreground">{description}</p>
+    </button>
   );
 }

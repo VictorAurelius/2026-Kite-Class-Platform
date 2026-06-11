@@ -67,7 +67,18 @@ class AIRateLimitConfigTest {
         AIRateLimitConfig defaultConfig = new AIRateLimitConfig();
         assertThat(defaultConfig.getFreePerDay()).isEqualTo(3);
         assertThat(defaultConfig.getBasicPerDay()).isEqualTo(10);
-        assertThat(defaultConfig.getPremiumPerDay()).isEqualTo(50);
+        // GAP-1137: canonical SUB-22 PREMIUM regen = 30 (was 50).
+        assertThat(defaultConfig.getPremiumPerDay()).isEqualTo(30);
         assertThat(defaultConfig.getEnterprisePerDay()).isEqualTo(-1);
+    }
+
+    @Test
+    void getFullAiMonthlyQuotaForTier_returnsTierQuota() {
+        // GAP-1137: FULL_AI eligible only PREMIUM (limited) + ENTERPRISE (unlimited).
+        assertThat(config.getFullAiMonthlyQuotaForTier("PREMIUM")).isEqualTo(5);
+        assertThat(config.getFullAiMonthlyQuotaForTier("ENTERPRISE")).isEqualTo(-1);
+        assertThat(config.getFullAiMonthlyQuotaForTier("BASIC")).isZero();
+        assertThat(config.getFullAiMonthlyQuotaForTier("FREE")).isZero();
+        assertThat(config.getFullAiMonthlyQuotaForTier(null)).isZero();
     }
 }

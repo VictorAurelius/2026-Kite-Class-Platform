@@ -9,10 +9,11 @@
  * doesn't pay for a chunk it won't use.
  */
 
+import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Download, ExternalLink } from 'lucide-react';
+import { Download, ExternalLink, ImageOff } from 'lucide-react';
 import type { BrandingAsset } from '@/types/branding';
 
 const ASSET_TYPE_LABELS: Record<string, string> = {
@@ -44,15 +45,34 @@ interface AssetCardProps {
 }
 
 function AssetCard({ asset, onDownload }: AssetCardProps) {
+  // GAP-1149: the BE already re-presigns each URL on read (AssetStorageController
+  // .presignAssets, 1h TTL) and the dev CSP allows the MinIO host — so a broken
+  // thumbnail means the underlying object is unreachable (e.g. a mock-provisioned
+  // URL with no real MinIO object, or an external/legacy URL). Degrade gracefully
+  // to a labelled placeholder instead of the browser's broken-image glyph so the
+  // gallery stays readable; the Download / "Xem" actions still expose the raw URL.
+  const [imgFailed, setImgFailed] = useState(false);
+
   return (
     <Card className="overflow-hidden group shadow-soft hover:shadow-lg transition-shadow">
       {/* Image Preview */}
       <div className="aspect-video bg-muted flex items-center justify-center relative">
-        <img
-          src={asset.url}
-          alt={ASSET_TYPE_LABELS[asset.type]}
-          className="w-full h-full object-cover"
-        />
+        {imgFailed ? (
+          <div
+            className="flex flex-col items-center justify-center gap-1 text-muted-foreground"
+            data-testid="asset-image-fallback"
+          >
+            <ImageOff className="w-8 h-8" aria-hidden="true" />
+            <span className="text-xs">Không tải được ảnh xem trước</span>
+          </div>
+        ) : (
+          <img
+            src={asset.url}
+            alt={ASSET_TYPE_LABELS[asset.type]}
+            className="w-full h-full object-cover"
+            onError={() => setImgFailed(true)}
+          />
+        )}
         {/* Hover Overlay */}
         <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
           <Button

@@ -23,13 +23,26 @@ import {
 import { StepIndicator } from '../StepIndicator';
 import { WelcomeStep } from '../WelcomeStep';
 import { LogoStep } from '../LogoStep';
+import { PortraitStep } from '../PortraitStep';
 
-// Mock the upload hook so LogoStep tests don't hit the network
+// Shared mutable mock returns: `assetsReturn` lets LogoStep (GAP-1112 #3 picker)
+// + PortraitStep (GAP-1134) tests inject an asset gallery; `uploadMock` asserts
+// PortraitStep upload call args. vi.hoisted lets the factory below reference them
+// despite vi.mock hoisting.
+const hoisted = vi.hoisted(() => ({
+  assetsReturn: { data: [] as Array<Record<string, unknown>> },
+  uploadMock: vi
+    .fn()
+    .mockResolvedValue({ id: 'new', type: 'PORTRAIT', url: 'https://cdn.test/new.png' }),
+}));
+
+// Mock the branding hooks so LogoStep / PortraitStep tests don't hit the network
 vi.mock('@/hooks/use-branding', () => ({
   useUploadAsset: () => ({
-    mutateAsync: vi.fn().mockResolvedValue({ url: 'https://cdn.test/logo.png' }),
+    mutateAsync: hoisted.uploadMock,
     isPending: false,
   }),
+  useAssets: () => hoisted.assetsReturn,
 }));
 
 // Stub sonner toast so LogoStep tests don't depend on the real provider
@@ -41,20 +54,29 @@ vi.mock('sonner', () => ({
 }));
 
 describe('wizardReducer — step transitions', () => {
-  it('NEXT_STEP / PREV_STEP cap at boundaries 1..6', () => {
+  it('NEXT_STEP / PREV_STEP cap at boundaries 1..7', () => {
     let s: WizardState = INITIAL_WIZARD_STATE;
     expect(s.currentStep).toBe(1);
 
     s = wizardReducer(s, { type: 'PREV_STEP' });
     expect(s.currentStep).toBe(1);
 
-    for (let i = 0; i < 7; i++) {
+    for (let i = 0; i < 8; i++) {
       s = wizardReducer(s, { type: 'NEXT_STEP' });
     }
-    expect(s.currentStep).toBe(6);
+    expect(s.currentStep).toBe(7);
 
     s = wizardReducer(s, { type: 'GO_TO_STEP', step: 3 });
     expect(s.currentStep).toBe(3);
+  });
+
+  it('SET_ORG_TYPE persists the user-type axis (GAP-1133)', () => {
+    expect(INITIAL_WIZARD_STATE.orgType).toBeNull();
+    const next = wizardReducer(INITIAL_WIZARD_STATE, {
+      type: 'SET_ORG_TYPE',
+      orgType: 'SMALL_CENTER',
+    });
+    expect(next.orgType).toBe('SMALL_CENTER');
   });
 });
 
@@ -115,15 +137,23 @@ describe('wizardReducer — approvedResources (Bucket C compliance)', () => {
 });
 
 describe('StepIndicator', () => {
-  it('renders all 6 steps and marks currentStep as aria-current="step"', () => {
+  it('renders all 7 steps and marks currentStep as aria-current="step"', () => {
     render(<StepIndicator currentStep={3} />);
 
-    const labels = ['Chào mừng', 'Logo', 'Đối tượng', 'Phong cách', 'Mẫu thiết kế', 'Phê duyệt'];
+    const labels = [
+      'Chào mừng',
+      'Logo',
+      'Chân dung',
+      'Đối tượng',
+      'Phong cách',
+      'Mẫu thiết kế',
+      'Phê duyệt',
+    ];
     for (const label of labels) {
       expect(screen.getByText(label)).toBeInTheDocument();
     }
 
-    const current = screen.getByLabelText(/Bước 3: Đối tượng \(đang làm\)/);
+    const current = screen.getByLabelText(/Bước 3: Chân dung \(đang làm\)/);
     expect(current).toHaveAttribute('aria-current', 'step');
 
     const completed = screen.getByLabelText(/Bước 1: Chào mừng \(đã xong\)/);
@@ -144,6 +174,9 @@ describe('WelcomeStep — slug validation', () => {
       ...INITIAL_WIZARD_STATE,
       tenantName: 'Trung tâm Toán Master',
       slug: 'unique-slug',
+      // GAP-1133 — org-type is now a required Step 1 field; seed it so the
+      // Continue gating depends solely on the slug-availability path here.
+      orgType: 'SOLO_TEACHER',
     };
     const dispatch = vi.fn((action) => {
       state = wizardReducer(state, action);
@@ -168,6 +201,44 @@ describe('WelcomeStep — slug validation', () => {
     expect(cta).not.toBeDisabled();
     fireEvent.click(cta);
     expect(onNext).toHaveBeenCalledTimes(1);
+  });
+
+  it('org-type select dispatches SET_ORG_TYPE + gates Continue until chosen (GAP-1133)', async () => {
+    let state: WizardState = {
+      ...INITIAL_WIZARD_STATE,
+      tenantName: 'Trung tâm Toán Master',
+      slug: 'unique-slug',
+      // orgType intentionally null → Continue must stay disabled even when the
+      // slug becomes available.
+    };
+    const dispatch = vi.fn((action) => {
+      state = wizardReducer(state, action);
+    });
+
+    const { rerender } = render(
+      <WelcomeStep wizardState={state} dispatch={dispatch} onNext={vi.fn()} />
+    );
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(900);
+    });
+    expect(state.slugStatus).toBe('available');
+
+    rerender(<WelcomeStep wizardState={state} dispatch={dispatch} onNext={vi.fn()} />);
+    // Slug available BUT org-type unset → Continue still disabled.
+    expect(screen.getByTestId('wizard-step1-continue')).toBeDisabled();
+
+    // Pick the "Trung tâm lớn" card → SET_ORG_TYPE dispatched.
+    fireEvent.click(screen.getByTestId('wizard-org-type-LARGE_CENTER'));
+    expect(dispatch).toHaveBeenCalledWith({
+      type: 'SET_ORG_TYPE',
+      orgType: 'LARGE_CENTER',
+    });
+    expect(state.orgType).toBe('LARGE_CENTER');
+
+    rerender(<WelcomeStep wizardState={state} dispatch={dispatch} onNext={vi.fn()} />);
+    // Now name + slug + org-type all set → Continue enabled.
+    expect(screen.getByTestId('wizard-step1-continue')).not.toBeDisabled();
   });
 
   it('conflict slug shows suggestions; clicking one dispatches SET_SLUG', async () => {
@@ -208,6 +279,11 @@ describe('WelcomeStep — slug validation', () => {
 });
 
 describe('LogoStep — fork + validation', () => {
+  beforeEach(() => {
+    // Default: no previously-uploaded assets ⇒ picker section stays hidden.
+    hoisted.assetsReturn = { data: [] };
+  });
+
   it('switching to AI-generate fork dispatches SET_LOGO with aiLogo=true', () => {
     let state: WizardState = INITIAL_WIZARD_STATE;
     const dispatch = vi.fn((action) => {
@@ -262,5 +338,134 @@ describe('LogoStep — fork + validation', () => {
     expect(dispatch).not.toHaveBeenCalledWith(
       expect.objectContaining({ type: 'SET_LOGO' })
     );
+  });
+
+  it('asset library lists only LOGO assets; picking one dispatches SET_LOGO (GAP-1112 #3)', () => {
+    hoisted.assetsReturn = {
+      data: [
+        {
+          id: 'a1',
+          instanceId: 'inst-1',
+          type: 'LOGO',
+          url: 'https://cdn.test/prev-logo.png',
+          s3Key: 'k1',
+          createdAt: '2026-06-10T00:00:00Z',
+        },
+        {
+          id: 'a2',
+          instanceId: 'inst-1',
+          type: 'HERO',
+          url: 'https://cdn.test/hero.png',
+          s3Key: 'k2',
+          createdAt: '2026-06-10T00:00:00Z',
+        },
+      ],
+    };
+
+    let state: WizardState = INITIAL_WIZARD_STATE;
+    const dispatch = vi.fn((action) => {
+      state = wizardReducer(state, action);
+    });
+
+    render(
+      <LogoStep
+        wizardState={state}
+        dispatch={dispatch}
+        instanceId="inst-1"
+        onNext={vi.fn()}
+        onBack={vi.fn()}
+      />
+    );
+
+    // Only the LOGO asset renders a picker tile; the HERO asset is filtered out.
+    const logoTile = screen.getByTestId('wizard-logo-library-a1');
+    expect(screen.queryByTestId('wizard-logo-library-a2')).toBeNull();
+
+    fireEvent.click(logoTile);
+    expect(dispatch).toHaveBeenCalledWith({
+      type: 'SET_LOGO',
+      url: 'https://cdn.test/prev-logo.png',
+      aiLogo: false,
+    });
+  });
+});
+
+describe('PortraitStep — count hint + upload (GAP-1134)', () => {
+  beforeEach(() => {
+    hoisted.assetsReturn = { data: [] };
+    hoisted.uploadMock.mockClear();
+  });
+
+  function renderPortrait(orgType: WizardState['orgType']) {
+    const state: WizardState = { ...INITIAL_WIZARD_STATE, orgType };
+    return render(
+      <PortraitStep
+        wizardState={state}
+        dispatch={vi.fn()}
+        instanceId="inst-1"
+        onNext={vi.fn()}
+        onBack={vi.fn()}
+      />
+    );
+  }
+
+  it('count hint suggests 1 portrait for a solo teacher', () => {
+    renderPortrait('SOLO_TEACHER');
+    expect(screen.getByTestId('wizard-portrait-hint')).toHaveTextContent(/1 ảnh chân dung/);
+  });
+
+  it('count hint suggests multiple portraits for a centre', () => {
+    renderPortrait('SMALL_CENTER');
+    // SMALL_CENTER portraitHint = 3.
+    expect(screen.getByTestId('wizard-portrait-hint')).toHaveTextContent(/khoảng 3 ảnh/);
+  });
+
+  it('gallery lists only PORTRAIT assets', () => {
+    hoisted.assetsReturn = {
+      data: [
+        { id: 'p1', type: 'PORTRAIT', url: 'https://cdn.test/p1.png' },
+        { id: 'l1', type: 'LOGO', url: 'https://cdn.test/logo.png' },
+      ],
+    };
+    renderPortrait('SMALL_CENTER');
+
+    expect(screen.getByTestId('wizard-portrait-tile-p1')).toBeInTheDocument();
+    expect(screen.queryByTestId('wizard-portrait-tile-l1')).toBeNull();
+    expect(screen.getByTestId('wizard-portrait-gallery')).toHaveTextContent(/Ảnh đã tải lên \(1\)/);
+  });
+
+  it('uploading a valid file calls upload with assetType=PORTRAIT', async () => {
+    renderPortrait('SOLO_TEACHER');
+
+    const input = screen.getByTestId('wizard-portrait-file-input') as HTMLInputElement;
+    const file = new File(['x'], 'teacher.png', { type: 'image/png' });
+    Object.defineProperty(input, 'files', { value: [file], configurable: true });
+
+    await act(async () => {
+      fireEvent.change(input);
+    });
+
+    expect(hoisted.uploadMock).toHaveBeenCalledWith({
+      instanceId: 'inst-1',
+      type: 'PORTRAIT',
+      file,
+    });
+  });
+
+  it('rejects oversized files via error banner without uploading', async () => {
+    renderPortrait('SOLO_TEACHER');
+
+    const input = screen.getByTestId('wizard-portrait-file-input') as HTMLInputElement;
+    const oversized = new File(['x'.repeat(3 * 1024 * 1024)], 'big.png', {
+      type: 'image/png',
+    });
+    Object.defineProperty(input, 'files', { value: [oversized], configurable: true });
+
+    await act(async () => {
+      fireEvent.change(input);
+    });
+
+    expect(await screen.findByTestId('wizard-portrait-error')).toHaveTextContent(/2MB/);
+    expect(hoisted.uploadMock).not.toHaveBeenCalled();
   });
 });
