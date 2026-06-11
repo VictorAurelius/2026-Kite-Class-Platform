@@ -1,53 +1,35 @@
 /**
- * Problem → Solution section — names the pain a center owner feels today, then
- * shows how the platform resolves it. Ported from the marketing-site kit
+ * Problem → Solution section — names a pain the center's audience feels, then
+ * shows how the center resolves it. Ported from the marketing-site kit
  * (ProblemSolution) per wave-landing-100 Bucket F.
  *
  * Layout: 3 pain/solution cards (responsive grid; stacks on mobile).
  * Scroll-reveal staggered per card.
  *
  * Slot shape: slots.items = SlotItem[] where
- *   title       = pain headline (e.g. "Điểm danh thủ công")
+ *   title       = pain headline (e.g. "Mất gốc môn Toán")
  *   description = the problem detail
  *   items[0]    = the fix (one-line solution)
  *
- * Falls back to a VN-context demo (centre-owner pains) when no slot data — this
- * is generic platform marketing copy, NOT fabricated partner/customer data, so
- * rendering a default is safe (cf. Bucket A empty-state spirit / GAP-958).
+ * Anti-fabrication + audience fit (GAP-1205): this section was ported from the
+ * platform marketing site, whose default copy pitches KiteClass TO center
+ * owners — wrong audience for a tenant landing (visitors are parents/students)
+ * and not the tenant's own content. So it renders ONLY tenant-provided slot
+ * data and hides entirely when none is configured — never shows a platform
+ * pitch (cf. Teachers/Pricing hide-when-empty, GAP-958).
  */
 
 import { MessageSquareWarning, CheckCircle2 } from 'lucide-react';
 import type { SlotData, SlotItem } from '@/lib/template/slots';
 import { ScrollReveal } from './ScrollReveal';
 
-const DEFAULT_ITEMS: SlotItem[] = [
-  {
-    title: 'Điểm danh thủ công',
-    description:
-      'Điểm danh bằng sổ giấy mất thời gian, dễ sót, cuối tháng khó tổng hợp số buổi học của từng em.',
-    items: ['Điểm danh 1 chạm, tự tổng hợp theo lớp và theo tháng.'],
-  },
-  {
-    title: 'Học phí dễ tính nhầm',
-    description:
-      'Học phí theo buổi, theo khóa, có nghỉ — tính tay dễ sai, vừa mất tiền vừa mất lòng tin của phụ huynh.',
-    items: ['Tự tính học phí từ điểm danh, xuất hóa đơn rõ ràng.'],
-  },
-  {
-    title: 'Phụ huynh hỏi liên tục',
-    description:
-      'Phụ huynh nhắn Zalo hỏi con đi học chưa, điểm thế nào, đóng tiền đến đâu — trả lời cả ngày không xuể.',
-    items: ['Phụ huynh tự xem điểm danh, điểm số, học phí của con.'],
-  },
-];
-
 interface ProblemSolutionSectionProps {
   slots?: SlotData;
 }
 
 export function ProblemSolutionSection({ slots }: ProblemSolutionSectionProps) {
-  const items = (slots?.items as SlotItem[] | undefined) || DEFAULT_ITEMS;
-  if (items.length === 0) return null;
+  const items = slots?.items as SlotItem[] | undefined;
+  if (!items || items.length === 0) return null;
 
   return (
     <section className="py-16">
@@ -56,9 +38,9 @@ export function ProblemSolutionSection({ slots }: ProblemSolutionSectionProps) {
           <span className="mb-3 inline-block text-sm font-semibold uppercase tracking-wide text-theme-cta">
             Vấn đề quen thuộc
           </span>
-          <h2 className="text-3xl font-bold md:text-4xl">Vận hành trung tâm không nên vất vả đến vậy</h2>
+          <h2 className="text-3xl font-bold md:text-4xl">Những trăn trở quen thuộc — và cách chúng tôi đồng hành</h2>
           <p className="mt-3 text-muted-foreground">
-            Nếu anh/chị đang xoay xở giữa Excel, Zalo và sổ giấy, đây là những việc nền tảng gỡ rối ngay.
+            Mỗi học viên một xuất phát điểm. Đây là những khó khăn thường gặp và cách chúng tôi giúp các em vượt qua.
           </p>
         </div>
         <div className="grid gap-6 md:grid-cols-3">

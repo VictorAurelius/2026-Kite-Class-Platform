@@ -1,3 +1,14 @@
+/**
+ * Features / "Tính năng nổi bật" section.
+ *
+ * Anti-fabrication + audience fit (GAP-1205): the ported default features were
+ * KiteClass PLATFORM capabilities ("Hệ thống LMS", "Thanh toán & Báo cáo") —
+ * a pitch TO center owners, wrong audience for a tenant landing (visitors are
+ * parents/students) and not the tenant's own content. So this section renders
+ * ONLY tenant-provided slot data and hides entirely when none is configured
+ * (cf. Teachers/Pricing hide-when-empty, GAP-958).
+ */
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BookOpen, Users, TrendingUp, CheckCircle2, Award, Calendar, Star } from 'lucide-react';
 import type { SlotData, SlotItem } from '@/lib/template/slots';
@@ -11,33 +22,13 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   star: Star,
 };
 
-const DEFAULT_FEATURES: SlotItem[] = [
-  {
-    icon: 'book',
-    title: 'Hệ thống LMS',
-    description: 'Quản lý bài giảng, tài liệu và theo dõi tiến độ học tập',
-    items: ['Upload video bài giảng', 'Theo dõi tiến độ học', 'Bài tập & quiz tự động'],
-  },
-  {
-    icon: 'users',
-    title: 'Quản lý Học viên',
-    description: 'Theo dõi toàn bộ thông tin học viên, điểm danh và kết quả',
-    items: ['Hồ sơ học viên chi tiết', 'Điểm danh tự động', 'Báo cáo kết quả học tập'],
-  },
-  {
-    icon: 'trending',
-    title: 'Thanh toán & Báo cáo',
-    description: 'Quản lý học phí, thanh toán online và báo cáo tài chính',
-    items: ['Thanh toán VietQR', 'Quản lý công nợ', 'Báo cáo doanh thu'],
-  },
-];
-
 interface FeaturesSectionProps {
   slots?: SlotData;
 }
 
 export function FeaturesSection({ slots }: FeaturesSectionProps) {
-  const features = (slots?.features as SlotItem[] | undefined) || DEFAULT_FEATURES;
+  const features = slots?.features as SlotItem[] | undefined;
+  if (!features || features.length === 0) return null;
 
   return (
     <section className="py-16">

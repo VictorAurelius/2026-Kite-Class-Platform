@@ -1,45 +1,30 @@
 /**
- * How-it-works section — the 3-step "get started" path. Ported from the
- * marketing-site kit (HowItWorks) per wave-landing-100 Bucket F.
+ * How-it-works section — the "how to get started / how we teach" path. Ported
+ * from the marketing-site kit (HowItWorks) per wave-landing-100 Bucket F.
  *
- * Layout: numbered 3-step grid (stacks on mobile), scroll-reveal staggered.
+ * Layout: numbered step grid (stacks on mobile), scroll-reveal staggered.
  *
  * Slot shape: slots.steps = SlotItem[] where
- *   title       = step name (e.g. "Tạo lớp & nhập học viên")
+ *   title       = step name (e.g. "Đăng ký học thử")
  *   description = step detail
  *
- * Falls back to a generic 3-step onboarding demo when no slot data — generic
- * platform copy, not fabricated data (cf. Bucket A empty-state spirit).
+ * Anti-fabrication + audience fit (GAP-1205): the ported default copy described
+ * a center-OWNER onboarding ("Tạo lớp & nhập học viên...") — wrong audience for
+ * a tenant landing (visitors are parents/students) and not the tenant's own
+ * content. So it renders ONLY tenant-provided slot data and hides entirely when
+ * none is configured — never shows a platform pitch (cf. GAP-958).
  */
 
 import type { SlotData, SlotItem } from '@/lib/template/slots';
 import { ScrollReveal } from './ScrollReveal';
-
-const DEFAULT_STEPS: SlotItem[] = [
-  {
-    title: 'Tạo lớp & nhập học viên',
-    description:
-      'Tạo lớp, xếp lịch và thêm danh sách học viên. Nhập nhanh từ file Excel sẵn có của trung tâm.',
-  },
-  {
-    title: 'Mời giáo viên & phụ huynh',
-    description:
-      'Gửi lời mời cho giáo viên và phụ huynh qua email. Mỗi người có tài khoản với đúng quyền của mình.',
-  },
-  {
-    title: 'Vận hành tự động',
-    description:
-      'Điểm danh, học phí và điểm số liên thông với nhau. Phụ huynh nhận cập nhật, anh/chị xem báo cáo tổng quan.',
-  },
-];
 
 interface HowItWorksSectionProps {
   slots?: SlotData;
 }
 
 export function HowItWorksSection({ slots }: HowItWorksSectionProps) {
-  const steps = (slots?.steps as SlotItem[] | undefined) || DEFAULT_STEPS;
-  if (steps.length === 0) return null;
+  const steps = slots?.steps as SlotItem[] | undefined;
+  if (!steps || steps.length === 0) return null;
 
   return (
     <section className="py-16">
@@ -48,9 +33,9 @@ export function HowItWorksSection({ slots }: HowItWorksSectionProps) {
           <span className="mb-3 inline-block text-sm font-semibold uppercase tracking-wide text-theme-primary">
             Cách hoạt động
           </span>
-          <h2 className="text-3xl font-bold md:text-4xl">Bắt đầu trong ba bước</h2>
+          <h2 className="text-3xl font-bold md:text-4xl">Bắt đầu học thật dễ dàng</h2>
           <p className="mt-3 text-muted-foreground">
-            Không cần cài đặt phức tạp. Anh/chị có thể đưa trung tâm lên nền tảng ngay trong ngày đầu.
+            Chỉ vài bước đơn giản để các em sẵn sàng cho buổi học đầu tiên.
           </p>
         </div>
         <ol className="mx-auto grid max-w-5xl gap-6 md:grid-cols-3">

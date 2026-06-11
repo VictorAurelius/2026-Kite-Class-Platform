@@ -1,6 +1,11 @@
 /**
- * Enrollment section — shows registration process steps.
- * Uses default demo data until CMS slot data is available.
+ * Enrollment section — shows the center's registration process steps.
+ *
+ * Anti-fabrication + audience fit (GAP-1205): the ported default steps were a
+ * generic KiteClass-platform onboarding ("Đăng ký tài khoản... Bắt đầu học") —
+ * not the tenant's own enrollment process. So this section renders ONLY
+ * tenant-provided slot data and hides entirely when none is configured
+ * (cf. GAP-958).
  *
  * @since 2026-04-04
  */
@@ -9,35 +14,13 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import type { SlotData, SlotItem } from '@/lib/template/slots';
 
-const DEFAULT_STEPS: SlotItem[] = [
-  {
-    title: 'Đăng ký tài khoản',
-    description: 'Tạo tài khoản học viên miễn phí trên hệ thống KiteClass',
-    icon: '1',
-  },
-  {
-    title: 'Kiểm tra đầu vào',
-    description: 'Làm bài kiểm tra trình độ để xếp lớp phù hợp',
-    icon: '2',
-  },
-  {
-    title: 'Chọn khóa học',
-    description: 'Tư vấn viên hỗ trợ chọn khóa học phù hợp với mục tiêu',
-    icon: '3',
-  },
-  {
-    title: 'Bắt đầu học',
-    description: 'Hoàn tất đăng ký và tham gia buổi học đầu tiên',
-    icon: '4',
-  },
-];
-
 interface EnrollmentSectionProps {
   slots?: SlotData;
 }
 
 export function EnrollmentSection({ slots }: EnrollmentSectionProps) {
-  const steps = (slots?.steps as SlotItem[] | undefined) || DEFAULT_STEPS;
+  const steps = slots?.steps as SlotItem[] | undefined;
+  if (!steps || steps.length === 0) return null;
 
   return (
     <section className="py-16 bg-muted/30">

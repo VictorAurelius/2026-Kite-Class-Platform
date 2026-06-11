@@ -15,7 +15,7 @@
  * | `kiteclass.com` (apex)           | Pass through — marketing site, no tenant context            |
  * | `www.kiteclass.com`              | Pass through — reserved subdomain                            |
  * | `localhost` / `127.0.0.1` / IP   | Pass through (dev). `?tenant=sky` query param overrides.    |
- * | `unknown.kiteclass.com`          | Pass through (let app render generic 404 / fallback)        |
+ * | `unknown.kiteclass.com`          | Inject `x-tenant-not-found: <slug>` → friendly not-found page (GAP-1200) |
  * | `suspended.kiteclass.com`        | 307 redirect → `/suspended?slug=suspended`                  |
  * | BE down / 5xx                    | Pass through with `x-tenant-resolve-error` warning header   |
  *
@@ -115,9 +115,18 @@ export async function middleware(req: NextRequest): Promise<NextResponse> {
     const tenant = await resolveTenant(slug);
 
     if (!tenant) {
-      // BE confirmed 404 — let the app handle (marketing 404 or fallback page).
-      // We do NOT inject any header so server components fall through to default.
-      return NextResponse.next();
+      // BE confirmed 404 — the host carried a real subdomain slug but no tenant
+      // exists for it (mistyped / decommissioned). Mark the request so server
+      // components render a friendly "trung tâm không tồn tại" page instead of
+      // silently falling back to the env/default tenant landing — which would
+      // show a DIFFERENT center's brand + content (confusing, mild content-leak).
+      // GAP-1200. (localhost/IP without a subdomain never reach here — `slug` is
+      // null and we returned early above, preserving the dev fallback.)
+      const requestHeaders = new Headers(req.headers);
+      requestHeaders.set('x-tenant-not-found', slug);
+      return NextResponse.next({
+        request: { headers: requestHeaders },
+      });
     }
 
     // 200 OK + ACTIVE — inject tenant id for server components.
