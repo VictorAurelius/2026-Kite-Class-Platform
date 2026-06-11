@@ -51,6 +51,8 @@ class RegenerateQuotaServiceTest {
     @DisplayName("limitFor — tier caps mirror ai-branding-guidelines.md §4.3")
     void tierLimitsMirrorRules() {
         assertThat(service.limitFor("FREE")).isEqualTo(3);
+        // BASIC = canonical (GAP-1228); "PRO" alias backward-compat JWT cũ — cùng cap
+        assertThat(service.limitFor("BASIC")).isEqualTo(10);
         assertThat(service.limitFor("PRO")).isEqualTo(10);
         assertThat(service.limitFor("PREMIUM")).isEqualTo(30);
         assertThat(service.limitFor("ENTERPRISE")).isEqualTo(-1);
@@ -66,7 +68,8 @@ class RegenerateQuotaServiceTest {
 
         RegenerateQuotaResponse resp = service.getQuota("usr-1", "PRO");
 
-        assertThat(resp.tier()).isEqualTo("PRO");
+        // GAP-1228: response trả tier CANONICAL — alias JWT cũ "PRO" → "BASIC"
+        assertThat(resp.tier()).isEqualTo("BASIC");
         assertThat(resp.used()).isZero();
         assertThat(resp.limit()).isEqualTo(10);
         assertThat(resp.resetAt()).isEqualTo(Instant.parse("2026-05-08T00:00:00Z"));

@@ -19,7 +19,8 @@ export type Tone =
   | 'luxurious'
   | 'academic';
 
-export type Tier = 'FREE' | 'PRO' | 'PREMIUM' | 'ENTERPRISE';
+// BASIC = canonical (PricingTier.java, GAP-1228); 'PRO' giữ alias backward-compat JWT cũ
+export type Tier = 'FREE' | 'BASIC' | 'PRO' | 'PREMIUM' | 'ENTERPRISE';
 
 export interface TemplateCandidate {
   id: string;

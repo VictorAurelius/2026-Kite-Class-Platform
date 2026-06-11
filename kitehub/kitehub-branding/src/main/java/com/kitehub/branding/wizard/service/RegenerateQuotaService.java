@@ -75,7 +75,9 @@ public class RegenerateQuotaService {
     int limitFor(String tier) {
         if (tier == null) return freeLimit;
         return switch (tier.toUpperCase(Locale.ROOT)) {
-            case "PRO" -> proLimit;
+            // BASIC = canonical (PricingTier.java); "PRO" giữ làm alias backward-compat
+            // cho JWT cũ phát trước rename (GAP-1228)
+            case "BASIC", "PRO" -> proLimit;
             case "PREMIUM" -> premiumLimit;
             case "ENTERPRISE" -> enterpriseLimit;
             default -> freeLimit; // FREE / TRIAL / unknown
@@ -217,7 +219,9 @@ public class RegenerateQuotaService {
         if (tier == null) return "FREE";
         String upper = tier.toUpperCase(Locale.ROOT);
         return switch (upper) {
-            case "PRO", "PREMIUM", "ENTERPRISE" -> upper;
+            // Canonical hoá: alias cũ "PRO" → BASIC (GAP-1228); snapshot DB lưu canonical
+            case "PRO", "BASIC" -> "BASIC";
+            case "PREMIUM", "ENTERPRISE" -> upper;
             default -> "FREE";
         };
     }

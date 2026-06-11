@@ -340,11 +340,11 @@ All write endpoints delegate to `InstanceLifecycleService` (BR-LIFE-003); state-
 ## GET /api/v1/branding/regenerate-quota
 **Use case:** Wizard preview screen + dashboard regenerate counter; replaces Wave 32 v1 inline tier-quota logic (sub-GAP-272d)
 **Auth:** Bearer token
-**Headers:** `X-Subscription-Tier: FREE|PRO|PREMIUM|ENTERPRISE` (gateway-injected)
+**Headers:** `X-Subscription-Tier: FREE|BASIC|PREMIUM|ENTERPRISE` (gateway-injected; alias cũ `PRO` được BE canonical hoá → BASIC per GAP-1228)
 **Response 200:**
 ```json
 {
-  "tier": "PRO",
+  "tier": "BASIC",
   "used": 4,
   "limit": 10,
   "resetAt": "2026-05-08T00:00:00Z"
@@ -352,7 +352,7 @@ All write endpoints delegate to `InstanceLifecycleService` (BR-LIFE-003); state-
 ```
 - `tier` — current subscription tier
 - `used` — số regenerate đã consume trong current window
-- `limit` — tier cap per `ai-branding-guidelines.md` §4.3 (FREE=3, PRO=10, PREMIUM=30, ENTERPRISE=−1 = unlimited)
+- `limit` — tier cap per `ai-branding-guidelines.md` §4.3 (FREE=3, BASIC=10, PREMIUM=30, ENTERPRISE=−1 = unlimited; alias JWT cũ PRO → BASIC per GAP-1228)
 - `resetAt` — ISO-8601 UTC khi quota reset (daily window). Khi `limit=-1`, `resetAt` = `null`.
 **Errors:**
 - 401: unauthenticated
