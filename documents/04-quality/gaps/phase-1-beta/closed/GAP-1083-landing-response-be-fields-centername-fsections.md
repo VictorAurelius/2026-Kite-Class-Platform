@@ -28,7 +28,11 @@ Sau BE: wire page.tsx slot map (`slots.problemSolution/howItWorks/trustStrip` + 
 
 - [x] LandingPageResponse có centerName + zaloUrl + F-section data (problemSolution/howItWorks/trustStrip) — entity + V95 migration + DTO + mapper + request DTO; `./mvnw compile` + LandingPageMapperTest/Sanitizer/ServiceTest PASS
 - [x] page.tsx wire 4 F-section slots + zaloUrl từ response — problemSolution/howItWorks/trustStrip slots emitted only when BE non-empty; zaloUrl flows via TemplateRenderer→FloatingCTA; centerName via resolveCenterName; `pnpm --filter kiteclass-frontend build` PASS
-- [ ] G1 walk: 3 tenant demo-trio render F sections với per-tenant data (không default chung) — requires runtime browser walk against demo-trio seed
+- [x] G1 walk: 3 tenant demo-trio render F sections với per-tenant data (không default chung) — requires runtime browser walk against demo-trio seed
+
+## Log
+
+- **2026-06-11 (DONE):** AC#3 runtime closed — fix-pack PR #2326 seed F-section data per-tenant (Bucket B) + render verified live nip.io demo-trio (problemSolution/howItWorks/trustStrip hiển thị đúng audience, screenshots). AC#1 BE + AC#2 FE đã ship PR #2275.
 
 ## Related
 

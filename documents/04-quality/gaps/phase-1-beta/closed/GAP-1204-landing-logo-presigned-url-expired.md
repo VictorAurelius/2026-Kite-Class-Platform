@@ -1,6 +1,6 @@
 # GAP-1204: Landing logo dùng presigned MinIO URL hết hạn persist trong DB — logo vỡ trên landing public
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟡 P2
 **Domain:** Mixed
 **Found:** 2026-06-11 (landing-100 UI review — header sky-education logo broken-image icon)
@@ -18,9 +18,13 @@ Không persist presigned URL: lưu object key (hoặc stable proxy URL `/api/v1/
 
 ## Acceptance Criteria
 
-- [ ] `landing_pages.logo_url` không còn chứa `X-Amz-Signature`
-- [ ] Logo sky render sau >7 ngày không cần re-apply
-- [ ] Sweep evidence các cột URL khác (per cross-flow-bug-class-sweep §3)
+- [x] `landing_pages.logo_url` không còn chứa `X-Amz-Signature`
+- [x] Logo sky render sau >7 ngày không cần re-apply
+- [x] Sweep evidence các cột URL khác (per cross-flow-bug-class-sweep §3)
+
+## Log
+
+- **2026-06-11 (DONE):** Fix-pack PR #2326 Bucket B: NEW `BrandingAssetUrlResolver` (shared GAP-1072 logic) — landing GET regenerate presigned logo/hero on read, không persist; seed dùng static path; Sky stale presigned bị upsert overwrite. Verified live: sky logo render (screenshot); LandingPageServiceTest 4/4 + regen test.
 
 ## Related
 

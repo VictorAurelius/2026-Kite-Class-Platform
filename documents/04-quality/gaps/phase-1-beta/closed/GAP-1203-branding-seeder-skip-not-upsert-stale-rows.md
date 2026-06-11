@@ -1,6 +1,6 @@
 # GAP-1203: BrandingDataSeeder idempotent-skip để lại rows cũ khi seed data đổi (hero .png → .webp)
 
-**Status:** 🟡 PARTIAL
+**Status:** 🟢 DONE
 **Priority:** 🟢 P3
 **Domain:** Backend
 **Found:** 2026-06-11 (landing-100 G2★ nip.io walk — hero bg render gradient thay vì AI-scene)
@@ -26,9 +26,13 @@ Seeder demo-trio chuyển skip-if-exists → **upsert có chủ đích cho demo 
 
 ## Acceptance Criteria
 
-- [ ] Seeder re-run trên DB có rows cũ → rows phản ánh constants hiện tại
-- [ ] Redis landingPages keys evicted sau upsert
+- [x] Seeder re-run trên DB có rows cũ → rows phản ánh constants hiện tại
+- [x] Redis landingPages keys evicted sau upsert
 - [x] Local DB đã fix tay: hero_image_url .png→.webp + logo_url co-ha/nhi (rỗng → /demo-banners/*-logo.webp) + redis DEL (workaround — walk unblocked)
+
+## Log
+
+- **2026-06-11 (DONE):** Fix-pack PR #2326 Bucket B: seeder skip-if-exists → upsert demo-trio fixed UUIDs (reconcile content về constants) + CacheManager evict `landingPages::{id}`. Verified live: rebuild core → DB tự reconcile (centerName/logo/F-data). BrandingDataSeederTest 5/5.
 
 ## Related
 

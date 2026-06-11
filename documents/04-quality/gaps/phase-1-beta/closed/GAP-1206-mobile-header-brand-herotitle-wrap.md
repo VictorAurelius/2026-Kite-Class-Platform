@@ -1,6 +1,6 @@
 # GAP-1206: Mobile header dùng heroTitle dài làm brand → wrap 4 dòng chiếm nửa màn hình
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟡 P2
 **Domain:** Frontend
 **Found:** 2026-06-11 (landing-100 UI review mobile 390×844)
@@ -17,9 +17,13 @@ Mobile (390px): header brand = `heroTitle` ("Lấy lại căn bản môn Toán c
 
 ## Acceptance Criteria
 
-- [ ] Mobile header ≤2 dòng (ưu tiên 1) mọi tenant demo-trio
-- [ ] Desktop không regression
-- [ ] Screenshot mobile before/after
+- [x] Mobile header ≤2 dòng (ưu tiên 1) mọi tenant demo-trio
+- [x] Desktop không regression
+- [x] Screenshot mobile before/after
+
+## Log
+
+- **2026-06-11 (DONE):** Fix-pack PR #2326 Bucket A: header brand truncate + responsive size + ưu tiên centerName; Bucket B seed centerName ngắn ("Cô Hà Toán"...). Verified live mobile 390px: brand 1 dòng (screenshot).
 
 ## Related
 

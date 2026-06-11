@@ -36,7 +36,7 @@ Bạn (human) walk landing page per-tenant qua **đúng access-mode production**
   - Hero "Lấy lại căn bản môn Toán cùng cô Hà" + tagline Toán tiểu học
   - **Hero background = ảnh AI-scene cô giáo** (không phải gradient trơn — gradient = asset 404, xem GAP-1203 troubleshooting)
   - Màu chủ đạo **XANH DƯƠNG #2563EB** (nút CTA, nav hover, link)
-  - Template PERSONAL (ít section hơn organization — không có section đội ngũ giáo viên đông)
+  - Template PERSONAL + các section nội dung (Vì sao chọn / 3 bước bắt đầu / trust strip) hiển thị NỘI DUNG CỦA CÔ HÀ (audience phụ huynh/học viên) — KHÔNG còn câu platform như "Vận hành trung tâm" / "Hệ thống LMS" (fix GAP-1205). Scroll xuống để section reveal (animation).
   - Tab title + OG: "Lấy lại căn bản môn Toán cùng cô Hà"
   - Console: không error đỏ (CSP warning logo MinIO đã fix GAP-1198)
 - **Verify thêm:** Network tab — KHÔNG có request nào kèm `?tenant=`; document request Host = `co-ha-toan.127.0.0.1.nip.io`.
@@ -66,17 +66,17 @@ Bạn (human) walk landing page per-tenant qua **đúng access-mode production**
 - **Action:** mở `http://sky-edu-test.127.0.0.1.nip.io:3000/`
 - **Expected:** redirect 1 lần → trang `/suspended` render thông báo thân thiện. **KHÔNG ERR_TOO_MANY_REDIRECTS** (bug GAP-1199 đã fix — nếu vẫn loop = image chưa rebuild sau merge).
 
-### Bước 7 — Sad path: subdomain không tồn tại (known issue)
+### Bước 7 — Sad path: subdomain không tồn tại (fix GAP-1200 trong PR này)
 
 - **Action:** mở `http://khong-ton-tai.127.0.0.1.nip.io:3000/`
-- **Expected hiện tại (KNOWN ISSUE GAP-1200):** render landing cô Khánh (fallback) — sai về UX nhưng là behavior đã biết, KHÔNG fail walk vì nó. Ghi nhận nếu thấy khác.
+- **Expected:** trang "Không tìm thấy trung tâm" (chrome KiteClass generic, gợi ý kiểm tra địa chỉ) — **KHÔNG** render landing của tenant khác (trước fix: hiện trang cô Khánh fallback).
 
 ## 4. Sad path checks tổng
 
 | # | Check | PASS khi |
 |---|---|---|
 | S1 | SUSPENDED (Bước 6) | 1 redirect → trang suspended, không loop |
-| S2 | Unknown subdomain (Bước 7) | Đúng known-issue GAP-1200 (fallback Khánh) — không crash |
+| S2 | Unknown subdomain (Bước 7) | Trang "Không tìm thấy trung tâm" — không render tenant fallback |
 | S3 | BE down (optional): `docker stop kitehub-subscription` rồi reload Bước 1 | Trang vẫn render (degrade, không crash); `docker start kitehub-subscription` sau test |
 
 ## 5. Báo kết quả (4 outcome)

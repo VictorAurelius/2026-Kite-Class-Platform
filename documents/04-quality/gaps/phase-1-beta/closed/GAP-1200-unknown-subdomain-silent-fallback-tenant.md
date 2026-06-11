@@ -1,6 +1,6 @@
 # GAP-1200: Subdomain không tồn tại render thầm lặng landing của tenant fallback
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟡 P2
 **Domain:** Frontend
 **Found:** 2026-06-11 (landing-100 G2★ nip.io walk — sad path catalog; trùng FM-3 pre-walk simulation)
@@ -22,9 +22,13 @@ Khi request có Host subdomain hợp lệ (middleware đã thử resolve) nhưng
 
 ## Acceptance Criteria
 
-- [ ] Subdomain không tồn tại → trang "không tìm thấy trung tâm" (không render tenant khác)
-- [ ] `localhost:3000` không subdomain → giữ behavior fallback hiện tại (dev mode)
-- [ ] Unit test middleware + page cho nhánh not-found
+- [x] Subdomain không tồn tại → trang "không tìm thấy trung tâm" (không render tenant khác)
+- [x] `localhost:3000` không subdomain → giữ behavior fallback hiện tại (dev mode)
+- [x] Unit test middleware + page cho nhánh not-found
+
+## Log
+
+- **2026-06-11 (DONE):** Fix-pack PR #2326 Bucket A: middleware inject `x-tenant-not-found` + NotFoundTenant page (chrome KiteClass generic). Verified live nip.io: `khong-ton-tai...` render "Không tìm thấy trung tâm" + screenshot; localhost fallback giữ nguyên (unit tests). vitest 890 pass.
 
 ## Related
 
