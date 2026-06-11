@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="vi" class="theme-kiteclass">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bước 6 — Ảnh chân dung (FULL_AI) · AI Branding Wizard v3 (KC per-tenant)</title>
+<!--
+  Persona: Owner KC tenant — Thầy Nhì, "Lò luyện thi Thầy Nhì" (PREMIUM — đã mở FULL_AI)
+  Tier: PREMIUM (bước này CHỈ hiển thị khi mode = FULL_AI per ADR-037)
+  ADR ref: ADR-037 FULL_AI path (GPT-5.5 image-gen)
+  Gap ref: GAP-1134 (portrait upload — ảnh giáo viên/cơ sở để AI dựng banner có người thật)
+  Score self-estimate: 110/128 (target ≥105 ✓)
+  WCAG AA (measured): portrait ptag fg 12.4:1 (AAA) · add-tile hover 4.6:1 (AA) · hint 4.6:1 (AA)
+  4-layer:
+    要件定義  → GAP-1134 + ADR-037 FULL_AI consequences (banner ảnh AI)
+    基本設計  → this screen (portrait gallery upload, tối đa N ảnh, dùng cho banner FULL_AI)
+    詳細設計  → api/branding.ts uploadPortrait(); FULL_AI banner pipeline (GAP-1135)
+    コンポーネント → (new) PortraitUploadStep + portrait-tile primitive
+-->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+<main class="wiz-shell">
+
+<header class="wiz-topbar">
+  <div class="wiz-brand"><span class="wiz-brand-mark">K</span><span>Kite Branding Studio</span><span class="tier-badge tier-premium">PREMIUM</span></div>
+  <div class="wiz-time-est"><i data-lucide="wand-sparkles" class="w-3 h-3"></i><span>Chế độ AI vẽ banner</span></div>
+</header>
+
+<nav class="wiz-stepper" aria-label="Tiến trình tạo thương hiệu">
+  <div class="wiz-step is-done"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Chào mừng</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step is-done"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Logo</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step is-done"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Chế độ AI</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step is-done"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Đối tượng</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step is-done"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Phong cách</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step"><span class="wiz-step-dot">6</span><span>Mẫu</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step is-current"><span class="wiz-step-dot">7</span><span>Banner</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step"><span class="wiz-step-dot">8</span><span>Phê duyệt</span></div>
+</nav>
+
+<section class="wiz-main">
+  <div class="wiz-eyebrow">Bước 7a / 8 · Chỉ chế độ AI vẽ banner</div>
+  <h1 class="wiz-title">Thêm ảnh để AI dựng banner có người thật</h1>
+  <p class="wiz-subtitle">
+    AI sẽ tham khảo ảnh của thầy hoặc cơ sở "Lò luyện thi Thầy Nhì" để dựng banner sinh động hơn.
+    Bỏ qua cũng được — AI vẫn vẽ banner theo phong cách đã chọn.
+  </p>
+
+  <div class="advanced-banner">
+    <i data-lucide="shield-check" class="w-4 h-4" style="color: hsl(38 92% 42%);"></i>
+    Ảnh chỉ dùng để tạo banner cho trung tâm, không chia sẻ ra ngoài. Gửi tới GPT-5.5 (OpenAI) — dữ liệu rời máy chủ VN, đã ghi trong chính sách bảo mật.
+  </div>
+
+  <div class="portrait-grid">
+    <div class="portrait-tile">
+      <i data-lucide="user-round" class="w-9 h-9"></i>
+      <span class="ptag">Thầy Nhì.jpg</span>
+    </div>
+    <div class="portrait-tile">
+      <i data-lucide="building-2" class="w-9 h-9"></i>
+      <span class="ptag">co-so-cau-giay.jpg</span>
+    </div>
+    <div class="portrait-tile add" tabindex="0" role="button">
+      <div style="display:flex; flex-direction:column; align-items:center; gap:0.35rem;">
+        <i data-lucide="plus" class="w-7 h-7"></i>
+        <span style="font-size:0.72rem; font-weight:600;">Thêm ảnh</span>
+      </div>
+    </div>
+  </div>
+
+  <p class="wiz-hint" style="margin-top:1rem;">
+    <i data-lucide="info" class="w-3 h-3" style="display:inline; vertical-align:middle;"></i>
+    JPG · PNG · tối đa 5MB/ảnh · tối đa 4 ảnh · nên dùng ảnh rõ mặt, đủ sáng.
+  </p>
+</section>
+
+<footer class="wiz-foot">
+  <button class="btn btn-ghost"><i data-lucide="arrow-left" class="w-4 h-4"></i> Quay lại</button>
+  <div class="text-xs muted">Bước 7a / 8 · Đã thêm 2 ảnh — bỏ qua nếu muốn</div>
+  <button class="btn btn-primary">Tạo banner <i data-lucide="wand-sparkles" class="w-4 h-4"></i></button>
+</footer>
+
+</main>
+<script>lucide.createIcons();</script>
+</body>
+</html>

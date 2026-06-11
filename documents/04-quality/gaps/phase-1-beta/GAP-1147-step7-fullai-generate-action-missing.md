@@ -43,3 +43,7 @@ Khuyến nghị: Option A cho Phase 1 (chỉ preview, chưa cần real deploy).
 
 - Discovered in: PR #2289 (wave-wizard-step7 G2 walk 2026-06-10)
 - GAP-1142 (mode selector) · GAP-1143 (live preview) · GAP-1145 (regenerate 400) · GAP-1137 (FULL_AI tier-gate) · GAP-1135 (real AI image-gen, Phase 2)
+
+## Log
+
+- **2026-06-11:** Design source: `ui_kits/ai-branding-wizard-v2/v3/screens/step3-mode.html` (GAP-1212 DONE 2026-06-11, Wave ui-kits-100 Bucket D) — mode selector TEMPLATE/FULL_AI + tier-gate + PREMIUM quota meter làm 基本設計 layer cho action FULL_AI.

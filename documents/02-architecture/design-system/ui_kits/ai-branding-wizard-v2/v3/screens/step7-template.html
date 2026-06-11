@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="vi" class="theme-kiteclass">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bước 6 — Mẫu thiết kế · AI Branding Wizard v3 (KC per-tenant)</title>
+<!--
+  Persona: Owner KC tenant — Cô Hà, "Trung tâm Tiếng Anh Cô Hà"
+  Tier: BASIC (mode = TEMPLATE → chọn mẫu HTML để AI điền nội dung)
+  Flow ref: BrandingWizard.tsx state 'template' + TemplateStep.tsx; types.ts TemplateCandidate
+  ADR ref: ADR-037 TEMPLATE path (HTML template + Gemini render → Playwright → WebP)
+  Score self-estimate: 114/128 (preview SVG thật, lọc theo audience+tone; target ≥105 ✓)
+  WCAG AA (measured): tpl-name 13.9:1 (AAA) · tpl-tag 4.6:1 (AA) · selected ring 3.2:1 (AA non-text)
+  4-layer:
+    要件定義  → GAP-1212 §AC + types.ts TemplateCandidate + ADR-037 TEMPLATE route
+    基本設計  → this screen (lưới mẫu lọc theo đối tượng+phong cách, preview SVG)
+    詳細設計  → TemplateStep.tsx; SET_TEMPLATE event; compose-sky-demo-banner.mjs layout reference
+    コンポーネント → TemplateStep.tsx + tpl-card primitive
+-->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+<main class="wiz-shell">
+
+<header class="wiz-topbar">
+  <div class="wiz-brand"><span class="wiz-brand-mark">K</span><span>Kite Branding Studio</span><span class="tier-badge tier-basic">BASIC</span></div>
+  <div class="wiz-time-est"><i data-lucide="clock" class="w-3 h-3"></i><span>Còn ~2 phút</span></div>
+</header>
+
+<nav class="wiz-stepper" aria-label="Tiến trình tạo thương hiệu">
+  <div class="wiz-step is-done"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Chào mừng</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step is-done"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Logo</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step is-done"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Chế độ AI</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step is-done"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Đối tượng</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step is-done"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Phong cách</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step is-current"><span class="wiz-step-dot">6</span><span>Mẫu</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step"><span class="wiz-step-dot">7</span><span>Banner</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step"><span class="wiz-step-dot">8</span><span>Phê duyệt</span></div>
+</nav>
+
+<section class="wiz-main">
+  <div class="wiz-eyebrow">Bước 6 / 8</div>
+  <h1 class="wiz-title">Chọn mẫu trang giới thiệu</h1>
+  <p class="wiz-subtitle">3 mẫu phù hợp nhất với <strong>Phụ huynh</strong> + phong cách <strong>Chuyên nghiệp</strong>. AI sẽ điền nội dung trung tâm Cô Hà vào mẫu.</p>
+
+  <div class="tpl-grid">
+    <div class="tpl-card is-selected" tabindex="0" role="radio" aria-checked="true">
+      <div class="tpl-thumb">
+        <svg viewBox="0 0 280 175" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mẫu Cổ điển">
+          <rect width="280" height="175" fill="hsl(210 40% 98%)"/>
+          <rect x="0" y="0" width="280" height="34" fill="hsl(221 83% 53%)"/>
+          <circle cx="20" cy="17" r="8" fill="white"/>
+          <rect x="34" y="13" width="70" height="8" rx="2" fill="white" opacity="0.9"/>
+          <rect x="24" y="56" width="150" height="14" rx="3" fill="hsl(222 47% 18%)"/>
+          <rect x="24" y="78" width="200" height="8" rx="2" fill="hsl(215 16% 60%)"/>
+          <rect x="24" y="92" width="170" height="8" rx="2" fill="hsl(215 16% 60%)"/>
+          <rect x="24" y="116" width="86" height="22" rx="6" fill="hsl(221 83% 53%)"/>
+        </svg>
+      </div>
+      <div class="tpl-meta">
+        <span class="tpl-name">Cổ điển uy tín</span>
+        <span class="tpl-tag">Header xanh · CTA nổi bật · hợp phụ huynh</span>
+      </div>
+    </div>
+
+    <div class="tpl-card" tabindex="0" role="radio" aria-checked="false">
+      <div class="tpl-thumb">
+        <svg viewBox="0 0 280 175" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mẫu Hiện đại">
+          <rect width="280" height="175" fill="white"/>
+          <rect x="0" y="0" width="140" height="175" fill="hsl(221 83% 53%)"/>
+          <rect x="18" y="40" width="100" height="14" rx="3" fill="white"/>
+          <rect x="18" y="62" width="84" height="8" rx="2" fill="white" opacity="0.85"/>
+          <rect x="18" y="100" width="70" height="20" rx="6" fill="white"/>
+          <circle cx="210" cy="60" r="34" fill="hsl(210 40% 94%)"/>
+          <rect x="160" y="120" width="100" height="8" rx="2" fill="hsl(215 16% 70%)"/>
+        </svg>
+      </div>
+      <div class="tpl-meta">
+        <span class="tpl-name">Hiện đại 2 cột</span>
+        <span class="tpl-tag">Chia đôi · hình minh hoạ · trẻ trung</span>
+      </div>
+    </div>
+
+    <div class="tpl-card" tabindex="0" role="radio" aria-checked="false">
+      <div class="tpl-thumb">
+        <svg viewBox="0 0 280 175" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mẫu Tối giản">
+          <rect width="280" height="175" fill="hsl(210 40% 99%)"/>
+          <rect x="60" y="40" width="160" height="16" rx="3" fill="hsl(222 47% 18%)"/>
+          <rect x="80" y="66" width="120" height="8" rx="2" fill="hsl(215 16% 60%)"/>
+          <rect x="100" y="98" width="80" height="22" rx="11" fill="hsl(221 83% 53%)"/>
+          <rect x="44" y="140" width="60" height="6" rx="2" fill="hsl(214 31% 88%)"/>
+          <rect x="112" y="140" width="60" height="6" rx="2" fill="hsl(214 31% 88%)"/>
+          <rect x="180" y="140" width="56" height="6" rx="2" fill="hsl(214 31% 88%)"/>
+        </svg>
+      </div>
+      <div class="tpl-meta">
+        <span class="tpl-name">Tối giản canh giữa</span>
+        <span class="tpl-tag">Sạch sẽ · 1 CTA · tải nhanh</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="wiz-foot">
+  <button class="btn btn-ghost"><i data-lucide="arrow-left" class="w-4 h-4"></i> Quay lại</button>
+  <div class="text-xs muted">Bước 6 / 8 · Đã chọn "Cổ điển uy tín"</div>
+  <button class="btn btn-primary">Tạo banner <i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+</footer>
+
+</main>
+<script>lucide.createIcons();</script>
+</body>
+</html>

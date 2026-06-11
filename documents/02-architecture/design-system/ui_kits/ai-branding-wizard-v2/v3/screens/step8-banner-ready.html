@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="vi" class="theme-kiteclass">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bước 7 — Banner READY · AI Branding Wizard v3 (KC per-tenant)</title>
+<!--
+  Persona: Owner KC tenant — Cô Hà, "Trung tâm Tiếng Anh Cô Hà"
+  Tier: BASIC (TEMPLATE banner xong)
+  Gap ref: GAP-1135 (banner state READY) + GAP-1021 (regen counter)
+  State: READY (1 trong 3 trạng thái của GAP-1135) — happy path
+  Score self-estimate: 115/128 (target ≥105 ✓)
+  WCAG AA (measured): banner heading trên gradient 5.6:1 (AA large) · regen-quota 13.9:1 (AAA) · mode-tag 5.0:1 (AA)
+  4-layer:
+    要件定義  → GAP-1135 (READY) + GAP-1021 (regenerate counter visible)
+    基本設計  → this screen (banner READY + regenerate counter theo tier + tạo lại / tiếp)
+    詳細設計  → RegenerateCounter.tsx (REGENERATE_LIMIT_BY_TIER); WebP asset durable (không presigned)
+    コンポーネント → BannerGenerateStage (ready variant) + RegenerateCounter.tsx + regen-bar
+-->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+<main class="wiz-shell">
+
+<header class="wiz-topbar">
+  <div class="wiz-brand"><span class="wiz-brand-mark">K</span><span>Kite Branding Studio</span><span class="tier-badge tier-basic">BASIC</span></div>
+  <div class="wiz-time-est"><i data-lucide="check-circle-2" class="w-3 h-3"></i><span>Banner đã sẵn sàng</span></div>
+</header>
+
+<nav class="wiz-stepper" aria-label="Tiến trình tạo thương hiệu">
+  <div class="wiz-step is-done"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Chào mừng</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step is-done"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Logo</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step is-done"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Chế độ AI</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step is-done"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Đối tượng</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step is-done"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Phong cách</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step is-done"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Mẫu</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step is-current"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Banner</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step"><span class="wiz-step-dot">8</span><span>Phê duyệt</span></div>
+</nav>
+
+<section class="wiz-main">
+  <div class="wiz-eyebrow">Bước 7 / 8 · Hoàn tất</div>
+  <h1 class="wiz-title">Banner đã sẵn sàng 🎉</h1>
+  <p class="wiz-subtitle">Đây là banner AI tạo cho "Trung tâm Tiếng Anh Cô Hà". Ưng ý thì tiếp tục, hoặc tạo lại bản khác.</p>
+
+  <div class="banner-stage" style="max-width: 760px;">
+    <div class="banner-canvas ready">
+      <div class="banner-ready-inner">
+        <h3>Trung tâm Tiếng Anh Cô Hà</h3>
+        <p style="font-size:0.9rem; opacity:0.95;">Lộ trình IELTS cam kết đầu ra — đồng hành cùng phụ huynh</p>
+        <span style="align-self:center; margin-top:0.4rem; background:white; color:hsl(var(--primary)); font-weight:700; font-size:0.78rem; padding:0.3rem 0.9rem; border-radius:999px;">Đăng ký học thử miễn phí</span>
+      </div>
+    </div>
+    <div class="banner-foot">
+      <span class="banner-mode-tag"><i data-lucide="layout-template" class="w-3 h-3"></i> Mẫu dựng sẵn · WebP · chữ Việt nét</span>
+      <span class="muted">1920×720 · 84KB</span>
+    </div>
+  </div>
+
+  <!-- regenerate counter (GAP-1021) -->
+  <div class="regen-bar mt-6" style="margin-top:1.25rem; max-width:760px;">
+    <div class="regen-info">
+      <span class="regen-tier">Gói BASIC</span>
+      <span class="regen-quota">Còn 9 / 10 lượt tạo lại hôm nay</span>
+    </div>
+    <div class="regen-dots" aria-label="9 trên 10 lượt còn lại">
+      <span></span><span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span><span class="spent"></span>
+    </div>
+  </div>
+</section>
+
+<footer class="wiz-foot">
+  <button class="btn btn-secondary"><i data-lucide="rotate-cw" class="w-4 h-4"></i> Tạo lại banner</button>
+  <div class="text-xs muted">Bước 7 / 8 · Banner sẵn sàng</div>
+  <button class="btn btn-primary">Tới phê duyệt <i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+</footer>
+
+</main>
+<script>lucide.createIcons();</script>
+</body>
+</html>

@@ -1,11 +1,41 @@
 # ai-branding-wizard-v2 — Direction C 6-step provisioning wizard
 
-**Wave:** UI Kits Round 2 · 1.7 add-on · 2026-04-29
+> ⚠️ **Direction C / KH-provisioning — superseded một phần bởi ADR-037 + wizard KiteClass per-tenant.**
+> 28 screen states v2 dưới đây thiết kế cho **KH provisioning wizard** (slug/tenant input, lifecycle DEPLOYED/FAILED, ENTERPRISE advanced mode, quality gate /100). Wizard production hiện hành là **KC per-tenant branding wizard** (`BrandingWizard.tsx`: Welcome → Logo → Audience → Tone → Template → Preview) + bước AI mới theo **ADR-037**.
+> **→ Canonical mới: [`v3/`](v3/index.html)** (refresh GAP-1212, Wave ui-kits-100 Bucket D). Screens v2 giữ lại làm **archive reference**, KHÔNG sửa từng screen.
+>
+> **Tier-name legacy:** các screen v2 dùng PRO-scheme cũ (`FREE/PRO/PREMIUM/ENTERPRISE`). Canonical hiện tại là `FREE/BASIC/PREMIUM/ENTERPRISE` (per `PricingTier.java`) — đã dùng đúng trong `v3/`. Tier-name PRO trong v2 screens là legacy, không fix riêng từng file (annotation này đủ).
+
+**Wave:** UI Kits Round 2 · 1.7 add-on · 2026-04-29 · **v3 refresh: Wave ui-kits-100 · 2026-06-11**
 **Persona:** P2 Center Owner first-time setup + P3 Medium Center Admin rebrand
 **Direction:** **C** — refactor Round 1 free-form playground into integrated 6-step wizard
 **Decision ref:** `documents/02-architecture/design-system/dossier/08-direction-decisions.md` Decision 4
 **Stack:** Tailwind CDN + Inter + Lucide + Framer Motion patterns (KH-only) + Sonner toast
 **Status:** Self-review complete · ready for human vibe-check
+
+---
+
+## v3 (canonical) — KC per-tenant branding wizard per ADR-037
+
+**Folder:** [`v3/`](v3/index.html) · **Wave ui-kits-100 Bucket D · GAP-1212 · 2026-06-11**
+
+v3 refresh khớp wizard production hiện hành + cụm AI chain ADR-037. Khác v2 (KH-provisioning Direction C) ở 2 trục:
+1. **Surface đúng:** KC per-tenant branding wizard (`kiteclass-frontend :3000`, `BrandingWizard.tsx` state machine) — KHÔNG slug/tenant provisioning.
+2. **Bước AI mới (ADR-037):** mode selector TEMPLATE/FULL_AI (GAP-1147) · upload ảnh chân dung FULL_AI (GAP-1134) · trạng thái banner GENERATING/FAILED/READY (GAP-1135) · tiến trình SSE preview/deploy (GAP-1021). Tier canonical `FREE/BASIC/PREMIUM/ENTERPRISE`.
+
+| v3 screen | Bước | GAP / ADR |
+|---|---|---|
+| `step1-welcome` | 1 Chào mừng + tenant | GAP-1212 |
+| `step2-logo` | 2 Logo + **favicon** | GAP-1229 (favicon affordance 16/32px ≤200KB) |
+| `step3-mode` | 3 **Chế độ AI** TEMPLATE/FULL_AI | GAP-1147 + ADR-037 Amendment 2-mode |
+| `step4-audience` | 4 Đối tượng | GAP-1212 |
+| `step5-tone` | 5 Phong cách | GAP-1212 |
+| `step6-portrait` | 7a **Ảnh chân dung** (FULL_AI) | GAP-1134 |
+| `step7-template` | 6 Mẫu (TEMPLATE route) | ADR-037 HTML+Gemini→Playwright→WebP |
+| `step8-banner-generating/failed/ready` | 7 **Banner states** | GAP-1135 (3 states) + GAP-1021 SSE |
+| `step9-preview` | 8 Phê duyệt + **SSE deploy** | GAP-1021 + §4.2 per-resource approve |
+
+**Implementation cite kit v3 làm design source:** cụm GAP-1134/1147/1135/1021 dùng `v3/screens/*.html` làm 基本設計 (Layer 2). 4-layer pointers đầy đủ trong [`v3/index.html`](v3/index.html) §4-layer coverage.
 
 ---
 

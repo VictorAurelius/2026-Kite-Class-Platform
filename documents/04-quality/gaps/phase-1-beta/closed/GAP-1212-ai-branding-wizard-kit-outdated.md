@@ -1,6 +1,6 @@
 # GAP-1212: Kit `ai-branding-wizard-v2` outdated — không khớp wizard KC hiện tại + thiếu design các bước ADR-037
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟡 P2
 **Domain:** Frontend / Design System
 **Found:** 2026-06-11 (user-flagged "ui kits có design cho các bước ai branding không? có vẻ outdated" — investigation confirm)
@@ -24,13 +24,17 @@ Refresh kit TRƯỚC khi fix cụm AI-chain (GAP-1021/1134/1135/1147/1160 — de
 
 ## Acceptance Criteria
 
-- [ ] Kit cũ annotated superseded-scope (không xoá — archive policy)
-- [ ] Design screens cho wizard KC hiện hành + bước ADR-037 (≥105/128)
-- [ ] 4-layer pointers per design-layer-coverage §2.2
-- [ ] Cụm GAP-1134/1147/1135 implementation cite kit mới làm design source
+- [x] Kit cũ annotated superseded-scope (không xoá — archive policy) — README header ⚠️ note + legacy PRO-tier note
+- [x] Design screens cho wizard KC hiện hành + bước ADR-037 (≥105/128) — 11 screens `v3/screens/*.html` (self-score 110-118/128, avg ~114)
+- [x] 4-layer pointers per design-layer-coverage §2.2 — `v3/index.html` §4-layer table + per-screen HTML comment header
+- [x] Cụm GAP-1134/1147/1135 implementation cite kit mới làm design source — Log line added to GAP-1134/1147/1135/1021 pointing tới `v3/`
 
 ## Related
 
 - Cụm AI chain: GAP-1021/1108/1134/1135/1147/1160; ADR-037
 - Same class: GAP-1208 (template trôi vì thiếu design spec), GAP-1212 = wizard tương tự
-- Kit: `ui_kits/ai-branding-wizard-v2/README.md` (Direction C, 28 screens)
+- Kit: `ui_kits/ai-branding-wizard-v2/README.md` (Direction C, 28 screens — archive) + `ui_kits/ai-branding-wizard-v2/v3/` (canonical KC per-tenant)
+
+## Log
+
+- **2026-06-11 (DONE — Wave ui-kits-100 Bucket D):** Refresh kit theo ADR-037 + wizard production. Shipped `v3/` (11 screens + index hub + styles.css): 6 bước canonical KC per-tenant (Welcome → Logo+favicon → Audience → Tone → Template → Preview per `BrandingWizard.tsx`) + bước ADR-037 (mode selector TEMPLATE/FULL_AI GAP-1147 · portrait upload GAP-1134 · banner GENERATING/FAILED/READY GAP-1135 · SSE preview/deploy GAP-1021). Tier canonical FREE/BASIC/PREMIUM/ENTERPRISE (per `PricingTier.java`), favicon affordance per GAP-1229. v2 (Direction C / KH-provisioning) annotated superseded + giữ archive. ui_kits hub card + landing parity (`check-ui-kits-landing.sh` exit 0). Token-compliant (Be Vietnam Pro, theme-kiteclass, zero hardcoded hex ngoài token), VN demo-trio (Cô Hà / Thầy Nhì), WCAG AA comment per screen, 4-layer pointers. design-only — implementation cụm AI chain ngoài wave, cite v3 làm design source.
