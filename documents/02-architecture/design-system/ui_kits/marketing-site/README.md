@@ -42,3 +42,9 @@ Beta strip → Nav → **Hero** (headline + subhead + "Đăng ký Beta" + produc
 D1 value-prop 9 · D2 conversion 9 · D3 trust 8 · D4 feature 9 · D5 visual 9 · D6 responsive 8 · D7 a11y 9 · D9 SEO 9 · D10 VN/content 10 — **≈88/100**, all 4 hard gates ✓. *(D8 Core Web Vitals applies to the production Next build, not this HTML mock; this artifact is the visual/IA/content reference for that build.)*
 
 > **Note:** this is a high-fidelity design artifact (React via CDN + Babel). For production, port the sections to Next.js with `next/image` + `next/font` and re-run Lighthouse/axe per the checklist before merge.
+
+## Content contract (GAP-1230, 2026-06-11 — per `kitehub-kiteclass-boundary.md` §2.1)
+
+- **Surface + brand:** KH apex `kitehub.me` (`:3001`) — brand KiteHub CỐ ĐỊNH (sky+orange). KHÔNG có affordance per-tenant (theme switcher / tenant branding runtime) — đã gỡ ThemeSwitcher "Chủ đề theo giáo viên" (thuộc KC kits: `landing-personal`, `kiteclass-public`, dashboard kits per GAP-1230).
+- **Nội dung giới thiệu SẢN PHẨM KiteClass là ĐÚNG thiết kế** ("quảng bá sản phẩm KiteClass ≠ surface KiteClass" — boundary §2.1): hero pitch quản lý trung tâm, app-mock minh hoạ giao diện KiteClass = hình ảnh sản phẩm (illustration, role="img"), KHÔNG phải surface demo tương tác.
+- Ranh giới: affordance tương tác trên trang này chỉ thuộc platform (CTA beta-signup, pricing, cookie consent).

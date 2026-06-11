@@ -112,6 +112,9 @@ const THEMES = [
   { id: "khanh",   label: "Cô Khánh — Navy + Gold", cls: "theme-khanh", sw: ["#1E3A5F", "#2D4E78", "#C9A227", "#C9A227"] },
   { id: "nhi",     label: "Thầy Nhì — Xanh lá",   cls: "theme-nhi",   sw: ["#16A34A", "#059669", "#FACC15", "#F97316"] },
 ];
+// ⚠️ DEPRECATED tại marketing-site (GAP-1230): per-teacher theming = tính năng per-tenant
+// KiteClass — KH apex brand cố định. Pattern này dùng cho KC kits (landing-personal /
+// kiteclass-public / dashboard kits per GAP-1230 Bucket I). Giữ lại làm reference.
 function ThemeSwitcher({ value, onChange }) {
   return (
     <div className="theme-switch">
