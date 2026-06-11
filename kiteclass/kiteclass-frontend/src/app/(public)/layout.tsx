@@ -126,7 +126,11 @@ export default async function PublicLayout({
     accentColor,
   } = await getTenantIdentity();
   return (
-    <div className="min-h-screen flex flex-col">
+    // `[&_.container]:max-w-[1180px]` — marketing container width per design
+    // system token `--container: 1180px` (colors_and_type.css). Scoped to the
+    // (public) tree only so dashboard layouts keep the Tailwind default.
+    // GAP-1223 (kit↔production layout parity).
+    <div className="min-h-screen flex flex-col [&_.container]:max-w-[1180px]">
       {/* Per-tenant theme (GAP-274). SSR-inline `:root{--theme-*}` so the catalog /
           about / contact / detail pages render the tenant brand on first paint. The
           landing page emits its own ThemeSync inside children (identical values). */}
