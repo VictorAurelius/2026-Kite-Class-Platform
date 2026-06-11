@@ -5,15 +5,19 @@ import com.kiteclass.core.module.childprotection.enums.IncidentCategory;
 import com.kiteclass.core.module.childprotection.enums.IncidentSeverity;
 import com.kiteclass.core.module.childprotection.enums.IncidentStatus;
 import com.kiteclass.core.module.childprotection.enums.IncidentVisibilityScope;
+import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -32,7 +36,7 @@ import java.util.Optional;
  * @since 5.x (Wave 18b1 Bucket E — GAP-322 Phase 1A)
  */
 @Repository
-public interface IncidentRepository extends JpaRepository<Incident, Long> {
+public interface IncidentRepository extends JpaRepository<Incident, Long>, JpaSpecificationExecutor<Incident> {
 
     /**
      * Find non-deleted incident by ID.
@@ -42,19 +46,39 @@ public interface IncidentRepository extends JpaRepository<Incident, Long> {
     /**
      * Page of non-deleted incidents, optionally filtered by severity / category
      * / status. Phase 1A read-only listing.
+     *
+     * <p><b>42P18 note (GAP-1109):</b> the previous JPQL form
+     * {@code (:severity IS NULL OR i.severity = :severity)} bound an UNTYPED null
+     * in the {@code IS NULL} position, which PostgreSQL rejects at PREPARE time
+     * with {@code 42P18 could not determine data type of parameter} (H2 hides
+     * this). This is now built with the Criteria API: each predicate is only
+     * added when its parameter is non-null, so no untyped-null bind is ever
+     * emitted. The Hibernate {@code tenantFilter} still applies (Criteria →
+     * JPQL-equivalent), unlike a native-SQL rewrite which would silently drop
+     * tenant isolation.
      */
-    @Query(
-            "SELECT i FROM Incident i WHERE i.deleted = false "
-                    + "AND (:severity IS NULL OR i.severity = :severity) "
-                    + "AND (:category IS NULL OR i.category = :category) "
-                    + "AND (:status IS NULL OR i.status = :status)"
-    )
-    Page<Incident> findByFilters(
-            @Param("severity") IncidentSeverity severity,
-            @Param("category") IncidentCategory category,
-            @Param("status") IncidentStatus status,
+    default Page<Incident> findByFilters(
+            IncidentSeverity severity,
+            IncidentCategory category,
+            IncidentStatus status,
             Pageable pageable
-    );
+    ) {
+        Specification<Incident> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            predicates.add(cb.equal(root.get("deleted"), false));
+            if (severity != null) {
+                predicates.add(cb.equal(root.get("severity"), severity));
+            }
+            if (category != null) {
+                predicates.add(cb.equal(root.get("category"), category));
+            }
+            if (status != null) {
+                predicates.add(cb.equal(root.get("status"), status));
+            }
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+        return findAll(spec, pageable);
+    }
 
     /**
      * Find non-deleted incidents for a given subject student filtered to a

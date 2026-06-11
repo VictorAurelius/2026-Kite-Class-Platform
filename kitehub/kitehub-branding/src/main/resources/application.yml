@@ -7,6 +7,12 @@ spring:
     resources:
       add-mappings: false
 
+  # Wizard walk (GAP-1135) — logo/portrait uploads exceed the 1MB servlet default → 413.
+  servlet:
+    multipart:
+      max-file-size: ${MULTIPART_MAX_FILE_SIZE:10MB}
+      max-request-size: ${MULTIPART_MAX_REQUEST_SIZE:12MB}
+
   # Database Configuration
   datasource:
     url: ${DATABASE_URL:jdbc:postgresql://localhost:5433/kitehub}
@@ -89,8 +95,14 @@ ai:
   rate-limit:
     free-per-day: 3
     basic-per-day: 10
-    premium-per-day: 50
+    # GAP-1137: canonical SUB-22 PREMIUM regen = 30 (was 50 — drift fixed).
+    premium-per-day: 30
     enterprise-per-day: -1
+    # GAP-1137: FULL_AI (paid GPT image-gen) monthly cost quota per instance.
+    # PREMIUM = limited (then TEMPLATE fallback); ENTERPRISE = unlimited (-1).
+    # FREE/BASIC are not FULL_AI-eligible (GenerationMode.forTier → TEMPLATE).
+    fullai-premium-per-month: ${AI_FULLAI_PREMIUM_PER_MONTH:5}
+    fullai-enterprise-per-month: -1
   # GAP-258 — Per-tier input prompt size cap (estimated tokens, char/4 heuristic).
   # Defends against cost-attack: small request count, very large prompts.
   # Set to -1 for unlimited.
@@ -104,6 +116,20 @@ ai:
     text-model: ${OLLAMA_TEXT_MODEL:llama3.1:8b}
     vision-model: ${OLLAMA_VISION_MODEL:llava:13b}
     timeout-seconds: ${OLLAMA_TIMEOUT:120}
+
+  # Gemini free-tier provider (GAP-1135 / ADR-037 Amendment). Pinned text/HTML copy
+  # provider. Empty GEMINI_API_KEY → GeminiClient MOCK mode (graceful no-key fallback;
+  # production secret provisioned via fetch-secrets.sh → /etc/kite/.env at deploy).
+  gemini:
+    base-url: ${GEMINI_BASE_URL:https://generativelanguage.googleapis.com/v1beta}
+    api-key: ${GEMINI_API_KEY:}
+    # gemini-1.5-flash retired from v1beta generateContent (404). Pinned gemini-2.0-flash
+    # returns 429 RESOURCE_EXHAUSTED on free tier (version-pinned models need billing);
+    # gemini-flash-latest rolling alias has free-tier quota AND never deprecates. Override
+    # via GEMINI_TEXT_MODEL/GEMINI_VISION_MODEL. Discovered 2026-06-10 local AI walk.
+    text-model: ${GEMINI_TEXT_MODEL:gemini-flash-latest}
+    vision-model: ${GEMINI_VISION_MODEL:gemini-flash-latest}
+    timeout-seconds: ${GEMINI_TIMEOUT:60}
 
   # Fair-queue scheduler (GAP-005a Wave 3 Phase 1)
   queue:
@@ -152,6 +178,15 @@ openai:
   timeout:
     seconds: 60
 
+# Banner rasterise sidecar (GAP-1135). When renderer-url is set, the TEMPLATE
+# banner HTML is POSTed to the kitehub-banner-renderer Playwright sidecar and
+# rasterised to WebP; PlaywrightBannerRenderer (@Primary) activates. Blank (prod
+# default until sidecar deployed there) → StubBannerRenderer placeholder fallback.
+branding:
+  banner:
+    renderer-url: ${BANNER_RENDERER_URL:}
+    renderer-timeout-seconds: ${BANNER_RENDERER_TIMEOUT:30}
+
 # Storage Configuration
 storage:
   s3:
@@ -159,7 +194,8 @@ storage:
     secret-key: ${AWS_SECRET_ACCESS_KEY:mock-secret-key}
     region: ${AWS_REGION:ap-southeast-1}
     bucket: ${S3_BUCKET:kitehub-assets}
-    endpoint: ${S3_ENDPOINT:} # For MinIO/LocalStack
+    endpoint: ${S3_ENDPOINT:} # For MinIO/LocalStack (internal, used for upload PutObject)
+    public-endpoint: ${S3_PUBLIC_ENDPOINT:} # Browser-reachable host for presigned GET URLs (MinIO host port); blank → falls back to endpoint
     cdn-domain: ${CDN_DOMAIN:localhost:9100} # Safe default for local dev
     mock-mode: ${S3_MOCK_MODE:true} # true for local dev, false for production
 

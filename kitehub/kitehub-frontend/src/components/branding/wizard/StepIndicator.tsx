@@ -1,10 +1,13 @@
 'use client';
 
 /**
- * Wave 32 Bucket A — 6-step progress indicator for AI Branding Wizard v2.
+ * Wave 32 Bucket A — 7-step progress indicator for AI Branding Wizard v2.
  *
  * Spec source: documents/02-architecture/design-system/ui_kits/ai-branding-wizard-v2/screens/step1-welcome-default.html
- * (`.wiz-stepper` markup with 6 `.wiz-step` items joined by `.wiz-step-bar` connectors).
+ * (`.wiz-stepper` markup joined by `.wiz-step-bar` connectors).
+ *
+ * Step 3 "Chân dung" (portrait upload) added GAP-1134 — bumps the flow from 6
+ * to 7 steps. Org-type select (GAP-1133) lives inside Step 1, not a new step.
  *
  * States per step:
  *   - completed (number < currentStep) — Check icon + filled primary background
@@ -14,18 +17,19 @@
 
 import { Check } from 'lucide-react';
 
-const WIZARD_STEPS: ReadonlyArray<{ number: 1 | 2 | 3 | 4 | 5 | 6; label: string }> = [
+const WIZARD_STEPS: ReadonlyArray<{ number: 1 | 2 | 3 | 4 | 5 | 6 | 7; label: string }> = [
   { number: 1, label: 'Chào mừng' },
   { number: 2, label: 'Logo' },
-  { number: 3, label: 'Đối tượng' },
-  { number: 4, label: 'Phong cách' },
-  { number: 5, label: 'Mẫu thiết kế' },
-  { number: 6, label: 'Phê duyệt' },
+  { number: 3, label: 'Chân dung' },
+  { number: 4, label: 'Đối tượng' },
+  { number: 5, label: 'Phong cách' },
+  { number: 6, label: 'Mẫu thiết kế' },
+  { number: 7, label: 'Phê duyệt' },
 ];
 
 export interface StepIndicatorProps {
-  /** Active step (1-6). */
-  currentStep: 1 | 2 | 3 | 4 | 5 | 6;
+  /** Active step (1-7). */
+  currentStep: 1 | 2 | 3 | 4 | 5 | 6 | 7;
   /** Optional className override for outer wrapper. */
   className?: string;
 }

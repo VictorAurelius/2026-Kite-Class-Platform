@@ -9,10 +9,15 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
+import java.net.URL;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
@@ -142,6 +147,78 @@ class S3StorageServiceTest {
         // Then
         assertThat(path).startsWith("instances/" + instanceId + "/branding/" + assetType + "/logo_");
         assertThat(path).endsWith(".png");
+    }
+
+    // ------------------------------------------------------------------
+    // GAP-1112 #1 — presigned GET URL for browser-loadable preview
+    // ------------------------------------------------------------------
+
+    @Test
+    @DisplayName("getPresignedAssetUrl: mock mode returns deterministic mock URL")
+    void presignedMockMode() {
+        // Given
+        when(s3Config.isMockMode()).thenReturn(true);
+        String path = "instances/" + UUID.randomUUID() + "/branding/LOGO/logo_1.png";
+
+        // When
+        String url = storageService.getPresignedAssetUrl(path);
+
+        // Then
+        assertThat(url).startsWith("https://mock-cdn.kiteclass.com/");
+        assertThat(url).contains(path);
+    }
+
+    @Test
+    @DisplayName("getPresignedAssetUrl: real mode returns the signed URL from the presigner")
+    void presignedRealMode() throws Exception {
+        // Given
+        when(s3Config.isMockMode()).thenReturn(false);
+        when(s3Config.getBucket()).thenReturn("kite-branding");
+
+        String signed = "https://minio.local/instances/abc/branding/LOGO/logo_1.png?X-Amz-Signature=deadbeef";
+        PresignedGetObjectRequest presignedRequest = mock(PresignedGetObjectRequest.class);
+        when(presignedRequest.url()).thenReturn(new URL(signed));
+        when(s3Presigner.presignGetObject(any(GetObjectPresignRequest.class)))
+            .thenReturn(presignedRequest);
+
+        // When
+        String url = storageService.getPresignedAssetUrl("instances/abc/branding/LOGO/logo_1.png");
+
+        // Then — signed, time-limited URL the browser can load directly
+        assertThat(url).isEqualTo(signed);
+        assertThat(url).contains("X-Amz-Signature");
+    }
+
+    @Test
+    @DisplayName("getPresignedAssetUrl: falls back to raw asset URL when presigner unavailable")
+    void presignedFallbackWhenPresignerNull() {
+        // Given — service constructed without a presigner bean
+        S3StorageService noPresigner = new S3StorageService(s3Config, s3Client, null);
+        when(s3Config.isMockMode()).thenReturn(false);
+        when(s3Config.getCdnDomain()).thenReturn("localhost:9100");
+
+        // When
+        String url = noPresigner.getPresignedAssetUrl("instances/abc/branding/LOGO/logo_1.png");
+
+        // Then — graceful fallback to the (raw) CDN URL rather than throwing
+        assertThat(url).startsWith("http://localhost:9100/");
+        assertThat(url).contains("instances/abc/branding/LOGO/logo_1.png");
+    }
+
+    @Test
+    @DisplayName("getPresignedAssetUrl: presigner failure falls back to raw asset URL")
+    void presignedFallbackOnPresignerError() {
+        // Given
+        when(s3Config.isMockMode()).thenReturn(false);
+        when(s3Config.getCdnDomain()).thenReturn("cdn.kiteclass.com");
+        when(s3Presigner.presignGetObject(any(GetObjectPresignRequest.class)))
+            .thenThrow(new RuntimeException("presign boom"));
+
+        // When
+        String url = storageService.getPresignedAssetUrl("instances/abc/branding/LOGO/logo_1.png");
+
+        // Then — exception swallowed, raw URL returned
+        assertThat(url).startsWith("https://cdn.kiteclass.com/");
     }
 
     @Test

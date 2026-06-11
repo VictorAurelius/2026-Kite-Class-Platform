@@ -46,12 +46,48 @@ describe('useRegenerateQuota', () => {
     });
 
     await act(async () => {
-      await result.current.regenerate.mutateAsync({ jobId: 'job-abc-123' });
+      await result.current.regenerate.mutateAsync({
+        jobId: 'job-abc-123',
+        instanceId: 'inst-001',
+      });
     });
 
     await waitFor(() => expect(result.current.regenerate.isSuccess).toBe(true));
     expect(result.current.regenerate.data?.jobId).toBe('job-abc-123');
     expect(result.current.regenerate.data?.status).toBe('REGENERATING');
+  });
+
+  // GAP-1145: the FE MUST send X-Instance-Id (the job's tenant/instance claim);
+  // the gateway never injects it, so its absence makes the server reject with
+  // 400 MISSING_INSTANCE_ID for every caller.
+  it('sends the X-Instance-Id header on regenerate (GAP-1145)', async () => {
+    let sentInstanceId: string | null = 'NOT_SENT';
+    server.use(
+      http.post('*/api/v1/branding/jobs/:jobId/regenerate', ({ request, params }) => {
+        sentInstanceId = request.headers.get('X-Instance-Id');
+        const { jobId } = params as { jobId: string };
+        return HttpResponse.json({
+          jobId,
+          instanceId: 1,
+          status: 'REGENERATING',
+          createdAt: '2026-06-10T09:00:00Z',
+          updatedAt: new Date().toISOString(),
+        });
+      })
+    );
+
+    const { result } = renderHook(() => useRegenerateQuota(), {
+      wrapper: makeWrapper(),
+    });
+
+    await act(async () => {
+      await result.current.regenerate.mutateAsync({
+        jobId: 'job-hdr',
+        instanceId: 'inst-xyz',
+      });
+    });
+
+    expect(sentInstanceId).toBe('inst-xyz');
   });
 
   // GAP-391-A: post-regenerate cache invalidation triggers refetch with
@@ -91,7 +127,10 @@ describe('useRegenerateQuota', () => {
     expect(result.current.quota.data?.used).toBe(0);
 
     await act(async () => {
-      await result.current.regenerate.mutateAsync({ jobId: 'job-fresh' });
+      await result.current.regenerate.mutateAsync({
+        jobId: 'job-fresh',
+        instanceId: 'inst-001',
+      });
     });
 
     // After mutation success, hook invalidates ['brandingV1', 'regenerateQuota']
@@ -108,7 +147,10 @@ describe('useRegenerateQuota', () => {
     let rejected = false;
     await act(async () => {
       try {
-        await result.current.regenerate.mutateAsync({ jobId: 'job-quota-exceeded' });
+        await result.current.regenerate.mutateAsync({
+          jobId: 'job-quota-exceeded',
+          instanceId: 'inst-001',
+        });
       } catch {
         rejected = true;
       }

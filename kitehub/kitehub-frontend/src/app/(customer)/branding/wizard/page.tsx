@@ -4,13 +4,14 @@
  * Wave 32 Bucket A — AI Branding Wizard v2 orchestrator (Direction C 6-step refactor).
  *
  * Replaces the legacy 4-step wizard (Upload → Analyze → Generate → Review) with
- * the Direction C 6-step flow per `ai-branding-guidelines.md` §4.1:
- *   1. Welcome   — tenant name + slug validation
+ * the Direction C 7-step flow per `ai-branding-guidelines.md` §4.1:
+ *   1. Welcome   — tenant name + slug + org-type select (GAP-1133)
  *   2. Logo      — upload OR AI-generate fork
- *   3. Audience  — 4 VN audience cards   (Bucket B)
- *   4. Tone      — 4 tone cards          (Bucket B)
- *   5. Template  — grid + Enterprise custom-prompt (Bucket C)
- *   6. Preview   — per-resource approve + quality gate + deploy (Bucket C+D)
+ *   3. Portrait  — 1..N teacher headshots (GAP-1134; count hint by org-type)
+ *   4. Audience  — 4 VN audience cards   (Bucket B)
+ *   5. Tone      — 4 tone cards          (Bucket B)
+ *   6. Template  — grid + Enterprise custom-prompt (Bucket C)
+ *   7. Preview   — per-resource approve + full-screen preview + deploy (Bucket C+D / GAP-1136)
  *
  * Bucket A shipped Steps 1-2 (#883). Buckets B (#889 audience+tone), C (#888
  * template), and C+D (#890 preview / quality gate / deploy) shipped the
@@ -53,6 +54,16 @@ const LogoStep = dynamic(
   () =>
     import('@/components/branding/wizard/LogoStep').then((m) => ({
       default: m.LogoStep,
+    })),
+  { ssr: false, loading: stepLoading }
+);
+
+// GAP-1134 — Portrait upload step (Step 3). Reuses the asset upload + library
+// pattern; count hint driven by the org-type chosen in Step 1.
+const PortraitStep = dynamic(
+  () =>
+    import('@/components/branding/wizard/PortraitStep').then((m) => ({
+      default: m.PortraitStep,
     })),
   { ssr: false, loading: stepLoading }
 );
@@ -120,9 +131,9 @@ export default function BrandingWizardPage() {
     [dispatch]
   );
 
-  // Bucket B step components emit the selected id as the onNext payload —
-  // adapt to the orchestrator's "dispatch SET_* then advance" contract here
-  // instead of changing Bucket B's local signature post-merge.
+  // Bucket B step components (Audience step 4 / Tone step 5) emit the selected
+  // id as the onNext payload — adapt to the orchestrator's "dispatch SET_* then
+  // advance" contract here instead of changing Bucket B's local signature.
   const handleAudienceNext = useMemo(
     () => (audience: string) => {
       dispatch({ type: 'SET_AUDIENCE', audience });
@@ -215,6 +226,16 @@ export default function BrandingWizardPage() {
         )}
 
         {currentStep === 3 && (
+          <PortraitStep
+            wizardState={state}
+            dispatch={dispatch}
+            instanceId={instanceId}
+            onNext={handleNext}
+            onBack={handleBack}
+          />
+        )}
+
+        {currentStep === 4 && (
           <AudienceStep
             wizardState={state}
             onNext={handleAudienceNext}
@@ -222,7 +243,7 @@ export default function BrandingWizardPage() {
           />
         )}
 
-        {currentStep === 4 && (
+        {currentStep === 5 && (
           <ToneStep
             wizardState={state}
             onNext={handleToneNext}
@@ -230,7 +251,7 @@ export default function BrandingWizardPage() {
           />
         )}
 
-        {currentStep === 5 && (
+        {currentStep === 6 && (
           <TemplateStep
             wizardState={state}
             dispatch={dispatch}
@@ -240,10 +261,11 @@ export default function BrandingWizardPage() {
           />
         )}
 
-        {currentStep === 6 && (
+        {currentStep === 7 && (
           <Step6Preview
             wizardState={state}
             dispatch={dispatch}
+            assetInstanceId={instanceId}
             onBack={handleBack}
             onDeploy={handleDeploy}
           />

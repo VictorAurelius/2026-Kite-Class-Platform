@@ -101,6 +101,37 @@ class BrandingJobServiceTest {
     }
 
     @Test
+    void createJob_propagatesTierToMessage_GAP1137() {
+        // GAP-1135/1137: 5-arg createJob carries subscription tier so the processor
+        // can route FULL_AI (PREMIUM/ENTERPRISE) vs TEMPLATE.
+        BrandingJob savedJob = new BrandingJob();
+        savedJob.setId(UUID.randomUUID());
+        savedJob.setInstanceId(instanceId);
+        when(jobRepository.save(any(BrandingJob.class))).thenReturn(savedJob);
+
+        jobService.createJob(instanceId, organizationName, language, logoUrl, "PREMIUM");
+
+        ArgumentCaptor<BrandingJobMessage> captor = ArgumentCaptor.forClass(BrandingJobMessage.class);
+        verify(outboxEmitter).emit(any(), any(), any(), any(), any(), captor.capture());
+        assertThat(captor.getValue().getTier()).isEqualTo("PREMIUM");
+    }
+
+    @Test
+    void createJob_tierlessOverload_emitsNullTier_GAP1137() {
+        // Legacy 4-arg overload (draft auto-create) → null tier → FREE/TEMPLATE.
+        BrandingJob savedJob = new BrandingJob();
+        savedJob.setId(UUID.randomUUID());
+        savedJob.setInstanceId(instanceId);
+        when(jobRepository.save(any(BrandingJob.class))).thenReturn(savedJob);
+
+        jobService.createJob(instanceId, organizationName, language, logoUrl);
+
+        ArgumentCaptor<BrandingJobMessage> captor = ArgumentCaptor.forClass(BrandingJobMessage.class);
+        verify(outboxEmitter).emit(any(), any(), any(), any(), any(), captor.capture());
+        assertThat(captor.getValue().getTier()).isNull();
+    }
+
+    @Test
     void testUpdateJobProgress() {
         // Given
         UUID jobId = UUID.randomUUID();
@@ -271,5 +302,40 @@ class BrandingJobServiceTest {
         // Then
         assertThat(result).isFalse();
         verify(jobRepository, never()).save(any());
+    }
+
+    @Test
+    void testCreateWizardJob_persistsOrgType() {
+        // Given — GAP-1133: createWizardJob carries + persists the user-type axis.
+        when(jobRepository.save(any(BrandingJob.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(instanceStateRepository.findById(instanceId)).thenReturn(Optional.empty());
+
+        // When
+        BrandingJob result = jobService.createWizardJob(
+                instanceId, organizationName, language, logoUrl, "LARGE_CENTER",
+                "professional", "T1");
+
+        // Then — orgType + tone + templateId set on the entity + persisted via save
+        assertThat(result.getOrgType()).isEqualTo("LARGE_CENTER");
+        assertThat(result.getTone()).isEqualTo("professional");
+        assertThat(result.getTemplateId()).isEqualTo("T1");
+        verify(jobRepository).save(argThat(saved -> "LARGE_CENTER".equals(saved.getOrgType())
+                && "professional".equals(saved.getTone())));
+    }
+
+    @Test
+    void testCreateWizardJob_nullOrgTypeOk() {
+        // Given — orgType nullable for backward-compat (pre-GAP-1133).
+        when(jobRepository.save(any(BrandingJob.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(instanceStateRepository.findById(instanceId)).thenReturn(Optional.empty());
+
+        // When
+        BrandingJob result = jobService.createWizardJob(
+                instanceId, organizationName, language, logoUrl, null, null, null);
+
+        // Then
+        assertThat(result.getOrgType()).isNull();
+        assertThat(result.getTone()).isNull();
+        assertThat(result.getStatus()).isEqualTo(JobStatus.QUEUED);
     }
 }

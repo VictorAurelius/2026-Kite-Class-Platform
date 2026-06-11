@@ -1,6 +1,6 @@
 # GAP-1112: AI Branding logo upload UX cluster — preview / dedup / reuse (G2 walk)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL
 **Priority:** 🟠 P1
 **Domain:** Mixed
 **Found:** 2026-06-10 (G2 walk recipe 1 — user-flagged 3 logo-upload issues)
@@ -41,4 +41,5 @@ Logo đã vào assets rồi nhưng wizard (6 bước) không có bước chọn/
 
 ## Log
 
+- **2026-06-10 (PARTIAL 70%):** #2 dedup DONE — `AssetStorageController` replace-by-assetType (xóa S3 object + DB row cùng assetType trước khi lưu mới) + `AssetStorageControllerDedupTest` 3/3. #1 presigned code DONE — `S3StorageService.getPresignedAssetUrl` (1h time-limited, mock-aware, fallback) + 11/11 unit; browser load = G2. #3 asset picker code DONE — `LogoStep` "chọn logo đã upload" grid + test; browser = G2. Còn lại = browser G2 walk verify #1 (MinIO preview) + #3 (picker e2e). Wave branding-fix-2026-06-10 (agent af9cb327 BE + abc8207d FE).
 - **2026-06-10:** Filed từ G2 walk recipe 1 (user-flagged 4 logo issue). #1 CSP cosmetic-fixed cùng PR; #1 preview-real + #2 dedup + #3 reuse defer wave branding-fix (cần logic + S3 + feature + IT). #4 env-URL fixed riêng. Per `discovery-to-gap-inline-filing.md` + `small-gap-inline-fix.md` (large → defer).

@@ -61,4 +61,17 @@ class AIProviderConfigTest {
         AIProviderConfig config = new AIProviderConfig();
         assertThat(config.getProvider()).isEqualTo("openai");
     }
+
+    @Test
+    @DisplayName("provider=gemini returns GeminiClient (mock mode, no key)")
+    void geminiProvider() {
+        AIProviderConfig config = new AIProviderConfig();
+        config.setProvider("gemini");
+
+        // Default Gemini config has an empty api-key → GeminiClient MOCK mode.
+        AIClient client = config.aiClient(openAIClient, new ObjectMapper());
+
+        assertThat(client).isInstanceOf(com.kitehub.branding.client.GeminiClient.class);
+        assertThat(client.getProviderName()).isEqualTo("gemini-mock");
+    }
 }
