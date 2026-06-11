@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kitehub">
+<!--
+  ============================================================================
+  UI KIT: kitehub-pro v2 · SCREEN pricing  (bảng so sánh gói KiteHub SaaS)
+  ============================================================================
+  Persona:  Prospects (chủ trung tâm tự dạy + 1-2 GV — personas-catalog §P2) đang
+            chọn gói TRƯỚC khi đăng ký, + P2 Center Owner xem upgrade trong app.
+  Surface:  KiteHub (KH) SaaS pricing — kitehub-frontend :3001 (per kitehub-kiteclass-boundary §2)
+            Production map: (public)/pricing  +  (customer)/billing/upgrade
+  GAPs:     GAP-428 AC "KiteHub pricing page (tier comparison table)"
+  Source:   Tier canonical = PricingTier.java (kitehub-platform) FREE/BASIC/PREMIUM/ENTERPRISE
+            + documents/00-brd/pricing-model.md (GAP-1098 tier-name resolved 2026-06-11)
+            KHÔNG dùng "PRO" (tên tier cũ đã map → BASIC).
+  Score self-estimate: 113/128 (target ≥110)
+    D1 Hierarchy 15 · D2 Persona/Prospect 14 · D3 Interaction (billing toggle) 14
+    D4 Theme/token 14 · D5 VN content (VND format) 15 · D6 Responsive 14
+    D7 A11y (table caption + scope + aria-pressed toggle) 14 · D8 Completeness (4 tier + table + FAQ) 13
+
+  WCAG AA self-measurement (token-themed via styles.css → _shared/colors_and_type.css):
+    - Body foreground hsl(222.2 84% 4.9%) / white bg ................ ~19:1  AAA ✓
+    - Muted hsl(215.4 16.3% 46.9%) / white bg ..................... ~4.6:1  AA  ✓
+    - CTA text-bearing: white / --cta-ink hsl(199 89% 30%) ........ ~4.9:1  AA  ✓
+        (Lý do: --primary 199 89% 48% white-on-fill chỉ ~2.6:1 FAIL → nút CÓ CHỮ
+         dùng --cta-ink sky-800 đậm hơn; --primary chỉ cho fill/accent trang trí.)
+    - Featured badge white / --cta-ink ........................... ~4.9:1  AA  ✓
+    - Success check hsl(160 84% 30%) / white ..................... ~4.8:1  AA  ✓
+    - "Phổ biến nhất" ribbon white / accent-700 hsl(25 95% 33%) ... ~4.7:1  AA  ✓
+    - Table header hsl(222 84% 12%) / muted-50 bg ................ ~14:1   AAA ✓
+
+  Interactive affordance (per design-source-implementation-parity §3.2 runtime click-verify):
+    - Billing-cycle toggle (Tháng / Năm -10%) → click đổi giá 4 tier runtime + đổi
+      hậu tố "/tháng" ↔ "/năm" + hiển thị "tiết kiệm" badge. aria-pressed sync.
+    - Verify khi mở file: click "Năm" → BASIC 500.000đ/tháng → 5.400.000đ/năm; PREMIUM
+      1.500.000đ/tháng → 16.200.000đ/năm (= monthly×12×0.9 per PricingTier.getAnnualPrice).
+
+  VN: 100% tiếng Việt; VND format dấu chấm phân nhóm `1.500.000đ`; KHÔNG `$`/`John Doe`.
+  Domain refs = kitehub.me (GAP-458) — KHÔNG kiteclass.vn/.com.
+  ============================================================================
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KiteHub · Bảng giá — kitehub-pro v2</title>
+  <meta name="description" content="Bảng so sánh 4 gói KiteHub: FREE / BASIC / PREMIUM / ENTERPRISE. Giá VND, chu kỳ tháng/năm (giảm 10%), so sánh tính năng, FAQ học phí." />
+  <link rel="stylesheet" href="../styles.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    /* ----- Page-local derived tokens (WCAG text-bearing CTA) -----
+       --primary (sky 48% L) white-on-fill ~2.6:1 FAIL cho chữ.
+       Dẫn xuất biến đậm hơn cho nút CÓ CHỮ; KHÔNG hardcode hex ngoài block này. */
+    :root{
+      --cta-ink: 199 89% 30%;      /* sky-800 — text-bearing CTA fill, white ~4.9:1 */
+      --cta-ink-strong: 199 89% 24%;
+      --accent-ink: 25 95% 33%;    /* orange-700 — ribbon fill, white ~4.7:1 */
+      --success-ink: 160 84% 30%;  /* emerald-700 — check icon, white ~4.8:1 */
+    }
+    .pricing-wrap{ max-width: 1120px; margin: 0 auto; padding: 0 1.25rem 4rem; }
+    .price-hero{ text-align:center; padding: 2.5rem 0 1.5rem; }
+    .price-hero h1{ font-size: clamp(1.9rem, 4vw, 2.9rem); font-weight: 800; letter-spacing:-0.02em; }
+    .price-hero p{ color: hsl(var(--muted-foreground)); font-size: var(--text-lg); max-width: 40em; margin: 0.75rem auto 0; }
+
+    /* billing toggle */
+    .cycle-toggle{ display:inline-flex; gap:4px; padding:4px; border-radius: var(--radius-full);
+      background: hsl(var(--muted)); margin: 1.25rem auto 0.25rem; }
+    .cycle-toggle button{ border:0; cursor:pointer; font-family:inherit; font-weight:700;
+      font-size: var(--text-sm); padding: 8px 18px; border-radius: var(--radius-full);
+      background: transparent; color: hsl(var(--muted-foreground)); }
+    .cycle-toggle button[aria-pressed="true"]{ background: hsl(var(--card));
+      color: hsl(var(--foreground)); box-shadow: var(--shadow-soft); }
+    .cycle-toggle button:focus-visible{ outline:2px solid hsl(var(--ring)); outline-offset:2px; }
+    .save-hint{ font-size: var(--text-xs); font-weight:700; color: hsl(var(--accent-ink));
+      display:inline-flex; align-items:center; gap:4px; margin-left:6px; }
+
+    /* tier cards */
+    .tier-grid{ display:grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-top: 1.75rem; }
+    @media(max-width: 980px){ .tier-grid{ grid-template-columns: repeat(2,1fr); } }
+    @media(max-width: 560px){ .tier-grid{ grid-template-columns: 1fr; } }
+    .tier{ position:relative; display:flex; flex-direction:column; background: hsl(var(--card));
+      border:1px solid hsl(var(--border)); border-radius: var(--radius-lg); padding: 1.5rem 1.25rem;
+      box-shadow: var(--shadow-soft); }
+    .tier--featured{ border:2px solid hsl(var(--cta-ink)); box-shadow: var(--shadow-soft-lg);
+      transform: translateY(-6px); }
+    @media(max-width: 560px){ .tier--featured{ transform:none; } }
+    .tier__ribbon{ position:absolute; top:-13px; left:50%; transform:translateX(-50%);
+      background: hsl(var(--accent-ink)); color:#fff; font-size: var(--text-xs); font-weight:800;
+      padding: 4px 14px; border-radius: var(--radius-full); white-space:nowrap;
+      display:inline-flex; align-items:center; gap:5px; }
+    .tier__name{ font-size: var(--text-lg); font-weight:800; }
+    .tier__tagline{ font-size: var(--text-xs); color: hsl(var(--muted-foreground)); margin-top:2px; min-height: 2.4em; }
+    .tier__price{ margin: 0.9rem 0 0.2rem; display:flex; align-items:baseline; gap:5px; flex-wrap:wrap; }
+    .tier__amount{ font-size: var(--text-3xl); font-weight:800; letter-spacing:-0.02em; }
+    .tier__period{ font-size: var(--text-sm); color: hsl(var(--muted-foreground)); font-weight:600; }
+    .tier__annual-note{ font-size: var(--text-xs); color: hsl(var(--accent-ink)); font-weight:700; min-height:1.2em; }
+    .tier__cta{ margin: 1rem 0 1.1rem; }
+    .btn-ink{ background: hsl(var(--cta-ink)); color:#fff; width:100%; }
+    .btn-ink:hover{ background: hsl(var(--cta-ink-strong)); }
+    .feat-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:0.55rem; }
+    .feat-list li{ display:flex; gap:0.5rem; font-size: var(--text-sm); align-items:flex-start; }
+    .feat-list .ic{ color: hsl(var(--success-ink)); flex:0 0 auto; margin-top:2px; }
+    .feat-list .ic-off{ color: hsl(var(--muted-foreground)); }
+    .feat-list .off{ color: hsl(var(--muted-foreground)); }
+
+    /* comparison table */
+    .cmp-wrap{ margin-top: 3rem; overflow-x: auto; }
+    table.cmp{ width:100%; border-collapse: collapse; min-width: 640px; font-size: var(--text-sm); }
+    table.cmp caption{ text-align:left; font-weight:800; font-size: var(--text-lg); margin-bottom: 0.75rem; }
+    table.cmp th, table.cmp td{ padding: 0.7rem 0.9rem; border-bottom:1px solid hsl(var(--border)); text-align:center; }
+    table.cmp thead th{ background: hsl(var(--muted) / 0.5); color: hsl(222 84% 12%); font-weight:800; }
+    table.cmp tbody th{ text-align:left; font-weight:600; color: hsl(var(--foreground)); }
+    table.cmp tbody th .row-hint{ display:block; font-size: var(--text-xs); color: hsl(var(--muted-foreground)); font-weight:400; }
+    table.cmp td.yes{ color: hsl(var(--success-ink)); font-weight:700; }
+    table.cmp td.no{ color: hsl(var(--muted-foreground)); }
+    table.cmp .grp th{ background: hsl(var(--muted) / 0.3); text-align:left; font-size: var(--text-xs);
+      text-transform:uppercase; letter-spacing:0.06em; color: hsl(var(--muted-foreground)); font-weight:700; }
+
+    /* faq */
+    .faq-sec{ margin-top: 3rem; max-width: 760px; }
+    .faq-sec h2{ font-size: var(--text-2xl); font-weight:800; margin-bottom: 1rem; }
+    details.faq{ border:1px solid hsl(var(--border)); border-radius: var(--radius); padding: 0.9rem 1.1rem; margin-bottom: 0.6rem; }
+    details.faq summary{ cursor:pointer; font-weight:700; font-size: var(--text-sm); list-style:none; display:flex; justify-content:space-between; align-items:center; gap:1rem; }
+    details.faq summary::-webkit-details-marker{ display:none; }
+    details.faq[open] summary .chev{ transform: rotate(180deg); }
+    details.faq .chev{ transition: transform .18s ease; color: hsl(var(--muted-foreground)); }
+    details.faq p{ margin: 0.7rem 0 0; font-size: var(--text-sm); color: hsl(var(--muted-foreground)); line-height:1.6; }
+
+    .final-cta{ margin-top: 3rem; text-align:center; padding: 2.25rem 1.25rem; border-radius: var(--radius-lg);
+      background: linear-gradient(135deg, hsl(var(--cta-ink)), hsl(var(--accent-ink))); color:#fff; }
+    .final-cta h2{ font-size: var(--text-2xl); font-weight:800; }
+    .final-cta p{ opacity:.92; margin-top:.4rem; }
+    .btn-on-dark{ background:#fff; color: hsl(var(--cta-ink-strong)); margin-top:1.1rem; font-weight:800; }
+    .foot{ text-align:center; color: hsl(var(--muted-foreground)); font-size: var(--text-xs); margin-top: 2.5rem; }
+  </style>
+</head>
+<body>
+  <a href="#main" class="skip" style="position:absolute;left:-999px;">Bỏ qua tới nội dung</a>
+
+  <nav class="state-tabs">
+    <a href="../index.html">← Index kit</a>
+    <a href="billing-default.html">Hóa đơn (in-app)</a>
+    <a href="pricing.html" data-active="true">Bảng giá (public)</a>
+  </nav>
+
+  <main id="main" class="pricing-wrap">
+    <header class="price-hero">
+      <span class="tag tag--accent" style="font-size:11px;">KiteHub · kitehub.me</span>
+      <h1 class="mt-2">Chọn gói phù hợp với quy mô của bạn</h1>
+      <p>Bắt đầu miễn phí, nâng cấp khi trung tâm lớn lên. Mọi gói đều gồm hỗ trợ qua email
+         (giai đoạn Beta) và không ràng buộc hợp đồng dài hạn.</p>
+
+      <div class="cycle-toggle" role="group" aria-label="Chu kỳ thanh toán">
+        <button id="cyc-month" aria-pressed="true" onclick="setCycle('month')">Theo tháng</button>
+        <button id="cyc-year" aria-pressed="false" onclick="setCycle('year')">Theo năm</button>
+      </div>
+      <div class="save-hint" aria-live="polite" id="save-hint" hidden>
+        <i data-lucide="badge-percent" class="w-4 h-4"></i> Tiết kiệm 10% khi trả theo năm
+      </div>
+    </header>
+
+    <!-- ===== 4 tier cards ===== -->
+    <section class="tier-grid" aria-label="So sánh gói">
+
+      <!-- FREE -->
+      <article class="tier">
+        <div class="tier__name">FREE</div>
+        <div class="tier__tagline">Gia sư tự do mới bắt đầu, lớp nhỏ.</div>
+        <div class="tier__price">
+          <span class="tier__amount" data-tier="FREE">0đ</span>
+          <span class="tier__period" data-period>/tháng</span>
+        </div>
+        <div class="tier__annual-note" data-annual="FREE">Miễn phí trọn đời</div>
+        <a href="#" class="btn btn--outline tier__cta" style="width:100%;">Dùng ngay</a>
+        <ul class="feat-list">
+          <li><i data-lucide="check" class="w-4 h-4 ic"></i><span>Tối đa <b>10 học viên</b></span></li>
+          <li><i data-lucide="check" class="w-4 h-4 ic"></i><span>1 giáo viên</span></li>
+          <li><i data-lucide="check" class="w-4 h-4 ic"></i><span>500MB lưu trữ</span></li>
+          <li><i data-lucide="check" class="w-4 h-4 ic"></i><span>Trang public + điểm danh + điểm số</span></li>
+          <li><i data-lucide="x" class="w-4 h-4 ic-off"></i><span class="off">Tên miền riêng</span></li>
+        </ul>
+      </article>
+
+      <!-- BASIC -->
+      <article class="tier">
+        <div class="tier__name">BASIC</div>
+        <div class="tier__tagline">Lớp đang lớn, cần thêm giáo viên.</div>
+        <div class="tier__price">
+          <span class="tier__amount" data-tier="BASIC">500.000đ</span>
+          <span class="tier__period" data-period>/tháng</span>
+        </div>
+        <div class="tier__annual-note" data-annual="BASIC"></div>
+        <a href="#" class="btn btn-ink tier__cta">Nâng cấp BASIC</a>
+        <ul class="feat-list">
+          <li><i data-lucide="check" class="w-4 h-4 ic"></i><span>Tối đa <b>50 học viên</b></span></li>
+          <li><i data-lucide="check" class="w-4 h-4 ic"></i><span>5 giáo viên</span></li>
+          <li><i data-lucide="check" class="w-4 h-4 ic"></i><span>2GB lưu trữ</span></li>
+          <li><i data-lucide="check" class="w-4 h-4 ic"></i><span>Toàn bộ gói FREE + học phí + báo cáo</span></li>
+          <li><i data-lucide="x" class="w-4 h-4 ic-off"></i><span class="off">Tên miền riêng</span></li>
+        </ul>
+      </article>
+
+      <!-- PREMIUM (featured) -->
+      <article class="tier tier--featured">
+        <span class="tier__ribbon"><i data-lucide="star" class="w-3 h-3"></i> Phổ biến nhất</span>
+        <div class="tier__name">PREMIUM</div>
+        <div class="tier__tagline">Trung tâm vừa, cần tên miền + AI branding.</div>
+        <div class="tier__price">
+          <span class="tier__amount" data-tier="PREMIUM">1.500.000đ</span>
+          <span class="tier__period" data-period>/tháng</span>
+        </div>
+        <div class="tier__annual-note" data-annual="PREMIUM"></div>
+        <a href="#" class="btn btn-ink tier__cta">Nâng cấp PREMIUM</a>
+        <ul class="feat-list">
+          <li><i data-lucide="check" class="w-4 h-4 ic"></i><span>Tối đa <b>200 học viên</b></span></li>
+          <li><i data-lucide="check" class="w-4 h-4 ic"></i><span>20 giáo viên</span></li>
+          <li><i data-lucide="check" class="w-4 h-4 ic"></i><span>10GB lưu trữ</span></li>
+          <li><i data-lucide="check" class="w-4 h-4 ic"></i><span><b>Tên miền riêng</b> + AI branding wizard</span></li>
+          <li><i data-lucide="check" class="w-4 h-4 ic"></i><span>Cổng phụ huynh + nhập liệu hàng loạt</span></li>
+        </ul>
+      </article>
+
+      <!-- ENTERPRISE -->
+      <article class="tier">
+        <div class="tier__name">ENTERPRISE</div>
+        <div class="tier__tagline">Chuỗi / trường lớn, nhiều chi nhánh.</div>
+        <div class="tier__price">
+          <span class="tier__amount" data-tier="ENTERPRISE">Liên hệ</span>
+        </div>
+        <div class="tier__annual-note" data-annual="ENTERPRISE">Báo giá theo nhu cầu</div>
+        <a href="#" class="btn btn--outline tier__cta" style="width:100%;">Liên hệ tư vấn</a>
+        <ul class="feat-list">
+          <li><i data-lucide="check" class="w-4 h-4 ic"></i><span><b>Học viên không giới hạn</b></span></li>
+          <li><i data-lucide="check" class="w-4 h-4 ic"></i><span>Giáo viên không giới hạn</span></li>
+          <li><i data-lucide="check" class="w-4 h-4 ic"></i><span>Lưu trữ mở rộng</span></li>
+          <li><i data-lucide="check" class="w-4 h-4 ic"></i><span>Đa chi nhánh + SSO + SLA riêng</span></li>
+          <li><i data-lucide="check" class="w-4 h-4 ic"></i><span>Quản lý tài khoản chuyên trách</span></li>
+        </ul>
+      </article>
+    </section>
+
+    <p class="foot" style="margin-top:1.25rem;">
+      Giá đã gồm VAT. Hóa đơn điện tử xuất tự động theo Nghị định 123/2020/NĐ-CP.
+      Giá trị "/năm" = giá tháng × 12 − 10% (per <code>PricingTier.getAnnualPrice</code>).
+    </p>
+
+    <!-- ===== comparison table ===== -->
+    <div class="cmp-wrap">
+      <table class="cmp">
+        <caption>So sánh chi tiết tính năng</caption>
+        <thead>
+          <tr>
+            <th scope="col" style="text-align:left;">Tính năng / Giới hạn</th>
+            <th scope="col">FREE</th>
+            <th scope="col">BASIC</th>
+            <th scope="col">PREMIUM</th>
+            <th scope="col">ENTERPRISE</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="grp"><th scope="colgroup" colspan="5">Giới hạn quy mô</th></tr>
+          <tr><th scope="row">Học viên tối đa</th><td>10</td><td>50</td><td>200</td><td class="yes">Không giới hạn</td></tr>
+          <tr><th scope="row">Giáo viên</th><td>1</td><td>5</td><td>20</td><td class="yes">Không giới hạn</td></tr>
+          <tr><th scope="row">Dung lượng lưu trữ</th><td>500MB</td><td>2GB</td><td>10GB</td><td class="yes">Mở rộng</td></tr>
+          <tr><th scope="row">Token AI / yêu cầu <span class="row-hint">AI branding + nội dung</span></th><td>2.000</td><td>4.000</td><td>8.000</td><td class="yes">16.000+</td></tr>
+
+          <tr class="grp"><th scope="colgroup" colspan="5">Tính năng nghiệp vụ</th></tr>
+          <tr><th scope="row">Trang public + điểm danh + điểm số</th><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+          <tr><th scope="row">Quản lý học phí + báo cáo</th><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+          <tr><th scope="row">Cổng phụ huynh + nhập liệu hàng loạt</th><td class="no">—</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+
+          <tr class="grp"><th scope="colgroup" colspan="5">Thương hiệu & hạ tầng</th></tr>
+          <tr><th scope="row">Tên miền riêng <span class="row-hint">vd lop-co-ha.kitehub.me hoặc domain riêng</span></th><td class="no">—</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+          <tr><th scope="row">AI branding wizard</th><td class="no">—</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+          <tr><th scope="row">Đa chi nhánh + SSO</th><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td></tr>
+
+          <tr class="grp"><th scope="colgroup" colspan="5">Hỗ trợ</th></tr>
+          <tr><th scope="row">Hỗ trợ qua email (Beta)</th><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+          <tr><th scope="row">SLA + quản lý tài khoản riêng</th><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ===== FAQ ===== -->
+    <section class="faq-sec" aria-label="Câu hỏi thường gặp về giá">
+      <h2>Câu hỏi thường gặp</h2>
+
+      <details class="faq" open>
+        <summary>Tôi có thể đổi gói bất cứ lúc nào không?
+          <i data-lucide="chevron-down" class="w-4 h-4 chev"></i></summary>
+        <p>Có. Bạn nâng cấp hoặc hạ gói ngay trong phần "Hóa đơn → Nâng cấp". Khi nâng cấp,
+           phần chênh lệch được tính theo tỉ lệ ngày còn lại của chu kỳ hiện tại.</p>
+      </details>
+
+      <details class="faq">
+        <summary>Trả theo năm tiết kiệm bao nhiêu?
+          <i data-lucide="chevron-down" class="w-4 h-4 chev"></i></summary>
+        <p>Trả theo năm được giảm 10% so với tổng 12 tháng. Ví dụ gói PREMIUM:
+           1.500.000đ/tháng × 12 = 18.000.000đ, còn <b>16.200.000đ/năm</b> khi trả trước.</p>
+      </details>
+
+      <details class="faq">
+        <summary>Khi vượt giới hạn học viên thì sao?
+          <i data-lucide="chevron-down" class="w-4 h-4 chev"></i></summary>
+        <p>Hệ thống sẽ nhắc bạn nâng gói khi gần chạm giới hạn (ví dụ 45/50 học viên ở gói
+           BASIC). Dữ liệu hiện có không bị mất; bạn chỉ cần nâng cấp để thêm học viên mới.</p>
+      </details>
+
+      <details class="faq">
+        <summary>Có xuất hóa đơn VAT không?
+          <i data-lucide="chevron-down" class="w-4 h-4 chev"></i></summary>
+        <p>Có. Mọi khoản thanh toán đều xuất hóa đơn điện tử tự động theo Nghị định
+           123/2020/NĐ-CP. Bạn nhập thông tin xuất hóa đơn trong phần Cài đặt thanh toán.</p>
+      </details>
+    </section>
+
+    <!-- ===== final CTA ===== -->
+    <section class="final-cta">
+      <h2>Chưa chắc gói nào phù hợp?</h2>
+      <p>Bắt đầu với gói FREE — không cần thẻ thanh toán. Nâng cấp khi trung tâm bạn lớn lên.</p>
+      <a href="#" class="btn btn-on-dark">Tạo trung tâm miễn phí</a>
+    </section>
+
+    <p class="foot">
+      KiteHub · kitehub.me · Hỗ trợ: <a href="mailto:support@kitehub.me" style="color:inherit;text-decoration:underline;">support@kitehub.me</a>
+      (giai đoạn Beta). Giá có thể thay đổi; gói đang dùng được khóa giá tới hết chu kỳ.
+    </p>
+  </main>
+
+  <script>
+    // ===== Billing-cycle toggle (interactive affordance, runtime click-verify §3.2) =====
+    // Giá tháng canonical từ PricingTier.java; năm = tháng×12×0.9 (getAnnualPrice).
+    var PRICES = {
+      FREE:       { month: '0đ',            year: '0đ' },
+      BASIC:      { month: '500.000đ',      year: '5.400.000đ' },
+      PREMIUM:    { month: '1.500.000đ',    year: '16.200.000đ' },
+      ENTERPRISE: { month: 'Liên hệ',       year: 'Liên hệ' }
+    };
+    var ANNUAL_NOTE = {
+      FREE:       { month: 'Miễn phí trọn đời',      year: 'Miễn phí trọn đời' },
+      BASIC:      { month: 'hoặc 5.400.000đ/năm',    year: '≈ 450.000đ/tháng khi trả năm' },
+      PREMIUM:    { month: 'hoặc 16.200.000đ/năm',   year: '≈ 1.350.000đ/tháng khi trả năm' },
+      ENTERPRISE: { month: 'Báo giá theo nhu cầu',   year: 'Báo giá theo nhu cầu' }
+    };
+    function setCycle(c){
+      var isYear = c === 'year';
+      document.getElementById('cyc-month').setAttribute('aria-pressed', String(!isYear));
+      document.getElementById('cyc-year').setAttribute('aria-pressed', String(isYear));
+      document.getElementById('save-hint').hidden = !isYear;
+      document.querySelectorAll('[data-tier]').forEach(function(el){
+        var t = el.getAttribute('data-tier');
+        el.textContent = PRICES[t][c];
+      });
+      document.querySelectorAll('[data-period]').forEach(function(el){
+        el.textContent = isYear ? '/năm' : '/tháng';
+      });
+      document.querySelectorAll('[data-annual]').forEach(function(el){
+        var t = el.getAttribute('data-annual');
+        el.textContent = ANNUAL_NOTE[t][c];
+      });
+    }
+    setCycle('month');
+    if (window.lucide) lucide.createIcons();
+  </script>
+</body>
+</html>

@@ -83,8 +83,62 @@ Hard gates: ✓ VN-only data · ✓ WCAG AA đo · ✓ persona khai báo (HTML c
 | **詳細設計** (detail / state / ADR) | Carousel states §"Hero carousel" (default/paused/single/reduced-motion) · GAP-826 / GAP-1210 / GAP-274 / GAP-1208 |
 | **コンポーネント設計** (component design) | Carousel + ThemeSwitcher (parity `marketing-site/`) · primitives pattern `_shared/colors_and_type.css` theme vars · `components/G11-theme` |
 
+## ConsentBanner PDPL (GAP-274 AC · BR-PDPL-CONSENT-001..004)
+
+Landing per-tenant PHẢI mount **ConsentBanner** trước khi PDPL có hiệu lực **2026-07-01**. Mockup
+design tham chiếu: [`../kitehub-story-v2/screens/consent-banner.html`](../kitehub-story-v2/screens/consent-banner.html)
+(token-themed, WCAG AA đo sẵn, vanilla JS toggle). Production component đã ship Wave 23 Bucket BC:
+`packages/shared-ui/src/components/ConsentBanner/`.
+
+**Vị trí mount (spec cho production-port agent):**
+- Mount trong `kiteclass/kiteclass-frontend/src/app/(public)/layout.tsx` — phủ MỌI trang public
+  per-tenant (landing `/` + 4 trang `kiteclass-public/`), KHÔNG mount riêng từng trang.
+- Banner cố định đáy màn hình (`role="dialog"` `aria-modal="false"` — non-blocking, phụ huynh vẫn
+  cuộn xem trang được), `storageKey = kite.consent.v1`.
+
+**Hành vi gate analytics (BR-PDPL-CONSENT-001..004):**
+- Trước khi user chọn → **KHÔNG** load analytics / marketing script nào (privacy-by-default).
+- `Đồng ý tất cả` → set consent → mới load analytics/marketing tracking.
+- `Từ chối tất cả` (cũng là hành vi khi `Esc`) → chỉ giữ cookie kỹ thuật bắt buộc (`Bắt buộc` lock).
+- `Tuỳ chỉnh` → panel granular toggle (analytics / marketing riêng), `aria-live="polite"` đọc thay đổi.
+- Sau khi chọn 1 lần → lưu `kite.consent.v1`, không hiện lại trừ khi user reset.
+
+**Cross-ref:** GAP-353 (banner spec) · GAP-368 (production legal pages) · `kitehub-story-v2/consent-banner.html`
+(mockup gốc PDPL 2023 Articles 11-13 + Decree 13/2023/NĐ-CP Art 24).
+
+## Favicon `<head>` spec (GAP-1229 phần C — kit-design-first)
+
+Spec favicon chain cho landing per-tenant (BE đã đủ: `branding.faviconUrl` + `ResourceType.FAVICON`
+V32; FE thiếu render — GAP-1229). Production-port agent wire theo spec này trong `(public)/page.tsx`
+`generateMetadata`:
+
+```ts
+// (public)/page.tsx — generateMetadata
+export async function generateMetadata(): Promise<Metadata> {
+  const branding = await getTenantBranding(); // landing payload, có faviconUrl per ADR-009
+  return {
+    icons: {
+      icon: branding.faviconUrl ?? '/icon.svg',  // tenant favicon → fallback default KiteClass
+    },
+  };
+}
+```
+
+**Quy tắc:**
+- **Chain:** `branding.faviconUrl` (tenant upload) → fallback `/icon.svg` (default KiteClass — file
+  `src/app/icon.svg` Next.js tự serve, KHÔNG để globe trắng).
+- **Durable URL:** `faviconUrl` PHẢI là URL bền (không presigned hết hạn 7 ngày) — cùng cơ chế
+  GAP-1204 đã fix cho `logoUrl`. KHÔNG lưu presigned MinIO URL vào DB.
+- **Preview affordance (Settings UI + wizard kit v3 — Bucket D):** upload favicon hiển thị preview
+  **16×16px** (tab thật) + **32×32px** (retina/bookmark); accept `.ico/.png/.svg` ≤ 200KB.
+- **Default file:** `kiteclass-frontend/src/app/icon.svg` (logo KiteClass) — implementation PR riêng
+  per GAP-1229 §Proposed Fix bước 1; kit này chỉ ghi spec head (design-first per `frontend-standards.md` §3.1).
+
+**Cross-ref:** GAP-1229 (favicon chain — phần C landing render) · GAP-1204 (durable URL class) ·
+ADR-009 (branding package) · GAP-1212 (wizard kit v3 — favicon upload affordance Bucket D).
+
 ## Cross-link
-- GAP-826 (hero carousel đa-banner — production wire) · GAP-1210 (hero copy-trái banner-phải) · GAP-1208 (voice GV độc lập) · GAP-274 (per-tenant theme).
+- GAP-826 (hero carousel đa-banner — production wire) · GAP-1210 (hero copy-trái banner-phải) · GAP-1208 (voice GV độc lập) · GAP-274 (per-tenant theme) · GAP-1229 (favicon chain).
 - Production mapping: `kiteclass/kiteclass-frontend/src/components/sections/HeroSection.tsx` + `src/lib/template/configs.ts` `PERSONAL_TEMPLATE` + `(public)/page.tsx`.
 - Carousel nguồn: `marketing-site/carousel-demo.html` + `landing.css` `.hero-slide`.
 - Dossier: `dossier/01-personas.md` · `dossier/02-vietnamese-ux-musts.md` · `dossier/06-quality-bar.md`.
