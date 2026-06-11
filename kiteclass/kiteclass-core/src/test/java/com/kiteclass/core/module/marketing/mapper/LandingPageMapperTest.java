@@ -44,6 +44,8 @@ class LandingPageMapperTest {
         assertThat(response.getHeroTitle()).isEqualTo(landingPage.getHeroTitle());
         assertThat(response.getHeroSubtitle()).isEqualTo(landingPage.getHeroSubtitle());
         assertThat(response.getHeroImageUrl()).isEqualTo(landingPage.getHeroImageUrl());
+        // GAP-826: carousel banner list maps element-for-element.
+        assertThat(response.getHeroImages()).isEqualTo(landingPage.getHeroImages());
         assertThat(response.getTeacherBio()).isEqualTo(landingPage.getTeacherBio());
         assertThat(response.getLogoUrl()).isEqualTo(landingPage.getLogoUrl());
         assertThat(response.getTagline()).isEqualTo(landingPage.getTagline());

@@ -129,6 +129,13 @@ public class LandingPageServiceImpl implements LandingPageService {
         }
         response.setLogoUrl(assetUrlResolver.regenerate(response.getLogoUrl()));
         response.setHeroImageUrl(assetUrlResolver.regenerate(response.getHeroImageUrl()));
+        // GAP-826: regenerate each carousel banner too (mirror logo/hero single). Static
+        // /demo-banners/... paths are non-presigned → returned as-is by the resolver.
+        if (response.getHeroImages() != null) {
+            response.setHeroImages(response.getHeroImages().stream()
+                    .map(assetUrlResolver::regenerate)
+                    .toList());
+        }
         return response;
     }
 

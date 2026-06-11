@@ -139,4 +139,27 @@ class LandingPageServiceTest {
         assertThat(result.getHeroImageUrl()).isEqualTo(staticHero);
         verify(assetUrlResolver).regenerate(expiredLogo);
     }
+
+    @Test
+    void getLandingPage_regeneratesEachCarouselBannerOnRead() {
+        // GAP-826: every heroImages element is swept the same as the single heroImageUrl —
+        // a stale presigned banner is refreshed; a static /demo-banners/... path is kept.
+        String expiredBanner = "http://localhost:9100/kite-branding-assets/static/abc/HERO/b.png?X-Amz-Signature=stale";
+        String freshBanner = "http://localhost:9100/kite-branding-assets/static/abc/HERO/b.png?X-Amz-Signature=fresh";
+        String staticBanner = "/demo-banners/co-khanh-phapluat.webp";
+        landingPageResponse.setHeroImages(java.util.List.of(expiredBanner, staticBanner));
+        when(landingPageRepository.findByInstanceIdAndDeletedFalse(tenantId)).thenReturn(Optional.of(landingPage));
+        when(landingPageMapper.toResponse(any(LandingPage.class))).thenReturn(landingPageResponse);
+        when(assetUrlResolver.regenerate(landingPageResponse.getLogoUrl())).thenReturn(landingPageResponse.getLogoUrl());
+        when(assetUrlResolver.regenerate(landingPageResponse.getHeroImageUrl())).thenReturn(landingPageResponse.getHeroImageUrl());
+        when(assetUrlResolver.regenerate(expiredBanner)).thenReturn(freshBanner);
+        when(assetUrlResolver.regenerate(staticBanner)).thenReturn(staticBanner);
+
+        // When
+        LandingPageResponse result = landingPageService.getLandingPage(tenantId);
+
+        // Then — stale carousel banner refreshed; static banner untouched; order preserved.
+        assertThat(result.getHeroImages()).containsExactly(freshBanner, staticBanner);
+        verify(assetUrlResolver).regenerate(expiredBanner);
+    }
 }

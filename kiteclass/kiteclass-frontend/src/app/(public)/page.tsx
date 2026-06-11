@@ -236,8 +236,17 @@ export default async function LandingPage({
   // built-in real routes (/register, /catalog) — no fabricated content emitted.
   const str = (v: unknown): string | undefined =>
     typeof v === 'string' && v.trim() ? (v as string) : undefined;
-  const heroSlot: Record<string, string | undefined> = {
+
+  // Hero banner carousel (GAP-826). Emit the `images` slot only when the backend returned
+  // a non-empty array of URL strings; otherwise HeroSection falls back to the single `image`
+  // slot (heroImageUrl) → single-banner behaviour unchanged (backward-compat).
+  const heroImages = Array.isArray(ld.heroImages)
+    ? (ld.heroImages.filter((u): u is string => typeof u === 'string' && u.trim().length > 0))
+    : undefined;
+
+  const heroSlot: Record<string, string | string[] | undefined> = {
     image: ld.heroImageUrl as string | undefined,
+    ...(heroImages && heroImages.length > 0 ? { images: heroImages } : {}),
     ...(str(ld.ctaPrimaryLabel) ? { ctaPrimaryLabel: str(ld.ctaPrimaryLabel) } : {}),
     ...(str(ld.ctaPrimaryHref) ? { ctaPrimaryHref: str(ld.ctaPrimaryHref) } : {}),
     ...(str(ld.ctaSecondaryLabel) ? { ctaSecondaryLabel: str(ld.ctaSecondaryLabel) } : {}),

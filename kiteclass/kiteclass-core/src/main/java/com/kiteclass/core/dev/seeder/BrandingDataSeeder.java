@@ -156,6 +156,13 @@ public class BrandingDataSeeder {
     static final String KHANH_DISPLAY_NAME = "Trung tâm cô Đỗ Lan Khánh";
     static final String KHANH_BANNER_URL = "/demo-banners/co-khanh-phapluat.webp";
     static final String KHANH_LOGO_URL = "/demo-banners/co-khanh-phapluat-logo.webp";
+    // GAP-826 — 2nd carousel slide for the §4.1 walkthrough tenant so the demo shows the
+    // banner rotator (≥2 slides → FE renders dots/arrows + auto-rotate). Lives in
+    // public/demo/sky/ — a gitignored AI-composed scene per GAP-810 (the dir already named
+    // canonical in seedSkyLanding's javadoc). Present on the dev box, NOT committed: verify
+    // it exists locally before the runtime walk, else the 2nd slide 404s (1st slide +
+    // carousel chrome still render). All other trio tenants ship a single committed banner.
+    static final String KHANH_BANNER_2_URL = "/demo/sky/teacher-do-lan-khanh.webp";
 
     // ── GAP-1083 / GAP-1205 / GAP-1206 — short center name + landing-100 F-section content ──
     // centerName = the center's own short display name (nav/footer/JsonLd prefer this over the
@@ -275,6 +282,8 @@ public class BrandingDataSeeder {
         seedTrioTenant(new TrioSpec(HA_TENANT_ID, HA_TENANT_SLUG, HA_TENANT_REF, HA_FRONTEND_URL,
                 HA_DISPLAY_NAME, HA_CENTER_NAME, HA_TAGLINE, HA_PRIMARY_COLOR, HA_SECONDARY_COLOR, HA_ACCENT_COLOR,
                 HA_BANNER_URL, HA_LOGO_URL,
+                // GAP-826 — single committed banner (1 slide → FE renders static, no carousel chrome).
+                List.of(HA_BANNER_URL),
                 "Lấy lại căn bản môn Toán cùng cô Hà",
                 "Lộ trình Toán tiểu học bài bản, lớp nhỏ, kèm sát từng học viên.",
                 "https://zalo.me/co-ha-toan", "https://facebook.com/cohatoan",
@@ -283,6 +292,8 @@ public class BrandingDataSeeder {
         seedTrioTenant(new TrioSpec(NHI_TENANT_ID, NHI_TENANT_SLUG, NHI_TENANT_REF, NHI_FRONTEND_URL,
                 NHI_DISPLAY_NAME, NHI_CENTER_NAME, NHI_TAGLINE, NHI_PRIMARY_COLOR, NHI_SECONDARY_COLOR, NHI_ACCENT_COLOR,
                 NHI_BANNER_URL, NHI_LOGO_URL,
+                // GAP-826 — single committed banner (1 slide → static render).
+                List.of(NHI_BANNER_URL),
                 "Hóa học THCS — học là hiểu cùng thầy Nhì",
                 "Khóa Hóa học THCS đầy đủ, bộ nhận diện sinh tự động bằng AI Branding.",
                 "https://zalo.me/thay-nhi-hoa", "https://facebook.com/thaynhihoa",
@@ -296,6 +307,8 @@ public class BrandingDataSeeder {
                             String displayName, String centerName, String tagline,
                             String primary, String secondary, String accent,
                             String bannerUrl, String logoUrl,
+                            // GAP-826 — ordered hero banner carousel slides (slide order = list order).
+                            List<String> heroImages,
                             String heroTitle, String heroSubtitle, String zaloUrl, String facebookUrl,
                             // GAP-1194 — JSONB landing sections (FE-contract shapes; see constants above).
                             String teachersJson, String pricingJson, String statsJson,
@@ -360,6 +373,8 @@ public class BrandingDataSeeder {
                 lp.setHeroTitle(spec.heroTitle());
                 lp.setHeroSubtitle(spec.heroSubtitle());
                 lp.setHeroImageUrl(spec.bannerUrl());
+                // GAP-826: carousel slides (≥2 → FE rotator; 1 → static single banner).
+                lp.setHeroImages(spec.heroImages());
                 // GAP-1203/1204: store the stable static logo path (NOT a presigned MinIO URL) so
                 // the public landing header logo never expires. Reconciled each boot from constants.
                 lp.setLogoUrl(spec.logoUrl());
@@ -516,6 +531,10 @@ public class BrandingDataSeeder {
         lp.setHeroTitle("Mất gốc tiếng Anh? Đã có cô Khánh");
         lp.setHeroSubtitle("Lộ trình lấy lại căn bản tiếng Anh, học cùng giáo viên tận tâm.");
         lp.setHeroImageUrl(KHANH_BANNER_URL);
+        // GAP-826: 2-slide carousel for the §4.1 walkthrough tenant → FE renders the rotator
+        // (dots + arrows + auto-rotate). 2nd slide is the gitignored GAP-810 asset (see
+        // KHANH_BANNER_2_URL note) — verify present locally before the runtime walk.
+        lp.setHeroImages(List.of(KHANH_BANNER_URL, KHANH_BANNER_2_URL));
         // GAP-1204: overwrite any stale presigned logo with the stable static demo logo so
         // the Sky landing header never renders a broken (403) image after the 7-day TTL.
         lp.setLogoUrl(KHANH_LOGO_URL);

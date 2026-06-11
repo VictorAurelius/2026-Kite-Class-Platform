@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, ShieldCheck, GraduationCap } from 'lucide-react';
 import type { SlotData } from '@/lib/template/slots';
+import { HeroBannerCarousel } from './HeroBannerCarousel';
 
 interface HeroSectionProps {
   slots?: SlotData;
@@ -33,6 +34,19 @@ export function HeroSection({ slots, title, subtitle, tagline }: HeroSectionProp
   const heroTagline = (slots?.tagline as string) || tagline;
   const heroImage = slots?.image as string | undefined;
   const urgency = (slots?.urgency as string) || undefined;
+
+  // Hero banner carousel (GAP-826). `images` is the ordered banner list; fall back to the
+  // single `image` slot (legacy heroImageUrl) when the list is empty → backward-compat.
+  const rawImages = slots?.images;
+  const carouselImages = Array.isArray(rawImages)
+    ? (rawImages.filter((x) => typeof x === 'string' && x.length > 0) as string[])
+    : [];
+  // The frame shows: the carousel when ≥2 slides, else a single static banner (1 slide
+  // from the list, or the legacy single `image`). No image at all → text gradient fallback.
+  const frameImages = carouselImages.length > 0
+    ? carouselImages
+    : (heroImage ? [heroImage] : []);
+  const hasFrame = frameImages.length > 0;
 
   // CTA copy is data-driven (slots, Đợt-1 slot C) with generic, non-fabricated
   // fallbacks to the real built-in routes (/register, /catalog).
@@ -89,11 +103,13 @@ export function HeroSection({ slots, title, subtitle, tagline }: HeroSectionProp
     </ul>
   );
 
-  if (heroImage) {
+  if (hasFrame) {
     // Copy left + framed banner right (GAP-1210). The image gets its own frame
     // with NO text/scrim on top of it — faces + any in-image text stay visible.
     // `unoptimized` retained because hero images may be AI-generated data URLs
     // or arbitrary remote URLs not in next.config remotePatterns.
+    // GAP-826: ≥2 banners → rotating carousel; exactly 1 → static single banner.
+    const single = frameImages.length === 1;
     return (
       <section className="relative w-full overflow-hidden text-white" style={bgStyle} aria-label={heroTitle}>
         <div
@@ -128,18 +144,22 @@ export function HeroSection({ slots, title, subtitle, tagline }: HeroSectionProp
                 className="pointer-events-none absolute -inset-4 -z-10 rounded-3xl bg-theme-cta/20 blur-2xl"
                 aria-hidden
               />
-              <div className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl shadow-2xl ring-1 ring-white/25">
-                <Image
-                  src={heroImage}
-                  alt=""
-                  fill
-                  unoptimized
-                  priority
-                  sizes="(min-width: 768px) 50vw, 100vw"
-                  aria-hidden
-                  className="object-cover object-center"
-                />
-              </div>
+              {single ? (
+                <div className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl shadow-2xl ring-1 ring-white/25">
+                  <Image
+                    src={frameImages[0]!}
+                    alt=""
+                    fill
+                    unoptimized
+                    priority
+                    sizes="(min-width: 768px) 50vw, 100vw"
+                    aria-hidden
+                    className="object-cover object-center"
+                  />
+                </div>
+              ) : (
+                <HeroBannerCarousel images={frameImages} label={heroTitle} />
+              )}
             </div>
           </div>
         </div>

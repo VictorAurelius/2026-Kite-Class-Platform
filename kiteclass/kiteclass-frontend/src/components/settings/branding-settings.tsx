@@ -17,6 +17,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useBranding, useUpdateBranding, useUploadLogo } from '@/hooks/use-branding';
 import { applyBrandColorVars } from '@/providers/BrandingProvider';
+import { LandingBannerSettings } from '@/components/settings/landing-banner-settings';
 import { Upload, Palette } from 'lucide-react';
 import { useState } from 'react';
 
@@ -165,6 +166,9 @@ export function BrandingSettings() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Landing banner carousel (GAP-826) */}
+      <LandingBannerSettings />
 
       {/* Branding Info */}
       <form onSubmit={handleSubmit(onSubmit)}>

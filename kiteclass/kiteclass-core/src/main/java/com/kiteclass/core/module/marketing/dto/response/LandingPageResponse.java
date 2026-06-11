@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 
 /**
  * Response DTO for landing page content.
@@ -26,6 +28,10 @@ public class LandingPageResponse {
     private String heroTitle;
     private String heroSubtitle;
     private String heroImageUrl;
+
+    // Hero banner carousel (GAP-826) — ordered banner URLs; empty/null → FE falls back
+    // to single heroImageUrl. Presigned URLs regenerated on read (GAP-1204).
+    private List<String> heroImages;
 
     private String teacherBio;
 

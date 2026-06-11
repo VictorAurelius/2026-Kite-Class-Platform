@@ -213,6 +213,17 @@ class BrandingDataSeederTest {
         assertThat(ha.getProblemSolution().toString()).contains("mất gốc");
         assertThat(ha.getHowItWorks()).isNotNull();
         assertThat(ha.getTrustStrip()).isNotNull();
+        // GAP-826: Hà ships a single committed banner → 1-slide carousel.
+        assertThat(ha.getHeroImages()).containsExactly("/demo-banners/co-ha-toan.webp");
+
+        // GAP-826: the Sky/Khánh §4.1 walkthrough tenant ships a 2-slide carousel so the
+        // demo shows the rotator (1st committed banner + 2nd gitignored GAP-810 slide).
+        LandingPage sky = lpCaptor.getAllValues().stream()
+                .filter(lp -> BrandingDataSeeder.SKY_TENANT_ID.equals(lp.getInstanceId()))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Sky/Khánh landing page not seeded"));
+        assertThat(sky.getHeroImages())
+                .containsExactly("/demo-banners/co-khanh-phapluat.webp", "/demo/sky/teacher-do-lan-khanh.webp");
 
         // Branding upserted (reconciled content) for the demo-trio rows.
         ArgumentCaptor<Branding> bCaptor = ArgumentCaptor.forClass(Branding.class);

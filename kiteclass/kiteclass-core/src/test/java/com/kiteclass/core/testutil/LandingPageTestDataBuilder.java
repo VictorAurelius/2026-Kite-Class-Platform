@@ -3,6 +3,7 @@ package com.kiteclass.core.testutil;
 import com.kiteclass.core.module.marketing.dto.request.UpdateLandingPageRequest;
 import com.kiteclass.core.module.marketing.entity.LandingPage;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -26,6 +27,7 @@ public class LandingPageTestDataBuilder {
         landingPage.setHeroTitle("Welcome to Test Learning Center");
         landingPage.setHeroSubtitle("Quality education for everyone");
         landingPage.setHeroImageUrl("https://example.com/hero.jpg");
+        landingPage.setHeroImages(List.of("https://example.com/hero-1.jpg", "https://example.com/hero-2.jpg"));
         landingPage.setTeacherBio("Experienced teacher with 10+ years");
         landingPage.setLogoUrl("https://example.com/logo.png");
         landingPage.setTagline("Learn, Grow, Succeed");
