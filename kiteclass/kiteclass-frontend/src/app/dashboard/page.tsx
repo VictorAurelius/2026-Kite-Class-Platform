@@ -1,6 +1,11 @@
 /**
  * Enhanced dashboard with real data and recent activities.
  *
+ * Wave RBAC-Shell 1 Bucket B (GAP-1119): the home is role-aware. OWNER / ADMIN
+ * see the full overview (stats + recent students/invoices + governance quick
+ * actions); STAFF sees the operational subset (enrollment + attendance + invoice)
+ * with no teacher/course/payroll/branding shortcuts.
+ *
  * @author KiteClass Team
  * @since 3.14.0
  */
@@ -19,6 +24,10 @@ import {
   TrendingUp,
   Plus,
   ArrowRight,
+  ClipboardCheck,
+  Wallet,
+  Palette,
+  ShieldCheck,
 } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout';
 import { DashboardWelcome } from '@/components/onboarding/DashboardWelcome';
@@ -29,6 +38,9 @@ import { Badge } from '@/components/ui/badge';
 import { apiClient } from '@/lib/api-client';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { STORAGE_KEY as ONBOARDING_STORAGE_KEY } from '@/components/onboarding/OnboardingWizard';
+import { useAuthStore } from '@/stores/auth-store';
+import { normalizeRole } from '@/lib/auth/roles';
+import { UserType } from '@/types/auth';
 
 // Types for dashboard data
 interface Student {
@@ -99,6 +111,12 @@ const getRecentActivities = async () => {
 };
 
 export default function DashboardPage() {
+  // Role-aware home (GAP-1119): STAFF gets the operational subset; OWNER/ADMIN
+  // get the full overview. Unresolved role (hydration) falls back to owner view.
+  const rawRole = useAuthStore((s) => s.user?.userType);
+  const role = normalizeRole(rawRole);
+  const isStaff = role === UserType.STAFF;
+
   const { data: stats, isLoading: statsLoading, isError: statsError } = useQuery({
     queryKey: ['dashboardStats'],
     queryFn: getDashboardStats,
@@ -138,9 +156,13 @@ export default function DashboardPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Dashboard</h1>
+            <h1 className="text-3xl font-bold">
+              {isStaff ? 'Khu vực nghiệp vụ' : 'Tổng quan'}
+            </h1>
             <p className="text-muted-foreground">
-              Tổng quan hệ thống quản lý KiteClass
+              {isStaff
+                ? 'Tuyển sinh, điểm danh và hóa đơn học phí'
+                : 'Tổng quan hệ thống quản lý KiteClass'}
             </p>
           </div>
           <div className="flex gap-2">
@@ -335,7 +357,7 @@ export default function DashboardPage() {
           </Card>
         </div>
 
-        {/* Quick Actions */}
+        {/* Quick Actions — role-aware (GAP-1119) */}
         <Card>
           <CardHeader>
             <CardTitle>Thao tác nhanh</CardTitle>
@@ -350,29 +372,93 @@ export default function DashboardPage() {
                 </Button>
               </Link>
 
-              <Link href="/teachers/new">
-                <Button variant="outline" className="w-full h-20 flex-col gap-2">
-                  <GraduationCap className="h-6 w-6" />
-                  <span>Thêm giáo viên</span>
-                </Button>
-              </Link>
+              {isStaff ? (
+                <>
+                  <Link href="/billing">
+                    <Button variant="outline" className="w-full h-20 flex-col gap-2">
+                      <DollarSign className="h-6 w-6" />
+                      <span>Học phí</span>
+                    </Button>
+                  </Link>
 
-              <Link href="/courses/new">
-                <Button variant="outline" className="w-full h-20 flex-col gap-2">
-                  <BookOpen className="h-6 w-6" />
-                  <span>Tạo khóa học</span>
-                </Button>
-              </Link>
+                  <Link href="/classes">
+                    <Button variant="outline" className="w-full h-20 flex-col gap-2">
+                      <Calendar className="h-6 w-6" />
+                      <span>Lớp học</span>
+                    </Button>
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link href="/teachers/new">
+                    <Button variant="outline" className="w-full h-20 flex-col gap-2">
+                      <GraduationCap className="h-6 w-6" />
+                      <span>Thêm giáo viên</span>
+                    </Button>
+                  </Link>
+
+                  <Link href="/courses/new">
+                    <Button variant="outline" className="w-full h-20 flex-col gap-2">
+                      <BookOpen className="h-6 w-6" />
+                      <span>Tạo khóa học</span>
+                    </Button>
+                  </Link>
+                </>
+              )}
 
               <Link href="/attendance">
                 <Button variant="outline" className="w-full h-20 flex-col gap-2">
-                  <TrendingUp className="h-6 w-6" />
+                  <ClipboardCheck className="h-6 w-6" />
                   <span>Điểm danh</span>
                 </Button>
               </Link>
             </div>
           </CardContent>
         </Card>
+
+        {/* Owner/Admin governance — hidden for STAFF (GAP-1119 role table). */}
+        {!isStaff && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Quản trị trung tâm</CardTitle>
+              <CardDescription>
+                Báo cáo, thương hiệu, lương và phân quyền (chỉ chủ trung tâm)
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <Link href="/reports">
+                  <Button variant="outline" className="w-full h-20 flex-col gap-2">
+                    <TrendingUp className="h-6 w-6" />
+                    <span>Báo cáo</span>
+                  </Button>
+                </Link>
+
+                <Link href="/branding">
+                  <Button variant="outline" className="w-full h-20 flex-col gap-2">
+                    <Palette className="h-6 w-6" />
+                    <span>Thương hiệu</span>
+                  </Button>
+                </Link>
+
+                <Link href="/admin/payroll">
+                  <Button variant="outline" className="w-full h-20 flex-col gap-2">
+                    <Wallet className="h-6 w-6" />
+                    <span>Bảng lương</span>
+                  </Button>
+                </Link>
+
+                {/* Role-assignment UI is Bucket D — links to the placeholder. */}
+                <Link href="/admin/roles">
+                  <Button variant="outline" className="w-full h-20 flex-col gap-2">
+                    <ShieldCheck className="h-6 w-6" />
+                    <span>Phân quyền</span>
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </DashboardLayout>
   );
