@@ -133,9 +133,16 @@ export function ThemePreview(props: ThemePreviewProps): React.JSX.Element {
     transition: 'background-color 200ms ease, color 200ms ease',
   };
 
+  // GAP-1148: the component wrote `dark:` utility variants on descendants
+  // (swatch panels, toggle pills) but never set a local `.dark` ancestor, so
+  // clicking "Tối" only swapped the wrapper tone — the dominant surfaces stayed
+  // light → user perceived the toggle as "không bật được". Setting `dark` on the
+  // root (consumer apps use Tailwind `darkMode: ['class']`) makes those existing
+  // `dark:` variants fire, so the whole preview visibly flips light↔dark. This
+  // is a LOCAL class on the preview root — it never bleeds into the host page.
   const wrapperClass =
     mode === 'dark'
-      ? 'bg-slate-900 text-slate-100'
+      ? 'dark bg-slate-900 text-slate-100'
       : 'bg-slate-50 text-slate-900';
 
   return (

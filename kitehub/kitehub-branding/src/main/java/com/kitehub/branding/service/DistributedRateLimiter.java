@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.UUID;
 
 /**
@@ -39,7 +40,10 @@ public class DistributedRateLimiter {
 
     static final String DAILY_KEY_PREFIX = "ai:ratelimit:";
     static final String CONCURRENCY_KEY_PREFIX = "ai:concurrency:";
+    // GAP-1137: FULL_AI (paid GPT image-gen) monthly cost counter.
+    static final String FULLAI_MONTHLY_KEY_PREFIX = "ai:fullai:";
     static final Duration DAILY_TTL = Duration.ofDays(1);
+    static final Duration FULLAI_MONTHLY_TTL = Duration.ofDays(32);
 
     private final StringRedisTemplate redisTemplate;
 
@@ -181,11 +185,61 @@ public class DistributedRateLimiter {
         }
     }
 
+    /**
+     * Read this month's FULL_AI usage counter without incrementing (GAP-1137).
+     *
+     * @param instanceId tenant id
+     * @return current month's FULL_AI count, or -1 if Redis unavailable
+     */
+    public long getMonthlyFullAiUsage(UUID instanceId) {
+        if (!isAvailable()) {
+            return -1;
+        }
+        String key = monthlyFullAiKey(instanceId, YearMonth.now());
+        try {
+            String value = redisTemplate.opsForValue().get(key);
+            return value == null ? 0L : Long.parseLong(value);
+        } catch (RuntimeException ex) {
+            log.warn("Redis GET failed for {}: {}", key, ex.getMessage());
+            return -1;
+        }
+    }
+
+    /**
+     * Atomically increment this month's FULL_AI usage counter (GAP-1137).
+     *
+     * <p>On the first hit of the month, sets a ~32-day TTL so the key expires.
+     * Returns -1 on any error (Redis unavailable / INCR failure).</p>
+     *
+     * @param instanceId tenant id
+     * @return new counter value, or -1 on failure
+     */
+    public long incrementMonthlyFullAiUsage(UUID instanceId) {
+        if (!isAvailable()) {
+            return -1;
+        }
+        String key = monthlyFullAiKey(instanceId, YearMonth.now());
+        try {
+            Long count = redisTemplate.opsForValue().increment(key);
+            if (count != null && count == 1L) {
+                redisTemplate.expire(key, FULLAI_MONTHLY_TTL);
+            }
+            return count == null ? -1 : count;
+        } catch (RuntimeException ex) {
+            log.warn("Redis INCR failed for {}: {}", key, ex.getMessage());
+            return -1;
+        }
+    }
+
     static String dailyKey(UUID instanceId, LocalDate date) {
         return DAILY_KEY_PREFIX + instanceId + ":" + date;
     }
 
     static String concurrencyKey(UUID instanceId) {
         return CONCURRENCY_KEY_PREFIX + instanceId;
+    }
+
+    static String monthlyFullAiKey(UUID instanceId, YearMonth month) {
+        return FULLAI_MONTHLY_KEY_PREFIX + instanceId + ":" + month;
     }
 }

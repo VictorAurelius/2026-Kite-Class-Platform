@@ -35,9 +35,12 @@ import {
   FolderOpen,
   AlertCircle,
   Image as ImageIcon,
+  Images,
+  Check,
   X,
 } from 'lucide-react';
-import { useUploadAsset } from '@/hooks/use-branding';
+import { useUploadAsset, useAssets } from '@/hooks/use-branding';
+import type { BrandingAsset } from '@/types/branding';
 import { toast } from 'sonner';
 import { WizardCard, WizardStepHeader, type WizardState, type WizardAction } from './wizard-shared';
 
@@ -70,6 +73,14 @@ export function LogoStep({
   const [previewUrl, setPreviewUrl] = useState<string | null>(logoUrl);
 
   const uploadMutation = useUploadAsset();
+
+  // GAP-1112 #3 — let the user reuse a logo already uploaded for this instance
+  // instead of forcing a fresh upload every time. Lists existing assets via
+  // GET /api/platform/branding/assets/{instanceId} and filters to LOGO type.
+  // Empty list ⇒ the picker section is hidden entirely (no clutter for new
+  // instances). Reuse avoids the re-upload-accumulates-assets path (GAP-1112 #2).
+  const { data: existingAssets } = useAssets(instanceId);
+  const logoAssets = (existingAssets ?? []).filter((a) => a.type === 'LOGO');
 
   const validateFile = (file: File): string | null => {
     if (!ACCEPTED_MIME.includes(file.type)) {
@@ -144,6 +155,15 @@ export function LogoStep({
     setErrorMsg(null);
   };
 
+  // GAP-1112 #3 — pick a previously-uploaded logo from the asset library.
+  // Sets it as the active logo (STATIC classification, aiLogo=false) without
+  // re-uploading; the chosen URL flows downstream exactly like a fresh upload.
+  const handlePickAsset = (asset: BrandingAsset) => {
+    setErrorMsg(null);
+    dispatch({ type: 'SET_LOGO', url: asset.url, aiLogo: false });
+    setPreviewUrl(asset.url);
+  };
+
   // Continue is enabled when either:
   //   - user uploaded a logo (logoUrl truthy AND not aiLogo placeholder)
   //   - user explicitly chose AI-generate path (aiLogo === true)
@@ -153,7 +173,7 @@ export function LogoStep({
     <div className="space-y-6">
       <WizardCard>
         <WizardStepHeader
-          eyebrow="Bước 2 / 6 · Tuỳ chọn"
+          eyebrow="Bước 2 / 7 · Tuỳ chọn"
           title="Bạn đã có logo chưa?"
           subtitle="Bạn có thể upload logo có sẵn, hoặc để AI tự tạo logo từ tên trung tâm. Đổi sau lúc nào cũng được."
         />
@@ -264,6 +284,55 @@ export function LogoStep({
                 <span>{errorMsg}</span>
               </div>
             )}
+
+            {/* Asset library — reuse a previously-uploaded logo (GAP-1112 #3) */}
+            {logoAssets.length > 0 && (
+              <div className="mt-6" data-testid="wizard-logo-library">
+                <div className="flex items-center gap-2 mb-3">
+                  <Images className="w-4 h-4 text-muted-foreground" />
+                  <h3 className="text-sm font-semibold">
+                    Hoặc chọn logo đã tải lên trước đó
+                  </h3>
+                </div>
+                <div
+                  role="radiogroup"
+                  aria-label="Logo đã tải lên"
+                  className="grid grid-cols-3 sm:grid-cols-4 gap-3"
+                >
+                  {logoAssets.map((asset) => {
+                    const selected = logoUrl === asset.url;
+                    return (
+                      <button
+                        key={asset.id}
+                        type="button"
+                        role="radio"
+                        aria-checked={selected}
+                        aria-label="Chọn logo đã tải lên"
+                        onClick={() => handlePickAsset(asset)}
+                        data-testid={`wizard-logo-library-${asset.id}`}
+                        className={[
+                          'relative aspect-square rounded-lg border bg-background p-2 flex items-center justify-center transition-all',
+                          selected
+                            ? 'border-primary ring-2 ring-primary/30'
+                            : 'border-input hover:border-primary/50',
+                        ].join(' ')}
+                      >
+                        <img
+                          src={asset.url}
+                          alt="Logo đã tải lên"
+                          className="max-h-full max-w-full object-contain rounded"
+                        />
+                        {selected && (
+                          <span className="absolute top-1 right-1 rounded-full bg-primary text-primary-foreground p-0.5">
+                            <Check className="w-3 h-3" />
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -292,7 +361,7 @@ export function LogoStep({
           Quay lại
         </Button>
         <p className="text-xs text-muted-foreground">
-          Bước 2 / 6 · Tuỳ chọn — bỏ qua nếu chưa có
+          Bước 2 / 7 · Tuỳ chọn — bỏ qua nếu chưa có
         </p>
         <Button
           onClick={onNext}

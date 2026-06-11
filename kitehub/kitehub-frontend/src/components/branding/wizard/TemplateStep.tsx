@@ -224,7 +224,7 @@ export function TemplateStep({
   return (
     <div className="space-y-6">
       <WizardStepHeader
-        eyebrow={`Bước 5 / 6${tierInfo.canUseCustomPrompt ? ' · ENTERPRISE' : ''}`}
+        eyebrow={`Bước 6 / 7${tierInfo.canUseCustomPrompt ? ' · ENTERPRISE' : ''}`}
         title={
           tierInfo.canUseCustomPrompt
             ? 'Chọn mẫu hoặc tự định hướng'

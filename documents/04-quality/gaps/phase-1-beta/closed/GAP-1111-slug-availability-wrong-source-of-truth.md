@@ -1,6 +1,6 @@
 # GAP-1111: slug-availability check dùng sai source-of-truth (branding_jobs.organization_name vs instances.subdomain)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-06-10
 **Priority:** 🟠 P1
 **Domain:** Backend
 **Found:** 2026-06-10 (investigation "subdomain đã dùng chưa có check thật không" — user-flagged)
@@ -30,10 +30,10 @@ Canonical subdomain uniqueness sống ở:
 
 ## Acceptance Criteria
 
-- [ ] slug-availability check phản ánh đúng `instances.subdomain` (canonical)
-- [ ] IT: subdomain taken-in-instances → wizard báo unavailable
-- [ ] Reserved-words + format checks giữ nguyên
-- [ ] Mapping org-name→slug→subdomain documented nếu có transform
+- [x] slug-availability check phản ánh đúng `instances.subdomain` (canonical) — `SlugAvailabilityService.isTaken` reads `instances.subdomain` via JdbcTemplate trên shared `kitehub` DB (code shipped #2279)
+- [x] IT: subdomain taken-in-instances → wizard báo unavailable — `SlugAvailabilityInstancesTest` (Testcontainers Postgres) 5/5 PASS
+- [x] Reserved-words + format checks giữ nguyên
+- [x] Mapping documented — slug = subdomain (lowercase, `LOWER()` match); không transform
 
 ## Related
 
@@ -44,4 +44,5 @@ Canonical subdomain uniqueness sống ở:
 
 ## Log
 
+- **2026-06-10 (DONE):** Testcontainers IT `SlugAvailabilityInstancesTest` 5/5 PASS (subdomain taken→unavailable, free→available, soft-deleted→available, case-insensitive, reserved-word short-circuit). Cross-service read = JdbcTemplate native query trên shared `kitehub` Postgres DB (branding + subscription cùng DB) — clean, không import JPA entity service khác (per `design-patterns.md`). Code core đã ship #2279; IT đóng AC cuối. Wave branding-fix-2026-06-10 (agent af9cb327, SHA 434ceee4).
 - **2026-06-10:** Filed từ investigation user-flagged "check subdomain đã dùng chưa có chính xác không". Phát hiện wizard slug-availability check `branding_jobs.organization_name` thay vì `instances.subdomain` canonical → 2 nguồn sự thật lệch. Per `discovery-to-gap-inline-filing.md`.

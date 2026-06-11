@@ -30,6 +30,11 @@ public class S3Config {
     private String bucket;
     private String endpoint; // For MinIO/LocalStack
     private String cdnDomain;
+    // Browser-reachable endpoint for presigned GET URLs. The internal `endpoint`
+    // (kite-minio:9000) is unreachable from the host browser (ERR_NAME_NOT_RESOLVED),
+    // so presign against the mapped host port instead (e.g. http://localhost:9100).
+    // Blank → falls back to `endpoint`.
+    private String publicEndpoint;
     private boolean mockMode = false; // For testing without real S3
 
     /**
@@ -80,8 +85,14 @@ public class S3Config {
             .region(Region.of(region))
             .serviceConfiguration(s3Config);
 
-        if (endpoint != null && !endpoint.isEmpty()) {
-            builder.endpointOverride(URI.create(endpoint));
+        // Presigned URLs are handed to the browser, so sign them against the
+        // host-reachable endpoint when configured (internal kite-minio:9000 is
+        // unresolvable from the host). Signature binds the Host header, so it must
+        // match the URL the browser actually requests.
+        String presignEndpoint = (publicEndpoint != null && !publicEndpoint.isEmpty())
+                ? publicEndpoint : endpoint;
+        if (presignEndpoint != null && !presignEndpoint.isEmpty()) {
+            builder.endpointOverride(URI.create(presignEndpoint));
         }
 
         if (accessKey != null && secretKey != null) {

@@ -1,13 +1,17 @@
 package com.kiteclass.core.module.course.repository;
 
 import com.kiteclass.core.module.course.entity.Course;
+import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -27,7 +31,7 @@ import java.util.UUID;
  * @since 2.4.0
  */
 @Repository
-public interface CourseRepository extends JpaRepository<Course, Long> {
+public interface CourseRepository extends JpaRepository<Course, Long>, JpaSpecificationExecutor<Course> {
 
     /**
      * Finds a course by ID, excluding soft-deleted records.
@@ -213,16 +217,32 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
      * @param category the course category filter (can be null)
      * @param pageable pagination parameters
      * @return page of matching courses
+     *
+     * <p><b>42P18 note (GAP-1109):</b> the previous JPQL form
+     * {@code (:level IS NULL OR c.level = :level)} bound an UNTYPED null in the
+     * {@code IS NULL} position, which PostgreSQL rejects at PREPARE time with
+     * {@code 42P18 could not determine data type of parameter} (H2 hides this).
+     * This is now built with the Criteria API: each predicate is only added when
+     * its parameter is non-null, so no untyped-null bind is ever emitted. The
+     * Hibernate {@code tenantFilter} still applies (Criteria → JPQL-equivalent),
+     * unlike a native-SQL rewrite which would silently drop tenant isolation.
      */
-    @Query("""
-            SELECT c FROM Course c
-            WHERE c.deleted = false
-            AND (:level IS NULL OR c.level = :level)
-            AND (:category IS NULL OR c.category = :category)
-            """)
-    Page<Course> findByLevelAndCategory(
-            @Param("level") String level,
-            @Param("category") String category,
+    default Page<Course> findByLevelAndCategory(
+            String level,
+            String category,
             Pageable pageable
-    );
+    ) {
+        Specification<Course> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            predicates.add(cb.equal(root.get("deleted"), false));
+            if (level != null) {
+                predicates.add(cb.equal(root.get("level"), level));
+            }
+            if (category != null) {
+                predicates.add(cb.equal(root.get("category"), category));
+            }
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+        return findAll(spec, pageable);
+    }
 }

@@ -79,13 +79,16 @@ public class BrandingJobController {
             @RequestHeader(value = "X-Tenant-Id", required = false) String tenantHeader,
             @RequestParam String organizationName,
             @RequestParam(defaultValue = "vi") String language,
-            @RequestParam String logoUrl) {
+            @RequestParam String logoUrl,
+            @RequestHeader(value = "X-Subscription-Tier", required = false, defaultValue = "FREE") String tier) {
 
         // GAP-1019: bind client X-Instance-Id to the gateway-trusted tenant.
         TenantOwnershipGuard.requireInstanceOwnership(instanceId, tenantHeader);
-        log.info("Creating branding job for instance: {}", instanceId);
+        // GAP-1135/1137: propagate subscription tier (ADR-039 X-Subscription-Tier) so the
+        // processor routes FULL_AI (PREMIUM/ENTERPRISE) vs TEMPLATE generation.
+        log.info("Creating branding job for instance: {} (tier={})", instanceId, tier);
 
-        BrandingJob job = jobService.createJob(instanceId, organizationName, language, logoUrl);
+        BrandingJob job = jobService.createJob(instanceId, organizationName, language, logoUrl, tier);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(job);
     }
