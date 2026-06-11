@@ -31,6 +31,9 @@ describe('extractSlugFromHost', () => {
     ['SKY.kiteclass.com', 'sky'],
     ['sky.kiteclass.com:3000', 'sky'],
     ['pioneer.kiteclass.com', 'pioneer'],
+    // nip.io wildcard DNS — production-accurate local walk access-mode
+    // (per g1-browser-walk-before-flip.md §3.1, landing-100 G2★)
+    ['co-ha-toan.127.0.0.1.nip.io:3000', 'co-ha-toan'],
     ['kiteclass.com', null],
     ['www.kiteclass.com', null],
     ['api.kiteclass.com', null],
@@ -97,6 +100,19 @@ describe('middleware', () => {
     expect(location).toContain('/suspended');
     expect(location).toContain('slug=suspended');
     expect(location).toContain('status=suspended');
+  });
+
+  it('passes through on /suspended itself — no redirect loop (GAP-1199)', async () => {
+    const req = makeReq(
+      'https://suspended.kiteclass.com/suspended?slug=suspended&status=suspended',
+      { host: 'suspended.kiteclass.com' },
+    );
+    const res = await middleware(req);
+
+    // Without the loop guard this returned 307 → /suspended again →
+    // ERR_TOO_MANY_REDIRECTS in the browser.
+    expect(res.status).not.toBe(307);
+    expect(res.headers.get('location')).toBeNull();
   });
 
   it('honours ?tenant= preview query param when host has no subdomain', async () => {

@@ -130,6 +130,13 @@ export async function middleware(req: NextRequest): Promise<NextResponse> {
     });
   } catch (err) {
     if (err instanceof TenantSuspendedError) {
+      // Already on the status page — pass through, otherwise the redirect
+      // below re-fires on every /suspended request (infinite 307 loop,
+      // browser shows ERR_TOO_MANY_REDIRECTS). GAP-1199.
+      if (req.nextUrl.pathname === '/suspended') {
+        return NextResponse.next();
+      }
+
       // Redirect to friendly status page rather than render marketing landing.
       const url = req.nextUrl.clone();
       url.pathname = '/suspended';
