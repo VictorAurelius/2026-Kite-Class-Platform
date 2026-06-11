@@ -19,6 +19,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { Search, Loader2, BookOpen, Lightbulb } from 'lucide-react';
@@ -282,12 +283,28 @@ export default function CatalogPage() {
                     key={course.id}
                     className="flex flex-col overflow-hidden rounded-2xl border bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md"
                   >
-                    <div className="relative flex aspect-video items-center justify-center bg-gradient-to-br from-theme-primary to-theme-secondary">
-                      <BookOpen className="h-12 w-12 text-white/90" aria-hidden="true" />
-                      <span className="absolute left-3 top-3 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-extrabold text-emerald-800">
+                    <div className="relative aspect-video overflow-hidden bg-gradient-to-br from-theme-primary to-theme-secondary">
+                      {/* GAP-1225: render the course cover image when seeded; fall back to
+                          the gradient + book icon placeholder otherwise (anti-fabrication —
+                          no broken remote image, just a themed placeholder). */}
+                      {course.coverImageUrl ? (
+                        <Image
+                          src={course.coverImageUrl}
+                          alt={`Ảnh khóa học ${course.name}`}
+                          fill
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          unoptimized
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center">
+                          <BookOpen className="h-12 w-12 text-white/90" aria-hidden="true" />
+                        </div>
+                      )}
+                      <span className="absolute left-3 top-3 z-10 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-extrabold text-emerald-800">
                         Đang tuyển sinh
                       </span>
-                      <span className="absolute right-3 top-3 rounded bg-black/55 px-2 py-1 text-[11px] font-bold tracking-wide text-white">
+                      <span className="absolute right-3 top-3 z-10 rounded bg-black/55 px-2 py-1 text-[11px] font-bold tracking-wide text-white">
                         {course.code}
                       </span>
                     </div>

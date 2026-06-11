@@ -43,6 +43,42 @@ interface LandingData {
  */
 export type SectionSlotMap = Partial<Record<SectionId, SlotData>>;
 
+/**
+ * Sections that render NOTHING (component returns null) when their slot data is
+ * absent — i.e. hide-when-empty / anti-fabrication sections (GAP-958). The page
+ * only emits a slot for these when the backend returned non-empty content, so a
+ * missing slot key here means the section collapses to zero height.
+ *
+ * All other sections (hero, about, timeline, contact, gallery/news/parents
+ * placeholders) always render via a built-in fallback, so they always count.
+ */
+const CONTENT_REQUIRED_SECTIONS: ReadonlySet<SectionId> = new Set<SectionId>([
+  'stats',
+  'problemSolution',
+  'howItWorks',
+  'trustStrip',
+  'courses',
+  'teachers',
+  'certificates',
+  'pricing',
+  'testimonials',
+  'faq',
+  'enrollment',
+]);
+
+/**
+ * Whether a section will actually render visible content (GAP-1226). Used to keep
+ * the zebra band rhythm in sync with what the visitor sees: a hidden empty section
+ * must NOT consume a zebra band, otherwise two adjacent visible sections end up with
+ * the same background (rhythm drift vs the design kit).
+ */
+export function sectionHasContent(sectionId: SectionId, slots: SectionSlotMap): boolean {
+  if (!CONTENT_REQUIRED_SECTIONS.has(sectionId)) {
+    return true;
+  }
+  return slots[sectionId] != null;
+}
+
 interface TemplateRendererProps {
   template: TemplateConfig;
   data: LandingData;
@@ -134,16 +170,20 @@ export function TemplateRenderer({ template, data, slots = {} }: TemplateRendere
   const sections = getEnabledSections(template);
 
   // Section divider: nền zebra xen kẽ (hero giữ nguyên; các section sau luân phiên
-  // trắng / muted) để tách thị giác rõ ràng giữa các khối nội dung.
+  // trắng / muted) để tách thị giác rõ ràng giữa các khối nội dung. GAP-1226: chỉ
+  // advance band cho section THỰC SỰ render nội dung — section ẩn (rỗng) không chiếm
+  // 1 nhịp zebra, nên các section hiển thị liền kề vẫn xen kẽ đúng như kit.
   let bandIndex = 0;
 
   return (
     <div className="flex flex-col">
       {sections.map((section) => {
         const isHero = section.id === 'hero';
-        const striped = !isHero && bandIndex++ % 2 === 1;
+        const renders = sectionHasContent(section.id, slots);
+        // bandIndex++ chỉ chạy khi section non-hero + có nội dung (short-circuit).
+        const striped = !isHero && renders && bandIndex++ % 2 === 1;
         return (
-          <div key={section.id} className={striped ? 'bg-muted/40' : undefined}>
+          <div key={section.id} data-section={section.id} className={striped ? 'bg-muted/40' : undefined}>
             {renderSection(section.id, data, slots[section.id], {
               heading: section.heading,
               subheading: section.subheading,

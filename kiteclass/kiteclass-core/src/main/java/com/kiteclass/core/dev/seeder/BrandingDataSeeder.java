@@ -250,6 +250,87 @@ public class BrandingDataSeeder {
              {"icon":"vn","title":"Lộ trình rõ ràng",
               "description":"Cam kết tiến bộ với lộ trình minh bạch theo từng giai đoạn."}]""";
 
+    // ── GAP-1224 — FAQ + Testimonials JSONB seed (landing-100 re-score delta #1) ──
+    // Component FaqSection / TestimonialsSection đã port + wire (hide-when-empty per
+    // GAP-958) nhưng demo-trio không có data → section ẩn → landing mỏng hơn kit (−4).
+    // Shapes mirror the FE consumer contract in kiteclass-frontend (public)/page.tsx:
+    // faqs=[{"question","answer"}]; testimonials=[{"author","role","content","rating":int}].
+    // Audience = phụ huynh/học viên, tiếng Việt thật, KHÔNG bịa số liệu thống kê (GAP-958):
+    // testimonials giữ định tính (con tự tin/tiến bộ), không nêu con số/tỷ lệ bịa.
+
+    static final String HA_FAQS_JSON = """
+            [{"question":"Con đang mất gốc Toán thì có theo kịp lớp không ạ?",
+              "answer":"Cô kiểm tra đầu vào miễn phí để biết con hổng phần nào rồi kèm sát từ gốc. Lớp nhỏ nên cô theo sát từng bé."},
+             {"question":"Học phí đóng theo tháng hay theo khóa ạ?",
+              "answer":"Phụ huynh đóng theo tháng. Cô trao đổi rõ lộ trình và học phí từng giai đoạn trước khi con bắt đầu, không phí ẩn."},
+             {"question":"Mỗi lớp có khoảng bao nhiêu bé ạ?",
+              "answer":"Lớp giữ sĩ số nhỏ (khoảng 6 bé) để cô kèm sát từng con, bé nào cũng được hỏi bài và chữa bài mỗi buổi."},
+             {"question":"Con nghỉ ốm thì có được học bù không ạ?",
+              "answer":"Có ạ. Khi con nghỉ có phép, cô ôn lại phần đã học để con không bị hổng và báo nội dung buổi học qua Zalo."},
+             {"question":"Cô có báo tình hình học của con cho phụ huynh không ạ?",
+              "answer":"Cô gửi báo cáo tiến độ và nhận xét của con qua Zalo hằng tuần để phụ huynh nắm con cần hỗ trợ thêm gì."}]""";
+    static final String HA_TESTIMONIALS_JSON = """
+            [{"author":"Chị Nguyễn Thị Lan","role":"Phụ huynh bé Minh Khôi","rating":5,
+              "content":"Con trước sợ môn Toán, học với cô Hà ít lâu thì tự tin hẳn, về nhà chủ động làm bài. Mình rất yên tâm."},
+             {"author":"Anh Trần Văn Hùng","role":"Phụ huynh bé Bảo An","rating":5,
+              "content":"Lớp ít bạn nên cô kèm rất sát, chỗ nào con chưa hiểu cô giảng lại ngay. Cô nhiệt tình, hay trao đổi."},
+             {"author":"Chị Lê Thu Hà","role":"Phụ huynh bé Thảo Vy","rating":5,
+              "content":"Con đi học về vui vẻ, không còn áp lực như trước. Lộ trình rõ ràng, mình thấy con tiến bộ từng tuần."}]""";
+
+    static final String NHI_FAQS_JSON = """
+            [{"question":"Con chuẩn bị thi vào 10 thì nên học lớp nào ạ?",
+              "answer":"Thầy có lớp luyện thi vào 10 lộ trình chuyên sâu, thi thử định kỳ. Thầy kiểm tra đầu vào để xếp lớp."},
+             {"question":"Lớp Hóa 8 và Hóa 9 khác nhau thế nào ạ?",
+              "answer":"Lớp 8 xây nền tảng theo chuyên đề, lớp 9 nâng cao bám sát thi chuyển cấp. Con học đúng trình độ, không quá sức."},
+             {"question":"Học phí từng lớp là bao nhiêu ạ?",
+              "answer":"Mỗi lớp có mức học phí riêng theo thời lượng và cường độ, thầy báo minh bạch. Xem chi tiết ở mục Học phí."},
+             {"question":"Lớp có thi thử và chữa đề không ạ?",
+              "answer":"Có ạ. Thầy tổ chức thi thử định kỳ và chữa đề chi tiết để con quen áp lực phòng thi và trình bày bài đạt điểm."},
+             {"question":"Con mất căn bản Hóa có học được không ạ?",
+              "answer":"Được ạ. Thầy hệ thống kiến thức nền theo chuyên đề trước rồi mới nâng cao, nên con mất gốc vẫn theo được."}]""";
+    static final String NHI_TESTIMONIALS_JSON = """
+            [{"author":"Chị Phạm Thu Hà","role":"Phụ huynh em lớp 9","rating":5,
+              "content":"Con ôn thi vào 10 với thầy Nhì, được chữa đề kỹ và thi thử thường xuyên nên vào phòng thi rất bình tĩnh."},
+             {"author":"Anh Hoàng Anh Tuấn","role":"Phụ huynh em lớp 8","rating":5,
+              "content":"Trước con học Hóa khá đuối, sau khi học theo chuyên đề của thầy thì hiểu bài hẳn. Thầy tận tâm và nghiêm túc."},
+             {"author":"Chị Lê Diệu Linh","role":"Phụ huynh em lớp 9","rating":5,
+              "content":"Lộ trình luyện thi rõ ràng, thầy nhắc bài và theo sát từng em. Mình rất yên tâm khi con học cùng thầy."}]""";
+
+    // Sky / cô Khánh — Anh ngữ. Sky KHÔNG có academic core (DemoAcademicSeeder chỉ seed
+    // Hà + Nhì) nên CỐ TÌNH không seed stats (số liệu phải thật, không bịa per GAP-958);
+    // thay vào đó lấp các section nội dung (teacher card / pricing / faq / testimonials)
+    // để nâng lowest-tenant bar mà vẫn trung thực (re-score §4.1 sky sparse).
+    static final String SKY_TEACHERS_JSON = """
+            [{"name":"Đỗ Lan Khánh","subject":"Tiếng Anh giao tiếp & thiếu nhi",
+              "credentials":["Cử nhân Ngôn ngữ Anh","Nhiều năm luyện phát âm và phản xạ giao tiếp",
+                             "Lớp nhỏ, kèm sát phát âm từng học viên"]}]""";
+    static final String SKY_PRICING_JSON = """
+            [{"name":"Tiếng Anh thiếu nhi","price":"900.000đ","period":"/tháng",
+              "features":["2 buổi/tuần","Lớp nhỏ 8 học viên","Luyện nghe – nói qua trò chơi","Báo cáo tiến bộ qua Zalo"],
+              "highlighted":false},
+             {"name":"Giao tiếp cơ bản","price":"1.200.000đ","period":"/tháng",
+              "features":["3 buổi/tuần","Luyện phản xạ nghe – nói","Lộ trình cá nhân hóa","Kiểm tra trình độ định kỳ"],
+              "highlighted":true},
+             {"name":"Luyện thi & nâng cao","price":"1.500.000đ","period":"/tháng",
+              "features":["Lộ trình chuyên sâu","Giáo viên kèm sát","Chữa bài chi tiết","Cam kết tiến bộ"],
+              "highlighted":false}]""";
+    static final String SKY_FAQS_JSON = """
+            [{"question":"Con ngại nói tiếng Anh thì bắt đầu thế nào ạ?",
+              "answer":"Trung tâm kiểm tra trình độ miễn phí rồi xếp con vào lớp phù hợp. Lớp nhỏ, con luyện nói mỗi buổi nên tự tin."},
+             {"question":"Mỗi lớp có bao nhiêu học viên ạ?",
+              "answer":"Lớp giữ sĩ số nhỏ để mỗi bé được luyện nói nhiều hơn và giáo viên sửa phát âm sát từng bạn."},
+             {"question":"Học phí đóng theo tháng hay theo khóa ạ?",
+              "answer":"Phụ huynh đóng theo tháng theo từng lộ trình. Mức học phí được thông báo minh bạch trước khi con vào học."},
+             {"question":"Có kiểm tra trình độ đầu vào không ạ?",
+              "answer":"Có ạ. Trung tâm đánh giá nghe – nói – đọc – viết để xếp lớp đúng trình độ, giúp con học hiệu quả hơn."}]""";
+    static final String SKY_TESTIMONIALS_JSON = """
+            [{"author":"Chị Trần Thị Hồng","role":"Phụ huynh bé Gia Bảo","rating":5,
+              "content":"Con trước rất ngại nói tiếng Anh, học ở đây một thời gian thì dám nói, dám hỏi. Giáo viên kiên nhẫn, vui tính."},
+             {"author":"Anh Nguyễn Văn Thành","role":"Phụ huynh bé Khánh Vy","rating":5,
+              "content":"Lớp nhỏ nên cô kèm sát phát âm cho con. Mình thấy con thích đi học và tiến bộ rõ ở phần nghe – nói."},
+             {"author":"Chị Đỗ Thanh Mai","role":"Phụ huynh bé Minh Anh","rating":5,
+              "content":"Cô Khánh tận tâm, thường xuyên báo tình hình học của con. Con tự tin giao tiếp hơn hẳn so với trước."}]""";
+
     private final FrontendInstanceRepository instanceRepo;
     private final BrandingResourceRepository resourceRepo;
     private final QualityReportRepository qualityRepo;
@@ -288,7 +369,9 @@ public class BrandingDataSeeder {
                 "Lộ trình Toán tiểu học bài bản, lớp nhỏ, kèm sát từng học viên.",
                 "https://zalo.me/co-ha-toan", "https://facebook.com/cohatoan",
                 HA_TEACHERS_JSON, HA_PRICING_JSON, HA_STATS_JSON,
-                HA_PROBLEM_SOLUTION_JSON, HA_HOW_IT_WORKS_JSON, HA_TRUST_STRIP_JSON));
+                HA_PROBLEM_SOLUTION_JSON, HA_HOW_IT_WORKS_JSON, HA_TRUST_STRIP_JSON,
+                // GAP-1224 — FAQ + testimonials so FaqSection/TestimonialsSection render.
+                HA_FAQS_JSON, HA_TESTIMONIALS_JSON));
         seedTrioTenant(new TrioSpec(NHI_TENANT_ID, NHI_TENANT_SLUG, NHI_TENANT_REF, NHI_FRONTEND_URL,
                 NHI_DISPLAY_NAME, NHI_CENTER_NAME, NHI_TAGLINE, NHI_PRIMARY_COLOR, NHI_SECONDARY_COLOR, NHI_ACCENT_COLOR,
                 NHI_BANNER_URL, NHI_LOGO_URL,
@@ -298,7 +381,9 @@ public class BrandingDataSeeder {
                 "Khóa Hóa học THCS đầy đủ, bộ nhận diện sinh tự động bằng AI Branding.",
                 "https://zalo.me/thay-nhi-hoa", "https://facebook.com/thaynhihoa",
                 NHI_TEACHERS_JSON, NHI_PRICING_JSON, NHI_STATS_JSON,
-                NHI_PROBLEM_SOLUTION_JSON, NHI_HOW_IT_WORKS_JSON, NHI_TRUST_STRIP_JSON));
+                NHI_PROBLEM_SOLUTION_JSON, NHI_HOW_IT_WORKS_JSON, NHI_TRUST_STRIP_JSON,
+                // GAP-1224 — FAQ + testimonials so FaqSection/TestimonialsSection render.
+                NHI_FAQS_JSON, NHI_TESTIMONIALS_JSON));
         seedKhanhBranding();
     }
 
@@ -313,7 +398,9 @@ public class BrandingDataSeeder {
                             // GAP-1194 — JSONB landing sections (FE-contract shapes; see constants above).
                             String teachersJson, String pricingJson, String statsJson,
                             // GAP-1083/1205 — landing-100 F-section JSONB (problem/how/trust).
-                            String problemSolutionJson, String howItWorksJson, String trustStripJson) {
+                            String problemSolutionJson, String howItWorksJson, String trustStripJson,
+                            // GAP-1224 — FAQ + testimonials JSONB (FaqSection / TestimonialsSection).
+                            String faqsJson, String testimonialsJson) {
     }
 
     /**
@@ -400,6 +487,9 @@ public class BrandingDataSeeder {
                 lp.setProblemSolution(landingJson(spec.problemSolutionJson()));
                 lp.setHowItWorks(landingJson(spec.howItWorksJson()));
                 lp.setTrustStrip(landingJson(spec.trustStripJson()));
+                // GAP-1224 — FAQ + testimonials (FaqSection / TestimonialsSection hide-when-empty).
+                lp.setFaqs(landingJson(spec.faqsJson()));
+                lp.setTestimonials(landingJson(spec.testimonialsJson()));
                 landingPageRepository.save(lp);
             });
             // GAP-1203: evict AFTER the transaction commits so the next read repopulates
@@ -548,6 +638,13 @@ public class BrandingDataSeeder {
         lp.setProblemSolution(landingJson(SKY_PROBLEM_SOLUTION_JSON));
         lp.setHowItWorks(landingJson(SKY_HOW_IT_WORKS_JSON));
         lp.setTrustStrip(landingJson(SKY_TRUST_STRIP_JSON));
+        // GAP-1224 — lấp các section sky còn thiếu (re-score §4.1 sparse → lowest bar 72):
+        // teacher card + bảng giá + FAQ + testimonials. KHÔNG seed stats (sky không có
+        // academic core → số liệu phải thật, không bịa per GAP-958).
+        lp.setTeachers(landingJson(SKY_TEACHERS_JSON));
+        lp.setPricingTiers(landingJson(SKY_PRICING_JSON));
+        lp.setFaqs(landingJson(SKY_FAQS_JSON));
+        lp.setTestimonials(landingJson(SKY_TESTIMONIALS_JSON));
         landingPageRepository.save(lp);
         // GAP-1203: evict so the next read repopulates from the reconciled row. seedSkyLanding
         // runs inside the seedTenant transaction; eviction here (pre-commit) is still correct

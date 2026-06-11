@@ -101,6 +101,20 @@ describe('CatalogPage', () => {
     expect(grid().getByText('Ôn thi vào lớp 6 — Nâng cao')).toBeInTheDocument();
   });
 
+  it('renders the course cover image when seeded (GAP-1225)', async () => {
+    mockCourses([
+      {
+        ...COURSES[0],
+        coverImageUrl: '/demo-banners/co-ha-toan.webp',
+      },
+    ]);
+    render(<CatalogPage />);
+    const grid = () => within(screen.getByLabelText('Danh sách khóa học'));
+    const cover = await waitFor(() => grid().getByAltText(/ảnh khóa học toán lớp 4/i));
+    expect(cover).toBeInTheDocument();
+    expect(cover.getAttribute('src')).toContain('co-ha-toan.webp');
+  });
+
   it('persona recommendation maps situation to a real course', async () => {
     mockCourses(COURSES);
     const user = userEvent.setup();

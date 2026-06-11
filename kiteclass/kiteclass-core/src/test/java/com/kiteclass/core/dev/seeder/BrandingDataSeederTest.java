@@ -213,6 +213,11 @@ class BrandingDataSeederTest {
         assertThat(ha.getProblemSolution().toString()).contains("mất gốc");
         assertThat(ha.getHowItWorks()).isNotNull();
         assertThat(ha.getTrustStrip()).isNotNull();
+        // GAP-1224: FAQ + testimonials seeded so FaqSection/TestimonialsSection render.
+        assertThat(ha.getFaqs()).isNotNull();
+        assertThat(ha.getFaqs().toString()).contains("Học phí");
+        assertThat(ha.getTestimonials()).isNotNull();
+        assertThat(ha.getTestimonials().toString()).contains("Phụ huynh");
         // GAP-826: Hà ships a single committed banner → 1-slide carousel.
         assertThat(ha.getHeroImages()).containsExactly("/demo-banners/co-ha-toan.webp");
 
@@ -224,6 +229,15 @@ class BrandingDataSeederTest {
                 .orElseThrow(() -> new AssertionError("Sky/Khánh landing page not seeded"));
         assertThat(sky.getHeroImages())
                 .containsExactly("/demo-banners/co-khanh-phapluat.webp", "/demo/sky/teacher-do-lan-khanh.webp");
+        // GAP-1224: sky/Khánh sparse tenant gets teacher + pricing + FAQ + testimonials
+        // (no stats — no academic core, anti-fabrication) to lift the lowest-tenant bar.
+        assertThat(sky.getTeachers()).isNotNull();
+        assertThat(sky.getTeachers().toString()).contains("Đỗ Lan Khánh");
+        assertThat(sky.getPricingTiers()).isNotNull();
+        assertThat(sky.getFaqs()).isNotNull();
+        assertThat(sky.getTestimonials()).isNotNull();
+        // Anti-fabrication: sky has no real academic core, so stats stays unseeded.
+        assertThat(sky.getStats()).isNull();
 
         // Branding upserted (reconciled content) for the demo-trio rows.
         ArgumentCaptor<Branding> bCaptor = ArgumentCaptor.forClass(Branding.class);
