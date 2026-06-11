@@ -40,3 +40,7 @@ Xem PR body — re-walk nip.io sau rebuild: suspended tenant → 307 đúng 1 l�
 - Discovered in: landing-100 G2★ pre-walk (wave/landing-100-g2-walk-2026-06-11)
 - Sister: GAP-1077 (middleware port), GAP-811 (FE middleware host→tenant)
 - Cross-flow sweep: chỉ 1 redirect site trong middleware.ts (grep `NextResponse.redirect` = 1) — không có sister site
+
+## Log
+
+- **2026-06-11 (DONE):** Fix shipped + merged PR #2326 (squash f637b1bad) — loop-guard middleware `/suspended` + unit test; re-walk nip.io PASS (307 đúng 1 lần → render 200). Log entry bổ sung post-merge per audit-gate doc-drift flag (sync PR này).
