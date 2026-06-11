@@ -331,7 +331,56 @@ public class AuthorizationBean {
     }
 
     /**
+<<<<<<< HEAD
      * Check Spring Security context for an admin-equivalent role (bypass).
+=======
+     * Check if the current authenticated user owns the class the given session
+     * belongs to, OR is a platform admin.
+     *
+     * <p>Resolves the {@code class_sessions} row → its {@code classId} → delegates
+     * to {@link #hasAccessToClass(Long)} (which checks {@code classes.teacher_id} ==
+     * actor UUID). Mirrors {@link #hasAccessToEnrollment(Long)}; guards the
+     * session-scoped attendance roster endpoint
+     * {@code GET /api/v1/attendance/session/{sessionId}} (GAP-1165) without
+     * duplicating ownership logic.
+     *
+     * <p>Returns {@code false} when the session row is not found (soft-deleted /
+     * cross-tenant) — TenantFilterInterceptor already enforces tenant scope on
+     * the lookup native query.
+     *
+     * @param sessionId target class-session ID
+     * @return true if user owns the class the session belongs to OR is admin
+     */
+    public boolean hasAccessToSession(Long sessionId) {
+        if (sessionId == null) {
+            return false;
+        }
+        if (isAdmin()) {
+            return true;
+        }
+        // Resolve session → classId. class_sessions table has instance_id; native
+        // query is read-only and uses parameterized binding (no injection).
+        Object classIdObj;
+        try {
+            classIdObj = entityManager.createNativeQuery(
+                    "SELECT class_id FROM class_sessions WHERE id = :sessionId AND deleted = false")
+                    .setParameter("sessionId", sessionId)
+                    .getSingleResult();
+        } catch (jakarta.persistence.NoResultException ex) {
+            log.warn("authz.hasAccessToSession: deny — session {} not found (or soft-deleted)",
+                    sessionId);
+            return false;
+        }
+        if (classIdObj == null) {
+            return false;
+        }
+        Long classId = ((Number) classIdObj).longValue();
+        return hasAccessToClass(classId);
+    }
+
+    /**
+     * Check Spring Security context for admin role (bypass).
+>>>>>>> origin/main
      *
      * <p>{@code ROLE_OWNER} is the school owner — the highest tenant-scoped role
      * in KiteClass — and is treated as a tenant-admin here: requests reaching

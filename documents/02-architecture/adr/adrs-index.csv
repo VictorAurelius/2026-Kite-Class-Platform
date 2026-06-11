@@ -42,3 +42,4 @@ ADR-036,ACCEPTED,2026-05-26,Multi-branch defer Phase 2 — Phase 1 BETA filter i
 037,ACCEPTED,2026-06-01,AI Branding Generation Stack — Free-Tier LLM (text/HTML) + GPT 5.5 banner image-gen deferred,ADR-037-ai-branding-generation-stack.md
 ADR-038,PROPOSED,2026-06-02,AI External Provider Strategy — Gemini Free Tier primary + OpenAI fallback + AIClient interface,ADR-038-ai-external-provider-strategy.md
 ADR-039,ACCEPTED,2026-06-09,Cross-Service Subscription Tier Propagation — JWT tier claim + gateway trusted-header inject (anti-spoof),ADR-039-cross-service-subscription-tier-propagation.md
+ADR-040,PROPOSED,2026-06-10,Cross-Product SSO KiteHub to KiteClass — gateway shared-JWT validation + one-time-code redirect handoff,ADR-040-cross-product-sso-kh-kc.md

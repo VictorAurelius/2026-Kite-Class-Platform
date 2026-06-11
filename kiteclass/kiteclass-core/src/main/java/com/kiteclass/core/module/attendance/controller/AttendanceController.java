@@ -168,6 +168,39 @@ public class AttendanceController {
     }
 
     /**
+     * Get all attendance records for a session by session id alone (session roster).
+     *
+     * <p>FE↔BE contract fix (GAP-1165): the frontend
+     * {@code attendanceApi.getAttendanceBySession(sessionId)} calls
+     * {@code GET /api/v1/attendance/session/{sessionId}} (no classId), which had no
+     * backend mapping → 404 on the attendance reports page. This sibling of the
+     * class-scoped roster endpoint resolves ownership from the session itself.
+     *
+     * <p>Per-resource authz via {@code @authz.hasAccessToSession} (OWASP A01) —
+     * resolves session → class → {@code classes.teacher_id} == actor, OR admin.
+     *
+     * @param sessionId session ID
+     * @param pageable pagination parameters
+     * @return page of attendance records
+     */
+    @PreAuthorize("@authz.hasAccessToSession(#sessionId)")
+    @GetMapping("/session/{sessionId}")
+    @Operation(summary = "Get attendance roster for a session (by session id)",
+               description = "Returns all attendance records for a specific session, resolved by session id alone. "
+                       + "Per-resource authz via @authz.hasAccessToSession (OWASP A01) — GAP-1165 FE↔BE contract fix.")
+    public ResponseEntity<Page<AttendanceResponse>> getAttendanceBySessionId(
+            @Parameter(description = "Session ID") @PathVariable Long sessionId,
+            @PageableDefault(sort = "enrollmentId", direction = Sort.Direction.ASC)
+            Pageable pageable) {
+        log.debug("GET /api/v1/attendance/session/{}", sessionId);
+
+        Page<AttendanceResponse> response = attendanceService.getAttendanceBySession(
+                sessionId, pageable
+        );
+        return ResponseEntity.ok(response);
+    }
+
+    /**
      * Get attendance statistics for a student.
      *
      * @param studentId student ID
