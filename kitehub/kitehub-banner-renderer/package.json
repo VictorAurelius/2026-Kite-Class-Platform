@@ -9,7 +9,7 @@
     "start": "node server.mjs"
   },
   "dependencies": {
-    "playwright": "1.49.1",
+    "playwright": "1.55.1",
     "sharp": "^0.33.5"
   }
 }
