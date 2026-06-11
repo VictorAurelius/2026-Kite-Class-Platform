@@ -53,7 +53,7 @@ Phase 1 MVP — single-student per-semester PDF report card, MOE-style A4 layout
 | ID | Rule | Detail |
 |----|------|--------|
 | BR-RC-TIER-001 | Single-card endpoint available all tiers (FREE+) | no quota gate |
-| BR-RC-TIER-002 | Batch endpoint (Phase 2) gated PRO+ | TBD when Phase 2 lands |
+| BR-RC-TIER-002 | Batch endpoint (Phase 2) gated BASIC+ | TBD when Phase 2 lands |
 
 ### Grading scale (reused from k12-model)
 

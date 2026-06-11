@@ -109,7 +109,7 @@ openai:
 | BR-WIZARD-003 | Tone values | `"friendly"`, `"professional"`, `"energetic"` | `AnalysisRequest.tone` javadoc |
 | BR-WIZARD-004 | Saga compensation | Any Step failure → `lifecycle.markFailed(reason)` runs as compensation; failed-stage transitions are persisted (no rollback of INITIALIZING/GENERATING) | `TenantProvisioningSaga.compensate()` |
 | BR-WIZARD-005 | Pipeline order | `Analyzer → Planner → PlanExecutor`; PlanExecutor's last Step transitions DEPLOYED via `markBrandingCompleted` | `TenantProvisioningSaga.runBrandingPlan()` |
-| BR-WIZARD-006 | Free-form prompt BAN | Per ai-branding-guidelines.md §2.1, free-form text prompts are BANNED for FREE/PRO/PREMIUM tiers; ENTERPRISE may opt-in via `ai.enterprise.advancedModeEnabled` flag (not yet wired) | per ai-branding-guidelines.md §2.4 |
+| BR-WIZARD-006 | Free-form prompt BAN | Per ai-branding-guidelines.md §2.1, free-form text prompts are BANNED for FREE/BASIC/PREMIUM tiers; ENTERPRISE may opt-in via `ai.enterprise.advancedModeEnabled` flag (not yet wired) | per ai-branding-guidelines.md §2.4 |
 
 ### Content Moderation (BR-MOD) — GAP-018, Wave 4
 

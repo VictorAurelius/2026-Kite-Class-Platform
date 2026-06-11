@@ -33,7 +33,7 @@
 | Devices | Desktop primary (PC at center), tablet for evening admin |
 | Tech literacy | High — has used spreadsheets for years, may have used 1-2 prior SaaS tools |
 | Usage time | Business hours 9am–5pm + evening admin 8pm–10pm |
-| Subscription tier | BASIC or PRO |
+| Subscription tier | FREE or BASIC |
 | Design implications | Density OK on desktop dashboards. Show financial KPIs prominently. Multi-class views. Need quick "today's classes" view. **This is the primary KiteHub customer persona.** |
 
 ### P3. Medium Center Admin (Quản lý vận hành trung tâm cỡ vừa)
@@ -47,7 +47,7 @@
 | Devices | Desktop + Tablet (presentations to owner) |
 | Tech literacy | High — likely has bookkeeping or HR background |
 | Usage time | Business hours + evenings for monthly reports + year-end pushes |
-| Subscription tier | PRO or PREMIUM |
+| Subscription tier | BASIC or PREMIUM |
 | Design implications | Bulk operations critical. Filterable tables. Export-to-Excel everywhere. Audit trail visible. Permissions UI clear. |
 
 ### P5. K–12 School Principal/Admin (Hiệu trưởng / Quản lý trường tư thục)

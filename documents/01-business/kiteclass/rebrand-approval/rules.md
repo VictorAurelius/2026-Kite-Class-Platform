@@ -25,7 +25,7 @@
 | Tier | Approval required? |
 |------|:------------------:|
 | FREE | No |
-| PRO | No |
+| BASIC | No |
 | PREMIUM | No |
 | ENTERPRISE | Yes (default true; config-overridable per instance) |
 

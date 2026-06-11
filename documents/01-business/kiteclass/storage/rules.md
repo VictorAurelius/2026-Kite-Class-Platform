@@ -17,7 +17,7 @@
 | BR-STR-005 | MIME type whitelist | Only allowed types: images (jpeg, png, gif, webp, svg+xml), documents (pdf, doc/docx, xls/xlsx, ppt/pptx, txt, csv), video (mp4, mpeg, webm), audio (mpeg, wav, ogg). |
 | BR-STR-006 | File status lifecycle | PENDING -> CONFIRMED (on confirm) or EXPIRED (after 30min TTL). CONFIRMED -> DELETED (on soft delete). |
 | BR-STR-007 | Soft delete with grace period | Delete marks file as `deleted=true`. S3 object removed after 30-day grace period by cleanup scheduler. |
-| BR-STR-008 | Quota per tenant per tier | FREE: 1 GB, BASIC: 10 GB, PRO: 50 GB, ENTERPRISE: 100 GB. |
+| BR-STR-008 | Quota per tenant per tier | FREE: 1 GB, BASIC: 10 GB, PREMIUM: 50 GB, ENTERPRISE: 100 GB. |
 | BR-STR-009 | Quota enforcement | Quota checked before generating upload URL. PENDING files count towards quota immediately to prevent abuse. |
 | BR-STR-010 | Multi-tenant isolation | All files scoped by `instance_id` (tenant UUID). Storage path: `{instanceId}/uploads/{year}/{month}/{uuid}.ext`. |
 | BR-STR-011 | Access level — PUBLIC | Anyone with presigned URL can download. No ownership check. |
@@ -30,7 +30,7 @@
 **File statuses:** PENDING, CONFIRMED, EXPIRED, DELETED
 **Access levels:** PUBLIC, PRIVATE, TENANT
 **File types:** IMAGE, DOCUMENT, VIDEO, AUDIO, OTHER
-**Storage tiers:** FREE, BASIC, PRO, ENTERPRISE
+**Storage tiers:** FREE, BASIC, PREMIUM, ENTERPRISE
 
 ---
 

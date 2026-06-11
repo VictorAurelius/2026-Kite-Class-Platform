@@ -22,7 +22,7 @@ TODO: Mô tả 1 đoạn — NFR catalog định nghĩa quality attributes (upti
 | Tier | Target Uptime | Allowed Downtime/Month | Credits |
 |------|:-------------:|:----------------------:|:-------:|
 | FREE | None (best-effort) | — | None |
-| PRO | 99.5% | TODO ~3.6h | TODO 5% credit |
+| BASIC | 99.5% | TODO ~3.6h | TODO 5% credit |
 | PREMIUM | 99.9% | TODO ~43m | TODO 10% credit |
 | ENTERPRISE | 99.95% (negotiable) | TODO ~22m | Custom in MSA |
 
@@ -94,7 +94,7 @@ TODO: Mô tả 1 đoạn — NFR catalog định nghĩa quality attributes (upti
 ## 5. Scalability Targets
 
 ### 5.1 Capacity per tenant
-| Dimension | PRO | PREMIUM | ENTERPRISE |
+| Dimension | BASIC | PREMIUM | ENTERPRISE |
 |-----------|:---:|:-------:|:----------:|
 | Concurrent users | TODO 50 | TODO 500 | TODO 5000+ |
 | Request rate (req/s) | TODO 5 | TODO 50 | TODO 500+ |
@@ -178,7 +178,7 @@ TODO:
 
 ## 10. Tier-NFR Matrix
 
-| NFR Class | FREE | PRO | PREMIUM | ENTERPRISE |
+| NFR Class | FREE | BASIC | PREMIUM | ENTERPRISE |
 |-----------|:----:|:---:|:-------:|:----------:|
 | Uptime SLA | None | 99.5% | 99.9% | 99.95% |
 | RTO | Best-effort | 4h | 1h | <30m |

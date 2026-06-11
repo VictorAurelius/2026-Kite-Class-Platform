@@ -25,8 +25,8 @@
 - **Decision-making:** &lt;who signs up, who manages billing, who handles operations&gt;
 
 ### Revenue tier mapping
-- **Expected tier:** &lt;FREE / PRO / PREMIUM / ENTERPRISE&gt;
-- **Reason:** &lt;why this tier — Solo Teacher = FREE/PRO; K-12 School = PREMIUM/ENTERPRISE&gt;
+- **Expected tier:** &lt;FREE / BASIC / PREMIUM / ENTERPRISE&gt;
+- **Reason:** &lt;why this tier — Solo Teacher = FREE/BASIC; K-12 School = PREMIUM/ENTERPRISE&gt;
 
 ### Real-world reviewer profile
 - **Acting role:** &lt;e.g. "Hiệu trưởng trường THCS công lập 800 học sinh ở quận trung tâm Hà Nội"&gt;

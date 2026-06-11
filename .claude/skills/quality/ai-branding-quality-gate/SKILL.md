@@ -78,17 +78,17 @@ For any AI behavior change:
 - [ ] **Bulkhead isolation** — concurrent 4-worker test (per `kitehub-branding` Oracle 24GB constraint) → no thread starvation
 - [ ] **Retry policy** — verify exponential backoff config unchanged (or migration test added)
 - [ ] **Timeout** — request >2 min triggers timeout + queues for retry
-- [ ] **Tier rate-limit** — FREE 3/session, PRO 10, PREMIUM 30 still enforced
+- [ ] **Tier rate-limit** — FREE 3/session, BASIC 10, PREMIUM 30 still enforced
 
 #### §5. Tier-specific governance (/20)
 
 For changes that may affect tier behavior:
 
 - [ ] **FREE tier** — template-first routing intact (≥80% requests STATIC/TEMPLATE)
-- [ ] **PRO tier** — regenerate counter visible + decremented per regenerate
+- [ ] **BASIC tier** — regenerate counter visible + decremented per regenerate
 - [ ] **PREMIUM tier** — additional template variants accessible
 - [ ] **ENTERPRISE tier** — Advanced Mode toggle + free-prompt opt-in still gated by `ai.enterprise.advancedModeEnabled` flag
-- [ ] **Free-form prompt BANNED for FREE/PRO/PREMIUM** (per `ai-branding-guidelines.md` §2.1)
+- [ ] **Free-form prompt BANNED for FREE/BASIC/PREMIUM** (per `ai-branding-guidelines.md` §2.1)
 
 ### 3. Score & decide
 
@@ -136,7 +136,7 @@ Save to `documents/04-quality/audits/ai-branding/YYYY-MM-DD-<change-name>.md`:
 - **Sample outputs must be FRESH per audit run.** Don't reuse outputs from baseline; new-model behavior may differ.
 - **5 sample outputs minimum for §1.** Smaller sample = unreliable scoring.
 - **For provider swap (Ollama → Bedrock), §2 Adapter integration test is MANDATORY.** Different provider = different response schema = `Adapter` class changes.
-- **§5 free-form prompt rule (BANNED for FREE/PRO/PREMIUM tier) cannot be loosened without ENTERPRISE-only opt-in flag.** Verify config flag intact.
+- **§5 free-form prompt rule (BANNED for FREE/BASIC/PREMIUM tier) cannot be loosened without ENTERPRISE-only opt-in flag.** Verify config flag intact.
 - **Score 100/100 is suspicious.** External auditor typically scores 15-20pts lower than self-audit (per memory `feedback_audit_calibration.md`). If self-score = 100, request peer/AI second-opinion before merge.
 
 ## Skill Contents

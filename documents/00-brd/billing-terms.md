@@ -6,7 +6,7 @@
 **Last-Updated:** 2026-04-29
 **Tracking:** GAP-185 (Phase 1, Wave Legal-BRD Phase 1.5 2026-04-29) → GAP-154 (Phase 2 content + legal sign-off) → GAP-108 (config externalization for late fee + grace period)
 **Legal basis:** **Circular 78/2021/TT-BTC** (e-invoice mandate + XML schema), **Decree 123/2020/NĐ-CP** (invoice + tax records 10 năm retention), **VAT Law 2008** + amendments (10% standard rate, 5% education exemption analysis), **Luật Quản lý Thuế 2019** (tax management framework), Commercial Law 2005 (commercial billing terms)
-**Cross-cuts:** [terms-of-service.md](terms-of-service.md) (GAP-180 — references billing terms), [refund-dispute-resolution-policy.md](refund-dispute-resolution-policy.md) (GAP-183 sibling Agent A this wave — refund calculation basis), [privacy-policy.md](privacy-policy.md) (GAP-182 — payment data handling per PDPL), [data-retention-deletion-policy.md](data-retention-deletion-policy.md) (GAP-184 — financial records 10y per Tax Law), GAP-108 (planned — config externalization, drift root cause: hardcoded `LATE_FEE_RATE=0.001`), [pricing-model.md](pricing-model.md) (tier alignment — FREE/PRO/PREMIUM/ENTERPRISE)
+**Cross-cuts:** [terms-of-service.md](terms-of-service.md) (GAP-180 — references billing terms), [refund-dispute-resolution-policy.md](refund-dispute-resolution-policy.md) (GAP-183 sibling Agent A this wave — refund calculation basis), [privacy-policy.md](privacy-policy.md) (GAP-182 — payment data handling per PDPL), [data-retention-deletion-policy.md](data-retention-deletion-policy.md) (GAP-184 — financial records 10y per Tax Law), GAP-108 (planned — config externalization, drift root cause: hardcoded `LATE_FEE_RATE=0.001`), [pricing-model.md](pricing-model.md) (tier alignment — FREE/BASIC/PREMIUM/ENTERPRISE)
 
 ---
 
@@ -17,7 +17,7 @@ Tài liệu này định nghĩa các điều khoản thanh toán, xử lý thu�
 Nguyên tắc cốt lõi:
 - **Compliance-first:** mọi hóa đơn phát hành cho khách hàng Việt Nam PHẢI tuân thủ **Circular 78/2021/TT-BTC** (e-invoice mandatory) và **Decree 123/2020/NĐ-CP** (XML schema + 10 năm retention).
 - **Transparency:** giá hiển thị PHẢI rõ ràng tax-inclusive vs tax-exclusive (theo Luật Bảo vệ Quyền lợi Người tiêu dùng 2023).
-- **Tier-aware:** payment methods + billing cycles + currency phụ thuộc tier (FREE/PRO/PREMIUM/ENTERPRISE — xem `pricing-model.md`).
+- **Tier-aware:** payment methods + billing cycles + currency phụ thuộc tier (FREE/BASIC/PREMIUM/ENTERPRISE — xem `pricing-model.md`).
 - **Config externalization:** mọi giá trị business (late fee rate, grace period, notice period) PHẢI ở `application.yml`, KHÔNG hardcode trong Java/TS code (anti-pattern hiện tại tracked qua GAP-108).
 - **MST collection mandatory** cho mọi tenant Việt Nam request VAT invoice (VAT deduction yêu cầu MST hợp lệ trên hóa đơn).
 
@@ -31,7 +31,7 @@ Phạm vi áp dụng: KiteHub subscription billing (SaaS plan), KiteClass per-te
 
 Ba chu kỳ chính, lựa chọn theo tier + use-case:
 
-- **Monthly:** mặc định cho FREE/PRO/PREMIUM (auto-renewal). Charge ngày tenant signup mỗi tháng.
+- **Monthly:** mặc định cho FREE/BASIC/PREMIUM (auto-renewal). Charge ngày tenant signup mỗi tháng.
 - **Annual:** discount TODO 15-25% (xem `pricing-model.md` §2 Annual discount). Phù hợp PREMIUM/ENTERPRISE muốn lock-in giá + giảm friction renewal.
 - **Per-enrollment:** dành cho KiteClass tenant nhỏ (P1 Solo Teacher, P2 Small Center) charge per student-active hoặc per-class. <!-- Phase 2: per-enrollment pricing model — informed gut Q3 2026, GAP-154 -->
 
@@ -40,11 +40,11 @@ Ba chu kỳ chính, lựa chọn theo tier + use-case:
 | Tier | Default due date | Enterprise option |
 |------|------------------|-------------------|
 | FREE | N/A (no charge) | — |
-| PRO | Upfront (charge khi start period) | — |
+| BASIC | Upfront (charge khi start period) | — |
 | PREMIUM | Upfront | — |
 | ENTERPRISE | Upfront OR Net-30 / Net-60 (negotiated) | Net-30 default qua PO process (xem §8) |
 
-Mid-tier (PRO/PREMIUM) KHÔNG hỗ trợ end-of-period billing — tránh dunning cost + dispute risk.
+Mid-tier (BASIC/PREMIUM) KHÔNG hỗ trợ end-of-period billing — tránh dunning cost + dispute risk.
 
 ### 2.3 Currency
 
@@ -58,7 +58,7 @@ Xem **Payment Method Matrix** §2.6 dưới.
 
 ### 2.5 Auto-renewal vs manual
 
-- **Auto-renewal mặc định** cho PRO/PREMIUM monthly. Tenant có thể opt-out qua dashboard.
+- **Auto-renewal mặc định** cho BASIC/PREMIUM monthly. Tenant có thể opt-out qua dashboard.
 - **Manual renewal** mặc định cho ENTERPRISE annual + multi-year contract (xem §8.3). Notice 30 days trước expiry (Sales-led).
 - **Auto-renewal disclosure:** PHẢI hiển thị rõ tại checkout + email confirmation (Luật Bảo vệ Quyền lợi Người tiêu dùng 2023 yêu cầu transparency cho recurring charge). <!-- Phase 2: auto-renewal disclosure UI copy + opt-out flow — informed gut Q3 2026, GAP-154 -->
 
@@ -69,7 +69,7 @@ Bảng dưới là **placeholder Phase 1** — Phase 2 sẽ confirm processor fe
 | Tier | VNPay | MoMo | ZaloPay | Bank transfer (NAPAS) | Credit card (Stripe/Onepay) | PO + Bank transfer |
 |------|:-----:|:----:|:-------:|:---------------------:|:---------------------------:|:------------------:|
 | FREE | — | — | — | — | — | — |
-| PRO | ✅ TODO ~1.5% | ✅ TODO ~1.5% | ✅ TODO ~1.5% | ✅ free | ✅ TODO ~3.5% | ❌ |
+| BASIC | ✅ TODO ~1.5% | ✅ TODO ~1.5% | ✅ TODO ~1.5% | ✅ free | ✅ TODO ~3.5% | ❌ |
 | PREMIUM | ✅ TODO ~1.5% | ✅ TODO ~1.5% | ✅ TODO ~1.5% | ✅ free | ✅ TODO ~3.5% | ❌ |
 | ENTERPRISE | ✅ | ✅ | ✅ | ✅ free | ✅ | ✅ Net-30/60 (xem §8) |
 
@@ -138,7 +138,7 @@ CA provider tích hợp với e-invoice provider:
 
 ### 4.3 Issuance timing
 
-- **Charge upfront tier (PRO/PREMIUM):** issue hóa đơn ngay sau payment confirmation (within 24h per Decree 123 Art 9)
+- **Charge upfront tier (BASIC/PREMIUM):** issue hóa đơn ngay sau payment confirmation (within 24h per Decree 123 Art 9)
 - **Net-30 enterprise (PO):** issue hóa đơn at service commencement (start of period), payment due Net-30
 - **Per-enrollment:** issue hóa đơn cuối tháng aggregating tất cả enrollments tháng đó
 
@@ -211,7 +211,7 @@ Xem **Late Fee Calculation Examples** §5.6 dưới.
 ### 5.4 Reactivation process
 
 Tenant pay outstanding (principal + late fee) → service reactivation within 1 business day:
-- Auto-reactivate PRO/PREMIUM upon payment confirmation
+- Auto-reactivate BASIC/PREMIUM upon payment confirmation
 - ENTERPRISE: manual reactivation by CS (verify PO + payment received)
 - Reactivation fee: TODO N/A (default no fee) <!-- Phase 2: reactivation fee policy — informed gut Q3 2026, GAP-154 -->
 
@@ -274,7 +274,7 @@ Trường hợp đặc biệt:
 - **Percentage discount:** "Giảm 20% 3 tháng đầu" (capped at 50% off)
 - **Fixed discount:** "Giảm 100K VND tháng đầu"
 - **Free months:** "Annual subscription được tặng 2 tháng" (= ~17% effective discount)
-- **Tier upgrade trial:** PRO tenant trial PREMIUM 14 days free
+- **Tier upgrade trial:** BASIC tenant trial PREMIUM 14 days free
 
 ### 7.2 Referral credits
 
@@ -296,7 +296,7 @@ Tenant là trường học chính thức (có giấy phép MoET, mã số trư�
 Mọi promotion PHẢI hiển thị rõ:
 - Giá trước + sau discount (transparency per Consumer Protection Law 2023)
 - Thời hạn promotion (start + end date)
-- Điều kiện áp dụng (new tenant only? PRO+ only?)
+- Điều kiện áp dụng (new tenant only? BASIC+ only?)
 - Auto-cancellation rule (recurring promo expires after N billing cycles)
 
 <!-- Phase 2: promotion approval workflow + caps — Marketing + Finance + Legal, GAP-154 -->
@@ -390,7 +390,7 @@ Giá hiển thị KHÔNG bao gồm VAT; VAT thêm vào tại checkout.
 
 | Plan | List price (VAT-exclusive) | VAT 10% | Total (VAT-inclusive) | Notes |
 |------|-------------------------:|--------:|----------------------:|-------|
-| PRO monthly | TODO 500,000 VND | 50,000 VND | 550,000 VND | MST tenant deducts 50K input VAT |
+| BASIC monthly | TODO 500,000 VND | 50,000 VND | 550,000 VND | MST tenant deducts 50K input VAT |
 | PREMIUM monthly | TODO 2,000,000 VND | 200,000 VND | 2,200,000 VND | |
 | ENTERPRISE annual | TODO 50,000,000 VND | 5,000,000 VND | 55,000,000 VND | Single annual invoice |
 | PREMIUM annual (20% disc) | TODO 19,200,000 VND | 1,920,000 VND | 21,120,000 VND | Annual prepay with 20% discount |
@@ -401,7 +401,7 @@ Giá hiển thị bao gồm VAT (per Consumer Protection Law 2023 transparency c
 
 | Plan | List price (VAT-inclusive) | VAT 10% backed-out | Net price | Notes |
 |------|-------------------------:|-------------------:|----------:|-------|
-| PRO monthly | TODO 550,000 VND | 50,000 VND | 500,000 VND | Cá nhân không deduct VAT |
+| BASIC monthly | TODO 550,000 VND | 50,000 VND | 500,000 VND | Cá nhân không deduct VAT |
 | PREMIUM monthly | TODO 2,200,000 VND | 200,000 VND | 2,000,000 VND | |
 
 Backed-out formula: `vat = price × 10 / 110` (price đã VAT-inclusive).

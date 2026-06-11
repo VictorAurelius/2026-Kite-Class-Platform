@@ -99,7 +99,7 @@ DELIVERABLE 4 — ai-branding-wizard-v2 (Direction C INTEGRATED)
   5. Template picker (6 preview cards REAL, không placeholder)
   6. Preview + per-resource approve (logo/colors/banner/hero — KHÔNG all-or-nothing)
 - Quality gate /100 widget visible trên step 6 (5 checks WCAG/vars/404/regression/logo-place)
-- Regenerate counter tier-aware (FREE 3 / PRO 10 / PREMIUM 30 / ENTERPRISE unlimited)
+- Regenerate counter tier-aware (FREE 3 / BASIC 10 / PREMIUM 30 / ENTERPRISE unlimited)
 - Lifecycle progress UI (G9): NOT_STARTED → INITIALIZING → GENERATING → DEPLOYED → REGENERATING → FAILED
 - KHÔNG free-form prompt (BANNED per ai-branding-guidelines.md §2.1, except Enterprise opt-in)
 

@@ -107,7 +107,7 @@
 - Quality gate /100 widget visible on step 6 (5 checks: WCAG / vars / 404 / regression / logo placement)
 - Regenerate counter visible per tier:
   - FREE: 3/session
-  - PRO: 10/session
+  - BASIC: 10/session
   - PREMIUM: 30/session
   - ENTERPRISE: unlimited
 - Lifecycle progress visualization (use Component G9 from `04-component-gaps.md`)

@@ -165,7 +165,7 @@
 
 | File | Type | Used by pages | Kit-covered? |
 |------|:----:|---------------|:------------:|
-| `features/FeatureGate.tsx` | Gate / conditional | Wraps PRO/PREMIUM-only UI; used in catalog page (verified by grep) | ❌ missing — no kit demos feature-gate UX (locked + upgrade-prompt + unlocked states); candidate for paywall demo gap |
+| `features/FeatureGate.tsx` | Gate / conditional | Wraps BASIC/PREMIUM-only UI; used in catalog page (verified by grep) | ❌ missing — no kit demos feature-gate UX (locked + upgrade-prompt + unlocked states); candidate for paywall demo gap |
 
 ---
 

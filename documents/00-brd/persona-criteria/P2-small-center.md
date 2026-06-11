@@ -25,8 +25,8 @@
 - **Decision-making:** Owner does everything — signup, billing, scheduling, parent communication, teacher payroll. Manages on personal smartphone + spreadsheets today.
 
 ### Revenue tier mapping
-- **Expected tier:** PRO → PREMIUM (~500K-2M VND/month tolerance based on student count)
-- **Reason:** Small ops with light financial admin needs; PRO tier covers basic class management; PREMIUM unlocks parent portal + automated reminders that this persona increasingly demands at 60+ students. Below PRO (FREE/TRIAL) is insufficient for real billing.
+- **Expected tier:** BASIC → PREMIUM (~500K-2M VND/month tolerance based on student count)
+- **Reason:** Small ops with light financial admin needs; BASIC tier covers basic class management; PREMIUM unlocks parent portal + automated reminders that this persona increasingly demands at 60+ students. Below BASIC (FREE/TRIAL) is insufficient for real billing.
 
 ### Real-world reviewer profile
 - **Acting role:** "Chủ lớp học thêm Toán-Anh tại Hà Nội, 60 học sinh, 2 giáo viên thuê (1 dạy Toán cấp 2, 1 dạy Anh cấp 3) + tự dạy Toán cấp 3, thu học phí 800K-1.5M/tháng/HS, hoạt động 4 năm"
@@ -56,7 +56,7 @@ Each AC has format:
 Initial signup → tenant provisioning → first usable state for a small tutoring center.
 
 - [ ] **AC-ONBOARD-001:** Owner can complete signup + tenant provisioning + initial center configuration in ≤30 minutes from a smartphone
-  - **Test:** From mobile browser, signup with email/phone → verify OTP → choose PRO tier → provide center name + address + 5 subjects (Toán/Văn/Anh/Lý/Hóa) → land on first usable dashboard
+  - **Test:** From mobile browser, signup with email/phone → verify OTP → choose BASIC tier → provide center name + address + 5 subjects (Toán/Văn/Anh/Lý/Hóa) → land on first usable dashboard
   - **Fail signal:** Wizard requires desktop, OTP delivery >5 min, mandatory fields exceed what owner has on hand, dashboard shows empty state without CTAs
   - **Status:** PASS / PARTIAL / FAIL
   - **Linked gap:** —
@@ -327,7 +327,7 @@ If reviewer finds these strain at 100-student scale, consider sub-tier "P2-large
 | Mark AC PASS because feature exists somewhere in codebase | Verify the persona-specific scenario at 60-student / 2-teacher scale |
 | Assume parent will install an app | VN parents at this scale use Zalo only — verify Zalo channel works |
 | Test with synthetic English data | Test with VN names, VN phone formats, VND currency, lunar New Year holidays |
-| Score "PASS" if commission tracking exists for ENTERPRISE only | Persona-tier match required: PRO/PREMIUM must support 60% commission tracking |
+| Score "PASS" if commission tracking exists for ENTERPRISE only | Persona-tier match required: BASIC/PREMIUM must support 60% commission tracking |
 | Bundle this persona's ACs with P3 (Medium Center) | P2's defining constraint is "no admin staff" — P3 ACs assume admin |
 
 ---

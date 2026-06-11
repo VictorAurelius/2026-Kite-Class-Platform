@@ -25,8 +25,8 @@
 - **Decision-making:** Teacher tự đăng ký, tự quản lý, tự thu tiền. Có thể giao tiếp trực tiếp với phụ huynh hoặc học sinh trưởng thành. Phụ huynh KHÔNG đăng nhập hệ thống ở scale này — communication qua Zalo/SMS.
 
 ### Revenue tier mapping
-- **Expected tier:** FREE (5-15 students) → PRO (15-50 students)
-- **Reason:** Solo teacher có ngân sách hạn chế (sub-200K VND/month preferred). FREE tier để evaluate; PRO tier khi business cần unlock advanced scheduling + larger student cap. Không bao giờ chạm PREMIUM/ENTERPRISE tier ở scale này.
+- **Expected tier:** FREE (5-15 students) → BASIC (15-50 students)
+- **Reason:** Solo teacher có ngân sách hạn chế (sub-200K VND/month preferred). FREE tier để evaluate; BASIC tier khi business cần unlock advanced scheduling + larger student cap. Không bao giờ chạm PREMIUM/ENTERPRISE tier ở scale này.
 
 ### Real-world reviewer profile
 - **Acting role:** "Gia sư tiếng Anh part-time, 30 học sinh tại TPHCM, dạy ngoài giờ + cuối tuần. Có công việc chính (giáo viên trường THCS hoặc nhân viên office). Dùng iPhone hoặc Android tầm trung. Không có laptop riêng cho công việc dạy thêm."
@@ -165,7 +165,7 @@ Billing, invoicing, simple income tracking. NO payroll (solo = no employees), NO
   - **Linked gap:** GAP-063
 
 - [ ] **AC-FIN-005:** System KHÔNG yêu cầu teacher thiết lập payroll, commission, hay teacher account management (vì solo = chính teacher là owner).
-  - **Statement:** Settings/menu KHÔNG hiển thị "Payroll / Teacher commission / Staff" cho FREE/PRO solo persona — feature gated by tier hoặc role.
+  - **Statement:** Settings/menu KHÔNG hiển thị "Payroll / Teacher commission / Staff" cho FREE/BASIC solo persona — feature gated by tier hoặc role.
   - **Test:** Vào Settings của solo teacher account → không thấy "Payroll", "Teacher commission", "Hire staff" trong menu.
   - **Fail signal:** Menu hiển thị feature không relevant, làm rối UX, force teacher hiểu nghĩa của features không cần thiết.
   - **Status:**
@@ -197,7 +197,7 @@ Notifications, schedule changes, reminders. Zalo/SMS-first; email secondary.
 
 - [ ] **AC-COMM-004:** Teacher KHÔNG cần parent portal — communication với parents qua Zalo direct (parent là contact, không phải user của system).
   - **Statement:** Solo persona không có parent login flow; parent chỉ nhận Zalo notification + receipt PDF link.
-  - **Test:** Settings → không có "Invite parent to portal" cho FREE/PRO solo tier (parent portal = feature gate cho P3+).
+  - **Test:** Settings → không có "Invite parent to portal" cho FREE/BASIC solo tier (parent portal = feature gate cho P3+).
   - **Fail signal:** System force gửi parent invite email, hoặc parent portal CTAs làm rối UX cho solo teacher.
   - **Status:**
   - **Linked gap:** Out of scope — GAP-052 (parent portal) is N/A cho P1 solo persona
