@@ -1,0 +1,37 @@
+{
+  "pr": 2321,
+  "title": "fix(kc-frontend): CSP img-src dev-override for MinIO logo (GAP-1198)",
+  "branch": "fix/kiteclass-csp-dev-img-2026-06-11",
+  "created_at": null,
+  "merged_at": "2026-06-11T10:16:24Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [
+      "ui-review"
+    ],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-06-11T10:16:28.658285",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 3,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": [
+          "ui-review"
+        ]
+      }
+    }
+  ],
+  "compliance_score": "0/2",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-1170454"
+  }
+}

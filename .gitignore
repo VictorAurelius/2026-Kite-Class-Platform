@@ -21,6 +21,7 @@ infrastructure/logs/run-*/
 
 # Session locks (per-machine, GAP-193) — keep README + .gitkeep only
 .claude/session-locks/*.lock
+.claude/session-locks/*.reserved
 .claude/session-locks/archived/
 .claude/skills/workflow/start-session/data/*.log
 
