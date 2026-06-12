@@ -5,7 +5,7 @@ created: 2026-06-11
 updated: 2026-06-11
 waves: [branding-100]
 tag_primary: branding-100
-gaps: [GAP-1021, GAP-1108, GAP-1134, GAP-1135, GAP-1147, GAP-1160, GAP-1212, GAP-1213, GAP-1214, GAP-1215, GAP-1216, GAP-1217, GAP-1218, GAP-1219, GAP-1231]
+gaps: [GAP-1021, GAP-1108, GAP-1134, GAP-1135, GAP-1147, GAP-1160, GAP-1212, GAP-1213, GAP-1214, GAP-1215, GAP-1216, GAP-1217, GAP-1218, GAP-1219, GAP-1231, GAP-1211]
 references:
   - documents/04-quality/audits/persona-review/2026-06-11-branding-100-persona-simulation.md
   - documents/04-quality/audits/persona-review/2026-06-11-branding-100-benchmark.md
@@ -56,7 +56,7 @@ references:
 | **C. Chuỗi deploy thật (P0)** | Outbox `branding.deployed` → KC-core consumer áp theme/assets vào Branding/LandingPage + evict cache; persist active theme + SSE auth; quality gate ≥70 trước DEPLOYED; post-deploy summary + link landing | GAP-1213, GAP-1021, GAP-1217, GAP-1108 | BE+Mixed |
 | **D. WYSIWYG preview** | Preview dùng chính landing render path (`?tenant=` preview mode) thay `buildLandingPreviewHtml`; multi-variant pick; **un-skip `Step6Preview` test quarantined (GAP-1231 AC — test contract viết lại theo preview-source mới)** | GAP-1215, GAP-1231 | FE+BE |
 | **E. UX reorder (output-first)** | Mode lên đầu + gộp audience/tone + generate sớm + FAILED retry/back + portrait step + banner generate wire | GAP-1216, GAP-1134, GAP-1135, GAP-1147, GAP-1160 | FE+BE |
-| **F. Trust/copy** | FULL_AI không trừ quota khi chưa có output thật + label đúng; regenerate no-op; logo over-promise; escape-ramp | GAP-1218, GAP-1219 | FE |
+| **F. Trust/copy** | FULL_AI không trừ quota khi chưa có output thật + label đúng; regenerate no-op; logo over-promise; escape-ramp; **G2★ verify upload banner qua settings UI (GAP-1211 defer từ landing-100 — endpoint+picker đã ship, còn runtime walk)** | GAP-1218, GAP-1219, GAP-1211 | FE |
 
 ## 4. State-Check Evidence
 
