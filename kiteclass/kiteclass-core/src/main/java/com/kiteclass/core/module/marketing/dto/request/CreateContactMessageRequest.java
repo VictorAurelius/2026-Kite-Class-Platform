@@ -24,12 +24,12 @@ public class CreateContactMessageRequest {
     @Size(max = 200, message = "{contact.name.size}")
     private String name;
 
-    @NotBlank(message = "{contact.email.required}")
+    // GAP-1221: email optional — phụ huynh VN quen để SĐT; validate format chỉ khi có
     @Email(message = "{contact.email.invalid}")
     @Size(max = 255, message = "{contact.email.size}")
     private String email;
 
-    @NotBlank(message = "{contact.subject.required}")
+    // GAP-1221: subject optional — server default "Liên hệ từ {name}" khi bỏ trống
     @Size(max = 200, message = "{contact.subject.size}")
     private String subject;
 

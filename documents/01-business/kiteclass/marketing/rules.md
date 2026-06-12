@@ -23,7 +23,7 @@ KC public marketing routes apply BR-PDPL-CONSENT-*: `/`, `/catalog`, `/about`, `
 
 | ID | Rule | Detail |
 |----|------|--------|
-| BR-MKT-001 | Required fields | name (max 200), email (valid format, max 255), subject (max 200), message (max 2000) |
+| BR-MKT-001 | Required fields | name (max 200), message (max 2000) bắt buộc; email OPTIONAL (valid format khi có, max 255 — GAP-1221 phụ huynh VN quen để SĐT), subject OPTIONAL (max 200, server default "Liên hệ từ {name}"), phone (max 20) |
 | BR-MKT-002 | Phone optional | Max 20 characters, no format enforcement |
 | BR-MKT-003 | Email notification | Creating a contact message triggers email notification to tenant teacher/admin |
 | BR-MKT-004 | Soft delete only | `deleted` flag, never hard delete |

@@ -6,13 +6,13 @@
 **Use Case:** UC-MKT-01  |  **Auth:** Public  |  **Header:** X-Tenant-Id (required)
 ```json
 // Request
-{ "name": "string", "email": "string", "subject": "string", "message": "string", "phone": "string?" }
+{ "name": "string", "email": "string?", "subject": "string?", "message": "string", "phone": "string?" }
 // Response 201
 { "success": true, "message": "Contact message sent successfully", "data": { "id": "long", "name": "string", "email": "string", "subject": "string", "message": "string", "phone": "string", "isRead": false, "readBy": null, "readAt": null, "createdAt": "datetime" } }
 ```
 | Status | Code | Message |
 |--------|------|---------|
-| 400 | VALIDATION_ERROR | "Name/email/subject/message is required" |
+| 400 | VALIDATION_ERROR | "Name/message is required; email invalid format (khi có)" — email/subject optional per GAP-1221, subject trống → server default "Liên hệ từ {name}" |
 
 ### GET /api/v1/contact-messages
 **Use Case:** UC-MKT-02  |  **Auth:** Bearer token  |  **Role:** ADMIN, TEACHER
