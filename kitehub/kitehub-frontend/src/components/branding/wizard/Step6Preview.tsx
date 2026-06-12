@@ -1,9 +1,13 @@
 'use client';
 
 // ---------------------------------------------------------------------------
-// Step6Preview — Step 7 (final) preview + approve + deploy.
+// Step6Preview — Step 4 "Tạo & Duyệt" (kit v3): generate-on-entry → live
+// preview + quality gate + per-resource approve + variant pick.
 //
-// Spec: `documents/02-architecture/design-system/ui_kits/ai-branding-wizard-v2/screens/step6-preview-default.html`
+// Spec: documents/02-architecture/design-system/ui_kits/ai-branding-wizard-v2/v3/screens/generate-ready.html
+//
+// Deploy was lifted OUT of this component into `useWizardDeploy` (the orchestrator)
+// so "Triển khai" is the explicit step 5; the footer here fires `onDeploy`.
 //
 // What this component owns:
 //   - Live iframe preview that points at the REAL KiteClass landing render path
@@ -35,14 +39,15 @@ import {
   Info,
   Maximize2,
   Pencil,
+  ShieldCheck,
+  CheckCircle2,
+  AlertTriangle,
 } from 'lucide-react';
 import { ThemePreview } from '@kite/shared-ui';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { ResourceToggle, type ApprovableResource } from './ResourceToggle';
 import { TEMPLATES } from './TemplateGrid';
-import { DeployingStep, type DeployingLogEntry } from './DeployingStep';
-import { DoneStep } from './DoneStep';
 import { RegenerateCounter } from './RegenerateCounter';
 import {
   GenerationModeSelector,
@@ -51,6 +56,8 @@ import {
 import { AssetReusePicker } from './AssetReusePicker';
 import { buildPaletteVariants } from './paletteVariants';
 import { useLandingPreviewUrl } from './hooks/useLandingPreviewUrl';
+import { useQualityScore } from './hooks/useQualityScore';
+import { QUALITY_GATE_PASS_THRESHOLD } from './QualityGateWidget';
 import { toast } from 'sonner';
 import {
   ORG_TYPE_OPTIONS,
@@ -62,11 +69,8 @@ import { useBrandingTier } from '@/hooks/use-branding-tier';
 import type { PricingTier } from '@/types/subscription';
 import {
   usePreviewBrandColors,
-  useDeployStream,
   useRegenerateQuota,
   useCreateBrandingJobV1,
-  useApproveBrandingJob,
-  type DeployStreamEvent,
   type RegenerateQuotaResponse,
 } from './hooks';
 import {
@@ -102,51 +106,6 @@ function mapHookTier(tier: RegenerateQuotaResponse['tier'] | undefined): Pricing
   // (the `RegenerateCounter` PricingTier vocabulary).
   if (tier === 'PRO') return 'BASIC';
   return tier;
-}
-
-function eventsToLogEntries(events: readonly DeployStreamEvent[]): DeployingLogEntry[] {
-  const out: DeployingLogEntry[] = [];
-  for (const ev of events) {
-    if (ev.name === 'heartbeat') continue;
-    const data = (ev.data ?? {}) as {
-      message?: string;
-      timestamp?: string;
-      ts?: string;
-      level?: DeployingLogEntry['level'];
-      percent?: number;
-      toState?: string;
-      errorCode?: string;
-    };
-    const timestamp = data.timestamp ?? data.ts ?? new Date().toISOString();
-    let message = '';
-    let level: DeployingLogEntry['level'] = 'info';
-    switch (ev.name) {
-      case 'log':
-        message = data.message ?? '';
-        level = data.level ?? 'info';
-        break;
-      case 'progress':
-        message = `Tiến trình ${data.percent ?? 0}%`;
-        level = 'pending';
-        break;
-      case 'state-change':
-        message = `Trạng thái: ${data.toState ?? '?'}`;
-        level = 'info';
-        break;
-      case 'complete':
-        message = data.message ?? 'Triển khai hoàn tất';
-        level = 'success';
-        break;
-      case 'error':
-        message = data.message ?? `Lỗi triển khai (${data.errorCode ?? 'UNKNOWN'})`;
-        level = 'error';
-        break;
-      default:
-        continue;
-    }
-    if (message) out.push({ timestamp, message, level });
-  }
-  return out;
 }
 
 // ---------------------------------------------------------------------------
@@ -498,12 +457,6 @@ export function Step6Preview({
         value: portraitCount > 0 ? `${portraitCount} ảnh` : 'Chưa có',
         step: 3,
       },
-      {
-        key: 'template',
-        label: 'Mẫu thiết kế',
-        value: selectedTemplate?.name ?? 'Chưa chọn',
-        step: 4,
-      },
     ],
     [
       wizardState.orgType,
@@ -511,7 +464,6 @@ export function Step6Preview({
       portraitCount,
       wizardState.audience,
       wizardState.tone,
-      selectedTemplate,
     ],
   );
 
@@ -524,17 +476,11 @@ export function Step6Preview({
   // Wave 41 Bucket D (GAP-272o) — orchestrator wiring
   // -------------------------------------------------------------------------
 
-  const [isDeploying, setIsDeploying] = useState(false);
   const [upsellModalOpen, setUpsellModalOpen] = useState(false);
-  // GAP-1108 FE — terminal "done" screen + live landing URL (frontendUrl from
-  // the approve 202 / `complete` SSE event). GAP-1216 — FAILED recovery state.
-  const [deployDone, setDeployDone] = useState(false);
-  const [deployFrontendUrl, setDeployFrontendUrl] = useState<string | null>(null);
-  const [deployError, setDeployError] = useState<
-    { message: string; code?: string; retryable: boolean } | null
-  >(null);
 
-  const { mutate: approveMutate } = useApproveBrandingJob();
+  // GAP-1217 — quality gate score for the "Tạo & Duyệt" quality panel (kit v3).
+  const { data: qualityScore } = useQualityScore(wizardState.jobId ?? undefined);
+
   const { quota, regenerate } = useRegenerateQuota();
   const quotaTier = mapHookTier(quota.data?.tier);
   const quotaLimit = quota.data?.limit ?? 3;
@@ -544,112 +490,17 @@ export function Step6Preview({
     quota.data.limit !== -1 &&
     quota.data.used >= quota.data.limit;
 
-  const deployStream = useDeployStream(wizardState.jobId ?? undefined, {
-    enabled: isDeploying && Boolean(wizardState.jobId),
-  });
-
-  const deployLogs = useMemo<DeployingLogEntry[]>(
-    () => eventsToLogEntries(deployStream.events),
-    [deployStream.events],
-  );
-
   useEffect(() => {
     if (quotaExceeded && quotaTier !== 'ENTERPRISE' && !upsellModalOpen) {
       setUpsellModalOpen(true);
     }
   }, [quotaExceeded, quotaTier, upsellModalOpen]);
 
-  // GAP-1108 FE — on a terminal `complete` SSE event, surface the DONE screen
-  // (with the live landing URL) instead of silently routing away. GAP-1216 — on
-  // a terminal `error` event, surface the FAILED panel (retry/back).
-  const deployCompletedRef = useRef(false);
-  useEffect(() => {
-    if (!isDeploying || deployCompletedRef.current) return;
-    const latest = deployStream.latestEvent;
-    if (latest?.name === 'complete') {
-      deployCompletedRef.current = true;
-      const data = (latest.data ?? {}) as { frontendUrl?: string };
-      if (data.frontendUrl) setDeployFrontendUrl(data.frontendUrl);
-      toast.success('Triển khai thành công!');
-      setDeployDone(true);
-    } else if (latest?.name === 'error') {
-      deployCompletedRef.current = true;
-      const data = (latest.data ?? {}) as {
-        message?: string;
-        errorCode?: string;
-        retryable?: boolean;
-      };
-      setDeployError({
-        message:
-          data.message ??
-          'Quá trình triển khai gặp sự cố. Bạn có thể thử lại hoặc quay lại chỉnh sửa.',
-        code: data.errorCode,
-        retryable: data.retryable ?? true,
-      });
-    }
-  }, [isDeploying, deployStream.latestEvent]);
-
-  const startDeploy = () => {
-    if (!wizardState.jobId) return;
-    deployCompletedRef.current = false;
-    setDeployError(null);
-    setDeployDone(false);
-    approveMutate(
-      {
-        jobId: wizardState.jobId,
-        slug: wizardState.slug || undefined,
-        templateId: wizardState.templateId,
-        approvedResources: wizardState.approvedResources,
-      },
-      {
-        onSuccess: (res) => {
-          if (res?.frontendUrl) setDeployFrontendUrl(res.frontendUrl);
-        },
-        onError: (err) => {
-          const e = err as {
-            response?: { status?: number; data?: { errorCode?: string; qualityScore?: number } };
-          };
-          const status = e?.response?.status;
-          const code = e?.response?.data?.errorCode;
-          // GAP-1217 — server-side quality gate rejected the approve (422).
-          // Keep the user on the preview so they can edit + retry; don't dead-end.
-          if (status === 422 || code === 'QUALITY_GATE_FAILED') {
-            const score = e?.response?.data?.qualityScore;
-            toast.error(
-              `Chưa đạt chuẩn chất lượng${
-                score != null ? ` (điểm ${score}/100)` : ''
-              } — hãy điều chỉnh rồi triển khai lại.`,
-            );
-            setIsDeploying(false);
-            deployCompletedRef.current = true;
-            return;
-          }
-          // Other approve failures → FAILED panel (retryable).
-          setDeployError({
-            message: 'Không gửi được yêu cầu triển khai. Vui lòng thử lại.',
-            code,
-            retryable: true,
-          });
-          deployCompletedRef.current = true;
-        },
-      },
-    );
-    setIsDeploying(true);
-  };
-
+  // Kit v3 — the step-4 footer fires `onDeploy` (the orchestrator advances to the
+  // explicit "Triển khai" step 5 + runs the approve/deploy via useWizardDeploy).
   const handleDeployClick = () => {
     if (!allApproved || !wizardState.jobId) return;
-    startDeploy();
-  };
-
-  const handleRetryDeploy = () => {
-    startDeploy();
-  };
-
-  const handleBackFromDeploy = () => {
-    setIsDeploying(false);
-    setDeployError(null);
-    deployCompletedRef.current = false;
+    onDeploy();
   };
 
   const handleRegenerateClick = () => {
@@ -715,53 +566,43 @@ export function Step6Preview({
       .catch(() => toast.error('Không tạo được banner AI cao cấp, vui lòng thử lại.'));
   };
 
-  // -------------------------------------------------------------------------
-  // Deploying sub-state render branch
-  // -------------------------------------------------------------------------
-
-  // GAP-1108 FE — terminal success screen with the live landing link.
-  if (deployDone) {
-    return (
-      <DoneStep
-        tenantName={wizardState.tenantName}
-        frontendUrl={deployFrontendUrl}
-        slug={wizardState.slug}
-        onManage={onDeploy}
-      />
-    );
-  }
-
-  if (isDeploying) {
-    return (
-      <DeployingStep
-        logs={deployLogs}
-        instanceId={
-          typeof wizardState.instanceId === 'string'
-            ? wizardState.instanceId
-            : undefined
-        }
-        errorMessage={deployError?.message}
-        errorCode={deployError?.code}
-        errorRetryable={deployError?.retryable}
-        onRetry={handleRetryDeploy}
-        onBack={handleBackFromDeploy}
-      />
-    );
-  }
+  // GAP-1217 — quality gate panel data (kit v3 "Điểm chất lượng" card).
+  const qScore = qualityScore?.score ?? null;
+  const qPassed = qualityScore ? qualityScore.passed : false;
+  const qLines = qualityScore
+    ? [
+        {
+          label: 'Độ tương phản chữ/nền đạt WCAG AA',
+          ok: qualityScore.subscores.contrast >= QUALITY_GATE_PASS_THRESHOLD,
+        },
+        {
+          label: 'Chữ tiếng Việt sắc nét, không vỡ dấu',
+          ok: qualityScore.subscores.visualRegression >= QUALITY_GATE_PASS_THRESHOLD,
+        },
+        {
+          label: 'Bố cục hero cân đối, logo rõ',
+          ok: qualityScore.subscores.logoPlacement >= QUALITY_GATE_PASS_THRESHOLD,
+        },
+        {
+          label: 'Nội dung khớp thông tin trung tâm',
+          ok: qualityScore.subscores.cssVarsApplied >= QUALITY_GATE_PASS_THRESHOLD,
+        },
+      ]
+    : [];
 
   return (
     <div className="space-y-6" data-testid="step6-preview">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-sm font-semibold text-primary uppercase tracking-wide mb-1">
-            Bước 5 / 5 — Xem & Tạo
+            Bước 4 / 5 — Tạo & Duyệt
           </p>
           <h1 className="text-2xl font-bold text-foreground mb-2">
-            Xem trước trang web của bạn
+            Chọn bản bạn thích — đây là bản xem trước thật 🎉
           </h1>
           <p className="text-muted-foreground">
-            Đây là trang chủ thật của trung tâm bạn. Bật/tắt từng tài nguyên và
-            chọn loại AI để tạo banner.
+            Đây là trang chủ thật sẽ lên sóng. Chọn biến thể, bật/tắt phần muốn áp
+            dụng, rồi triển khai.
           </p>
         </div>
         <Button
@@ -898,6 +739,75 @@ export function Step6Preview({
             </div>
           </div>
 
+          {/* GAP-1217 — quality gate panel (kit v3 "Điểm chất lượng"). Score +
+              4 criteria + verdict. Wired to GET /branding/jobs/{id}/quality-score. */}
+          <div
+            data-testid="step6-quality-panel"
+            className={`rounded-lg border p-3 space-y-2 ${
+              qScore == null
+                ? 'bg-card'
+                : qPassed
+                  ? 'border-emerald-300 bg-emerald-50/50'
+                  : 'border-amber-300 bg-amber-50/50'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <h3 className="flex items-center gap-1.5 text-sm font-bold">
+                <ShieldCheck
+                  className={`h-4 w-4 ${qPassed ? 'text-emerald-600' : 'text-amber-600'}`}
+                  aria-hidden="true"
+                />
+                Điểm chất lượng
+              </h3>
+              {qScore != null ? (
+                <span className="text-lg font-extrabold leading-none">
+                  <span data-testid="step6-quality-score">{qScore}</span>
+                  <span className="text-xs font-medium text-muted-foreground">/100</span>
+                </span>
+              ) : (
+                <span className="text-xs text-muted-foreground">Đang chấm điểm…</span>
+              )}
+            </div>
+            {qScore != null && (
+              <>
+                <div className="h-2 overflow-hidden rounded-full bg-muted/40" aria-hidden="true">
+                  <div
+                    className="h-full transition-all"
+                    style={{
+                      width: `${Math.max(0, Math.min(100, qScore))}%`,
+                      background: qPassed ? 'hsl(142 71% 45%)' : 'hsl(38 92% 50%)',
+                    }}
+                  />
+                </div>
+                <ul className="space-y-1">
+                  {qLines.map((line) => (
+                    <li
+                      key={line.label}
+                      className="flex items-start gap-1.5 text-xs"
+                      data-testid="step6-quality-check"
+                      data-passed={line.ok}
+                    >
+                      {line.ok ? (
+                        <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600" aria-hidden="true" />
+                      ) : (
+                        <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600" aria-hidden="true" />
+                      )}
+                      <span className={line.ok ? '' : 'text-amber-800'}>{line.label}</span>
+                    </li>
+                  ))}
+                </ul>
+                <p
+                  className={`text-xs font-medium ${qPassed ? 'text-emerald-700' : 'text-amber-700'}`}
+                  data-testid="step6-quality-verdict"
+                >
+                  {qPassed
+                    ? `Đạt ngưỡng ≥${QUALITY_GATE_PASS_THRESHOLD} — sẵn sàng triển khai.`
+                    : `Chưa đạt ngưỡng ≥${QUALITY_GATE_PASS_THRESHOLD} — hãy tạo lại trước khi triển khai.`}
+                </p>
+              </>
+            )}
+          </div>
+
           {/* GAP-1143 — reuse banner from library. The banner itself is the hero
               of the landing preview on the left (not duplicated here). */}
           <div data-testid="step6-banner-block" className="rounded-lg border bg-card p-3 space-y-2">
@@ -967,17 +877,18 @@ export function Step6Preview({
           <ArrowLeft className="mr-2 w-4 h-4" aria-hidden="true" />
           Sửa các bước
         </Button>
-        <p className="text-xs text-muted-foreground">
-          {approvedCount}/{totalResources} tài nguyên đã phê duyệt
+        <p className="text-xs text-muted-foreground" data-testid="step6-footer-summary">
+          Bước 4 / 5 · {approvedCount}/{totalResources} phần được áp dụng
+          {qScore != null ? ` · điểm ${qScore}/100` : ''}
         </p>
         <Button
           type="button"
           onClick={handleDeployClick}
-          disabled={!allApproved}
+          disabled={!allApproved || !wizardState.jobId}
           data-testid="step6-deploy-button"
         >
           <Rocket className="mr-2 w-4 h-4" aria-hidden="true" />
-          Triển khai trang web
+          Triển khai &amp; lên sóng
         </Button>
       </div>
 
@@ -1053,11 +964,11 @@ export function Step6Preview({
                   setFullscreenOpen(false);
                   handleDeployClick();
                 }}
-                disabled={!allApproved}
+                disabled={!allApproved || !wizardState.jobId}
                 data-testid="step6-fullscreen-deploy"
               >
                 <Rocket className="mr-2 h-4 w-4" aria-hidden="true" />
-                Triển khai trang web
+                Triển khai &amp; lên sóng
               </Button>
             </div>
           </div>

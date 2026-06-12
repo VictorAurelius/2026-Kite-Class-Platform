@@ -1,19 +1,23 @@
 'use client';
 
 /**
- * AI Branding Wizard — output-first orchestrator (GAP-1216, 5-step reorder).
+ * AI Branding Wizard — output-first orchestrator (kit v3 parity, GAP-1216/1212).
  *
- * Replaces the Direction-C 7-step flow with the output-first 5-step flow per
- * kit v3 §2.5 (hội tụ 3 audit 2026-06-11):
+ * 5 output-first steps per kit v3 §2.5:
  *   1. Welcome + Mode  — tenant name + slug + org-type (GAP-1133) + TEMPLATE/FULL_AI
  *   2. Brand personality — Audience + Tone merged onto one page (BrandPersonalityStep)
  *   3. Assets          — Logo + Portrait merged, optional/skip (AssetsStep);
  *                        Portrait sub-section only in FULL_AI mode (GAP-1134)
- *   4. Template        — TEMPLATE route only; FULL_AI skips this step
- *   5. Preview/Generate — live preview + per-resource approve + deploy (Step6Preview)
+ *   4. Tạo & Duyệt     — generate on entry → live preview + quality gate +
+ *                        per-resource approve + variant pick (Step6Preview)
+ *   5. Triển khai       — EXPLICIT deploy step: SSE lifecycle + FAILED recovery
+ *                        (DeployingStep) → DoneStep on success
  *
- * Mode-branching lives in the `wizard-shared.tsx` reducer (NEXT/PREV skip step 4
- * for FULL_AI). The escape-ramp (GAP-1219) jumps to step 4/5 depending on mode.
+ * The standalone Template step was removed (kit v3) — the template is auto-derived
+ * from tone/audience (`deriveTemplateId`) and edited later in the content editor;
+ * both modes now walk the same linear 5 steps. Deploy moved from an internal
+ * sub-state of Step6Preview to this orchestrator via `useWizardDeploy`, so the
+ * stepper shows step 5 active while deploying.
  *
  * Bundle-size strategy (preserved from Wave GAP-236 Sub-PR B): each step is
  * loaded via `next/dynamic` so only the active step's chunk is shipped.
@@ -34,7 +38,12 @@ import { EmptyState } from '@/components/common/EmptyState';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Sparkles } from 'lucide-react';
 import { StepIndicator } from '@/components/branding/wizard/StepIndicator';
-import { useWizardReducer, type WizardStep } from '@/components/branding/wizard/wizard-shared';
+import {
+  useWizardReducer,
+  deriveTemplateId,
+  type WizardStep,
+} from '@/components/branding/wizard/wizard-shared';
+import { useWizardDeploy } from '@/components/branding/wizard/hooks/useWizardDeploy';
 
 const stepLoading = () => <LoadingSpinner className="my-12" />;
 
@@ -65,18 +74,27 @@ const AssetsStep = dynamic(
   { ssr: false, loading: stepLoading }
 );
 
-// Step 4 — Template grid (TEMPLATE route only) + Step 5 preview/approve.
-const TemplateStep = dynamic(
-  () =>
-    import('@/components/branding/wizard/TemplateStep').then((m) => ({
-      default: m.TemplateStep,
-    })),
-  { ssr: false, loading: stepLoading }
-);
+// Step 4 — Tạo & Duyệt (generate + preview + approve).
 const Step6Preview = dynamic(
   () =>
     import('@/components/branding/wizard/Step6Preview').then((m) => ({
       default: m.Step6Preview,
+    })),
+  { ssr: false, loading: stepLoading }
+);
+
+// Step 5 — Triển khai (deploy SSE lifecycle + recovery) → DoneStep on success.
+const DeployingStep = dynamic(
+  () =>
+    import('@/components/branding/wizard/DeployingStep').then((m) => ({
+      default: m.DeployingStep,
+    })),
+  { ssr: false, loading: stepLoading }
+);
+const DoneStep = dynamic(
+  () =>
+    import('@/components/branding/wizard/DoneStep').then((m) => ({
+      default: m.DoneStep,
     })),
   { ssr: false, loading: stepLoading }
 );
@@ -93,6 +111,10 @@ export default function BrandingWizardPage() {
   const [loadingTimedOut, setLoadingTimedOut] = useState(false);
   const [state, dispatch] = useWizardReducer();
 
+  // Deploy controller (kit v3) — lifts the deploy machine out of Step6Preview so
+  // "Triển khai" is an explicit step 5 (the stepper highlights it while deploying).
+  const deploy = useWizardDeploy({ wizardState: state, dispatch });
+
   // Timeout for initial loading state (preserved from legacy)
   useEffect(() => {
     if (!instanceId && !instancesError) {
@@ -101,6 +123,18 @@ export default function BrandingWizardPage() {
     }
     return undefined;
   }, [instanceId, instancesError]);
+
+  // Kit v3 — Template step removed: auto-derive a template from tone/audience when
+  // the user first reaches the "Tạo & Duyệt" step so the generate request has one.
+  useEffect(() => {
+    if (state.currentStep === 4 && !state.templateId) {
+      dispatch({
+        type: 'SET_TEMPLATE',
+        templateId: deriveTemplateId(state.tone, state.audience),
+        jobId: '',
+      });
+    }
+  }, [state.currentStep, state.templateId, state.tone, state.audience, dispatch]);
 
   const currentStep: WizardStep = state.currentStep;
 
@@ -113,7 +147,10 @@ export default function BrandingWizardPage() {
     [dispatch]
   );
 
-  const handleDeploy = useMemo(
+  // Step-4 footer "Triển khai & lên sóng" → advance to step 5 + fire deploy.
+  const handleStartDeploy = useMemo(() => () => deploy.start(), [deploy]);
+  // DoneStep "Về quản lý" → leave the wizard.
+  const handleManage = useMemo(
     () => () => router.push('/branding'),
     [router]
   );
@@ -206,24 +243,36 @@ export default function BrandingWizardPage() {
         )}
 
         {currentStep === 4 && (
-          <TemplateStep
-            wizardState={state}
-            dispatch={dispatch}
-            instanceId={instanceId}
-            onNext={handleNext}
-            onBack={handleBack}
-          />
-        )}
-
-        {currentStep === 5 && (
           <Step6Preview
             wizardState={state}
             dispatch={dispatch}
             assetInstanceId={instanceId}
             onBack={handleBack}
-            onDeploy={handleDeploy}
+            onDeploy={handleStartDeploy}
           />
         )}
+
+        {currentStep === 5 &&
+          (deploy.deployDone ? (
+            <DoneStep
+              tenantName={state.tenantName}
+              frontendUrl={deploy.deployFrontendUrl}
+              slug={state.slug}
+              onManage={handleManage}
+            />
+          ) : (
+            <DeployingStep
+              logs={deploy.deployLogs}
+              instanceId={
+                typeof state.instanceId === 'string' ? state.instanceId : undefined
+              }
+              errorMessage={deploy.deployError?.message}
+              errorCode={deploy.deployError?.code}
+              errorRetryable={deploy.deployError?.retryable}
+              onRetry={deploy.retry}
+              onBack={deploy.back}
+            />
+          ))}
       </div>
     </div>
   );

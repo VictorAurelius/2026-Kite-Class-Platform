@@ -1,7 +1,13 @@
 'use client';
 
 // ---------------------------------------------------------------------------
-// TemplateStep — Step 5 of AI Branding Wizard v2.
+// @deprecated (kit v3, GAP-1212/1216) — TemplateStep is NO LONGER part of the
+// wizard flow. The standalone "Mẫu thiết kế" step was removed; the template is
+// auto-derived from tone/audience (`deriveTemplateId`) and edited later in the
+// content editor. Retained only so existing tests/imports keep compiling — do
+// not re-add it to the orchestrator or StepIndicator.
+//
+// TemplateStep — (legacy) Step 5 of AI Branding Wizard v2.
 //
 // Spec: `documents/02-architecture/design-system/ui_kits/ai-branding-wizard-v2/screens/step5-template-{grid,fullscreen,with-custom-prompt}.html`
 //

@@ -89,39 +89,40 @@ describe('Step6Preview — orchestrator wiring (GAP-272o)', () => {
     expect(screen.getByTestId('regenerate-counter-active-tier-badge')).toHaveTextContent('FREE');
   });
 
-  it('flips to DeployingStep when user clicks the Deploy CTA', async () => {
+  it('calls onDeploy when user clicks the Deploy CTA (deploy lifted to orchestrator, kit v3 step 5)', () => {
     const Wrapper = makeWrapper();
     const state = makeState();
+    const onDeploy = vi.fn();
     render(
       <Wrapper>
-        <Step6Preview wizardState={state} dispatch={() => {}} onBack={noop} onDeploy={noop} />
+        <Step6Preview wizardState={state} dispatch={() => {}} onBack={noop} onDeploy={onDeploy} />
       </Wrapper>,
     );
 
+    // Step 4 review still shows the preview iframe; deploy no longer renders here.
     expect(screen.getByTestId('step6-preview-iframe')).toBeInTheDocument();
     expect(screen.queryByTestId('deploying-step')).toBeNull();
 
     fireEvent.click(screen.getByTestId('step6-deploy-button'));
 
-    await waitFor(() => {
-      expect(screen.queryByTestId('step6-preview-iframe')).toBeNull();
-      expect(screen.getByTestId('deploying-step')).toBeInTheDocument();
-    });
+    // The orchestrator (useWizardDeploy) owns the advance-to-step-5 + approve.
+    expect(onDeploy).toHaveBeenCalledTimes(1);
   });
 
-  it('does NOT flip to DeployingStep when not all resources approved', () => {
+  it('does NOT call onDeploy when not all resources approved (button disabled)', () => {
     const Wrapper = makeWrapper();
     const state = makeState({ approvedResources: ['logo'] });
+    const onDeploy = vi.fn();
     render(
       <Wrapper>
-        <Step6Preview wizardState={state} dispatch={() => {}} onBack={noop} onDeploy={noop} />
+        <Step6Preview wizardState={state} dispatch={() => {}} onBack={noop} onDeploy={onDeploy} />
       </Wrapper>,
     );
 
     const button = screen.getByTestId('step6-deploy-button') as HTMLButtonElement;
     expect(button.disabled).toBe(true);
     fireEvent.click(button);
-    expect(screen.queryByTestId('deploying-step')).toBeNull();
+    expect(onDeploy).not.toHaveBeenCalled();
   });
 
   it('opens the upsell modal automatically when quota exceeded for non-ENTERPRISE tier', async () => {

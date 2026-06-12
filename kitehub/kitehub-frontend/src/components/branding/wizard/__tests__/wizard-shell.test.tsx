@@ -71,12 +71,15 @@ describe('wizardReducer — step transitions', () => {
     expect(s.currentStep).toBe(3);
   });
 
-  it('FULL_AI mode skips the Template step (4): Assets (3) ⇄ Preview (5)', () => {
+  it('kit v3 — both modes walk the linear 5 steps (Template step removed)', () => {
+    // FULL_AI no longer skips step 4: Assets (3) → Tạo&Duyệt (4) → Triển khai (5).
     let s: WizardState = { ...INITIAL_WIZARD_STATE, mode: 'FULL_AI', currentStep: 3 };
     s = wizardReducer(s, { type: 'NEXT_STEP' });
-    expect(s.currentStep).toBe(5); // 3 → 5, template skipped
+    expect(s.currentStep).toBe(4);
+    s = wizardReducer(s, { type: 'NEXT_STEP' });
+    expect(s.currentStep).toBe(5);
     s = wizardReducer(s, { type: 'PREV_STEP' });
-    expect(s.currentStep).toBe(3); // 5 → 3, mirror skip
+    expect(s.currentStep).toBe(4);
   });
 
   it('SET_ORG_TYPE persists the user-type axis (GAP-1133)', () => {
@@ -146,13 +149,15 @@ describe('wizardReducer — approvedResources (Bucket C compliance)', () => {
 });
 
 describe('StepIndicator', () => {
-  it('renders all 5 steps (TEMPLATE) and marks currentStep as aria-current="step"', () => {
+  it('renders the 5 kit-v3 steps and marks currentStep as aria-current="step"', () => {
     render(<StepIndicator currentStep={3} />);
 
-    const labels = ['Bắt đầu', 'Phong cách', 'Hình ảnh', 'Mẫu thiết kế', 'Xem & Tạo'];
+    const labels = ['Bắt đầu', 'Phong cách', 'Hình ảnh', 'Tạo & Duyệt', 'Triển khai'];
     for (const label of labels) {
       expect(screen.getByText(label)).toBeInTheDocument();
     }
+    // Template step removed from the flow.
+    expect(screen.queryByText('Mẫu thiết kế')).not.toBeInTheDocument();
 
     const current = screen.getByLabelText(/Bước 3: Hình ảnh \(đang làm\)/);
     expect(current).toHaveAttribute('aria-current', 'step');
@@ -161,10 +166,11 @@ describe('StepIndicator', () => {
     expect(completed).not.toHaveAttribute('aria-current');
   });
 
-  it('FULL_AI mode hides the Template step (4) from the indicator (GAP-1216)', () => {
+  it('kit v3 — FULL_AI mode shows all 5 steps too (no Template skip)', () => {
     render(<StepIndicator currentStep={3} mode="FULL_AI" />);
+    expect(screen.getByText('Tạo & Duyệt')).toBeInTheDocument();
+    expect(screen.getByText('Triển khai')).toBeInTheDocument();
     expect(screen.queryByText('Mẫu thiết kế')).not.toBeInTheDocument();
-    expect(screen.getByText('Xem & Tạo')).toBeInTheDocument();
   });
 });
 
