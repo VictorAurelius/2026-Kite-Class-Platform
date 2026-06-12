@@ -25,3 +25,11 @@ Design-first: check rules.md/use-cases marketing domain → xác định OWNER t
 
 - Parent: GAP-1139 (owner tenant-admin authz fix)
 - Discovered in: cross-flow sweep GAP-1139 PR
+
+## Log — 2026-06-12: fix shipped cùng PR #2376 (wizard kit parity)
+
+Design resolve: per GAP-1119 per-role table, OWNER = chủ trường toàn quyền (branding + settings
++ marketing). Trigger cụ thể: facts wiring wizard (GAP-1234, PR #2376) PUT
+`/api/v1/tenants/{id}/landing` từ owner JWT → 403 vì `hasAnyRole('ADMIN','TEACHER')`.
+Fix: 10 sites trong LandingPage/Lead/ContactMessage controllers += `'OWNER'`. Tests 7/7 PASS.
+Status → PARTIAL 90 (chờ runtime walk PUT 200 trong G2★ branding-100).
