@@ -42,6 +42,7 @@ import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { ResourceToggle, type ApprovableResource } from './ResourceToggle';
 import { TEMPLATES } from './TemplateGrid';
 import { DeployingStep, type DeployingLogEntry } from './DeployingStep';
+import { DoneStep } from './DoneStep';
 import { RegenerateCounter } from './RegenerateCounter';
 import {
   GenerationModeSelector,
@@ -518,6 +519,13 @@ export function Step6Preview({
 
   const [isDeploying, setIsDeploying] = useState(false);
   const [upsellModalOpen, setUpsellModalOpen] = useState(false);
+  // GAP-1108 FE — terminal "done" screen + live landing URL (frontendUrl from
+  // the approve 202 / `complete` SSE event). GAP-1216 — FAILED recovery state.
+  const [deployDone, setDeployDone] = useState(false);
+  const [deployFrontendUrl, setDeployFrontendUrl] = useState<string | null>(null);
+  const [deployError, setDeployError] = useState<
+    { message: string; code?: string; retryable: boolean } | null
+  >(null);
 
   const { mutate: approveMutate } = useApproveBrandingJob();
   const { quota, regenerate } = useRegenerateQuota();
@@ -544,26 +552,97 @@ export function Step6Preview({
     }
   }, [quotaExceeded, quotaTier, upsellModalOpen]);
 
+  // GAP-1108 FE — on a terminal `complete` SSE event, surface the DONE screen
+  // (with the live landing URL) instead of silently routing away. GAP-1216 — on
+  // a terminal `error` event, surface the FAILED panel (retry/back).
   const deployCompletedRef = useRef(false);
   useEffect(() => {
-    if (!isDeploying) return;
+    if (!isDeploying || deployCompletedRef.current) return;
     const latest = deployStream.latestEvent;
-    if (latest?.name === 'complete' && !deployCompletedRef.current) {
+    if (latest?.name === 'complete') {
       deployCompletedRef.current = true;
-      toast.success('Triển khai thành công — đang chuyển tới trang Thương hiệu');
-      onDeploy();
+      const data = (latest.data ?? {}) as { frontendUrl?: string };
+      if (data.frontendUrl) setDeployFrontendUrl(data.frontendUrl);
+      toast.success('Triển khai thành công!');
+      setDeployDone(true);
+    } else if (latest?.name === 'error') {
+      deployCompletedRef.current = true;
+      const data = (latest.data ?? {}) as {
+        message?: string;
+        errorCode?: string;
+        retryable?: boolean;
+      };
+      setDeployError({
+        message:
+          data.message ??
+          'Quá trình triển khai gặp sự cố. Bạn có thể thử lại hoặc quay lại chỉnh sửa.',
+        code: data.errorCode,
+        retryable: data.retryable ?? true,
+      });
     }
-  }, [isDeploying, deployStream.latestEvent, onDeploy]);
+  }, [isDeploying, deployStream.latestEvent]);
+
+  const startDeploy = () => {
+    if (!wizardState.jobId) return;
+    deployCompletedRef.current = false;
+    setDeployError(null);
+    setDeployDone(false);
+    approveMutate(
+      {
+        jobId: wizardState.jobId,
+        slug: wizardState.slug || undefined,
+        templateId: wizardState.templateId,
+        approvedResources: wizardState.approvedResources,
+      },
+      {
+        onSuccess: (res) => {
+          if (res?.frontendUrl) setDeployFrontendUrl(res.frontendUrl);
+        },
+        onError: (err) => {
+          const e = err as {
+            response?: { status?: number; data?: { errorCode?: string; qualityScore?: number } };
+          };
+          const status = e?.response?.status;
+          const code = e?.response?.data?.errorCode;
+          // GAP-1217 — server-side quality gate rejected the approve (422).
+          // Keep the user on the preview so they can edit + retry; don't dead-end.
+          if (status === 422 || code === 'QUALITY_GATE_FAILED') {
+            const score = e?.response?.data?.qualityScore;
+            toast.error(
+              `Chưa đạt chuẩn chất lượng${
+                score != null ? ` (điểm ${score}/100)` : ''
+              } — hãy điều chỉnh rồi triển khai lại.`,
+            );
+            setIsDeploying(false);
+            deployCompletedRef.current = true;
+            return;
+          }
+          // Other approve failures → FAILED panel (retryable).
+          setDeployError({
+            message: 'Không gửi được yêu cầu triển khai. Vui lòng thử lại.',
+            code,
+            retryable: true,
+          });
+          deployCompletedRef.current = true;
+        },
+      },
+    );
+    setIsDeploying(true);
+  };
 
   const handleDeployClick = () => {
     if (!allApproved || !wizardState.jobId) return;
-    approveMutate({
-      jobId: wizardState.jobId,
-      slug: wizardState.slug || undefined,
-      templateId: wizardState.templateId,
-      approvedResources: wizardState.approvedResources,
-    });
-    setIsDeploying(true);
+    startDeploy();
+  };
+
+  const handleRetryDeploy = () => {
+    startDeploy();
+  };
+
+  const handleBackFromDeploy = () => {
+    setIsDeploying(false);
+    setDeployError(null);
+    deployCompletedRef.current = false;
   };
 
   const handleRegenerateClick = () => {
@@ -633,6 +712,18 @@ export function Step6Preview({
   // Deploying sub-state render branch
   // -------------------------------------------------------------------------
 
+  // GAP-1108 FE — terminal success screen with the live landing link.
+  if (deployDone) {
+    return (
+      <DoneStep
+        tenantName={wizardState.tenantName}
+        frontendUrl={deployFrontendUrl}
+        slug={wizardState.slug}
+        onManage={onDeploy}
+      />
+    );
+  }
+
   if (isDeploying) {
     return (
       <DeployingStep
@@ -642,6 +733,11 @@ export function Step6Preview({
             ? wizardState.instanceId
             : undefined
         }
+        errorMessage={deployError?.message}
+        errorCode={deployError?.code}
+        errorRetryable={deployError?.retryable}
+        onRetry={handleRetryDeploy}
+        onBack={handleBackFromDeploy}
       />
     );
   }

@@ -1,7 +1,8 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
   render as rtlRender,
   screen,
+  fireEvent,
   type RenderOptions,
 } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -106,5 +107,49 @@ describe('DeployingStep', () => {
     expect(screen.queryByTestId('deploying-step-log-line-0')).not.toBeInTheDocument();
     // Placeholder copy
     expect(screen.getByText('Đang chờ log…')).toBeInTheDocument();
+  });
+});
+
+describe('DeployingStep — FAILED recovery (GAP-1216)', () => {
+  it('renders the FAILED panel with retry + back when errorMessage set', () => {
+    const onRetry = vi.fn();
+    const onBack = vi.fn();
+    render(
+      <DeployingStep
+        logs={SAMPLE_LOGS}
+        instanceId="inst-test-001"
+        errorMessage="Tạo banner thất bại"
+        errorCode="GENERATION_FAILED"
+        onRetry={onRetry}
+        onBack={onBack}
+      />
+    );
+    // FAILED panel replaces the in-progress spinner copy.
+    expect(screen.getByTestId('deploying-step-failed')).toBeInTheDocument();
+    expect(screen.queryByTestId('deploying-step')).toBeNull();
+    expect(screen.getByTestId('deploying-step-error-message')).toHaveTextContent(
+      'Tạo banner thất bại'
+    );
+    expect(screen.getByText(/GENERATION_FAILED/)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByTestId('deploying-step-retry'));
+    expect(onRetry).toHaveBeenCalledTimes(1);
+    fireEvent.click(screen.getByTestId('deploying-step-back'));
+    expect(onBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('hides the retry button when the error is not retryable', () => {
+    render(
+      <DeployingStep
+        logs={[]}
+        instanceId="inst-test-001"
+        errorMessage="Lỗi không thể thử lại"
+        errorRetryable={false}
+        onRetry={() => {}}
+        onBack={() => {}}
+      />
+    );
+    expect(screen.queryByTestId('deploying-step-retry')).toBeNull();
+    expect(screen.getByTestId('deploying-step-back')).toBeInTheDocument();
   });
 });
