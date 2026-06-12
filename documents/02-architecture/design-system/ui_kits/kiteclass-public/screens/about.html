@@ -28,9 +28,9 @@
   --theme-primary:37 99 235;--theme-secondary:59 130 246;--theme-accent:14 165 233;
   --cta:249 115 22;--cta-strong:194 65 12;--hero-from:30 64 175;--hero-to:30 58 138;
 }
-.theme-ha{--theme-primary:37 99 235;--theme-secondary:59 130 246;--theme-accent:14 165 233;--cta:249 115 22;--cta-strong:194 65 12;--hero-from:30 64 175;--hero-to:30 58 138;}
-.theme-nhi{--theme-primary:22 163 74;--theme-secondary:5 150 105;--theme-accent:13 148 136;--cta:245 158 11;--cta-strong:180 83 9;--hero-from:22 101 52;--hero-to:6 78 59;}
-.theme-khanh{--theme-primary:234 88 12;--theme-secondary:249 115 22;--theme-accent:217 119 6;--cta:37 99 235;--cta-strong:29 78 216;--hero-from:154 52 18;--hero-to:124 45 18;}
+.theme-ha{--portrait-img:url("../../_shared/assets/portraits/ha.webp");--theme-primary:37 99 235;--theme-secondary:59 130 246;--theme-accent:14 165 233;--cta:249 115 22;--cta-strong:194 65 12;--hero-from:30 64 175;--hero-to:30 58 138;}
+.theme-nhi{--portrait-img:url("../../_shared/assets/portraits/nhi.webp");--theme-primary:22 163 74;--theme-secondary:5 150 105;--theme-accent:13 148 136;--cta:245 158 11;--cta-strong:180 83 9;--hero-from:22 101 52;--hero-to:6 78 59;}
+.theme-khanh{--portrait-img:url("../../_shared/assets/portraits/khanh.webp");--theme-primary:234 88 12;--theme-secondary:249 115 22;--theme-accent:217 119 6;--cta:37 99 235;--cta-strong:29 78 216;--hero-from:154 52 18;--hero-to:124 45 18;}
 
 *,*::before,*::after{box-sizing:border-box;}
 html,body{margin:0;}
@@ -81,7 +81,12 @@ h1,h2,h3{margin:0;line-height:1.2;letter-spacing:-0.02em;}
 
 /* story */
 .story{display:grid;grid-template-columns:.85fr 1.15fr;gap:40px;align-items:center;}
-.story-photo{aspect-ratio:4/5;border-radius:var(--radius-lg);background:linear-gradient(140deg,rgb(var(--theme-primary)),rgb(var(--theme-secondary)));display:flex;align-items:center;justify-content:center;font-size:88px;color:#fff;box-shadow:var(--shadow-lg);}
+.story-photo{aspect-ratio:4/5;border-radius:var(--radius-lg);
+  /* GAP-1232: chân dung GV THẬT (documents/08-thesis/portrait → webp 480w) thay gradient+emoji;
+     fallback gradient khi thiếu ảnh. Per-theme swap qua --portrait-img. */
+  background:var(--portrait-img, linear-gradient(140deg,rgb(var(--theme-primary)),rgb(var(--theme-secondary))));
+  background-size:cover;background-position:center top;
+  display:flex;align-items:flex-end;justify-content:center;font-size:0;box-shadow:var(--shadow-lg);}
 .story h2{font-size:clamp(24px,3vw,32px);font-weight:800;margin-bottom:16px;}
 .story p{margin:0 0 14px;font-size:16px;}
 .story .sig{font-weight:800;color:rgb(var(--theme-primary));font-size:17px;margin-top:6px;}
@@ -164,7 +169,7 @@ h1,h2,h3{margin:0;line-height:1.2;letter-spacing:-0.02em;}
   <!-- STORY -->
   <section class="section">
     <div class="container story">
-      <div class="story-photo" id="storyAva" aria-hidden="true">👩‍🏫</div>
+      <div class="story-photo" id="storyAva" role="img" aria-label="Chân dung giáo viên"></div>
       <div>
         <h2 id="storyHead">Câu chuyện của cô Hà</h2>
         <p id="storyP1">Tôi là Nguyễn Thị Hà, tốt nghiệp khoa Toán ĐH Sư phạm Hà Nội. Suốt 12 năm dạy học, tôi nhận ra điều khiến con sợ Toán thường không phải vì con kém — mà vì con bị hổng một mắt xích nền tảng và lớp đông nên cô không kịp phát hiện.</p>
