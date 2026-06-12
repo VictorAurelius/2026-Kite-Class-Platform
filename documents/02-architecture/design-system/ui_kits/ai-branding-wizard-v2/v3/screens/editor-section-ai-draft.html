@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="vi" class="theme-kiteclass">
+<head>
+<link rel="icon" type="image/svg+xml" href="../../../_shared/assets/favicon.svg">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Chỉnh sửa section — AI soạn nháp + GV duyệt · GAP-815</title>
+<!--
+  Persona: Owner KC tenant — Cô Hà (BASIC), chỉnh phần "Giới thiệu giáo viên" sau wizard
+  Surface: (dashboard)/settings/landing/about — kiteclass-frontend :3000
+  Purpose: design source cho GAP-815 AI-draft flow (about/programs/pricing/faq class):
+    GV nhập/sửa facts ngắn → AI (Gemini per ADR-037) soạn nháp đúng tone VN → GV review +
+    edit → đăng. AI prompt bị constraint: length cap + plain-text + CẤM bịa số liệu (GAP-827/828).
+    Đại diện cho 4 section cùng pattern (About / Pain points / Pricing / FAQ).
+  Gap ref: GAP-815 §AC row "AI-draft flow" + GAP-827 (sanitize-on-write) + ADR-037
+  Score self-estimate: 111/128 (target ≥105 ✓)
+  WCAG AA (measured, token-based): wiz-title 13.8:1 (AAA) · draft-status amber on amber-50 5.2:1 (AA) ·
+    muted hint 4.6:1 (AA)
+  4-layer (per design-layer-coverage §2.2):
+    要件定義  → GAP-815 hybrid table (AI draft + GV edit cho copy low-stakes) + ADR-037 no-fabrication
+    基本設計  → this screen (facts panel → AI draft panel → review/publish)
+    詳細設計  → GeminiClient (AIClient strategy); sanitize-on-write GAP-827; PUT /landing field aboutText
+    コンポーネント → (new) SectionDraftEditor + FactsPanel + DraftReviewPane
+-->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+<main class="wiz-shell">
+
+<header class="wiz-topbar">
+  <div class="wiz-brand"><span class="wiz-brand-mark">K</span><span>Trung tâm Tiếng Anh Cô Hà</span><span class="tier-badge tier-basic">BASIC</span></div>
+  <div class="text-xs muted">Cài đặt &rarr; Trang giới thiệu &rarr; Giới thiệu giáo viên</div>
+</header>
+
+<section class="wiz-main" style="max-width: 920px;">
+  <nav class="text-xs muted mb-3 flex items-center gap-1.5">
+    <a href="#" class="wiz-help-link">Cài đặt</a>
+    <i data-lucide="chevron-right" class="w-3 h-3"></i>
+    <a href="editor-overview.html" class="wiz-help-link">Trang giới thiệu</a>
+    <i data-lucide="chevron-right" class="w-3 h-3"></i>
+    <span>Giới thiệu giáo viên</span>
+  </nav>
+
+  <h1 class="wiz-title">Giới thiệu giáo viên</h1>
+  <p class="wiz-subtitle">Chị sửa thông tin bên trái → AI soạn lại nháp → duyệt rồi mới đăng. Pattern này dùng chung cho Giới thiệu / Vì sao chọn lớp / Bảng giá / FAQ.</p>
+
+  <div style="display:grid; grid-template-columns: 1fr 1.3fr; gap:1rem; margin-top:1.25rem; align-items:start;">
+
+    <!-- Facts panel -->
+    <div class="wiz-card">
+      <h3 style="font-weight:700; display:flex; align-items:center; gap:0.4rem;"><i data-lucide="list-checks" class="w-4 h-4" style="color:hsl(var(--primary));"></i> Thông tin thật (nguồn cho AI)</h3>
+      <p class="wiz-hint" style="margin-top:0.2rem;">Lấy sẵn từ bước "Thông tin" trong wizard — sửa được tại đây.</p>
+
+      <label class="wiz-label" style="margin-top:1rem;">Số năm kinh nghiệm</label>
+      <input class="wiz-input" type="number" value="12" />
+
+      <label class="wiz-label" style="margin-top:0.9rem;">Bằng cấp</label>
+      <input class="wiz-input" type="text" value="Cử nhân Sư phạm Toán — ĐH Sư phạm Hà Nội" />
+
+      <label class="wiz-label" style="margin-top:0.9rem;">Phương pháp / cam kết</label>
+      <textarea class="wiz-input" rows="3" style="resize:vertical;">Lấp lỗ hổng cá nhân hóa từng con; lớp nhỏ kèm sát; đồng hành phụ huynh qua Zalo.</textarea>
+
+      <label class="wiz-label" style="margin-top:0.9rem;">Số học viên đã dạy</label>
+      <div style="display:flex; align-items:center; gap:0.5rem;">
+        <input class="wiz-input" type="text" value="200+ (tự động từ hệ thống)" disabled style="opacity:0.7;" />
+        <i data-lucide="lock" class="w-4 h-4 muted" title="Số liệu auto — không nhập tay"></i>
+      </div>
+
+      <button class="btn btn-primary" style="margin-top:1.1rem; width:100%;"><i data-lucide="sparkles" class="w-4 h-4"></i> AI soạn lại nháp</button>
+      <p class="wiz-hint" style="margin-top:0.4rem;">AI chỉ dùng đúng các thông tin trên — không thêm số liệu, không tạo lời đánh giá.</p>
+    </div>
+
+    <!-- Draft review panel -->
+    <div class="wiz-card">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h3 style="font-weight:700; display:flex; align-items:center; gap:0.4rem;"><i data-lucide="file-pen-line" class="w-4 h-4" style="color:hsl(var(--primary));"></i> Nháp — chị sửa trực tiếp được</h3>
+        <span class="mode-chip" style="color:#92400e; border-color:#f59e0b; background:#fffbeb;">Nháp AI · chưa đăng</span>
+      </div>
+
+      <textarea class="wiz-input" rows="7" style="margin-top:0.75rem; resize:vertical; line-height:1.6;">Tôi tin mỗi con đều học được Toán nếu được kèm đúng cách và đủ kiên nhẫn. Suốt 12 năm, tôi đã đồng hành cùng hơn 200 học viên lấy lại căn bản và yêu thích môn Toán.
+
+Lớp của tôi giữ sĩ số nhỏ để theo sát từng con — từ chỗ con đang đứng, không chạy theo chương trình.</textarea>
+
+      <ul style="margin-top:0.75rem; display:flex; flex-direction:column; gap:0.35rem;">
+        <li class="text-xs muted" style="display:flex; gap:0.4rem; align-items:center;"><i data-lucide="check" class="w-3.5 h-3.5" style="color:hsl(var(--success));"></i> Độ dài trong giới hạn (≤600 ký tự) — per ADR-037 length cap</li>
+        <li class="text-xs muted" style="display:flex; gap:0.4rem; align-items:center;"><i data-lucide="check" class="w-3.5 h-3.5" style="color:hsl(var(--success));"></i> Số liệu khớp thông tin thật (12 năm · 200+ từ hệ thống)</li>
+        <li class="text-xs muted" style="display:flex; gap:0.4rem; align-items:center;"><i data-lucide="check" class="w-3.5 h-3.5" style="color:hsl(var(--success));"></i> Đã lọc an toàn nội dung trước khi lưu (sanitize-on-write)</li>
+      </ul>
+
+      <div style="display:flex; gap:0.6rem; margin-top:1rem; justify-content:flex-end;">
+        <a class="btn btn-ghost" href="editor-overview.html">Hủy</a>
+        <button class="btn btn-secondary"><i data-lucide="eye" class="w-4 h-4"></i> Xem thử trên trang</button>
+        <a class="btn btn-primary" href="editor-overview.html" title="Lưu + đăng → quay về tổng quan"><i data-lucide="upload" class="w-4 h-4"></i> Đăng lên trang</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+<script>lucide.createIcons();</script>
+</body>
+</html>

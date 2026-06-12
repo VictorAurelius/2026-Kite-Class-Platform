@@ -26,18 +26,24 @@ v3 refresh khớp wizard production hiện hành + cụm AI chain ADR-037. Khác
 | v3 screen | Bước | GAP / ADR |
 |---|---|---|
 | `step1-welcome` | 1 Chào mừng + tenant | GAP-1212 |
-| `step2-logo` | 2 Logo + **favicon** | GAP-1229 (favicon affordance 16/32px ≤200KB) |
-| `step3-mode` | 3 **Chế độ AI** TEMPLATE/FULL_AI | GAP-1147 + ADR-037 Amendment 2-mode |
-| `step4-audience` | 4 Đối tượng | GAP-1212 |
-| `step5-tone` | 5 Phong cách | GAP-1212 |
-| `step6-portrait` | 7a **Ảnh chân dung** (FULL_AI) | GAP-1134 |
-| `step7-template` | 6 Mẫu (TEMPLATE route) | ADR-037 HTML+Gemini→Playwright→WebP |
-| `step8-banner-generating/failed/ready` | 7 **Banner states** | GAP-1135 (3 states) + GAP-1021 SSE |
-| `step9-preview` | 8 Phê duyệt + **SSE deploy** | GAP-1021 + §4.2 per-resource approve |
+| `step2-info` | 2 **Thông tin trung tâm** — facts thật (môn/năm KN/bằng cấp/học phí/sĩ số/khác biệt) cho AI draft | GAP-1234 (giải blank-page GAP-815 ghi nhận) + ADR-037 no-fabrication |
+| `step3-logo` | 3 Logo + **favicon** | GAP-1229 (favicon affordance 16/32px ≤200KB) |
+| `step4-mode` | 4 **Chế độ AI** TEMPLATE/FULL_AI | GAP-1147 + ADR-037 Amendment 2-mode |
+| `step5-audience` | 5 Đối tượng | GAP-1212 |
+| `step6-tone` | 6 Phong cách | GAP-1212 |
+| `step7-template` | 7 Mẫu (TEMPLATE route) | ADR-037 HTML+Gemini→Playwright→WebP |
+| `step7a-portrait` | 8a **Ảnh chân dung** (FULL_AI) | GAP-1134 |
+| `step8-banner-generating/failed/ready` | 8 **Banner states** | GAP-1135 (3 states) + GAP-1021 SSE |
+| `step9-preview` | 9 Phê duyệt + **SSE deploy** | GAP-1021 + §4.2 per-resource approve |
+| `editor-overview` | Editor · tổng quan 7 section (`Cài đặt → Trang giới thiệu`) | GAP-815 design source (基本設計) |
+| `editor-section-ai-draft` | Editor · AI soạn nháp + GV duyệt (About/Pain/Pricing/FAQ) | GAP-815 + GAP-827 sanitize + ADR-037 |
+| `editor-testimonials` | Editor · đánh giá thật — manual-only, **KHÔNG nút AI** | GAP-815 + Luật Quảng cáo VN + ADR-010 |
+
+**Content-entry mapping (2026-06-12, GAP-1234):** text landing (hero/about/pain/FAQ) = AI Gemini draft từ facts bước 2 + audience/tone; học phí + bằng cấp + năm KN = GV nhập bước 2; teachers = prefill hồ sơ GV; stats = auto từ data thật; testimonials = manual-only tại editor. Wizard 9 bước (8 + bước Thông tin); nhánh FULL_AI 8a giữ nguyên.
 
 **Implementation cite kit v3 làm design source:** cụm GAP-1134/1147/1135/1021 dùng `v3/screens/*.html` làm 基本設計 (Layer 2). 4-layer pointers đầy đủ trong [`v3/index.html`](v3/index.html) §4-layer coverage.
 
-**Click-through navigation (GAP-1233, 2026-06-12):** 11 screens v3 wire điều hướng thật giữa các bước (Figma-prototype equivalent) — stepper là link nhảy bước, footer CTA đi theo flow `1→2→3→4→5→7→8→9`, rẽ nhánh ADR-037 walk được bằng click (step3 lock-note → nhánh FULL_AI `6→8`; step8-generating có link mô phỏng kết quả Thành công/Lỗi). Bắt đầu walk từ [`v3/screens/step1-welcome.html`](v3/screens/step1-welcome.html) — không cần quay về index giữa các bước. v2 archive giữ nguyên không wire (per annotation trên).
+**Click-through navigation (GAP-1233 + renumber GAP-1234, 2026-06-12):** 15 screens v3 wire điều hướng thật giữa các bước (Figma-prototype equivalent) — stepper 9 vị trí là link nhảy bước, footer CTA đi theo flow `1→2→3→4→5→6→7→8→9`, rẽ nhánh ADR-037 walk được bằng click (step4-mode lock-note → nhánh FULL_AI `8a→8`; step8-generating có link mô phỏng kết quả Thành công/Lỗi; wizard ↔ editor link 2 chiều). Bắt đầu walk từ [`v3/screens/step1-welcome.html`](v3/screens/step1-welcome.html) — không cần quay về index giữa các bước. v2 archive giữ nguyên không wire (per annotation trên).
 
 ---
 
