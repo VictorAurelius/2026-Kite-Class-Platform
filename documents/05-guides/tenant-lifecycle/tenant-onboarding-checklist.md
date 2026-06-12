@@ -28,7 +28,7 @@ Pricing TBD — xem [GAP-103](../04-quality/gaps/GAP-103-deploy-philosophy-aws-p
 - [ ] Billing info captured (if paying tier)
 
 ### 2.2 Technical prerequisites
-- [ ] Desired subdomain confirmed (e.g., `school-name.kiteclass.com`)
+- [ ] Desired subdomain confirmed (e.g., `school-name.kitehub.me`)
 - [ ] Branding assets collected (logo, color preferences — optional)
 - [ ] Primary admin email confirmed (cannot change easily post-provisioning)
 - [ ] Locale confirmed (vi-VN default, en-US optional)
@@ -66,8 +66,8 @@ cd kitehub
 
 Verify:
 - [ ] Tenant record created in `kitehub.tenants` table
-- [ ] DNS subdomain `abc.kiteclass.com` resolves (Cloudflare propagation 1-5 min)
-- [ ] SSL cert issued by cert-manager (check via `curl -I https://abc.kiteclass.com`)
+- [ ] DNS subdomain `abc.kitehub.me` resolves (Cloudflare propagation 1-5 min)
+- [ ] SSL cert issued by cert-manager (check via `curl -I https://abc.kitehub.me`)
 - [ ] Initial instance status = `NOT_STARTED`
 
 ### 3.2 Run branding wizard (if tier supports)
@@ -169,7 +169,7 @@ Follow [`../04-quality/gaps/GAP-051-bulk-import-users-xlsx.md`](../04-quality/ga
 ## 7. Common Issues + Fixes
 
 ### 7.1 Subdomain not resolving
-Cloudflare DNS cache. Wait 5 min, or force refresh: `dig +trace abc.kiteclass.com`.
+Cloudflare DNS cache. Wait 5 min, or force refresh: `dig +trace abc.kitehub.me`.
 
 ### 7.2 SSL cert not issued
 cert-manager webhook error. Check:

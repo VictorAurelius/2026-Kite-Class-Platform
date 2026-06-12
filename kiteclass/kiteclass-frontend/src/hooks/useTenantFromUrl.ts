@@ -3,7 +3,7 @@
  *
  * Priority:
  * 1. Query param: ?tenant=abc-center
- * 2. Subdomain: abc-center.kiteclass.com
+ * 2. Subdomain: abc-center.kitehub.me
  * 3. localStorage: tenantId (from previous session)
  *
  * Local dev uses query param, production uses subdomain.
@@ -46,7 +46,7 @@ function getSubdomain(hostname: string): string | null {
     return null;
   }
 
-  // abc-center.kiteclass.com → abc-center
+  // abc-center.kitehub.me → abc-center
   const parts = hostname.split('.');
   if (parts.length >= 3) {
     const sub = parts[0] ?? '';

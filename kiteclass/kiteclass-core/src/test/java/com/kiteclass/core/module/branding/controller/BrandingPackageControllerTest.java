@@ -62,7 +62,7 @@ class BrandingPackageControllerTest {
 
     private BrandingPackage pkg() {
         return new BrandingPackage(10L, "t-1", "acme",
-                "https://acme.kiteclass.com", 7, Instant.parse("2026-04-14T00:00:00Z"),
+                "https://acme.kitehub.me", 7, Instant.parse("2026-04-14T00:00:00Z"),
                 List.of(new BrandingPackage.AssetEntry("LOGO", "STATIC",
                         "s3://bucket/logo.png", null)));
     }

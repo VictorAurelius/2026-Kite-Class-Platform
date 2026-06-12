@@ -100,7 +100,7 @@ THREE receivers in two modes:
 |------|----------|---------|
 | Placeholder (default) | `default-webhook` | `http://alertmanager-webhook-placeholder.invalid/default` — alerts silently drop |
 | Placeholder (default) | `critical-webhook` | `http://alertmanager-webhook-placeholder.invalid/critical` — alerts silently drop |
-| Placeholder (default) | `warning-email` | `smtp.placeholder.invalid:587` to `ops@kiteclass.com` — alerts silently drop |
+| Placeholder (default) | `warning-email` | `smtp.placeholder.invalid:587` to `ops@kitehub.me` — alerts silently drop |
 | Production (opt-in) | `default-webhook` | Slack via `slack_configs.api_url_file` — webhook URL from AWS SM `kitehub/<env>/alertmanager/slack-webhook` |
 | Production (opt-in) | `critical-webhook` | PagerDuty via `pagerduty_configs.service_key_file` — routing key from AWS SM `kitehub/<env>/alertmanager/pagerduty-key` |
 | Production (opt-in) | `warning-email` | AWS SES via `email-smtp.<region>.amazonaws.com:587` — SMTP password from AWS SM `kitehub/<env>/alertmanager/smtp-password` |
@@ -202,7 +202,7 @@ monitoring:
         slack:
           channel: "#kitehub-prod-alerts"
         email:
-          to: "ops-prod@kiteclass.com"
+          to: "ops-prod@kitehub.me"
     smtp:
       region: ap-southeast-1
 ```
@@ -242,7 +242,7 @@ amtool alert add \
 
 # 4. Mock warning email (severity=warning is duplicated to warning-email via continue:true on critical-route — verify route config)
 #    (Email path tested via the same severity=warning alert from step 2 — also reaches warning-email via continue:false on the warning route.)
-#    Expect: email at ops@kiteclass.com within ~5 min
+#    Expect: email at ops@kitehub.me within ~5 min
 
 # 5. Verify inhibition: ServiceDown should silence HighErrorRate for same job
 amtool alert add \

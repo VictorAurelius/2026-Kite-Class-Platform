@@ -117,7 +117,7 @@ export const options = {
 };
 
 export default function () {
-  const BASE_URL = __ENV.BASE_URL || 'https://staging.kiteclass.com';
+  const BASE_URL = __ENV.BASE_URL || 'https://staging.kitehub.me';
   const TOKEN = __ENV.AUTH_TOKEN;
 
   const res = http.get(`${BASE_URL}/api/students`, {
@@ -136,7 +136,7 @@ export default function () {
 **Run:**
 ```bash
 k6 run k6/scripts/student-api-load-test.js \
-  --env BASE_URL=https://staging.kiteclass.com \
+  --env BASE_URL=https://staging.kitehub.me \
   --env AUTH_TOKEN=$AUTH_TOKEN
 ```
 

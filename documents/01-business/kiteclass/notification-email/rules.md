@@ -10,7 +10,7 @@
 | EM-02 | Default implementation | LoggingEmailService — logs to console, no SMTP | `@Service` default bean |
 | EM-03 | Production implementation | Replace with SmtpEmailService or external (SendGrid, AWS SES) | SMTP config in `application.yml` |
 | EM-04 | Contact notification recipient | Admin email from config | `contact.admin-email` |
-| EM-05 | Contact notification default | `admin@kiteclass.com` | `contact.admin-email` default |
+| EM-05 | Contact notification default | `admin@kitehub.me` | `contact.admin-email` default |
 | EM-06 | Email failure isolation | Email send failure does NOT fail the business operation (try-catch) | — |
 | EM-07 | Multi-tenant isolation | Emails triggered per tenant context (instanceId) | — |
 | EM-08 | Lead email uniqueness | One lead per email per tenant — duplicate rejected before email | BR-MKT-002 |
@@ -61,7 +61,7 @@ Service calls sendTemplateEmail(to, subject, templateName, variables)
 ```yaml
 # Contact notification
 contact:
-  admin-email: admin@kiteclass.com    # EM-04, EM-05: recipient for contact form notifications
+  admin-email: admin@kitehub.me    # EM-04, EM-05: recipient for contact form notifications
 
 # SMTP (production — not yet implemented)
 spring:

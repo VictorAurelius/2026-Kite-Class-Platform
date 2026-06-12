@@ -20,7 +20,7 @@ Mark infrastructure ready → status=GENERATING.
 **Response 200:** FrontendInstance
 
 ## POST /api/v1/instances/{id}/branding-completed
-**Request:** `{ "frontendUrl": "https://acme.kiteclass.com" }` (optional)
+**Request:** `{ "frontendUrl": "https://acme.kitehub.me" }` (optional)
 **Response 200:** FrontendInstance (status=DEPLOYED, brandingVersion++)
 
 ## POST /api/v1/instances/{id}/rebrand

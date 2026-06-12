@@ -44,7 +44,7 @@ stringData:
   alertmanager.yaml: |
     global:
       resolve_timeout: 5m
-      smtp_from: "alerts@kiteclass.com"
+      smtp_from: "alerts@kitehub.me"
       {{- if $am.receivers.production.enabled }}
       # AWS SES SMTP endpoint. Host + username sourced from
       # alertmanager-receivers Secret keys (smtp-host / smtp-username) via
@@ -52,7 +52,7 @@ stringData:
       # deploy time. See runbook
       # documents/05-guides/operations/runbooks/alertmanager-mock-fire-runbook.md §3.2.
       smtp_smarthost: {{ $am.smtp.smarthost | default (printf "email-smtp.%s.amazonaws.com:587" ($am.smtp.region | default "us-east-1")) | quote }}
-      smtp_auth_username: {{ $am.smtp.authUsername | default "alerts@kiteclass.com" | quote }}
+      smtp_auth_username: {{ $am.smtp.authUsername | default "alerts@kitehub.me" | quote }}
       smtp_auth_password_file: "/etc/alertmanager/secrets/alertmanager-receivers/smtp-password"
       {{- else }}
       # Placeholder — switched to AWS SES when receivers.production.enabled=true.
@@ -97,7 +97,7 @@ stringData:
 
       - name: "warning-email"
         email_configs:
-          - to: {{ $am.receivers.production.email.to | default "ops@kiteclass.com" | quote }}
+          - to: {{ $am.receivers.production.email.to | default "ops@kitehub.me" | quote }}
             send_resolved: true
             headers:
               Subject: "[{{ `{{ .Status | toUpper }}` }}] {{ `{{ .CommonLabels.alertname }}` }} — kitehub"
@@ -116,7 +116,7 @@ stringData:
 
       - name: "warning-email"
         email_configs:
-          - to: "ops@kiteclass.com"
+          - to: "ops@kitehub.me"
             send_resolved: true
       {{- end }}
 

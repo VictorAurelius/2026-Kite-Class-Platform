@@ -1,6 +1,6 @@
 # 02 — Domain Registrar Runbook (`.vn` + fallback `.com`)
 
-**Đối tượng:** Solo dev đăng ký 2 domain `kitehub.vn` + `kiteclass.vn` lần đầu.
+**Đối tượng:** Solo dev đăng ký 2 domain `kitehub.vn` + `kitehub.me` lần đầu.
 **Tiêu chuẩn:** VN Luật Giao dịch điện tử 2023 · VNNIC `.vn` policy · Cloudflare onboarding.
 **Cross-link:** Blocks `dns-setup-runbook.md` §2.1 (domain registration) → §2.2 (Cloudflare nameserver migrate) → SSL Let's Encrypt (`02-architecture/adr/`).
 **Estimated time:** ~1h registration + 24-48h DNS propagation.
@@ -11,7 +11,7 @@
 
 ## 1. Decision matrix — registrar nào?
 
-Phase 1 BETA dùng `beta.kitehub.vn` + `beta.kiteclass.vn` (sub-domain), nhưng vẫn cần đăng ký apex domain `kitehub.vn` + `kiteclass.vn` trước.
+Phase 1 BETA dùng `beta.kitehub.vn` + `beta.kitehub.me` (sub-domain), nhưng vẫn cần đăng ký apex domain `kitehub.vn` + `kitehub.me` trước.
 
 ### 1.1 So sánh 3 registrar phổ biến VN + fallback `.com`
 
@@ -37,7 +37,7 @@ Phase 1 BETA dùng `beta.kitehub.vn` + `beta.kiteclass.vn` (sub-domain), nhưng 
 | Domain | Registrar | Reason |
 |--------|-----------|--------|
 | `kitehub.vn` | **Nhân Hòa** (preferred) hoặc **Mắt Bão** | `.vn` brand VN; KYC qua chủ thể cá nhân OK |
-| `kiteclass.vn` | Same registrar as `kitehub.vn` | Single bill, easier renewal tracking |
+| `kitehub.me` | Same registrar as `kitehub.vn` | Single bill, easier renewal tracking |
 | `kitehub.com` (optional fallback) | **Cloudflare Registrar** | At-cost pricing + tích hợp Cloudflare DNS |
 
 ⚠️ KHÔNG dùng Cloudflare Registrar cho `.vn` — không hỗ trợ. Phải qua VN registrar.
@@ -61,7 +61,7 @@ Phase 1 BETA dùng `beta.kitehub.vn` + `beta.kiteclass.vn` (sub-domain), nhưng 
 3. Period: **2 năm** (ưu đãi giá thường rẻ hơn 1 năm/năm; expiry buffer cao hơn).
 4. Auto-renewal: ✅ ON (tránh quên renewal → domain mất).
 5. WHOIS privacy: ✅ ON (Nhân Hòa free `.vn`).
-6. Lặp `kiteclass.vn`.
+6. Lặp `kitehub.me`.
 7. Checkout → thẻ Visa/MasterCard hoặc chuyển khoản ngân hàng VN.
 8. Sau payment, domain hoạt động trong 1-15 phút.
 
@@ -70,7 +70,7 @@ Phase 1 BETA dùng `beta.kitehub.vn` + `beta.kiteclass.vn` (sub-domain), nhưng 
 1. Dashboard → Quản lý tên miền → `kitehub.vn` → Tab "Bảo mật" hoặc "Khoá".
 2. Verify "Transfer Lock" / "Khoá chuyển nhượng" = ON.
 3. Một số registrar có 60-ngày lock sau registration mặc định (ICANN policy) — verify status.
-4. Lặp `kiteclass.vn`.
+4. Lặp `kitehub.me`.
 
 ⚠️ **Critical:** transfer-lock unlock chỉ khi PHẢI move registrar. Mặc định ON tránh attacker steal domain qua social engineering Nhân Hòa support.
 
@@ -86,11 +86,11 @@ Nameserver migrate là cách tốt nhất để Cloudflare manage DNS (proxy + D
 6. Save. Đợi propagation 5-30 phút (đôi khi tới 24h cho `.vn`).
 7. Verify: `dig NS kitehub.vn @8.8.8.8` → expect `*.ns.cloudflare.com`.
 8. Cloudflare dashboard show "Active" trong "Overview" tab.
-9. Lặp `kiteclass.vn`.
+9. Lặp `kitehub.me`.
 
 ### 2.5 DNS records cho Phase 1 BETA
 
-Sau khi nameserver active trên Cloudflare, follow `dns-setup-runbook.md` §2.3 add records cho `beta.kitehub.vn` + `beta.kiteclass.vn` + Cloudflare proxy orange-cloud.
+Sau khi nameserver active trên Cloudflare, follow `dns-setup-runbook.md` §2.3 add records cho `beta.kitehub.vn` + `beta.kitehub.me` + Cloudflare proxy orange-cloud.
 
 ---
 
@@ -113,7 +113,7 @@ Nếu `.vn` KYC quá lâu hoặc reject, fallback `.com`:
 Sau khi xong:
 
 - [ ] `kitehub.vn` registered + transfer-lock ON + auto-renewal ON
-- [ ] `kiteclass.vn` registered + transfer-lock ON + auto-renewal ON
+- [ ] `kitehub.me` registered + transfer-lock ON + auto-renewal ON
 - [ ] Both domains migrated nameservers → Cloudflare (2 NS visible trong `dig NS`)
 - [ ] Cloudflare dashboard "Active" status both sites
 - [ ] WHOIS privacy enabled (verify: `whois kitehub.vn | grep -i "registrant\|whois.*privacy"`)

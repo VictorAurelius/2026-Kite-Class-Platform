@@ -92,7 +92,7 @@ Email kích hoạt chứa:
 
 Click link kích hoạt → chuyển sang **Onboarding Wizard 4 bước**:
 
-1. **Chào mừng** — xác nhận tên trung tâm + URL (`sky-education.kiteclass.com`)
+1. **Chào mừng** — xác nhận tên trung tâm + URL (`sky-education.kitehub.me`)
 2. **Trang quản lý** — giới thiệu sidebar (Dashboard / Thanh toán / Thương hiệu / Cài đặt)
 3. **Website trung tâm** — preview trang công khai cho học sinh + phụ huynh
 4. **Checklist tiếp theo** — 4 task gợi ý (AI Branding / Thêm khoá học / Mời giáo viên / Nâng cấp gói)
@@ -109,7 +109,7 @@ Chi tiết wizard: xem [Onboarding Wizard](onboarding-wizard.md).
 | Link kích hoạt hết hạn | Email request lại; admin sẽ gửi link mới trong 24h |
 | Token không hợp lệ | URL có thể bị truncate khi forward email; copy nguyên link |
 | Admin không phản hồi trong 24h | Hotline 1900-xxxx hoặc Zalo OA (Phase 1.5+) |
-| Tên trung tâm trùng | Hệ thống tự thêm hậu tố `-2` / `-3` (vd `sky-education-2.kiteclass.com`) |
+| Tên trung tâm trùng | Hệ thống tự thêm hậu tố `-2` / `-3` (vd `sky-education-2.kitehub.me`) |
 
 ---
 

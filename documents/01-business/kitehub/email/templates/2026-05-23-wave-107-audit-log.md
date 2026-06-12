@@ -38,7 +38,7 @@ Ghi chú: Định dạng ngày trong email templates phụ thuộc vào renderer
 
 | Template | Issue trước Wave 107 | Fix Wave 107 |
 |---|---|---|
-| welcome.html | Subject fallback `KiteClass` (sai brand); greeting `Xin chào <org>` (không natural); footer `kiteclass.com` (sai); nút `Đăng Nhập Ngay` (Title Case không consistent) | Brand sửa → `KiteHub`; greeting → `Em chào anh/chị`; footer support đúng; nút → `Đăng nhập ngay` |
+| welcome.html | Subject fallback `KiteClass` (sai brand); greeting `Xin chào <org>` (không natural); footer `kitehub.me` (sai); nút `Đăng Nhập Ngay` (Title Case không consistent) | Brand sửa → `KiteHub`; greeting → `Em chào anh/chị`; footer support đúng; nút → `Đăng nhập ngay` |
 | email-verification.html | Greeting `Xin chào,` (không cá nhân hóa); brand `KiteClass`; footer "không trả lời" | Greeting → `Kính gửi anh/chị <name>`; brand → `KiteHub`; footer → reply-friendly |
 | password-reset.html | Footer "không trả lời" | Footer → support contact + unsubscribe |
 | beta-invite.txt | Footer "không trả lời trực tiếp" — mâu thuẫn HTML reply-friendly | Footer → reply-friendly, consistent với HTML |
@@ -81,7 +81,7 @@ Ghi chú: Định dạng ngày trong email templates phụ thuộc vào renderer
 ```
 - Subject: "Chào mừng đến với KiteClass" (sai brand)
 - Greeting: "Xin chào <Organization>," (English placeholder fallback)
-- Footer contact: support@kiteclass.com (sai domain)
+- Footer contact: support@kitehub.me (sai domain)
 - Footer: "vui lòng không trả lời" (anti-VN culture)
 - Thiếu: next-steps block, /beta-status link, unsubscribe link
 ```

@@ -12,7 +12,7 @@ Wave 64 Bucket D audit identified 3 helm gaps that don't block Phase 1 BETA (doc
 
 1. **`kitehub-platform` missing from helm deployment** — service exists in code (`kitehub/kitehub-platform/`) but `infrastructure/helm/kitehub/templates/deployment.yaml:1` `dict` literal only renders 6 services (gateway/subscription/branding/admin/email/frontend). No Deployment/Service/ServiceMonitor for kitehub-platform.
 
-2. **Ingress declared but not rendered** — `values.yaml:103-114` defines `ingress.enabled=true` + hosts `kiteclass.com` + ALB annotations. No `templates/ingress.yaml` exists → silent no-op. Phase 1 BETA bypasses helm Ingress (ALB managed by terraform), but Phase 2 EKS migration needs decision.
+2. **Ingress declared but not rendered** — `values.yaml:103-114` defines `ingress.enabled=true` + hosts `kitehub.me` + ALB annotations. No `templates/ingress.yaml` exists → silent no-op. Phase 1 BETA bypasses helm Ingress (ALB managed by terraform), but Phase 2 EKS migration needs decision.
 
 3. **Subchart version drift:**
    - `loki-stack 2.10.2` — deprecated upstream (Grafana migrated to `loki` v6.x + standalone `promtail`)

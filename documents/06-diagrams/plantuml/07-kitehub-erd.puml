@@ -234,7 +234,7 @@ package "Asset Storage (S3/MinIO)" as S3_MOD #E0E0E0 {
         ├── banners/ (facebook, youtube)
         └── og_image.jpg
         --
-        CDN: cdn.kiteclass.com (CloudFront)
+        CDN: cdn.kitehub.me (CloudFront)
         Versioning: 3 latest versions kept
     }
 }

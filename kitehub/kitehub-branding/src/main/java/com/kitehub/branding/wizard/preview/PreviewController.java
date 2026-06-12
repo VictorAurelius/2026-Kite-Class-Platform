@@ -46,7 +46,7 @@ import java.util.UUID;
 public class PreviewController {
 
     private static final String CSP_VALUE =
-            "default-src 'self'; img-src 'self' https://cdn.kiteclass.vn data:; "
+            "default-src 'self'; img-src 'self' https://cdn.kitehub.me data:; "
                     + "style-src 'self' 'unsafe-inline'; frame-ancestors 'self'";
 
     private final BrandingJobRepository jobRepository;

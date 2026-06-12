@@ -632,7 +632,7 @@ export function Step6Preview({
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
               </div>
               <span className="font-mono text-xs text-muted-foreground flex-1 truncate">
-                https://{wizardState.slug || 'tenant-slug'}.kiteclass.vn
+                https://{wizardState.slug || 'tenant-slug'}.kitehub.me
               </span>
               <div className="flex gap-1" aria-label="Kích thước xem trước">
                 <button type="button" className="p-1 rounded hover:bg-slate-200" title="Mobile">
@@ -914,7 +914,7 @@ export function Step6Preview({
                     <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
                   </div>
                   <span className="flex-1 truncate font-mono text-xs text-muted-foreground">
-                    https://{wizardState.slug || 'tenant-slug'}.kiteclass.vn
+                    https://{wizardState.slug || 'tenant-slug'}.kitehub.me
                   </span>
                 </div>
                 <iframe

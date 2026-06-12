@@ -105,7 +105,7 @@
 │ 6. INSTANCE ACTIVATION                                      │
 │    - Update Instance status: ACTIVE                         │
 │    - Send welcome email (RabbitMQ → Email Service)          │
-│    - User can access: https://abc123.kiteclass.com          │
+│    - User can access: https://abc123.kitehub.me          │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -839,7 +839,7 @@ kiteclass-core/src/main/resources/db/migration/
 INSERT INTO users (id, email, password_hash, role, status, created_at)
 VALUES (
     gen_random_uuid(),
-    'admin@{subdomain}.kiteclass.com',
+    'admin@{subdomain}.kitehub.me',
     '$2a$10$...', -- bcrypt hash of temp password
     'ADMIN',
     'ACTIVE',

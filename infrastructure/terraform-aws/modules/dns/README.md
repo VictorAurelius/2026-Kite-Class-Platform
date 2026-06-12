@@ -14,7 +14,7 @@ Full resource definitions land in a follow-up infrastructure wave once Cloudflar
 Manages DNS zones + records for the KiteHub platform:
 
 - `kitehub.vn` — marketing site (A/AAAA, MX, TXT for domain proof + SPF/DKIM, CAA)
-- `kiteclass.com` — multi-tenant platform (wildcard A/AAAA for `*.kiteclass.com`, root records)
+- `kitehub.me` — multi-tenant platform (wildcard A/AAAA for `*.kitehub.me`, root records)
 - `kitehub.app` — defensive; redirect to `.vn`
 
 Tenant-specific subdomain records are created at **runtime** by the provisioning Saga calling the Cloudflare API adapter — NOT managed by Terraform to avoid drift.
@@ -25,14 +25,14 @@ Tenant-specific subdomain records are created at **runtime** by the provisioning
 
 | Resource | Purpose | Managed here? |
 |----------|---------|---------------|
-| `cloudflare_zone` (×3) | Zones for kitehub.vn, kiteclass.com, kitehub.app | Yes |
+| `cloudflare_zone` (×3) | Zones for kitehub.vn, kitehub.me, kitehub.app | Yes |
 | `cloudflare_record` root A/AAAA | Point apex to ALB | Yes |
-| `cloudflare_record` wildcard `*` on kiteclass.com | Fallback for tenants pre-provisioned subdomain | Yes |
+| `cloudflare_record` wildcard `*` on kitehub.me | Fallback for tenants pre-provisioned subdomain | Yes |
 | `cloudflare_record` MX / SPF / DKIM / DMARC | Email DNS (coordinates with GAP-021 email infra) | Yes |
 | `cloudflare_record` CAA | Restrict cert issuance to Let's Encrypt + Cloudflare | Yes |
 | `cloudflare_ruleset` (redirect) | `kitehub.app` → `kitehub.vn` 301 | Yes |
 | `cloudflare_custom_hostname` | Tenant custom-domain SaaS feature | **No — runtime** via backend adapter |
-| `cloudflare_record` tenant A `{slug}.kiteclass.com` | Per-tenant subdomain | **No — runtime** via backend adapter |
+| `cloudflare_record` tenant A `{slug}.kitehub.me` | Per-tenant subdomain | **No — runtime** via backend adapter |
 
 ---
 

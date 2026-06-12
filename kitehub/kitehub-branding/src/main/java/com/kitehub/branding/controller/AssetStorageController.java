@@ -351,10 +351,10 @@ public class AssetStorageController {
      * @return S3 object key
      */
     private String extractPathFromUrl(String url) {
-        // Handle CDN URLs (e.g., https://cdn.kiteclass.com/instances/xxx/...)
+        // Handle CDN URLs (e.g., https://cdn.kitehub.me/instances/xxx/...)
         // Handle S3 URLs (e.g., https://bucket.s3.region.amazonaws.com/instances/xxx/...)
         // Handle presigned URLs (e.g., https://bucket.s3.region.amazonaws.com/instances/xxx?...)
-        // Handle mock URLs (e.g., https://mock-cdn.kiteclass.com/instances/xxx/...)
+        // Handle mock URLs (e.g., https://mock-cdn.kitehub.me/instances/xxx/...)
 
         String path = url;
 

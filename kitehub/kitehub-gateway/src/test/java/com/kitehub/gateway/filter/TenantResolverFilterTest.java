@@ -46,7 +46,7 @@ class TenantResolverGatewayFilterFactoryTest {
 
     @BeforeEach
     void setUp() {
-        tenantResolverFilter = new TenantResolverGatewayFilterFactory(instanceRepository, ".kiteclass.com");
+        tenantResolverFilter = new TenantResolverGatewayFilterFactory(instanceRepository, ".kitehub.me");
 
         // Create active instance
         activeInstance = new Instance();
@@ -67,7 +67,7 @@ class TenantResolverGatewayFilterFactoryTest {
     void testTenantResolver_ValidSubdomain_Success() {
         // Given
         MockServerHttpRequest request = MockServerHttpRequest
-                .get("http://customer1.kiteclass.com/api/v1/students")
+                .get("http://customer1.kitehub.me/api/v1/students")
                 .build();
 
         MockServerWebExchange exchange = MockServerWebExchange.from(request);
@@ -95,13 +95,13 @@ class TenantResolverGatewayFilterFactoryTest {
     void testTenantResolver_InstanceNotFound_Returns404() {
         // Given
         MockServerHttpRequest request = MockServerHttpRequest
-                .get("http://nonexistent.kiteclass.com/api/v1/students")
+                .get("http://nonexistent.kitehub.me/api/v1/students")
                 .build();
 
         MockServerWebExchange exchange = MockServerWebExchange.from(request);
 
         lenient().when(instanceRepository.findBySubdomain("nonexistent")).thenReturn(Optional.empty());
-        lenient().when(instanceRepository.findByCustomDomain("nonexistent.kiteclass.com")).thenReturn(Optional.empty());
+        lenient().when(instanceRepository.findByCustomDomain("nonexistent.kitehub.me")).thenReturn(Optional.empty());
 
         // When
         Mono<Void> result = tenantResolverFilter.apply(new TenantResolverGatewayFilterFactory.Config())
@@ -120,7 +120,7 @@ class TenantResolverGatewayFilterFactoryTest {
         activeInstance.setStatus(InstanceStatus.SUSPENDED);
 
         MockServerHttpRequest request = MockServerHttpRequest
-                .get("http://customer1.kiteclass.com/api/v1/students")
+                .get("http://customer1.kitehub.me/api/v1/students")
                 .build();
 
         MockServerWebExchange exchange = MockServerWebExchange.from(request);

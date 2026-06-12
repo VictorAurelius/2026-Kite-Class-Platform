@@ -16,7 +16,7 @@
 #     Cross-checks docker-compose.production.yml + fetch-secrets.sh.
 #
 #   CHECK B (GAP-802 cơ chế #5) — "LOCAL dead-link risk":
-#     default = PRODUCTION domain (kitehub.me / kiteclass.vn) that the LOCAL
+#     default = PRODUCTION domain (kitehub.me / kitehub.me) that the LOCAL
 #     dev compose (kitehub/docker-compose.kitehub.yml) does NOT override →
 #     LOCAL emails/links embed prod domain → dead-link when testing locally.
 #     This is the INVERSE direction of CHECK A. Closes GAP-801 part 3 class:

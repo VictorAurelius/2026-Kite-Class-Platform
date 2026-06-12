@@ -22,7 +22,7 @@ import java.util.UUID;
  * - Flow: initiate → user adds TXT record → verify → active
  * - Token format: kitehub-verify={uuid}
  * - Timeout: configurable (default 48h)
- * - Backup URL (subdomain.kiteclass.com) always works in parallel
+ * - Backup URL (subdomain.kitehub.me) always works in parallel
  *
  * @author KiteHub Team
  * @since 1.0.0
@@ -40,8 +40,10 @@ public class DomainService {
     // KH-7 FM-5: a tenant must not be able to claim the platform's own domains as their
     // custom domain (no denylist previously — `kitehub.me` was accepted). Block the
     // platform apex domains and any subdomain of them.
+    // Platform-domain claim denylist (protective — CANONICAL-BANNED values a tenant
+    // must not claim as a custom domain, NOT tenant landing URLs).
     private static final Set<String> RESERVED_DOMAINS = Set.of(
-        "kitehub.me", "kitehub.vn", "kitehub.com", "kiteclass.com", "kiteclass.me", "kiteclass.vn"
+        "kitehub.me", "kitehub.vn", "kitehub.com", "kiteclass.com", "kiteclass.me", "kiteclass.vn" // stale-domain-ok: reserved-claim denylist, not a tenant URL
     );
 
     private boolean isReservedDomain(String domain) {
@@ -224,7 +226,7 @@ public class DomainService {
             );
         }
 
-        String backupUrl = "https://" + instance.getSubdomain() + ".kiteclass.com";
+        String backupUrl = "https://" + instance.getSubdomain() + ".kitehub.me";
 
         return DomainVerifyResponse.builder()
             .customDomain(customDomain)

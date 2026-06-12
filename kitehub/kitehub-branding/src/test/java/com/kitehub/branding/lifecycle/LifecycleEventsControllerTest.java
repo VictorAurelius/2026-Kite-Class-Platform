@@ -114,7 +114,7 @@ class LifecycleEventsControllerTest {
             .eventType("deploy-completed")
             .actorKind("system")
             .actorId("mock-provisioning")
-            .metadataJson("{\"frontendUrl\":\"https://toan-master.kiteclass.vn\","
+            .metadataJson("{\"frontendUrl\":\"https://toan-master.kitehub.me\","
                 + "\"templateId\":\"sky-wave\",\"slug\":\"toan-master\",\"mock\":true}")
             .occurredAt(LocalDateTime.now())
             .build();
@@ -126,7 +126,7 @@ class LifecycleEventsControllerTest {
             .andExpect(jsonPath("$.instanceId").value(instanceId.toString()))
             .andExpect(jsonPath("$.state").value("DEPLOYED"))
             .andExpect(jsonPath("$.deployed").value(true))
-            .andExpect(jsonPath("$.frontendUrl").value("https://toan-master.kiteclass.vn"))
+            .andExpect(jsonPath("$.frontendUrl").value("https://toan-master.kitehub.me"))
             .andExpect(jsonPath("$.templateId").value("sky-wave"))
             .andExpect(jsonPath("$.slug").value("toan-master"))
             .andExpect(jsonPath("$.brandingVersion").value(1));

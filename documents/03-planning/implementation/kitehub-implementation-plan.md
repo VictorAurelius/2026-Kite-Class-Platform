@@ -118,7 +118,7 @@ import java.util.UUID;
 public class Instance extends BaseEntity {
 
     @Column(nullable = false, unique = true, length = 50)
-    private String subdomain; // customer1.kiteclass.com
+    private String subdomain; // customer1.kitehub.me
 
     @Column(name = "custom_domain", length = 255)
     private String customDomain; // mydomain.com (PREMIUM only)
@@ -343,8 +343,8 @@ import java.util.UUID;
  * Subdomain Router
  *
  * Routes requests based on subdomain:
- * - customer1.kiteclass.com → Instance 1
- * - customer2.kiteclass.com → Instance 2
+ * - customer1.kitehub.me → Instance 1
+ * - customer2.kitehub.me → Instance 2
  * - mydomain.com → Instance N (custom domain)
  */
 @Component
@@ -385,9 +385,9 @@ public class SubdomainRouterFilter extends AbstractGatewayFilterFactory<Subdomai
             return instance;
         }
 
-        // Extract subdomain (customer1.kiteclass.com → customer1)
-        if (host.endsWith(".kiteclass.com")) {
-            String subdomain = host.substring(0, host.indexOf(".kiteclass.com"));
+        // Extract subdomain (customer1.kitehub.me → customer1)
+        if (host.endsWith(".kitehub.me")) {
+            String subdomain = host.substring(0, host.indexOf(".kitehub.me"));
             return instanceService.findBySubdomain(subdomain);
         }
 
@@ -962,7 +962,7 @@ public class EmailService {
         Map<String, Object> variables = Map.of(
             "organizationName", instance.getOrganizationName(),
             "daysLeft", daysLeft,
-            "upgradeUrl", "https://kiteclass.com/upgrade?instance=" + instance.getId()
+            "upgradeUrl", "https://kitehub.me/upgrade?instance=" + instance.getId()
         );
 
         String htmlBody = templateEngine.process("trial-expiration-warning", variables);

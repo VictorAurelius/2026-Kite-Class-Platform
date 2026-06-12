@@ -38,7 +38,7 @@ note right of AI_SVC
     - Remove.bg: Xóa nền ảnh
 end note
 
-package "KiteClass Instance #1\n(abc.kiteclass.com)" as KC1 {
+package "KiteClass Instance #1\n(abc.kitehub.me)" as KC1 {
     rectangle "Frontend" as FE1
     rectangle "User+Gateway" as UG1
     rectangle "Core Service" as CORE1
@@ -47,7 +47,7 @@ package "KiteClass Instance #1\n(abc.kiteclass.com)" as KC1 {
     rectangle "Cache" as CACHE1
 }
 
-package "KiteClass Instance #2\n(xyz.kiteclass.com)" as KC2 {
+package "KiteClass Instance #2\n(xyz.kitehub.me)" as KC2 {
     rectangle "Frontend" as FE2
     rectangle "User+Gateway" as UG2
     rectangle "Core Service" as CORE2
@@ -55,7 +55,7 @@ package "KiteClass Instance #2\n(xyz.kiteclass.com)" as KC2 {
     rectangle "Cache" as CACHE2
 }
 
-package "KiteClass Instance #3\n(math123.kiteclass.com)" as KC3 {
+package "KiteClass Instance #3\n(math123.kitehub.me)" as KC3 {
     rectangle "Frontend" as FE3
     rectangle "User+Gateway" as UG3
     rectangle "Core Service" as CORE3
@@ -90,9 +90,9 @@ CORE3 -down-> DB3
 
 legend bottom
 |= Instance |= Ví dụ |= Quy mô |= Gói |= Services |= RAM |
-| #1 abc.kiteclass.com | Trung tâm Anh ngữ ABC | 500 HV, 20 GV, 50 lớp | Premium $99/th | Core + Engagement | ~2.5GB |
-| #2 xyz.kiteclass.com | Gia sư IELTS XYZ | 100 HV, 5 GV, 10 lớp | Standard $49/th | Core only | ~2GB |
-| #3 math123.kiteclass.com | Lớp Toán thầy Minh | 30 HV, 1 GV, 3 lớp | Basic $29/th | Core minimal | ~1.5GB |
+| #1 abc.kitehub.me | Trung tâm Anh ngữ ABC | 500 HV, 20 GV, 50 lớp | Premium $99/th | Core + Engagement | ~2.5GB |
+| #2 xyz.kitehub.me | Gia sư IELTS XYZ | 100 HV, 5 GV, 10 lớp | Standard $49/th | Core only | ~2GB |
+| #3 math123.kitehub.me | Lớp Toán thầy Minh | 30 HV, 1 GV, 3 lớp | Basic $29/th | Core minimal | ~1.5GB |
 endlegend
 
 @enduml

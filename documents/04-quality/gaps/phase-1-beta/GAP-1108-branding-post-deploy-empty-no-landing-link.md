@@ -13,7 +13,7 @@ Sau khi AI Branding wizard deploy THÀNH CÔNG (deploy-stream 100% + instance DE
 1. **Dữ liệu lần thành công thiếu** — `(customer)/branding/page.tsx` thuần assets-centric (`useAssets(instanceId)` + `useBrandingTier`). KHÔNG fetch/hiển thị instance lifecycle state (DEPLOYED) hay metadata lần provision.
 2. **Assets = 0** — `useAssets` → `GET /instances/{id}/assets` → `AssetStorageController.parseAssetsJson` bug Object-vs-Array (mock provision ghi `assetsGenerated` = metadata object, parser expect `List<BrandingAsset>` → `MismatchedInputException` → 0 assets). Cross-ref **GAP-1107 #2**. → stats `assets?.length||0` toàn 0, không preview.
 3. **Không thông báo success** — redirect wizard→/branding không mang toast "Triển khai thành công".
-4. **Không link truy cập landing mới** — `frontendUrl` (vd `https://toan-master.kiteclass.vn`, set bởi MockProvisioningService) KHÔNG hiển thị → user không biết cách xem landing vừa deploy.
+4. **Không link truy cập landing mới** — `frontendUrl` (vd `https://toan-master.kitehub.me`, set bởi MockProvisioningService) KHÔNG hiển thị → user không biết cách xem landing vừa deploy.
 
 ## Proposed Fix
 
@@ -56,7 +56,7 @@ Sau khi AI Branding wizard deploy THÀNH CÔNG (deploy-stream 100% + instance DE
 
 ## Log — 2026-06-12 G1 walk: SSE complete thiếu frontendUrl (Bug #5) + fix
 
-G1 walk: DoneStep render đẹp nhưng landing link = `https://sky-education-2.kiteclass.vn`
+G1 walk: DoneStep render đẹp nhưng landing link = `https://sky-education-2.kitehub.me`
 (FE fallback) vì SSE `complete` body chỉ `{jobId, finalStatus, ts}` — KHÔNG mang frontendUrl.
 Fix: `DeployStreamController.emitTerminal` đọc marker `deploy-completed` (same source
 deploy-status GAP-1108) → thêm `frontendUrl` vào complete event; FE `DoneStep` fallback đổi

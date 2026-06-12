@@ -59,7 +59,7 @@ export function CustomDomainTab({ instance }: CustomDomainTabProps) {
             Tên miền tùy chỉnh
           </CardTitle>
           <CardDescription>
-            Sử dụng tên miền riêng thay vì {instance?.subdomain}.kiteclass.com
+            Sử dụng tên miền riêng thay vì {instance?.subdomain}.kitehub.me
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -99,7 +99,7 @@ export function CustomDomainTab({ instance }: CustomDomainTabProps) {
   }
 
   const status: DomainStatus = domainStatus?.status ?? 'NONE';
-  const backupUrl = domainStatus?.backupUrl ?? `https://${instance?.subdomain}.kiteclass.com`;
+  const backupUrl = domainStatus?.backupUrl ?? `https://${instance?.subdomain}.kitehub.me`;
 
   // ── Status badge ──────────────────────────────────────────────────────────
   const StatusBadge = () => {

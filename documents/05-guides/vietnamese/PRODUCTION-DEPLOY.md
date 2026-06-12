@@ -111,7 +111,7 @@ curl http://localhost:11434/api/tags  # Ollama health
 sudo apt install certbot python3-certbot-nginx  # hoặc dnf
 
 # Get SSL cert
-sudo certbot --nginx -d kiteclass.com -d api.kiteclass.com
+sudo certbot --nginx -d kitehub.me -d api.kitehub.me
 
 # Auto-renew
 sudo crontab -e
@@ -119,17 +119,17 @@ sudo crontab -e
 ```
 
 **Cloudflare DNS** (alternative - recommended):
-- Add A record: `kiteclass.com` → VM 2 public IP
-- Add A record: `api.kiteclass.com` → VM 2 public IP
+- Add A record: `kitehub.me` → VM 2 public IP
+- Add A record: `api.kitehub.me` → VM 2 public IP
 - Enable Cloudflare Proxy (orange cloud) → free SSL + CDN
 
 ## Step 6: Verify E2E
 
 ```bash
 # From your laptop
-curl https://kiteclass.com                    # Frontend
-curl https://api.kiteclass.com/actuator/health # Gateway
-curl -X POST https://api.kiteclass.com/api/auth/login \
+curl https://kitehub.me                    # Frontend
+curl https://api.kitehub.me/actuator/health # Gateway
+curl -X POST https://api.kitehub.me/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@kitehub.com","password":"Admin@KiteHub123"}'
 ```
@@ -172,9 +172,9 @@ echo "0 3 * * * /home/opc/backup-db.sh" | crontab -
 - [ ] Terraform installed (>= 1.5)
 
 ### Domain & DNS
-- [ ] Domain registered: `kiteclass.com` (or your domain)
+- [ ] Domain registered: `kitehub.me` (or your domain)
 - [ ] DNS managed by Route53 (or external DNS)
-- [ ] Wildcard SSL: `*.kiteclass.com`
+- [ ] Wildcard SSL: `*.kitehub.me`
 
 ## Step 1: Infrastructure (Terraform)
 
@@ -235,7 +235,7 @@ helm install kitehub ./infrastructure/helm/kitehub \
 ```bash
 kubectl -n kitehub get pods
 kubectl -n kitehub get svc
-curl https://api.kiteclass.com/actuator/health
+curl https://api.kitehub.me/actuator/health
 ```
 
 ---
@@ -251,7 +251,7 @@ cd terraform && terraform apply
 # 2. Deploy
 helm install kitehub ./infrastructure/helm/kitehub -n kitehub
 
-# 3. DNS: update kiteclass.com → AWS ALB
+# 3. DNS: update kitehub.me → AWS ALB
 # Cloudflare: change A record to ALB DNS name
 
 # 4. AI: set ai.provider=openai (hoặc deploy Ollama trên EC2)
@@ -268,7 +268,7 @@ ssh opc@<VM_IP> docker compose ps
 # 2. Restore DB from backup
 docker exec -i kitehub-postgres psql -U kitehub < backup.sql
 
-# 3. DNS: update kiteclass.com → Oracle LB IP
+# 3. DNS: update kitehub.me → Oracle LB IP
 # 4. AI: set ai.provider=ollama
 ```
 

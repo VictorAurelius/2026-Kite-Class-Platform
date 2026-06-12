@@ -14,7 +14,7 @@
 2. Visitor: Fills in form and submits
 3. System: Saves ContactMessage with `instance_id` = tenant (per EM-07)
 4. System: Calls `emailService.sendContactNotification(adminEmail, name, email, subject, message)` (per EM-04, BR-MKT-003)
-5. System: Admin email from config `contact.admin-email`, default `admin@kiteclass.com` (per EM-05)
+5. System: Admin email from config `contact.admin-email`, default `admin@kitehub.me` (per EM-05)
 6. System: If email fails, logs error but returns success (per EM-06)
 7. FE: Show success toast
 

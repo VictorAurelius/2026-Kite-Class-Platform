@@ -24,7 +24,7 @@ import java.util.UUID;
  * <p>
  * Resolution order:
  * 1. X-Instance-Subdomain header (for local development)
- * 2. Subdomain from Host header (e.g., customer1.kiteclass.com)
+ * 2. Subdomain from Host header (e.g., customer1.kitehub.me)
  * 3. Custom domain lookup
  * <p>
  * Verifies instance is ACTIVE or TRIAL, then adds X-Tenant-Id header.
@@ -46,7 +46,7 @@ public class TenantResolverGatewayFilterFactory extends AbstractGatewayFilterFac
 
     public TenantResolverGatewayFilterFactory(
             InstanceRepository instanceRepository,
-            @Value("${kitehub.domain.base:.kiteclass.com}") String baseDomain) {
+            @Value("${kitehub.domain.base:.kitehub.me}") String baseDomain) {
         super(Config.class);
         this.instanceRepository = instanceRepository;
         this.baseDomain = baseDomain;
@@ -184,7 +184,7 @@ public class TenantResolverGatewayFilterFactory extends AbstractGatewayFilterFac
             host = host.substring(0, host.indexOf(":"));
         }
 
-        // Check for base domain (e.g., .kiteclass.com)
+        // Check for base domain (e.g., .kitehub.me)
         if (host.endsWith(baseDomain)) {
             int endIndex = host.indexOf(baseDomain);
             return endIndex > 0 ? host.substring(0, endIndex) : null;

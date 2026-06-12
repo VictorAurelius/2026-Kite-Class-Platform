@@ -127,7 +127,7 @@ class InstanceControllerTest {
 
         mockMvc.perform(post("/api/v1/instances/10/branding-completed")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"frontendUrl\":\"https://acme.kiteclass.com\"}"))
+                        .content("{\"frontendUrl\":\"https://acme.kitehub.me\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.status").value("DEPLOYED"));
     }

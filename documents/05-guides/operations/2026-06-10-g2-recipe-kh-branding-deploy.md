@@ -70,7 +70,7 @@ Walk wizard AI Branding Step 6 (Phê duyệt) → deploy → xác nhận:
 ### Bước 4 — Post-deploy `/branding` card (GAP-1108)
 - **Hành động**: ở trang `/branding` (sau redirect).
 - **✅ Kỳ vọng**:
-  - **Deploy-success card** ở đầu trang: "Trang web của bạn đã sẵn sàng 🎉" + nút/link **"Xem landing"** (`<a target=_blank href={frontendUrl}>`, vd `toan-master.kiteclass.vn`) + tóm tắt template + ngày.
+  - **Deploy-success card** ở đầu trang: "Trang web của bạn đã sẵn sàng 🎉" + nút/link **"Xem landing"** (`<a target=_blank href={frontendUrl}>`, vd `toan-master.kitehub.me`) + tóm tắt template + ngày.
   - ⚠️ **Lưu ý Phase 1**: `frontendUrl` là **placeholder** (`MockProvisioningService` — KHÔNG tạo DNS/subdomain thật). G2 chỉ verify **card + link render đúng + href = frontendUrl từ marker**; **KHÔNG** kỳ vọng click ra landing thật (subdomain render per-tenant gated GAP-811/1077; domain drift `.vn` vs design `.com` GAP-813). Click link mở tab 404/không resolve = **đúng kỳ vọng Phase 1**, không phải bug.
   - **Assets** hiển thị (≥1, KHÔNG "0 assets") — fix GAP-1107 #2 (BrandingAsset[] shape).
 - **⚠️ Sad path**: trang `/branding` rỗng / không có card / assets 0 → GAP-1108 chưa ăn → báo lại.

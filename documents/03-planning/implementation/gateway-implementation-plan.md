@@ -1638,7 +1638,7 @@ public class CorsConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
         config.addAllowedOrigin("http://localhost:3000"); // Dev
-        config.addAllowedOrigin("https://kiteclass.vn"); // Prod
+        config.addAllowedOrigin("https://kitehub.me"); // Prod
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         source.registerCorsConfiguration("/**", config);

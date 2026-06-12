@@ -157,10 +157,10 @@ deactivate SUB
 
 MQ -> EMAIL : Consume:\n"instance.provisioned"
 activate EMAIL #F8BBD0
-EMAIL -> SES : Send access email\n(template: instance-ready)\n"https://{subdomain}.kiteclass.com"
+EMAIL -> SES : Send access email\n(template: instance-ready)\n"https://{subdomain}.kitehub.me"
 deactivate EMAIL
 
-FE --> CUST : "Instance sẵn sàng!\nTruy cập: {subdomain}.kiteclass.com"
+FE --> CUST : "Instance sẵn sàng!\nTruy cập: {subdomain}.kitehub.me"
 
 ' ==================== PHASE 5: TRIAL EXPIRY ====================
 == Phase 5: Quản lý Trial & Gia hạn ==

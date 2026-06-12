@@ -292,8 +292,8 @@ spring:
 **Pattern:** Route by subdomain to specific instance
 
 Example:
-- `abc123.kiteclass.com` → Instance with subdomain "abc123"
-- `xyz789.kiteclass.com` → Instance with subdomain "xyz789"
+- `abc123.kitehub.me` → Instance with subdomain "abc123"
+- `xyz789.kitehub.me` → Instance with subdomain "xyz789"
 
 **Implementation:**
 ```yaml
@@ -301,7 +301,7 @@ Example:
 - id: instance-core
   uri: http://kiteclass-core-{instance-id}:8080
   predicates:
-    - Host={subdomain}.kiteclass.com
+    - Host={subdomain}.kitehub.me
     - Path=/api/v1/**
   filters:
     - ResolveInstanceId  # Custom filter: extract instance from subdomain
@@ -321,7 +321,7 @@ public class ResolveInstanceIdGatewayFilterFactory
     public GatewayFilter apply(Config config) {
         return (exchange, chain) -> {
             String host = exchange.getRequest().getHeaders().getFirst("Host");
-            String subdomain = extractSubdomain(host); // "abc123" from "abc123.kiteclass.com"
+            String subdomain = extractSubdomain(host); // "abc123" from "abc123.kitehub.me"
 
             Instance instance = instanceRepository.findBySubdomain(subdomain)
                 .orElseThrow(() -> new InstanceNotFoundException(subdomain));
@@ -432,10 +432,10 @@ metadata:
 spec:
   tls:
     - hosts:
-        - staging.kiteclass.com
+        - staging.kitehub.me
       secretName: kiteclass-staging-tls
   rules:
-    - host: staging.kiteclass.com
+    - host: staging.kitehub.me
       http:
         paths:
           - path: /

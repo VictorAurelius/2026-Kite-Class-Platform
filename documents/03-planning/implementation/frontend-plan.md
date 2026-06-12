@@ -263,7 +263,7 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'cdn.kiteclass.com',
+        hostname: 'cdn.kitehub.me',
       },
     ],
   },

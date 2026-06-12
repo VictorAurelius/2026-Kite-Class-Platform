@@ -73,7 +73,7 @@ function HeroMockup() {
         <span className="kh-dot" style={{ background: '#EF4444' }} />
         <span className="kh-dot" style={{ background: '#F59E0B' }} />
         <span className="kh-dot" style={{ background: '#10B981' }} />
-        <span className="kh-mock-url">skylight.kiteclass.com</span>
+        <span className="kh-mock-url">skylight.kitehub.me</span>
       </div>
       <div className="kh-mock-body">
         <div className="kh-mock-side">
@@ -330,9 +330,9 @@ function WelcomeBanner() {
 
 function TrungTamList() {
   const items = [
-    { n: 'SkyLight English', d: 'skylight.kiteclass.com', s: 'Hoạt động', sc: 'suc', hv: 428, lp: 18, g: 'Chuyên nghiệp' },
-    { n: 'GreenEdu Academy', d: 'greenedu.kiteclass.com', s: 'Dùng thử', sc: 'info', hv: 82, lp: 4, g: 'Khởi nghiệp' },
-    { n: 'PinkKids Montessori', d: 'pinkkids.kiteclass.com', s: 'Chờ TT', sc: 'warn', hv: 156, lp: 7, g: 'Chuyên nghiệp' },
+    { n: 'SkyLight English', d: 'skylight.kitehub.me', s: 'Hoạt động', sc: 'suc', hv: 428, lp: 18, g: 'Chuyên nghiệp' },
+    { n: 'GreenEdu Academy', d: 'greenedu.kitehub.me', s: 'Dùng thử', sc: 'info', hv: 82, lp: 4, g: 'Khởi nghiệp' },
+    { n: 'PinkKids Montessori', d: 'pinkkids.kitehub.me', s: 'Chờ TT', sc: 'warn', hv: 156, lp: 7, g: 'Chuyên nghiệp' },
   ];
   return (
     <div className="kh-card">

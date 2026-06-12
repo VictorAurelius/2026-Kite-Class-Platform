@@ -21,7 +21,7 @@ class KeyResolverConfigTest {
 
     @BeforeEach
     void setUp() {
-        config = new KeyResolverConfig(".kiteclass.com");
+        config = new KeyResolverConfig(".kitehub.me");
     }
 
     @Test
@@ -73,7 +73,7 @@ class KeyResolverConfigTest {
     void tenantResolverExtractsSubdomain() {
         KeyResolver resolver = config.tenantKeyResolver();
         MockServerHttpRequest request = MockServerHttpRequest
-                .get("http://schoolB.kiteclass.com/api/platform/branding/ai/analyze-logo")
+                .get("http://schoolB.kitehub.me/api/platform/branding/ai/analyze-logo")
                 .build();
         MockServerWebExchange exchange = MockServerWebExchange.from(request);
 
@@ -261,9 +261,9 @@ class KeyResolverConfigTest {
     @Test
     @DisplayName("extractSubdomain — strips port + matches base domain")
     void extractSubdomainHandlesPort() {
-        assertThat(config.extractSubdomain("schoolA.kiteclass.com")).isEqualTo("schoolA");
-        assertThat(config.extractSubdomain("schoolA.kiteclass.com:443")).isEqualTo("schoolA");
-        assertThat(config.extractSubdomain("kiteclass.com")).isNull(); // bare base
+        assertThat(config.extractSubdomain("schoolA.kitehub.me")).isEqualTo("schoolA");
+        assertThat(config.extractSubdomain("schoolA.kitehub.me:443")).isEqualTo("schoolA");
+        assertThat(config.extractSubdomain("kitehub.me")).isNull(); // bare base
         assertThat(config.extractSubdomain("other.example.com")).isNull(); // wrong base
         assertThat(config.extractSubdomain(null)).isNull();
     }

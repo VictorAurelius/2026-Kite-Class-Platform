@@ -28,7 +28,7 @@ const isServer = typeof window === 'undefined';
  * → gateway can't resolve → core rejects with 400.
  *
  * When the page is being served from a tenant host (subdomain — production
- * *.kiteclass.com or local nip.io walk), call the gateway on the SAME hostname
+ * *.kitehub.me or local nip.io walk), call the gateway on the SAME hostname
  * (only the port comes from NEXT_PUBLIC_API_URL). localhost/IP keeps the
  * configured URL — dev fallback unchanged.
  */

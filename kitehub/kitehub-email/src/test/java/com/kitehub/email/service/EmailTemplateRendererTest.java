@@ -322,7 +322,7 @@ class EmailTemplateRendererTest {
         vars.put("recipientName", "Trung tâm Anh ngữ Sky Education");
         vars.put("organizationName", "Trung tâm Anh ngữ Sky Education");
         vars.put("subdomain", "sky-education");
-        vars.put("dashboardUrl", "https://sky-education.kiteclass.vn/dashboard");
+        vars.put("dashboardUrl", "https://sky-education.kitehub.me/dashboard");
         vars.put("onboardingChecklistUrl", "https://kitehub.me/help/onboarding");
         vars.put("supportUrl", "https://kitehub.me/support");
         vars.put("unsubscribeUrl", "https://kitehub.me/unsubscribe");
@@ -332,12 +332,12 @@ class EmailTemplateRendererTest {
         // ---- HTML body (tenant-ready.html) ----
         assertThat(bodies.getHtml()).isNotBlank();
         assertThat(bodies.getHtml()).contains("Trung tâm Anh ngữ Sky Education");
-        assertThat(bodies.getHtml()).contains("https://sky-education.kiteclass.vn/dashboard");
+        assertThat(bodies.getHtml()).contains("https://sky-education.kitehub.me/dashboard");
 
         // ---- Plain-text body (tenant-ready.txt) ----
         assertThat(bodies.hasText()).isTrue();
         assertThat(bodies.getText()).contains("Trung tâm Anh ngữ Sky Education");
-        assertThat(bodies.getText()).contains("https://sky-education.kiteclass.vn/dashboard");
+        assertThat(bodies.getText()).contains("https://sky-education.kitehub.me/dashboard");
         assertThat(bodies.getText()).contains("Trân trọng");
     }
 

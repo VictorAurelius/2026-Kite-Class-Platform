@@ -116,7 +116,7 @@ export default function DmcaPage() {
             type="url"
             required
             maxLength={2000}
-            placeholder="https://tenant.kiteclass.vn/..."
+            placeholder="https://tenant.kitehub.me/..."
             className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
         </div>

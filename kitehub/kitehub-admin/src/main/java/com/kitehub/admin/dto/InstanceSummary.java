@@ -30,7 +30,7 @@ public class InstanceSummary {
     private String organizationName;
 
     /**
-     * Subdomain (e.g., "abc" for abc.kiteclass.com).
+     * Subdomain (e.g., "abc" for abc.kitehub.me).
      */
     private String subdomain;
 

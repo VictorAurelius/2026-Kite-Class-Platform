@@ -10,13 +10,13 @@
 
 ## 1. Tổng quan
 
-Custom Domain cho phép tenant gắn domain riêng (vd `lop.skyedu.vn`) vào instance KiteClass thay vì chỉ dùng subdomain `{subdomain}.kiteclass.com`.
+Custom Domain cho phép tenant gắn domain riêng (vd `lop.skyedu.vn`) vào instance KiteClass thay vì chỉ dùng subdomain `{subdomain}.kitehub.me`.
 
 Yêu cầu:
 - Instance ở tier **PREMIUM** hoặc **ENTERPRISE**
 - Owner đã đăng ký domain ở vendor riêng và có quyền sửa DNS
 
-**Lưu ý:** Backup URL `{subdomain}.kiteclass.com` **luôn hoạt động** — đảm bảo không downtime trong lúc setup.
+**Lưu ý:** Backup URL `{subdomain}.kitehub.me` **luôn hoạt động** — đảm bảo không downtime trong lúc setup.
 
 ## 2. Quy trình setup (Owner-facing)
 
@@ -125,7 +125,7 @@ Xem §3 cho hướng dẫn theo từng vendor VN phổ biến.
 
 **Resolution:**
 - Đợi cert provision xong (status flip VERIFIED)
-- Tạm thời dùng backup URL `{subdomain}.kiteclass.com` (luôn có HTTPS hợp lệ)
+- Tạm thời dùng backup URL `{subdomain}.kitehub.me` (luôn có HTTPS hợp lệ)
 
 ### CAA / DNSSEC chặn cert issue (hiếm gặp)
 

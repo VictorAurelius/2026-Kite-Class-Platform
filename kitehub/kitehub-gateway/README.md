@@ -62,7 +62,7 @@ All routes use Resilience4j circuit breakers:
 | `REDIS_PORT` | `6380` | Redis port |
 | `CORS_ALLOWED_ORIGINS` | `http://localhost:3001,http://localhost:3000` | CORS origins |
 | `KITECLASS_CORE_URL` | `http://kiteclass-core:8080` | KiteClass core URL |
-| `BASE_DOMAIN` | `.kiteclass.com` | Tenant domain suffix |
+| `BASE_DOMAIN` | `.kitehub.me` | Tenant domain suffix |
 
 ## Monitoring
 

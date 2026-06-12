@@ -24,7 +24,7 @@ KiteClass: nothing.
 ## Evidence
 
 - Settings page không có "API test mode" toggle
-- Docs (when GAP-038 land) sẽ reference `api.kiteclass.com` — real prod
+- Docs (when GAP-038 land) sẽ reference `api.kitehub.me` — real prod
 - Không có `X-KiteClass-Sandbox: true` header support
 - Webhook retry / delivery (GAP-039) tested against production
 

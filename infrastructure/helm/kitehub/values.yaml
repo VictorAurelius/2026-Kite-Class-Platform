@@ -47,7 +47,7 @@ gateway:
     requests: { cpu: 250m, memory: 512Mi }
     limits:   { cpu: 500m, memory: 1Gi }
   cors:
-    allowedOrigins: "https://kiteclass.com,https://www.kiteclass.com"
+    allowedOrigins: "https://kitehub.me,https://www.kitehub.me"
 
 subscription:
   replicas: 2
@@ -108,9 +108,9 @@ ingress:
     alb.ingress.kubernetes.io/target-type: ip
     alb.ingress.kubernetes.io/certificate-arn: ""  # ACM certificate ARN
   hosts:
-    - host: kiteclass.com
+    - host: kitehub.me
       paths: ["/"]
-    - host: api.kiteclass.com
+    - host: api.kitehub.me
       paths: ["/"]
 
 # --- Monitoring (GAP-111 + GAP-120 foundation) ---
@@ -203,7 +203,7 @@ monitoring:
         alb.ingress.kubernetes.io/target-type: ip
         # Override certificate-arn in prod values file:
         alb.ingress.kubernetes.io/certificate-arn: ""
-      host: "grafana.kiteclass.com"
+      host: "grafana.kitehub.me"
       path: "/"
 
   # Subchart values forwarded to kube-prometheus-stack. These are STUBS — production
@@ -346,7 +346,7 @@ monitoring:
             channel: "#alerts"
           email:
             # Override per environment in values-prod.yaml.
-            to: "ops@kiteclass.com"
+            to: "ops@kitehub.me"
       # SES SMTP endpoint config. Region used to construct
       # email-smtp.<region>.amazonaws.com:587 — defaults match global.aws.region
       # but kept independent so SES can live in a different region than RDS/S3.
@@ -362,7 +362,7 @@ monitoring:
         # email-smtp.<region>.amazonaws.com:587 derived from .region below.
         smarthost: ""
         region: "us-east-1"
-        authUsername: "alerts@kiteclass.com"
+        authUsername: "alerts@kitehub.me"
 
 # --- Logging (GAP-434 Phase 2 of GAP-115) ---
 #

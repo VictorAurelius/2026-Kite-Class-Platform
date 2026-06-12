@@ -20,12 +20,12 @@ Cùng một khái niệm "base domain" được hardcode/cấu hình khác nhau 
 
 | Layer | Nguồn | Giá trị base domain |
 |---|---|---|
-| Gateway tenant resolver | `TenantResolverGatewayFilterFactory:49` + `KeyResolverConfig:44` `@Value("${kitehub.domain.base:.kiteclass.com}")` | `.kiteclass.com` |
-| Gateway runtime config | `kitehub-gateway/src/main/resources/application.yml:700` `base: ${BASE_DOMAIN:.kiteclass.com}` | `.kiteclass.com` (env `BASE_DOMAIN`) |
+| Gateway tenant resolver | `TenantResolverGatewayFilterFactory:49` + `KeyResolverConfig:44` `@Value("${kitehub.domain.base:.kitehub.me}")` | `.kitehub.me` |
+| Gateway runtime config | `kitehub-gateway/src/main/resources/application.yml:700` `base: ${BASE_DOMAIN:.kitehub.me}` | `.kitehub.me` (env `BASE_DOMAIN`) |
 | Demo seeder | `BrandingDataSeeder:65` `SKY_FRONTEND_URL = "https://sky-education.kite.local"` + `:53` `DEV_FRONTEND_URL = "https://thanglong.kite.local"` | `.kite.local` |
-| Deploy/ADR docs | `documents/02-architecture/domain-management.md:12,24` | `kiteclass.com` (tenant) + `kitehub.vn` (SaaS); CLAUDE.md/ADR nhắc `kitehub.me`/`kite.me` |
+| Deploy/ADR docs | `documents/02-architecture/domain-management.md:12,24` | `kitehub.me` (tenant) + `kitehub.vn` (SaaS); CLAUDE.md/ADR nhắc `kitehub.me`/`kite.me` |
 
-→ Subdomain seed (`sky-education.kite.local`) KHÔNG khớp suffix gateway strip (`.kiteclass.com`). Khi browser truy cập `sky-education.kite.local`, gateway `extractSubdomain` so sánh `host.endsWith(".kiteclass.com")` → fail → rơi xuống fallback → resolve sai hoặc 400. Tenant resolution chỉ "may mắn" hoạt động qua header `X-Instance-Subdomain` (local dev) hoặc JWT claim fallback (GAP-711), KHÔNG qua subdomain thật.
+→ Subdomain seed (`sky-education.kite.local`) KHÔNG khớp suffix gateway strip (`.kitehub.me`). Khi browser truy cập `sky-education.kite.local`, gateway `extractSubdomain` so sánh `host.endsWith(".kitehub.me")` → fail → rơi xuống fallback → resolve sai hoặc 400. Tenant resolution chỉ "may mắn" hoạt động qua header `X-Instance-Subdomain` (local dev) hoặc JWT claim fallback (GAP-711), KHÔNG qua subdomain thật.
 
 ### Vấn đề 2 — Thiếu public endpoint map slug → tenantId UUID cho FE
 
@@ -44,7 +44,7 @@ public ... getLandingPage(@PathVariable UUID tenantId) { ... }
 
 ## Root Cause
 
-1. **Base domain**: mỗi layer được viết ở thời điểm khác nhau (gateway Wave sớm dùng placeholder `.kiteclass.com`; seeder demo dùng `.kite.local` cho local; ADR/deploy docs evolve sang `kitehub.me`/`kite.me`) — chưa có single env-driven source-of-truth nào được dùng chung.
+1. **Base domain**: mỗi layer được viết ở thời điểm khác nhau (gateway Wave sớm dùng placeholder `.kitehub.me`; seeder demo dùng `.kite.local` cho local; ADR/deploy docs evolve sang `kitehub.me`/`kite.me`) — chưa có single env-driven source-of-truth nào được dùng chung.
 2. **slug → UUID**: landing API thiết kế UUID-based (đúng cho internal consistency) nhưng FE chỉ biết slug từ URL; bước resolve trung gian chưa được wire thành public endpoint. Gateway có repository sẵn nhưng không expose.
 3. **slug-availability**: cross-service check (`kitehub-branding` → `instances` table thuộc kitehub-platform/gateway scope) chưa được implement; tác giả để follow-up.
 
@@ -53,12 +53,12 @@ public ... getLandingPage(@PathVariable UUID tenantId) { ... }
 ### (a) Reconcile base domain về 1 nguồn env-driven `KITE_BASE_DOMAIN`
 
 - **Canonical value đề xuất**: `kite.me` (prod) / `kite.local` (dev local).
-  - **Lý do**: (1) GitHub Student Pack / AWS Activate dùng `kitehub.me` đã đăng ký (GAP-458/459) — `kite.me` ngắn gọn cho subdomain `{slug}.kite.me`; (2) `.kiteclass.com` là placeholder cũ chưa sở hữu; (3) `kite.local` đã là quy ước seeder hiện tại cho local → ít churn nhất khi giữ local suffix.
-  - User confirm cuối cùng giữa `kite.me` vs `kiteclass.com` vs `kitehub.me` trước khi implement (đây là decision-doc config-shaped value per `audit-to-gap-pipeline.md` §2.7 → cần code-sync sweep).
+  - **Lý do**: (1) GitHub Student Pack / AWS Activate dùng `kitehub.me` đã đăng ký (GAP-458/459) — `kite.me` ngắn gọn cho subdomain `{slug}.kite.me`; (2) `.kitehub.me` là placeholder cũ chưa sở hữu; (3) `kite.local` đã là quy ước seeder hiện tại cho local → ít churn nhất khi giữ local suffix.
+  - User confirm cuối cùng giữa `kite.me` vs `kitehub.me` vs `kitehub.me` trước khi implement (đây là decision-doc config-shaped value per `audit-to-gap-pipeline.md` §2.7 → cần code-sync sweep).
 - **Single env var `KITE_BASE_DOMAIN`** (default `.kite.local` cho dev), inject vào:
-  - Gateway: đổi `@Value("${kitehub.domain.base:.kiteclass.com}")` → `${kite.base.domain:.kite.local}` (cả `TenantResolverGatewayFilterFactory` + `KeyResolverConfig`) + `application.yml:700` `base: ${KITE_BASE_DOMAIN:.kite.local}`.
+  - Gateway: đổi `@Value("${kitehub.domain.base:.kitehub.me}")` → `${kite.base.domain:.kite.local}` (cả `TenantResolverGatewayFilterFactory` + `KeyResolverConfig`) + `application.yml:700` `base: ${KITE_BASE_DOMAIN:.kite.local}`.
   - Seeder: thay hardcode `.kite.local` literal trong `BrandingDataSeeder` (SKY_FRONTEND_URL, DEV_FRONTEND_URL, contact website) bằng `@Value("${kite.base.domain:.kite.local}")` build URL `https://{slug}{baseDomain}`.
-  - FE: expose qua `NEXT_PUBLIC_KITE_BASE_DOMAIN` env để `useTenantFromUrl` strip đúng suffix (thay vì hardcode `.kiteclass.com` trong `getSubdomain`).
+  - FE: expose qua `NEXT_PUBLIC_KITE_BASE_DOMAIN` env để `useTenantFromUrl` strip đúng suffix (thay vì hardcode `.kitehub.me` trong `getSubdomain`).
   - Docs: cập nhật `domain-management.md` reflect canonical value (per §2.7 decision-doc code-sync).
 
 ### (b) Public endpoint `GET /api/v1/tenants/by-subdomain/{slug}` resolve slug → tenantId
@@ -78,7 +78,7 @@ public ... getLandingPage(@PathVariable UUID tenantId) { ... }
 
 ## Acceptance Criteria
 
-- [ ] 1 env var `KITE_BASE_DOMAIN` (+ `NEXT_PUBLIC_KITE_BASE_DOMAIN`) là single source; gateway + seeder + FE đều đọc từ đó (zero hardcode `.kiteclass.com`/`.kite.local` literal còn lại — verify bằng grep).
+- [ ] 1 env var `KITE_BASE_DOMAIN` (+ `NEXT_PUBLIC_KITE_BASE_DOMAIN`) là single source; gateway + seeder + FE đều đọc từ đó (zero hardcode `.kitehub.me`/`.kite.local` literal còn lại — verify bằng grep).
 - [ ] Canonical base-domain value chốt với user; `domain-management.md` cập nhật đồng bộ; code-sync sweep zero stale ref per `audit-to-gap-pipeline.md` §2.7.
 - [x] Endpoint `GET /api/v1/public/tenants/by-subdomain/{slug}` trả `{id, subdomain, name, status}` (UUID đúng), projection-only (không leak DB credential). — Wave tenant-domain-1 Bucket B (PR pending) `PublicTenantController` + `TenantLookupService` + `TenantResolveDto`. Path chỉnh `public/tenants/by-subdomain/{slug}` per Bucket 0 api-contract §9.
 - [x] Endpoint trong gateway public whitelist + CORS đúng; status ACTIVE/TRIAL → 200 (TRIAL collapsed to ACTIVE); SUSPENDED/DELETED → 410 GONE; slug không tồn tại → 404; format invalid → 400. — `kitehub-gateway` route `public-tenant-resolve` (rate-limit 30/min/IP) + `kitehub-subscription` SecurityConfig `permitAll` `/api/v1/public/tenants/**`.
@@ -95,14 +95,14 @@ public ... getLandingPage(@PathVariable UUID tenantId) { ... }
 
 ## Log
 
-- **2026-05-29:** Gap created sau research session — xác nhận 4 nguồn base-domain không nhất quán (gateway `.kiteclass.com` / seeder `.kite.local` / docs `kiteclass.com`+`kitehub.vn` / ADR `kitehub.me`) + slug→UUID gap (FE trả slug, landing API cần UUID, không có public resolve endpoint). Design 3 phần: (a) reconcile env-driven `KITE_BASE_DOMAIN`, (b) endpoint `GET /api/v1/tenants/by-subdomain/{slug}`, (c) fix slug-availability cross-check `instances` thật. Status OPEN — chờ implement (decision-doc base-domain value cần user confirm trước, per audit-to-gap-pipeline §2.7).
+- **2026-05-29:** Gap created sau research session — xác nhận 4 nguồn base-domain không nhất quán (gateway `.kitehub.me` / seeder `.kite.local` / docs `kitehub.me`+`kitehub.vn` / ADR `kitehub.me`) + slug→UUID gap (FE trả slug, landing API cần UUID, không có public resolve endpoint). Design 3 phần: (a) reconcile env-driven `KITE_BASE_DOMAIN`, (b) endpoint `GET /api/v1/tenants/by-subdomain/{slug}`, (c) fix slug-availability cross-check `instances` thật. Status OPEN — chờ implement (decision-doc base-domain value cần user confirm trước, per audit-to-gap-pipeline §2.7).
 - **2026-06-01 (Wave tenant-domain-1 Bucket B):** Flip OPEN → PARTIAL (completion 55%). Ship BE endpoint per Bucket B scope: `PublicTenantController` (`/api/v1/public/tenants/by-subdomain/{slug}` — slug regex + 200/400/404/410 mapping + TRIAL→ACTIVE collapse for public projection), `TenantLookupService` (read-only Optional<Instance> + DTO projection — zero sensitive field leak), `TenantResolveDto`, `kitehub-gateway` route `public-tenant-resolve` (rate-limit 30/min/IP via `ipKeyResolver` + circuit breaker), `kitehub-subscription` SecurityConfig `permitAll` `/api/v1/public/tenants/**` (in front of authenticated gateway tail). Tests: `PublicTenantControllerTest` (Mockito, 13 cases — 200 ACTIVE/TRIAL, 404 unknown/PENDING, 410 SUSPENDED/DELETED, 400 uppercase/leading-hyphen/trailing-hyphen/length/empty/underscore, boundary 1-char + 50-char). IT: `PublicTenantPostgresIT` (Testcontainers postgres:16-alpine, 7 cases — 200 ACTIVE × 2, 404 unknown, 410 SUSPENDED, 400 uppercase + underscore, 404 soft-deleted). `InstanceRepository.findBySubdomainAndDeletedFalse(String)` đã có sẵn — không cần thêm method. Local verify: `mvnw -pl kitehub-subscription compile + test-compile + test -Dtest=PublicTenantControllerTest` all PASS. Pending Bucket C: FE consumer `resolveTenant.ts` (GAP-811), base-domain env unification, SlugAvailabilityService cross-check, RST walk evidence 3 lớp.
 
 ## Outside-in findings (3-agent audit 2026-05-29)
 
 Bổ sung trước khi lock (per `outside-in-coverage-trigger.md`):
 
-- **Failure-mode (P0):** base-domain drift (`.kiteclass.com` gateway vs `kite.me`/`kite.local`) → `extractSubdomain` fail im lặng → mọi resolve về 404/JWT-fallback. Reconcile 1 env `KITE_BASE_DOMAIN` + audit-parity script (như `audit-env-coverage`) verify đồng bộ mọi layer.
+- **Failure-mode (P0):** base-domain drift (`.kitehub.me` gateway vs `kite.me`/`kite.local`) → `extractSubdomain` fail im lặng → mọi resolve về 404/JWT-fallback. Reconcile 1 env `KITE_BASE_DOMAIN` + audit-parity script (như `audit-env-coverage`) verify đồng bộ mọi layer.
 - **Security (P0) — cross-ref GAP-814:** localhost/apex no-subdomain → JWT-claim fallback NHƯNG signature KHÔNG verify (best-effort) → kết hợp host-spoofing thành lỗ; endpoint by-subdomain + middleware phải dựa nguồn tin cậy.
 - **Benchmark:** tách rõ ownership-verify (TXT/DCV) khỏi routing-record (CNAME/A) — endpoint `by-subdomain` trả `{tenantId, status}` chỉ cho routing/landing resolve, không lẫn verify.
 - **Finding:** `resolveTenantUuid` pattern đã tồn tại internal → endpoint mới chủ yếu expose, không build mới.

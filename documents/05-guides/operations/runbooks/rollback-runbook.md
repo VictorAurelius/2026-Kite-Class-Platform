@@ -172,7 +172,7 @@ curl -s -X PATCH "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/dns_rec
   -d "{\"content\": \"<previous-stable-IP>\", \"ttl\": 300}"
 
 # Wait for propagation (Cloudflare TTL 5 min)
-for host in kitehub.vn kiteclass.vn api.kitehub.vn; do
+for host in kitehub.vn kitehub.me api.kitehub.vn; do
   dig "$host" +short
 done
 # Re-check until output matches previous-stable-IP
@@ -203,7 +203,7 @@ Cross-link forward to GAP-377 (smoke test automation) — until that ships, use 
 
 ```bash
 ./scripts/smoke-test.sh https://api.kitehub.vn
-./scripts/smoke-test.sh https://api.kiteclass.vn
+./scripts/smoke-test.sh https://api.kitehub.me
 # Exit 0 = all pass; exit 1 = at least one FAIL → rollback FAILED, escalate to §7
 # Exit 2 = WARN only, document warnings, decide case-by-case
 ```
@@ -297,7 +297,7 @@ Allow 5-15 min for restore on production-sized DB. Smoke test (§4 Step 5) MUST 
 
 ```
 Status: Investigating
-Affected components: api.kitehub.vn, app.kiteclass.vn
+Affected components: api.kitehub.vn, app.kitehub.me
 Started: <UTC timestamp>
 We are investigating reports of <symptom>. Updates every 15 minutes.
 ```
@@ -409,7 +409,7 @@ Một số tác vụ tạo branding bằng AI đã bị ảnh hưởng trong s�
 
 Run this checklist within 30 min of §4 Step 6 completion:
 
-- [ ] All public marketing pages load (kitehub.vn, kiteclass.vn) — HTTP 200
+- [ ] All public marketing pages load (kitehub.vn, kitehub.me) — HTTP 200
 - [ ] Tenant login works (3 sample tenants minimum, mix of beta + paid)
 - [ ] Existing data accessible (sample query: tenant dashboard shows historic enrollments)
 - [ ] Smoke test passes (§4 Step 5 exit 0)

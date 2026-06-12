@@ -110,7 +110,7 @@ target_versions: [v0.9.0-beta, v1.0.0-rc, v1.0.0]
 - [ ] AWS account + Activate Founders Pack approved ($1k credit)
 - [ ] Terraform bootstrap state backend (S3 + DynamoDB lock) applied
 - [ ] Production Terraform applied: VPC + EC2 t3.large + RDS db.t3.micro + ElastiCache + ECR 9 repos + Secrets Manager + ALB
-- [ ] DNS configured: `kitehub.vn` + `kiteclass.vn` (per **GAP-369**) via Cloudflare → ALB
+- [ ] DNS configured: `kitehub.vn` + `kitehub.me` (per **GAP-369**) via Cloudflare → ALB
 - [ ] SSL certs Let's Encrypt + Cloudflare Full (strict) activated
 - [ ] Cloudflare proxy configured + headers verified (per **GAP-371** — Wave 38 Bucket B `cloudflare-setup.md` + `verify-cdn-headers.sh`)
 - [ ] SES production access approved + domain verified DKIM/SPF/DMARC (per **GAP-370** — Wave 33 Bucket B `email-ses-setup-runbook.md`)
@@ -172,10 +172,10 @@ sudo -u kite docker compose -f /opt/kite/docker-compose.prod.yml up -d
 sudo -u kite docker exec kiteclass-core java -jar app.jar --command=seed-production
 
 # 9. DNS cutover Cloudflare → ALB
-# Cloudflare Console: A record kitehub.vn + kiteclass.vn → ALB DNS (proxied orange-cloud)
+# Cloudflare Console: A record kitehub.vn + kitehub.me → ALB DNS (proxied orange-cloud)
 
 # 10. Verify smoke tests (Wave 26 GAP-377 — 18 assertions)
-./scripts/smoke-test.sh https://kitehub.vn https://kiteclass.vn
+./scripts/smoke-test.sh https://kitehub.vn https://kitehub.me
 
 # 11. Trigger E2E pre-release Playwright + OWASP ZAP (Wave 37 Bucket C)
 gh workflow run e2e-pre-release.yml
@@ -257,7 +257,7 @@ Tất cả items §2.1 PLUS:
 - [ ] Critical bugs from beta resolved
 
 **Production-specific:**
-- [ ] DNS production cutover plan: `kitehub.vn` + `kiteclass.vn` (per **GAP-369**)
+- [ ] DNS production cutover plan: `kitehub.vn` + `kitehub.me` (per **GAP-369**)
 - [ ] SSL production certs (Let's Encrypt or paid CA)
 - [ ] Public signup form re-enabled (replace "Request Beta Access")
 - [ ] Payment processor production keys verified
@@ -291,7 +291,7 @@ git push origin v1.0.0
 
 ### 3.3 v1.0.0 production smoke tests
 
-> **Automated** baseline same as §2.4 — invoke `scripts/smoke-test.sh https://kitehub.vn https://kiteclass.vn` (GAP-377 / Wave 26 Bucket C). The 18 baseline assertions execute against production URLs; deploy CI step (`.github/workflows/deploy-staging.yml`) is the canonical pre-cutover gate. Production-specific manual items below extend that baseline.
+> **Automated** baseline same as §2.4 — invoke `scripts/smoke-test.sh https://kitehub.vn https://kitehub.me` (GAP-377 / Wave 26 Bucket C). The 18 baseline assertions execute against production URLs; deploy CI step (`.github/workflows/deploy-staging.yml`) is the canonical pre-cutover gate. Production-specific manual items below extend that baseline.
 
 Tất cả tests §2.4 PLUS:
 - [ ] Payment processor: trial→paid migration end-to-end (sandbox)
@@ -388,7 +388,7 @@ docker exec kitehub-db psql -U postgres < rollback-vN.sql
 # pg_restore from latest snapshot
 
 # 6. Verify smoke tests on rolled-back version
-./scripts/smoke-test.sh https://kitehub.vn https://kiteclass.vn
+./scripts/smoke-test.sh https://kitehub.vn https://kitehub.me
 
 # 7. Communicate to tenants
 # "Rolled back to v0.9.0-beta; v1.0.0 launch postponed; investigation ongoing"
@@ -412,7 +412,7 @@ docker exec kitehub-db psql -U postgres < rollback-vN.sql
 
 | Gap | Title | Priority | Phase |
 |---|---|---|---|
-| **GAP-369** | Production DNS + domain setup (kitehub.vn + kiteclass.vn) | 🔴 P0 BLOCKING | Phase 1 BETA + 1.5 PAID |
+| **GAP-369** | Production DNS + domain setup (kitehub.vn + kitehub.me) | 🔴 P0 BLOCKING | Phase 1 BETA + 1.5 PAID |
 | **GAP-370** | Email transactional infrastructure (SendGrid/SES) | 🔴 P0 BLOCKING | Phase 1 BETA |
 | **GAP-371** | CDN setup (Cloudflare proxy + DDoS protection) | 🟠 P1 STRONGLY recommend | Phase 1 BETA |
 | **GAP-372** | Beta tenant invite mechanism (Request Beta Access form + manual approval flow) | 🔴 P0 BLOCKING | Phase 1 BETA |

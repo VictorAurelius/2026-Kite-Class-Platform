@@ -1585,7 +1585,7 @@ public class Payment extends BaseEntity {
 - Can enforce access control (PRIVATE, COURSE, PUBLIC)
 
 **Option 2: Direct S3 URL (Simpler)**
-- Keep `avatar_url: VARCHAR(500)` as S3 URL: `https://cdn.kiteclass.vn/tenant-123/avatars/abc.png`
+- Keep `avatar_url: VARCHAR(500)` as S3 URL: `https://cdn.kitehub.me/tenant-123/avatars/abc.png`
 - No FK reference to uploaded_files (looser coupling)
 - Simpler to implement, no cross-table joins
 

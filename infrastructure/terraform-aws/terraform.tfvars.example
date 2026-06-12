@@ -35,7 +35,7 @@ enable_alb              = true
 alb_acm_certificate_arn = null # Set after ACM cert validation; null = HTTP-only initial bring-up
 
 # --- Domain / Route53 ---
-domain_name         = "kiteclass.com"
+domain_name         = "kitehub.me"
 manage_route53_zone = false # Cloudflare DNS is primary per ADR-018
 
 # --- GitHub OIDC ---

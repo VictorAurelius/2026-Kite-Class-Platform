@@ -52,7 +52,7 @@ updated: 2026-05-07
 
 ### 1.1 Domain registration
 - [ ] **1.1.1** Đăng ký `kitehub.vn` tại VN registrar (Mat Bao / PA Vietnam / iNet)
-- [ ] **1.1.2** Đăng ký `kiteclass.vn` tại VN registrar (cùng vendor recommend cho quản lý)
+- [ ] **1.1.2** Đăng ký `kitehub.me` tại VN registrar (cùng vendor recommend cho quản lý)
 - [ ] **1.1.3** Verify domain ownership email confirmation
 - [ ] **1.1.4** Lưu credentials vào password manager (KHÔNG commit)
 
@@ -77,7 +77,7 @@ updated: 2026-05-07
 
 **Option B — Cloudflare proxy + custom domain (Phase 2+ when needed):**
 - [ ] **1.3.B.1** Tạo Cloudflare account Free tier
-- [ ] **1.3.B.2** Add domain `kitehub.vn` + `kiteclass.vn`
+- [ ] **1.3.B.2** Add domain `kitehub.vn` + `kitehub.me`
 - [ ] **1.3.B.3** Cloudflare emit nameservers — copy
 - [ ] **1.3.B.4** Update nameservers tại VN registrar (DNS migration thường 2-24h propagate)
 - [ ] **1.3.B.5** Verify DNS migrated qua `dig +short NS kitehub.vn` → trả về Cloudflare NS
@@ -208,7 +208,7 @@ updated: 2026-05-07
 
 **Path B — Custom domain `staging.kitehub.vn` (yêu cầu Phase 1.1 domain registered):**
 - [ ] **4.2.B.1** Cloudflare DNS: A record `staging.kitehub.vn` → staging EC2 public IP (proxied)
-- [ ] **4.2.B.2** Cloudflare DNS: A record `staging.kiteclass.vn` → staging EC2 public IP (proxied)
+- [ ] **4.2.B.2** Cloudflare DNS: A record `staging.kitehub.me` → staging EC2 public IP (proxied)
 - [ ] **4.2.B.3** Verify `dig +short staging.kitehub.vn` resolves to Cloudflare IP
 
 **Decision rule:** RC dùng Path A (zero cost, instant); production launch (Phase 7) bắt buộc Path B (domain branded).
@@ -220,7 +220,7 @@ updated: 2026-05-07
 - [ ] **4.3.4** SSH execute `bash scripts/seed-staging-fixtures.sh` (Wave 38 Bucket D — 5-10 synthetic tenants)
 
 ### 4.4 Smoke test
-- [ ] **4.4.1** `bash scripts/smoke-test.sh https://staging.kitehub.vn https://staging.kiteclass.vn` (Wave 26 GAP-377)
+- [ ] **4.4.1** `bash scripts/smoke-test.sh https://staging.kitehub.vn https://staging.kitehub.me` (Wave 26 GAP-377)
 - [ ] **4.4.2** Verify 18 assertions pass: health endpoints, legal pages, login/register, KH `/api/health`, ConsentBanner mount, KC public APIs, 404 handling, gateway routing
 - [ ] **4.4.3** Trigger `.github/workflows/zap-baseline.yml` workflow_dispatch (Wave 37 Bucket C OWASP scan) — manual review report
 
@@ -277,11 +277,11 @@ updated: 2026-05-07
 - [ ] **7.3.5** SSM into prod EC2 → docker-compose pull + up -d
 - [ ] **7.3.6** Verify Flyway migrations apply auto (Spring Boot start)
 - [ ] **7.3.7** Run `ProductionSeedRunner` (Wave 33 GAP-376) — admin user + system config + first kitehub instance
-- [ ] **7.3.8** `bash scripts/smoke-test.sh https://kitehub.vn https://kiteclass.vn` — 18 assertions
+- [ ] **7.3.8** `bash scripts/smoke-test.sh https://kitehub.vn https://kitehub.me` — 18 assertions
 - [ ] **7.3.9** DNS cutover — **Path B BẮT BUỘC cho production** (Path A `sslip.io` không brandable, không SEO; trust score gửi gmail/zalo = 0):
-  - [ ] **7.3.9.1** Verify domain `kitehub.vn` + `kiteclass.vn` registered (Phase 1.1) — nếu chưa, đăng ký qua Mat Bao / PA Vietnam / iNet (~270k VND/năm/domain, ~30 phút onboarding + verify ID)
+  - [ ] **7.3.9.1** Verify domain `kitehub.vn` + `kitehub.me` registered (Phase 1.1) — nếu chưa, đăng ký qua Mat Bao / PA Vietnam / iNet (~270k VND/năm/domain, ~30 phút onboarding + verify ID)
   - [ ] **7.3.9.2** Cloudflare orange-cloud `kitehub.vn` apex + `www` → AWS ALB DNS (CNAME flattening)
-  - [ ] **7.3.9.3** Cloudflare orange-cloud `kiteclass.vn` apex + `www` → AWS ALB DNS
+  - [ ] **7.3.9.3** Cloudflare orange-cloud `kitehub.me` apex + `www` → AWS ALB DNS
   - [ ] **7.3.9.4** Verify `dig +short kitehub.vn` → Cloudflare IP; `curl -sI https://kitehub.vn` → 200 + valid cert
   - [ ] **7.3.9.5** Update Better Stack monitors + status page sang custom domain
 - [ ] **7.3.10** Public announcement Instatus status page (Phase 1 BETA invite-only live)

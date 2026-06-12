@@ -8,7 +8,7 @@ gates: G2★ (human production-accurate browser walk) — verify GAP-811 + GAP-1
 
 # G2★ Recipe — Landing-100 Subdomain Walk (nip.io)
 
-> **Mục tiêu:** Con người walk landing page per-tenant qua **subdomain Host THẬT** (nip.io) trên browser — đúng access-mode production (`{slug}.kiteclass.com`), KHÔNG dùng `?tenant=` (= bằng chứng giả per `g1-browser-walk-before-flip.md` §3.1+§3.2). Walk PASS → flip **GAP-811 + GAP-1077** DONE + đóng nốt landing-100 G2★.
+> **Mục tiêu:** Con người walk landing page per-tenant qua **subdomain Host THẬT** (nip.io) trên browser — đúng access-mode production (`{slug}.kitehub.me`), KHÔNG dùng `?tenant=` (= bằng chứng giả per `g1-browser-walk-before-flip.md` §3.1+§3.2). Walk PASS → flip **GAP-811 + GAP-1077** DONE + đóng nốt landing-100 G2★.
 >
 > **Đây là G2★ (gộp G2+G3-functional, chốt 2026-06-11):** 1 walk chứng minh CẢ trải nghiệm UX thật LẪN functional production-parity (subdomain→gateway→FE→core, RLS thật, prod access-mode). Phần **G3-infra** (TLS/LB/wildcard-cert/real-DNS) = AWS-gated GAP-612, KHÔNG block walk này.
 
@@ -16,7 +16,7 @@ gates: G2★ (human production-accurate browser walk) — verify GAP-811 + GAP-1
 
 ## 1. Vì sao nip.io, không `?tenant=`
 
-Production: user gõ `co-ha-toan.kiteclass.com` → FE `middleware.ts` đọc **Host header** → `extractSlugFromHost()` lấy `parts[0]` = `co-ha-toan` → resolve ra tenantId → render landing Cô Hà Toán.
+Production: user gõ `co-ha-toan.kitehub.me` → FE `middleware.ts` đọc **Host header** → `extractSlugFromHost()` lấy `parts[0]` = `co-ha-toan` → resolve ra tenantId → render landing Cô Hà Toán.
 
 `?tenant=<uuid>` đi **nhánh dev-preview** (`extractSlug()` ưu tiên query TRƯỚC Host) → **BYPASS** chính `extractSlugFromHost()` cần verify. Pass `?tenant=` KHÔNG chứng minh production hoạt động.
 
@@ -169,9 +169,9 @@ Sau khi walk, báo theo 1 trong 4:
 ## 7. G3-infra preview (AWS-gated, KHÔNG block walk này)
 
 Sau khi G2★ PASS local, phần **G3-infra** còn lại (verify trên AWS, gated GAP-612 — stack đang stopped):
-- TLS thật `*.kiteclass.com` wildcard cert
+- TLS thật `*.kitehub.me` wildcard cert
 - ALB/LB routing subdomain → FE
-- Real-DNS Cloudflare `*.kiteclass.com` wildcard
+- Real-DNS Cloudflare `*.kitehub.me` wildcard
 - Custom-domain DNS verify + SSL (GAP-812)
 
 Khoảng cách nip.io ↔ production thật (port/TLS/LB/wildcard-cert) = infra parity = G3-infra territory (per `g1-browser-walk-before-flip.md` §86). nip.io đã exercise đúng 100% **resolution logic** → functional parity DONE; chỉ còn infra layer chờ AWS restore.

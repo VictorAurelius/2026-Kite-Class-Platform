@@ -57,7 +57,7 @@ Mọi deployment decision phải justify được trong graduation thesis với 
 | **CI/CD** | GitHub Actions | `.github/workflows/` | Free tier, matrix builds, mature marketplace |
 | **Container registry** | GitHub Container Registry (ghcr.io) | Organization scope | Free cho public, integrated với GHA |
 | **Observability** | Prometheus + Grafana self-hosted | Cluster `observability/` namespace (Wave 6) | No vendor lock, cost control |
-| **DNS + SSL** | Cloudflare + Let's Encrypt cert-manager | Automated wildcard `*.kiteclass.com` | Zero cost, automated renewal |
+| **DNS + SSL** | Cloudflare + Let's Encrypt cert-manager | Automated wildcard `*.kitehub.me` | Zero cost, automated renewal |
 
 ---
 

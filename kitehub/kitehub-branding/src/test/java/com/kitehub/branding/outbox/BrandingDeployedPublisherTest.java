@@ -51,7 +51,7 @@ class BrandingDeployedPublisherTest {
         when(stateRepository.findById(instanceId)).thenReturn(Optional.of(
                 BrandingInstanceState.builder().instanceId(instanceId).brandingVersion(3).build()));
 
-        publisher.publishDeployed(instanceId, "acme", "https://acme.kiteclass.vn",
+        publisher.publishDeployed(instanceId, "acme", "https://acme.kitehub.me",
                 fixture().colours, "https://cdn/logo.svg");
 
         ArgumentCaptor<Object> payload = ArgumentCaptor.forClass(Object.class);
@@ -65,7 +65,7 @@ class BrandingDeployedPublisherTest {
         BrandingDeployedEvent event = (BrandingDeployedEvent) payload.getValue();
         assertThat(event.tenantId()).isEqualTo(instanceId.toString());
         assertThat(event.slug()).isEqualTo("acme");
-        assertThat(event.frontendUrl()).isEqualTo("https://acme.kiteclass.vn");
+        assertThat(event.frontendUrl()).isEqualTo("https://acme.kitehub.me");
         assertThat(event.primaryColor()).isEqualTo("#112233");
         assertThat(event.secondaryColor()).isEqualTo("#445566");
         assertThat(event.accentColor()).isEqualTo("#778899");
@@ -81,7 +81,7 @@ class BrandingDeployedPublisherTest {
         UUID instanceId = UUID.randomUUID();
         when(stateRepository.findById(instanceId)).thenReturn(Optional.empty());
 
-        publisher.publishDeployed(instanceId, "acme", "https://acme.kiteclass.vn",
+        publisher.publishDeployed(instanceId, "acme", "https://acme.kitehub.me",
                 fixture().colours, null);
 
         ArgumentCaptor<Object> payload = ArgumentCaptor.forClass(Object.class);

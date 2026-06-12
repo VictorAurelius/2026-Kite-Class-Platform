@@ -41,11 +41,11 @@
 
   # Output:
   # ✓ Admin user: admin@kitehub.com / Admin@123
-  # ✓ KiteTeam internal: kiteteam-dev.kiteclass.com
+  # ✓ KiteTeam internal: kiteteam-dev.kitehub.me
   #   - 5 students, 3 teachers, 4 courses, 2 classes
-  # ✓ KiteTeam demo: kiteteam-demo.kiteclass.com
+  # ✓ KiteTeam demo: kiteteam-demo.kitehub.me
   #   - Full showcase data (20 students, 10 teachers, ...)
-  # ✓ Customer demo: demo-school.kiteclass.com
+  # ✓ Customer demo: demo-school.kitehub.me
   #   - Empty instance for testing registration flow
   ```
 - [ ] KiteTeam internal instance: data thật cho team test

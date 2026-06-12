@@ -416,7 +416,7 @@ public class BrandingJobV1Controller {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("jobId", jobId.toString());
         body.put("status", "INITIALIZING");
-        body.put("frontendUrl", "https://" + slug + ".kiteclass.vn");
+        body.put("frontendUrl", "https://" + slug + ".kitehub.me");
         // GAP-1217 — surface the passing score at the approve/deploy step.
         body.put("qualityScore", quality.score());
         body.put("message", "Đang triển khai (mock provisioning)");

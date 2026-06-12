@@ -36,7 +36,7 @@ MAINT --> CUST : Hạ tầng sẵn sàng
 MAINT -> KC : Deploy microservices\nDeploy frontend có branding
 KC -> KC : Build & khởi động\nÁp dụng AI branding
 KC --> MAINT : Triển khai hoàn tất
-MAINT --> CUST : Gửi URL truy cập\nhttps://[tên].kiteclass.com
+MAINT --> CUST : Gửi URL truy cập\nhttps://[tên].kitehub.me
 
 == 5. Sử dụng ==
 

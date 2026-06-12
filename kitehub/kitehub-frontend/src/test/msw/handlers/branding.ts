@@ -80,7 +80,7 @@ export const brandingHandlers: HttpHandler[] = [
       {
         jobId,
         status: 'INITIALIZING',
-        frontendUrl: `https://${slug}.kiteclass.vn`,
+        frontendUrl: `https://${slug}.kitehub.me`,
         message: 'Đang triển khai (mock provisioning)',
       },
       { status: 202 }

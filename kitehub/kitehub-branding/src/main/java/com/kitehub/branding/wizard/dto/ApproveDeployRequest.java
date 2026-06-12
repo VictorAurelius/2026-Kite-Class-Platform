@@ -9,7 +9,7 @@ import java.util.List;
  * the theme and drives the MOCK provisioning lifecycle to DEPLOYED.
  *
  * <p>{@code slug} builds the placeholder {@code frontendUrl}
- * ({@code https://{slug}.kiteclass.vn}). All fields optional — the backend
+ * ({@code https://{slug}.kitehub.me}). All fields optional — the backend
  * falls back to job-derived values when absent.</p>
  *
  * @since GAP-1021 (Phase 1 deploy pipeline mock)

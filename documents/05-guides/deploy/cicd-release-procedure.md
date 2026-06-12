@@ -118,7 +118,7 @@ gh run watch
 ```bash
 # 4.1 Health checks
 for svc in gateway subscription branding email admin; do
-  curl -f https://api.kiteclass.com/$svc/actuator/health || echo "FAIL: $svc"
+  curl -f https://api.kitehub.me/$svc/actuator/health || echo "FAIL: $svc"
 done
 
 # 4.2 Smoke test

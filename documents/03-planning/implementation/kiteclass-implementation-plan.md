@@ -4002,7 +4002,7 @@ Tự động tạo từ AI branding assets (PART 2) + instance data.
        listen 443 ssl;
        server_name abc-academy.com;
        ssl_certificate /etc/letsencrypt/live/abc-academy.com/fullchain.pem;
-       proxy_pass https://abc-academy.kiteclass.com;
+       proxy_pass https://abc-academy.kitehub.me;
    }
    ```
 
@@ -4981,7 +4981,7 @@ export function Footer() {
         {' '}
         Powered by{' '}
         <a
-          href="https://kiteclass.com"
+          href="https://kitehub.me"
           target="_blank"
           rel="noopener noreferrer"
           className="underline hover:text-foreground"

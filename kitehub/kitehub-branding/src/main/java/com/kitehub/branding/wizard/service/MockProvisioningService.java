@@ -34,7 +34,7 @@ import java.util.UUID;
  * <ul>
  *   <li><b>GAP-1055</b> — real per-tenant DB / MinIO bucket / DNS subdomain
  *       provisioning. Here {@code frontendUrl} is a placeholder
- *       {@code https://{slug}.kiteclass.vn}; no DNS record or isolated infra is
+ *       {@code https://{slug}.kitehub.me}; no DNS record or isolated infra is
  *       created.</li>
  *   <li><b>GAP-811 / GAP-1077</b> — Host-based subdomain render of the tenant
  *       site. The deploy "completes" without a live subdomain serving.</li>
@@ -87,7 +87,7 @@ public class MockProvisioningService {
      * render gated GAP-811/1077). Dev compose can override so local deploy shows
      * a local-resolvable URL instead of the production domain.
      */
-    @Value("${kitehub.branding.frontend-base-url-template:https://{slug}.kiteclass.vn}")
+    @Value("${kitehub.branding.frontend-base-url-template:https://{slug}.kitehub.me}")
     private String frontendBaseUrlTemplate;
 
     public MockProvisioningService(
@@ -163,11 +163,11 @@ public class MockProvisioningService {
 
     private String buildFrontendUrl(String slug) {
         String safe = (slug == null || slug.isBlank()) ? "tenant" : slug.trim();
-        // GAP-1108 #4: env-aware (was hardcoded https://{slug}.kiteclass.vn). Default
+        // GAP-1108 #4: env-aware (was hardcoded https://{slug}.kitehub.me). Default
         // stays the production MOCK placeholder; dev overrides via config. Null-safe
         // for unit tests that don't inject the @Value field.
         String template = (frontendBaseUrlTemplate == null || frontendBaseUrlTemplate.isBlank())
-                ? "https://{slug}.kiteclass.vn" : frontendBaseUrlTemplate;
+                ? "https://{slug}.kitehub.me" : frontendBaseUrlTemplate;
         return template.replace("{slug}", safe);
     }
 
@@ -256,7 +256,7 @@ public class MockProvisioningService {
     /** Mock CDN URL — keeps the {@code /instances/} segment so delete-path extraction works. */
     private static String mockAssetUrl(String slug, String resource, boolean isColours) {
         String ext = isColours ? "json" : "svg";
-        return "https://mock-cdn.kiteclass.com/instances/" + slug
+        return "https://mock-cdn.kitehub.me/instances/" + slug
                 + "/branding/" + resource.trim().toLowerCase(Locale.ROOT) + "." + ext;
     }
 

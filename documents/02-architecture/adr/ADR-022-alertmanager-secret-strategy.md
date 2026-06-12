@@ -12,7 +12,7 @@ RECEIVER STUBS pointing at `*.invalid` placeholder hosts:
 
 - `default-webhook` → `http://alertmanager-webhook-placeholder.invalid/default`
 - `critical-webhook` → `http://alertmanager-webhook-placeholder.invalid/critical`
-- `warning-email` → `ops@kiteclass.com` via `smtp.placeholder.invalid:587`
+- `warning-email` → `ops@kitehub.me` via `smtp.placeholder.invalid:587`
 
 Alertmanager starts cleanly but every alert delivery silently fails (DNS
 unresolvable). On-call effectiveness is **zero** until production receivers are

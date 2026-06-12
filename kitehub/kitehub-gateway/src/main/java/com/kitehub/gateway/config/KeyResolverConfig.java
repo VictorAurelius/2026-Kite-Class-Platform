@@ -41,7 +41,7 @@ public class KeyResolverConfig {
 
     private final String baseDomain;
 
-    public KeyResolverConfig(@Value("${kitehub.domain.base:.kiteclass.com}") String baseDomain) {
+    public KeyResolverConfig(@Value("${kitehub.domain.base:.kitehub.me}") String baseDomain) {
         this.baseDomain = baseDomain;
     }
 

@@ -61,7 +61,7 @@ export default async function SuspendedPage({ searchParams }: SuspendedPageProps
         </p>
       ) : null}
       <a
-        href="https://kiteclass.com"
+        href="https://kitehub.me"
         className="rounded-lg bg-primary px-6 py-3 text-primary-foreground hover:bg-primary/90"
       >
         Về trang chủ KiteClass

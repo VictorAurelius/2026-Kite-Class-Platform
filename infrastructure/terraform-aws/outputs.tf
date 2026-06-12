@@ -102,7 +102,7 @@ output "next_steps" {
       2. SSH/SSM into kh-backend + kc-app to deploy Docker Compose stacks
          Use: aws ssm start-session --target ${aws_instance.kh_backend.id}
       3. Update Cloudflare DNS records:
-         - kiteclass.com  CNAME -> ${var.enable_alb ? aws_lb.main[0].dns_name : aws_instance.kc_app.public_ip}
+         - kitehub.me  CNAME -> ${var.enable_alb ? aws_lb.main[0].dns_name : aws_instance.kc_app.public_ip}
       4. Configure ALB ACM cert (post DNS) → re-run terraform with alb_acm_certificate_arn set
       5. Verify GitHub OIDC role in terraform-plan workflow:
          role-to-assume: ${aws_iam_role.github_terraform_plan.arn}

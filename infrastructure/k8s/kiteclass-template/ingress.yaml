@@ -1,5 +1,5 @@
 # KiteClass Instance Ingress Template
-# Exposes the instance at {{SUBDOMAIN}}.kiteclass.com
+# Exposes the instance at {{SUBDOMAIN}}.kitehub.me
 
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -17,7 +17,7 @@ metadata:
     # Enable CORS
     nginx.ingress.kubernetes.io/enable-cors: "true"
     nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, PATCH, DELETE, OPTIONS"
-    nginx.ingress.kubernetes.io/cors-allow-origin: "https://{{SUBDOMAIN}}.kiteclass.com"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "https://{{SUBDOMAIN}}.kitehub.me"
     nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
 
     # Rate Limiting (tier-based)
@@ -40,10 +40,10 @@ metadata:
 spec:
   tls:
   - hosts:
-    - "{{SUBDOMAIN}}.kiteclass.com"
+    - "{{SUBDOMAIN}}.kitehub.me"
     secretName: kiteclass-tls-{{INSTANCE_ID}}
   rules:
-  - host: "{{SUBDOMAIN}}.kiteclass.com"
+  - host: "{{SUBDOMAIN}}.kitehub.me"
     http:
       paths:
       # Frontend (Next.js)

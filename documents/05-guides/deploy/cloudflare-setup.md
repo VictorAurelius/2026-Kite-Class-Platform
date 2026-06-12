@@ -3,7 +3,7 @@
 **Last updated:** 2026-05-09 (GAP-458 — `.me` Free path support)
 **Applies to:**
 - **Free path Release 1 (Recommended, GAP-458):** `kitehub.me` apex domain — 1 domain duy nhất qua GitHub Student Pack
-- **Paid path alternative:** `kitehub.vn` + `kiteclass.vn` — 2 production domains qua VN registrar
+- **Paid path alternative:** `kitehub.vn` + `kitehub.me` — 2 production domains qua VN registrar
 **Related:** GAP-371 (CDN Cloudflare), GAP-369 (DNS production setup), GAP-458 (domain decision `kitehub.me`), Wave 38 Bucket D (staging runbook)
 **Tier:** Cloudflare Free (Phase 1 BETA) — xem §11 để đánh giá Pro
 
@@ -58,7 +58,7 @@ Internal services (subscription, branding, core, ...)
 
 > **Free path Release 1 (GAP-458 decision 2026-05-09):** chỉ 1 domain `kitehub.me` — Student Pack chỉ cấp 1 free domain. KiteClass tenants access qua wildcard subdomain `*.kitehub.me` (Pattern A — vd `tenant1.kitehub.me`).
 >
-> **Paid path alternative:** nếu user mua `.vn` paid sau này, làm lần lượt cho **cả 2 domains** `kitehub.vn` + `kiteclass.vn`.
+> **Paid path alternative:** nếu user mua `.vn` paid sau này, làm lần lượt cho **cả 2 domains** `kitehub.vn` + `kitehub.me`.
 
 ### 3.1 Add site
 
@@ -70,7 +70,7 @@ Cloudflare Dashboard → Add a Site → nhập kitehub.me → Continue
 **Paid path (2 domains):**
 ```
 Cloudflare Dashboard → Add a Site → nhập kitehub.vn → Continue
-... (lặp lại với kiteclass.vn)
+... (lặp lại với kitehub.me)
 ```
 
 Chọn plan **Free** → Continue (scroll xuống cuối list, $0/month — tránh chọn Pro/Business).
@@ -316,9 +316,9 @@ Setting:     Cache Level = Bypass
 > **Free tier giới hạn 3 Page Rules.** Ưu tiên: static assets > API bypass > CDN behaviors khác.
 > Nếu cần thêm rules → upgrade Pro ($20/mo) hoặc dùng **Cache Rules** mới (beta, flexible hơn).
 
-### 7.2 Làm tương tự cho kiteclass.vn
+### 7.2 Làm tương tự cho kitehub.me
 
-Rules tương tự với pattern `*.kiteclass.vn/...`
+Rules tương tự với pattern `*.kitehub.me/...`
 
 ---
 
@@ -426,8 +426,8 @@ Sau khi cấu hình xong và propagation hoàn tất, chạy verify script:
 # Verify kitehub.vn
 bash scripts/verify-cdn-headers.sh kitehub.vn
 
-# Verify kiteclass.vn
-bash scripts/verify-cdn-headers.sh kiteclass.vn
+# Verify kitehub.me
+bash scripts/verify-cdn-headers.sh kitehub.me
 
 # Kết quả mong đợi (exit 0):
 # [PASS] CF-Ray: detected
