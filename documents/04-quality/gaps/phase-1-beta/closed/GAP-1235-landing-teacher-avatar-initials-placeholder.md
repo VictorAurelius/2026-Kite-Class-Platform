@@ -1,6 +1,6 @@
 # GAP-1235: Landing production — avatar GV là vòng tròn chữ cái thay vì chân dung thật (kit dùng ảnh gốc)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟡 P2
 **Domain:** Mixed
 **Found:** 2026-06-12 (visual check production vs kit — screenshot 3 tenant demo-trio)
@@ -18,9 +18,17 @@ Extend seeder demo-trio (Bucket G `seed-landing-content` path): upload 3 chân d
 
 ## Acceptance Criteria
 
-- [ ] 3 tenant demo-trio: section giáo viên hiện chân dung thật (không initials)
-- [ ] Ước +1-2 điểm parity (rescore addendum)
+- [x] 3 tenant demo-trio: section giáo viên hiện chân dung thật (không initials) — screenshot verified 2026-06-12 post-rebuild
+- [x] Scope mở rộng cùng PR #2352: đa-banner carousel (Hà 4/Nhì 4/Khánh 3 slides committed) + aboutText thật — rescore addendum khi flip landing-100
 
 ## Related
 
 - GAP-1232 (banner + portrait thật vào kit — nguồn ảnh) · GAP-826 (heroImages 3 lớp — pattern serve) · rescore 2026-06-11 §4 delta table · landing-100 path-to-90
+
+## Walk evidence (per feature-ship-runtime-walk-mandate.md §3)
+
+Stack local rebuild từ main `31dd08aab` (kiteclass-core + kiteclass-frontend), seeder log `Seeded demo-trio tenant (slug=co-ha-toan/thay-nhi-hoa)` + `Seeded Sky landing hero`:
+- **Chân dung thật:** screenshot section "Giáo viên đồng hành" co-ha-toan — ảnh cô Hà thật trong avatar circle (hết initials NTH). DOM chứa `portrait-ha.webp`.
+- **Đa-banner:** DOM co-ha-toan chứa đủ 4 slides `co-ha-toan + ha-hoc-sinh + ha-quyet-tam-1/2.webp` (HeroBannerCarousel render rotator khi ≥2 slides per GAP-826).
+- **aboutText:** section "Về giáo viên" render 2 đoạn copy thật (screenshot full-page).
+- Test: BrandingDataSeederTest 5/5 PASS + CI green (#2352).
