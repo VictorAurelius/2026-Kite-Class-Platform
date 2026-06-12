@@ -46,7 +46,7 @@ Mọi artifact tenant, user, dev, hay downstream system consume:
 | **Ops readiness** | ops-readiness-audit skill /100 | Post-wave + quarterly | Auditor | ⚠️ 77/100 C+ (2026-05-18, Wave 94c) — see `audits-index.csv`; 3 P0 carry GAP-257/144/612 |
 | **Performance baseline** | performance-audit skill /100 | Post-wave + quarterly | Auditor | ✅ 86/100 B+ (2026-05-15, Wave 85) — see `audits-index.csv` |
 | **Security baseline** | security-audit skill /100 + **v2 audit format mandatory per GAP-564** (per-control evidence block — see `.claude/skills/quality/security-audit/reference/audit-report-template-v2.md`) | Post-wave + quarterly | Auditor | ✅ 93/100 A (2026-05-18, Wave 94c v2 27/27 evidence blocks) — see `audits-index.csv` |
-| **Business logic implementation** | business-logic-audit skill /100 | Post-wave + quarterly | Auditor | ⚠️ 73/100 C+ PARTIAL FAIL Cat 1 (2026-05-19, Wave 98) — see `audits-index.csv`; path 80 PASS via GAP-664/666 |
+| **Business logic implementation** | business-logic-audit skill /100 | Post-wave + quarterly | Auditor | ⚠️ 73/100 C+ FAIL (2026-06-12, cadence ui-kits-100+landing-100; delta 0 — path-to-80 cluster GAP-664/666 unexecuted) — see `audits-index.csv` |
 | **Business docs implementation match** (code ↔ rules.md sync) | Living Docs rule (3-layer) | Same PR as code change | PR reviewer | ✅ DONE |
 | **Business logic CORRECTNESS** (giá trị rule đúng thị trường + law) | BRD + stakeholder sign-off + compliance | Before launch + quarterly | Product + Business + Legal | ⚠️ PARTIAL — rule shipped 2026-04-29 (`business-logic-review.md` Phase 1 of GAP-049); audit + sign-offs → GAP-156 |
 | **PRs** | check-pr skill | Pre-merge | Reviewer | ✅ DONE |
@@ -73,7 +73,7 @@ Mọi artifact tenant, user, dev, hay downstream system consume:
 | **Generated PDFs/Excel** | QA checklist + visual regression | Before delivery | QA | ⚠️ PLANNED (GAP-047) |
 | **Database migrations** | migration-review-checklist skill | Pre-merge | DBA + peer | ✅ DONE |
 | **Scripts (bash/Python)** | script-review-checklist skill | Pre-merge | Peer | ✅ DONE |
-| **API contracts** | api-contract-audit skill + schema validation | Pre-merge + runtime | Consumer/producer | 🔴 76/100 C FAIL (2026-05-19, Wave 98) — see `audits-index.csv`; path 82 PASS via GAP-662/663/664 cluster ~3.25h |
+| **API contracts** | api-contract-audit skill + schema validation | Pre-merge + runtime | Consumer/producer | ⚠️ 80/100 C+ raw gate-met, verdict FAIL 1 P0 (2026-06-12, cadence ui-kits-100+landing-100; +4 — GAP-662/663 resolved; NEW branding P0 GAP-1251) — see `audits-index.csv`; clean PASS @82 via GAP-1251 |
 | **Screenshots** | Manual + automated audit | Capture time | Auditor | ⚠️ PARTIAL (ui-review skill) |
 | **Logs format** | Log standard doc | Audit period | SRE | ✅ DONE (2026-04-20, GAP-175 — `logs-format-standard.md`; implementation GAP-114/115/116 Wave 7) |
 | **README freshness** | `scripts/check-readme-freshness.sh` (`**Last Updated:**` date check, 30d WARN / 90d FAIL) | Pre-merge (CI) | CI + reviewer | ✅ DONE (2026-04-28, GAP-255) |
