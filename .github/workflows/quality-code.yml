@@ -186,7 +186,7 @@ jobs:
 
 
   stale-domain-references:
-    name: Stale domain references (kiteclass.vn/.com → kitehub.me — GAP-1241)
+    name: Stale domain references (kiteclass.vn/.com → kitehub.me — GAP-1241)  # stale-domain-ok: detector self-naming
     runs-on: [self-hosted, Linux, X64]
 
     steps:
@@ -201,7 +201,7 @@ jobs:
       - name: Detect stale tenant-platform domain (WARN mode — GAP-1241)
         run: |
           # Canonical platform domain = kitehub.me ; tenant landing = {slug}.kitehub.me.
-          # Any literal kiteclass.vn / kiteclass.com in active code/docs makes Claude
+          # Any literal kiteclass.vn / kiteclass.com in active code/docs makes Claude (stale-domain-ok)
           # + readers believe the wrong domain is the product surface. Intentional
           # historical keeps carry an inline `# stale-domain-ok` marker.
           bash scripts/check-stale-domain-references.sh --warn

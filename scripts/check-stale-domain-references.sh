@@ -49,7 +49,7 @@ SCAN_DIRS=(kitehub kiteclass infrastructure scripts .github documents .claude/sk
 # the filename). `/closed/` covers both flat `gaps/closed/` + per-phase
 # `gaps/<phase>/closed/`. Flyway migrations excluded — editing an applied
 # migration breaks its checksum (the stale ref there is a one-off column COMMENT).
-EXCLUDE_RE='/07-archived/|/audits/|/pr-logs/|/session-handoffs/|/closed/|/waves/|/node_modules/|/\.next/|/db/migration/|\.jsonl:|documents/action-[^/]*\.md:|scripts/check-stale-domain-references\.sh:|scripts/tests/test-check-stale-domain-references\.sh:'
+EXCLUDE_RE='/target/|/07-archived/|/audits/|/pr-logs/|/session-handoffs/|/closed/|/waves/|/node_modules/|/\.next/|/db/migration/|\.jsonl:|documents/action-[^/]*\.md:|scripts/check-stale-domain-references\.sh:|scripts/tests/test-check-stale-domain-references\.sh:'
 
 scan() {
   local root="$1"
