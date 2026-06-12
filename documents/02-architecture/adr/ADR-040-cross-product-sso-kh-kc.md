@@ -82,7 +82,22 @@ Bucket C **không** implement trong wave này vì chạm **4 surface + security-
 
 Cộng security review (one-time-code TTL/single-use/replay, token-in-URL avoidance, CSRF). → **> 1 bucket** → tách wave riêng `wave-rbac-sso-1` (theo dõi qua **GAP-1138**).
 
-**Beta unblock:** Bucket B (4-role shell) cho owner/staff dùng **KC-native fallback login** (`/api/v1/tenant-auth` đã có) — chấp nhận được cho beta; SSO KH→KC ship sau ở wave riêng, KHÔNG chặn LMS-FE (LMS dùng teacher/student login KC-native).
+**Beta unblock (wording reconciled 2026-06-12):** Bucket B (4-role shell) cho owner/staff dùng **dual-path login fallback tại KC FE `:3000`** — KHÔNG phải `/api/v1/tenant-auth` (BR-AUTH-002 cấm OWNER/STAFF trong `auth_credentials`). Implementation thật (`kiteclass-frontend/src/lib/api/auth.ts` `authApi.login`, shipped Bucket A #2290):
+
+1. Thử KC-native `POST /api/v1/tenant-auth/login` (TEACHER/PARENT/STUDENT — credential `auth_credentials` KC).
+2. 401 → fall through sang **KH `POST /api/auth/login`** (OWNER/STAFF — credential bảng `users` KiteHub, cùng mật khẩu họ dùng ở `:3001`).
+
+Token KH-minted ký HS512 cùng `JWT_SECRET` → gateway validate + inject headers → KC core chấp nhận như mọi request. Owner/staff vì vậy **login được tại `:3000` bằng credential KH** (re-enter password) — chấp nhận được cho beta. SSO redirect one-time-code (GAP-1138) vẫn là target: bỏ bước re-enter password khi điều hướng từ `:3001` sang `:3000`. KHÔNG chặn LMS-FE (LMS dùng teacher/student login KC-native).
+
+**Credential matrix (canonical — reconcile với `documents/01-business/kiteclass/tenant-auth/rules.md` BR-AUTH-002):**
+
+| Role | Credential store | Login surface | Mật khẩu set bởi |
+|---|---|---|---|
+| OWNER | KH `users` (kitehub DB) | KH `:3001` `/api/auth/login` HOẶC KC `:3000` dual-path fallback (cùng credential) | Beta signup / invite accept |
+| STAFF | KH `users` | như OWNER | StaffInvitation email → tự set |
+| TEACHER | KC `auth_credentials` (V89) | KC `:3000` `/api/v1/tenant-auth/login` | Owner admin-set-password (email-invite self-serve = GAP-1124) |
+| PARENT | KC `auth_credentials` | KC `:3000` tenant-auth | Invite redeem (KC-8) |
+| STUDENT | KC `auth_credentials` | KC `:3000` tenant-auth (gated KC-9) | Phase 2 (GAP-725 Hướng C) |
 
 ## Consequences
 
