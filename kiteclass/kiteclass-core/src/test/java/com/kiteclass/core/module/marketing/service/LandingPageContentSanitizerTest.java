@@ -178,6 +178,21 @@ class LandingPageContentSanitizerTest {
     class ValidateImageUrl {
 
         @Test
+        void allowsRootRelativeSameOriginPath() {
+            // G2 walk 2026-06-12: seed-pack hero_images dùng "/demo-banners/x.webp" —
+            // asset same-origin hợp lệ, validator không được chặn (PUT /landing 400 class).
+            assertThat(sanitizer.validateImageUrl("/demo-banners/co-khanh-phapluat.webp"))
+                .isEqualTo("/demo-banners/co-khanh-phapluat.webp");
+        }
+
+        @Test
+        void rejectsProtocolRelativeUrl() {
+            // "//evil.com/x" = protocol-relative → cross-origin → vẫn chặn.
+            assertThatThrownBy(() -> sanitizer.validateImageUrl("//evil.com/x.png"))
+                .isInstanceOf(ValidationException.class);
+        }
+
+        @Test
         void acceptsAllowedHttpsHost() {
             String url = "https://cdn.kitehub.me/banners/hero.png";
             assertThat(sanitizer.validateImageUrl(url)).isEqualTo(url);
