@@ -24,3 +24,7 @@ BE endpoint `POST /api/v1/settings/branding/banners` (multipart, mirror logo upl
 ## Related
 
 - Parent: GAP-826 (3 lớp — DONE với add-by-URL), GAP-804 (logo upload contract), GAP-1204 (stable URL), GAP-815 (editor UI tổng)
+
+## Log
+
+- **2026-06-12:** `WAVE_QUALITY_TARGET_DEFER: GAP-1211` — user-approved (AskUserQuestion) tách khỏi landing-100 closure. Lý do: endpoint + file-picker đã ship (90%); residual = runtime verify "upload qua settings UI → carousel" mà recipe G2★ landing chỉ walk landing render, không walk settings. Verify tự nhiên tại **branding-100 G2★** (settings/wizard walk) — gap add vào plan `wave-2026-06-11-branding-100.md` gaps list.

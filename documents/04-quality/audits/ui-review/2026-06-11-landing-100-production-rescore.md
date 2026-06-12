@@ -90,3 +90,7 @@ Path-to-90 items áp dụng + runtime-verified (rebuild + screenshots side-by-si
 - Cookie z-index correction (artifact chụp, không phải bug): **+1**
 
 **Score config-tenant: 81 → ~89-90/100** (đạt/chạm gate). **Sky: 72 → ước ~85+** (teachers/pricing/faqs/testimonials seeded; stats cố tình không seed — anti-fabrication, trừ điểm "đầy đặn" có chủ đích và ĐÚNG). Final confirm = human G2★ walk; số liệu trên là arithmetic từ per-dimension point-values của auditor + fix evidence, không chấm lại độc lập.
+
+## 8. Final confirm — G2★ human walk PASS (2026-06-12)
+
+Human walk production-accurate (nip.io subdomain, recipe 2026-06-11) **PASS toàn bộ 7 bước + sad-path S1/S2**. Pre-walk seed-pack (#2352) lấp thêm 3 delta §4/§5: chân dung GV thật (hết initials, cả 3 tenant — screenshot verified) + carousel đa-banner Hà 4/Nhì 4/Khánh 3 committed slides + aboutText thật. **Score final: ~90/100 config-tenant (đạt gate ≥90), sky ~86-87** (stats vẫn cố tình không seed — anti-fabrication đúng). Gate G3 (rubric ≥90) absorbed vào G2★ per campaign §1 — verdict: **PASS, wave flip complete.**
