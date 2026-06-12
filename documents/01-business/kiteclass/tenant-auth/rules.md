@@ -20,6 +20,12 @@ Tài liệu này phủ:
 
 **Không** thuộc tài liệu này: OWNER/STAFF login (KiteHub subscription, route `/api/v1/auth/**`); per-domain profile rules (xem `parent-portal/`, `student-portal/`, `teacher/`).
 
+> **Dual-path login tại KC FE `:3000` (reconcile 2026-06-12):** OWNER/STAFF vẫn login được
+> trên trang login KiteClass — KC FE (`auth.ts`) thử tenant-auth trước, 401 → fallback sang
+> KH `/api/auth/login` (credential bảng `users` KiteHub). `auth_credentials` + BR-AUTH-002
+> KHÔNG đổi (OWNER/STAFF vĩnh viễn không nằm trong table này). Chi tiết + credential matrix:
+> `documents/02-architecture/adr/ADR-040-cross-product-sso-kh-kc.md` §Beta-unblock.
+
 > **Quan hệ Option A → Option B:** Mọi reference tới Option A (Gateway `users` table, `users.reference_id`) trong `parent-portal/` + `student-portal/` đã được đánh dấu superseded. `referenceId` giờ = `auth_credentials.entity_id`, mint trực tiếp bởi Core, gateway chỉ re-inject từ JWT claim — không còn cross-service population.
 
 ---
