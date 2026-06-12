@@ -218,21 +218,33 @@ class BrandingDataSeederTest {
         assertThat(ha.getFaqs().toString()).contains("Học phí");
         assertThat(ha.getTestimonials()).isNotNull();
         assertThat(ha.getTestimonials().toString()).contains("Phụ huynh");
-        // GAP-826: Hà ships a single committed banner → 1-slide carousel.
-        assertThat(ha.getHeroImages()).containsExactly("/demo-banners/co-ha-toan.webp");
+        // GAP-1235: Hà ships 4 committed slides → FE rotator (khớp kit carousel GAP-1232).
+        assertThat(ha.getHeroImages()).containsExactly(
+                "/demo-banners/co-ha-toan.webp",
+                "/demo-banners/ha-hoc-sinh.webp",
+                "/demo-banners/ha-quyet-tam-1.webp",
+                "/demo-banners/ha-quyet-tam-2.webp");
+        // GAP-1235: chân dung thật + aboutText copy thật (anti-fabrication: facts đã seed only).
+        assertThat(ha.getTeachers().toString()).contains("portrait-ha.webp");
+        assertThat(ha.getAboutText()).contains("sĩ số nhỏ");
 
-        // GAP-826: the Sky/Khánh §4.1 walkthrough tenant ships a 2-slide carousel so the
-        // demo shows the rotator (1st committed banner + 2nd gitignored GAP-810 slide).
+        // GAP-1235: the Sky/Khánh §4.1 walkthrough tenant ships a 3-slide ALL-committed
+        // carousel (gitignored /demo/sky/ dependency removed).
         LandingPage sky = lpCaptor.getAllValues().stream()
                 .filter(lp -> BrandingDataSeeder.SKY_TENANT_ID.equals(lp.getInstanceId()))
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("Sky/Khánh landing page not seeded"));
         assertThat(sky.getHeroImages())
-                .containsExactly("/demo-banners/co-khanh-phapluat.webp", "/demo/sky/teacher-do-lan-khanh.webp");
+                .containsExactly("/demo-banners/co-khanh-phapluat.webp",
+                        "/demo-banners/khanh-hoc-sinh.webp",
+                        "/demo-banners/khanh-quyet-tam.webp");
         // GAP-1224: sky/Khánh sparse tenant gets teacher + pricing + FAQ + testimonials
         // (no stats — no academic core, anti-fabrication) to lift the lowest-tenant bar.
         assertThat(sky.getTeachers()).isNotNull();
         assertThat(sky.getTeachers().toString()).contains("Đỗ Lan Khánh");
+        // GAP-1235: chân dung thật + aboutText.
+        assertThat(sky.getTeachers().toString()).contains("portrait-khanh.webp");
+        assertThat(sky.getAboutText()).contains("phản xạ");
         assertThat(sky.getPricingTiers()).isNotNull();
         assertThat(sky.getFaqs()).isNotNull();
         assertThat(sky.getTestimonials()).isNotNull();

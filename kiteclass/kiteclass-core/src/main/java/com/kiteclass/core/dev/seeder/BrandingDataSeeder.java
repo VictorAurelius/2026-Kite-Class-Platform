@@ -95,6 +95,11 @@ public class BrandingDataSeeder {
     static final String HA_SECONDARY_COLOR = "#1E40AF";
     static final String HA_ACCENT_COLOR = "#60A5FA";
     static final String HA_BANNER_URL = "/demo-banners/co-ha-toan.webp";
+    // GAP-1235 — carousel slides 2-4 + chân dung thật (committed, port từ kit GAP-1232).
+    static final String HA_BANNER_2_URL = "/demo-banners/ha-hoc-sinh.webp";
+    static final String HA_BANNER_3_URL = "/demo-banners/ha-quyet-tam-1.webp";
+    static final String HA_BANNER_4_URL = "/demo-banners/ha-quyet-tam-2.webp";
+    static final String HA_PORTRAIT_URL = "/demo-banners/portrait-ha.webp";
     static final String HA_LOGO_URL = "/demo-banners/co-ha-toan-logo.webp";
 
     // Thầy Nguyễn Đình Nhì — gói Trả phí, Hóa THCS, tông xanh lá (AI Branding).
@@ -108,6 +113,11 @@ public class BrandingDataSeeder {
     static final String NHI_SECONDARY_COLOR = "#14532D";
     static final String NHI_ACCENT_COLOR = "#4ADE80";
     static final String NHI_BANNER_URL = "/demo-banners/thay-nhi-hoa.webp";
+    // GAP-1235 — carousel slides 2-4 + chân dung thật (committed, port từ kit GAP-1232).
+    static final String NHI_BANNER_2_URL = "/demo-banners/nhi-hoa-1.webp";
+    static final String NHI_BANNER_3_URL = "/demo-banners/nhi-hoa-2.webp";
+    static final String NHI_BANNER_4_URL = "/demo-banners/nhi-quyet-tam.webp";
+    static final String NHI_PORTRAIT_URL = "/demo-banners/portrait-nhi.webp";
     static final String NHI_LOGO_URL = "/demo-banners/thay-nhi-hoa-logo.webp";
 
     // ── GAP-1194 — data-driven landing sections (teachers / pricing / stats) ──
@@ -116,12 +126,14 @@ public class BrandingDataSeeder {
     // contract): teachers={name,subject,credentials[]}; pricingTiers={name,price,period,
     // features[],highlighted}; stats={value,label}. stats values are derived from the real
     // academic core seeded by DemoAcademicSeeder (Hà = 2 lớp / 12 HV; Nhì = 4 lớp / 35 HV;
-    // chuyên cần = present%+late% per TenantSpec). Teacher avatar omitted on purpose →
-    // TeachersSection falls back to name-initials (no remote 404 per GAP-958 anti-fabrication).
+    // chuyên cần = present%+late% per TenantSpec). Teacher photoUrl = chân dung THẬT committed
+    // (GAP-1235 — ảnh người thật của persona demo, port từ kit GAP-1232; lý do omit cũ
+    // "tránh remote 404" hết hiệu lực vì asset đã committed trong public/demo-banners/).
 
     // Hà — FREE tenant: 1 teacher, 1 free pricing tier, stats from 2-class/12-student core.
     static final String HA_TEACHERS_JSON = """
             [{"name":"Nguyễn Thị Hà","subject":"Toán tiểu học",
+              "photoUrl":"/demo-banners/portrait-ha.webp",
               "credentials":["Cử nhân Sư phạm Toán — ĐH Sư phạm Hà Nội",
                              "Hơn 6 năm kèm Toán tiểu học","Lớp nhỏ, bám sát từng học viên"]}]""";
     static final String HA_PRICING_JSON = """
@@ -136,6 +148,7 @@ public class BrandingDataSeeder {
     // stats from 4-class/35-student core.
     static final String NHI_TEACHERS_JSON = """
             [{"name":"Nguyễn Đình Nhì","subject":"Hóa học THCS",
+              "photoUrl":"/demo-banners/portrait-nhi.webp",
               "credentials":["Thạc sĩ Hóa học — ĐH Khoa học Tự nhiên",
                              "Luyện Hóa THCS lộ trình bài bản","Chuyên cần cao, báo cáo chi tiết"]}]""";
     static final String NHI_PRICING_JSON = """
@@ -152,17 +165,40 @@ public class BrandingDataSeeder {
             [{"value":"4","label":"Lớp đang mở"},{"value":"35","label":"Học viên"},
              {"value":"94%","label":"Tỷ lệ chuyên cần"}]""";
 
+    // ── GAP-1235 — aboutText per tenant ("Về giáo viên" section; FE dùng default generic khi
+    // null). Anti-fabrication: CHỈ dùng facts đã seed (credentials/sĩ số/lịch/Zalo) — KHÔNG
+    // số liệu mới (số HV/năm KN ngoài credentials đã có).
+    static final String HA_ABOUT_TEXT = """
+            Tôi tin mỗi con đều học được Toán nếu được kèm đúng cách và đủ kiên nhẫn. \
+            Lớp của tôi giữ sĩ số nhỏ để theo sát từng con — bắt đầu từ chỗ con đang đứng, \
+            không chạy theo chương trình.
+
+            Mỗi tuần phụ huynh nhận báo cáo tiến độ của con qua Zalo: hôm nay học gì, \
+            con tiến bộ ở đâu, cần kèm thêm phần nào. Học phí minh bạch, có biên nhận từng buổi.""";
+    static final String NHI_ABOUT_TEXT = """
+            Hóa học không khó — khó là vì chưa được giảng đúng cách. Lớp của tôi đi theo \
+            lộ trình bài bản từ Hóa 8 tới luyện thi vào 10: nắm bản chất trước, luyện đề sau.
+
+            Mỗi học viên có hồ sơ chuyên cần riêng; phụ huynh nhận báo cáo chi tiết sau \
+            từng buổi học. Thi thử định kỳ và chữa đề tới khi hiểu — không học vẹt.""";
+    static final String SKY_ABOUT_TEXT = """
+            Mất gốc tiếng Anh không phải vì kém — mà vì chưa có môi trường luyện phản xạ \
+            đủ nhiều. Lớp của tôi giữ sĩ số nhỏ để mỗi học viên được nói, được sửa phát âm \
+            trong từng buổi học.
+
+            Lộ trình bắt đầu từ chỗ học viên đang đứng, ưu tiên giao tiếp thực tế trước \
+            ngữ pháp hàn lâm. Phụ huynh trao đổi trực tiếp với tôi qua Zalo của trung tâm.""";
+
     // Cô Đỗ Lan Khánh — §4.1 walkthrough tenant; reuses the Sky instance, adds a Branding row.
     static final String KHANH_DISPLAY_NAME = "Trung tâm cô Đỗ Lan Khánh";
     static final String KHANH_BANNER_URL = "/demo-banners/co-khanh-phapluat.webp";
     static final String KHANH_LOGO_URL = "/demo-banners/co-khanh-phapluat-logo.webp";
-    // GAP-826 — 2nd carousel slide for the §4.1 walkthrough tenant so the demo shows the
-    // banner rotator (≥2 slides → FE renders dots/arrows + auto-rotate). Lives in
-    // public/demo/sky/ — a gitignored AI-composed scene per GAP-810 (the dir already named
-    // canonical in seedSkyLanding's javadoc). Present on the dev box, NOT committed: verify
-    // it exists locally before the runtime walk, else the 2nd slide 404s (1st slide +
-    // carousel chrome still render). All other trio tenants ship a single committed banner.
-    static final String KHANH_BANNER_2_URL = "/demo/sky/teacher-do-lan-khanh.webp";
+    // GAP-1235 — carousel slides 2-3 + chân dung thật: ảnh COMMITTED (port từ kit GAP-1232,
+    // public/demo-banners/). Thay slide gitignored /demo/sky/ cũ (GAP-826) — hết caveat
+    // "verify tồn tại local trước walk, không thì slide 2 404".
+    static final String KHANH_BANNER_2_URL = "/demo-banners/khanh-hoc-sinh.webp";
+    static final String KHANH_BANNER_3_URL = "/demo-banners/khanh-quyet-tam.webp";
+    static final String KHANH_PORTRAIT_URL = "/demo-banners/portrait-khanh.webp";
 
     // ── GAP-1083 / GAP-1205 / GAP-1206 — short center name + landing-100 F-section content ──
     // centerName = the center's own short display name (nav/footer/JsonLd prefer this over the
@@ -302,6 +338,7 @@ public class BrandingDataSeeder {
     // để nâng lowest-tenant bar mà vẫn trung thực (re-score §4.1 sky sparse).
     static final String SKY_TEACHERS_JSON = """
             [{"name":"Đỗ Lan Khánh","subject":"Tiếng Anh giao tiếp & thiếu nhi",
+              "photoUrl":"/demo-banners/portrait-khanh.webp",
               "credentials":["Cử nhân Ngôn ngữ Anh","Nhiều năm luyện phát âm và phản xạ giao tiếp",
                              "Lớp nhỏ, kèm sát phát âm từng học viên"]}]""";
     static final String SKY_PRICING_JSON = """
@@ -363,27 +400,29 @@ public class BrandingDataSeeder {
         seedTrioTenant(new TrioSpec(HA_TENANT_ID, HA_TENANT_SLUG, HA_TENANT_REF, HA_FRONTEND_URL,
                 HA_DISPLAY_NAME, HA_CENTER_NAME, HA_TAGLINE, HA_PRIMARY_COLOR, HA_SECONDARY_COLOR, HA_ACCENT_COLOR,
                 HA_BANNER_URL, HA_LOGO_URL,
-                // GAP-826 — single committed banner (1 slide → FE renders static, no carousel chrome).
-                List.of(HA_BANNER_URL),
+                // GAP-1235 — 4 committed slides → FE rotator (dots/arrows/auto-rotate), khớp kit carousel.
+                List.of(HA_BANNER_URL, HA_BANNER_2_URL, HA_BANNER_3_URL, HA_BANNER_4_URL),
                 "Lấy lại căn bản môn Toán cùng cô Hà",
                 "Lộ trình Toán tiểu học bài bản, lớp nhỏ, kèm sát từng học viên.",
                 "https://zalo.me/co-ha-toan", "https://facebook.com/cohatoan",
                 HA_TEACHERS_JSON, HA_PRICING_JSON, HA_STATS_JSON,
                 HA_PROBLEM_SOLUTION_JSON, HA_HOW_IT_WORKS_JSON, HA_TRUST_STRIP_JSON,
                 // GAP-1224 — FAQ + testimonials so FaqSection/TestimonialsSection render.
-                HA_FAQS_JSON, HA_TESTIMONIALS_JSON));
+                HA_FAQS_JSON, HA_TESTIMONIALS_JSON,
+                HA_ABOUT_TEXT));
         seedTrioTenant(new TrioSpec(NHI_TENANT_ID, NHI_TENANT_SLUG, NHI_TENANT_REF, NHI_FRONTEND_URL,
                 NHI_DISPLAY_NAME, NHI_CENTER_NAME, NHI_TAGLINE, NHI_PRIMARY_COLOR, NHI_SECONDARY_COLOR, NHI_ACCENT_COLOR,
                 NHI_BANNER_URL, NHI_LOGO_URL,
-                // GAP-826 — single committed banner (1 slide → static render).
-                List.of(NHI_BANNER_URL),
+                // GAP-1235 — 4 committed slides → FE rotator, khớp kit carousel.
+                List.of(NHI_BANNER_URL, NHI_BANNER_2_URL, NHI_BANNER_3_URL, NHI_BANNER_4_URL),
                 "Hóa học THCS — học là hiểu cùng thầy Nhì",
                 "Khóa Hóa học THCS đầy đủ, bộ nhận diện sinh tự động bằng AI Branding.",
                 "https://zalo.me/thay-nhi-hoa", "https://facebook.com/thaynhihoa",
                 NHI_TEACHERS_JSON, NHI_PRICING_JSON, NHI_STATS_JSON,
                 NHI_PROBLEM_SOLUTION_JSON, NHI_HOW_IT_WORKS_JSON, NHI_TRUST_STRIP_JSON,
                 // GAP-1224 — FAQ + testimonials so FaqSection/TestimonialsSection render.
-                NHI_FAQS_JSON, NHI_TESTIMONIALS_JSON));
+                NHI_FAQS_JSON, NHI_TESTIMONIALS_JSON,
+                NHI_ABOUT_TEXT));
         seedKhanhBranding();
     }
 
@@ -400,7 +439,9 @@ public class BrandingDataSeeder {
                             // GAP-1083/1205 — landing-100 F-section JSONB (problem/how/trust).
                             String problemSolutionJson, String howItWorksJson, String trustStripJson,
                             // GAP-1224 — FAQ + testimonials JSONB (FaqSection / TestimonialsSection).
-                            String faqsJson, String testimonialsJson) {
+                            String faqsJson, String testimonialsJson,
+                            // GAP-1235 — "Về giáo viên" copy (anti-fabrication: facts đã seed only).
+                            String aboutText) {
     }
 
     /**
@@ -490,6 +531,8 @@ public class BrandingDataSeeder {
                 // GAP-1224 — FAQ + testimonials (FaqSection / TestimonialsSection hide-when-empty).
                 lp.setFaqs(landingJson(spec.faqsJson()));
                 lp.setTestimonials(landingJson(spec.testimonialsJson()));
+                // GAP-1235 — "Về giáo viên" copy thật (thay FE default generic mỏng).
+                lp.setAboutText(spec.aboutText());
                 landingPageRepository.save(lp);
             });
             // GAP-1203: evict AFTER the transaction commits so the next read repopulates
@@ -621,10 +664,9 @@ public class BrandingDataSeeder {
         lp.setHeroTitle("Mất gốc tiếng Anh? Đã có cô Khánh");
         lp.setHeroSubtitle("Lộ trình lấy lại căn bản tiếng Anh, học cùng giáo viên tận tâm.");
         lp.setHeroImageUrl(KHANH_BANNER_URL);
-        // GAP-826: 2-slide carousel for the §4.1 walkthrough tenant → FE renders the rotator
-        // (dots + arrows + auto-rotate). 2nd slide is the gitignored GAP-810 asset (see
-        // KHANH_BANNER_2_URL note) — verify present locally before the runtime walk.
-        lp.setHeroImages(List.of(KHANH_BANNER_URL, KHANH_BANNER_2_URL));
+        // GAP-1235: 3 committed slides → FE rotator; hết phụ thuộc asset gitignored (see
+        // KHANH_BANNER_2_URL note).
+        lp.setHeroImages(List.of(KHANH_BANNER_URL, KHANH_BANNER_2_URL, KHANH_BANNER_3_URL));
         // GAP-1204: overwrite any stale presigned logo with the stable static demo logo so
         // the Sky landing header never renders a broken (403) image after the 7-day TTL.
         lp.setLogoUrl(KHANH_LOGO_URL);
@@ -645,6 +687,8 @@ public class BrandingDataSeeder {
         lp.setPricingTiers(landingJson(SKY_PRICING_JSON));
         lp.setFaqs(landingJson(SKY_FAQS_JSON));
         lp.setTestimonials(landingJson(SKY_TESTIMONIALS_JSON));
+        // GAP-1235 — "Về giáo viên" copy thật (anti-fabrication: facts đã seed only).
+        lp.setAboutText(SKY_ABOUT_TEXT);
         landingPageRepository.save(lp);
         // GAP-1203: evict so the next read repopulates from the reconciled row. seedSkyLanding
         // runs inside the seedTenant transaction; eviction here (pre-commit) is still correct
