@@ -175,7 +175,7 @@ class BrandingJobV1ControllerTest {
         // GAP-1218/GAP-1135: FULL_AI chỉ granted khi flag bật && provider có key thật (!mockMode).
         org.springframework.test.util.ReflectionTestUtils.setField(controller, "fullAiImageGenEnabled", true);
         when(resilientAiClient.getProviderName()).thenReturn("resilient(openai)"); // real key, not mock
-        when(resilientAiClient.generateImage(org.mockito.ArgumentMatchers.anyString(), eq("1792x1024")))
+        when(resilientAiClient.generateImageStrict(org.mockito.ArgumentMatchers.anyString(), eq("1536x1024")))
                 .thenReturn(reactor.core.publisher.Mono.just("https://oai.example/ai-banner.png"));
         when(fullAiQuotaService.canUseFullAi(any(), eq("PREMIUM"))).thenReturn(true);
 
@@ -215,7 +215,7 @@ class BrandingJobV1ControllerTest {
         org.mockito.Mockito.verify(fullAiQuotaService, org.mockito.Mockito.never())
                 .recordFullAiUsage(any(), any());
         org.mockito.Mockito.verify(resilientAiClient, org.mockito.Mockito.never())
-                .generateImage(org.mockito.ArgumentMatchers.anyString(), any());
+                .generateImageStrict(org.mockito.ArgumentMatchers.anyString(), any());
     }
 
     @Test

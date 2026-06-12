@@ -71,14 +71,23 @@ public class DeployStreamController {
     /** GAP-1021 — mints the short-lived token a browser EventSource carries via ?access_token. */
     private final com.kitehub.branding.wizard.sse.SseTokenService sseTokenService;
 
+    /**
+     * GAP-1108 / G1 walk 2026-06-12 — nguồn {@code frontendUrl} cho event {@code complete}:
+     * marker {@code deploy-completed} (metadata.frontendUrl) do MockProvisioningService ghi.
+     * Nullable (test seams cũ không inject) → complete event bỏ qua frontendUrl khi vắng.
+     */
+    private final com.kitehub.branding.lifecycle.repository.BrandingLifecycleEventRepository lifecycleEventRepository;
+
     @org.springframework.beans.factory.annotation.Autowired
     public DeployStreamController(
             BrandingJobRepository brandingJobRepository,
             com.kitehub.branding.wizard.sse.SseTokenService sseTokenService,
+            com.kitehub.branding.lifecycle.repository.BrandingLifecycleEventRepository lifecycleEventRepository,
             @org.springframework.beans.factory.annotation.Value(
                     "${kitehub.branding.deploy-stream.max-emitters-per-job:20}") int maxEmittersPerJob) {
         this.brandingJobRepository = brandingJobRepository;
         this.sseTokenService = sseTokenService;
+        this.lifecycleEventRepository = lifecycleEventRepository;
         this.maxEmittersPerJob = maxEmittersPerJob;
     }
 
@@ -86,6 +95,7 @@ public class DeployStreamController {
     public DeployStreamController(BrandingJobRepository brandingJobRepository) {
         this(brandingJobRepository,
                 new com.kitehub.branding.wizard.sse.SseTokenService("test-sse-secret", 120),
+                null,
                 20);
     }
 
@@ -93,6 +103,7 @@ public class DeployStreamController {
     public DeployStreamController(BrandingJobRepository brandingJobRepository, int maxEmittersPerJob) {
         this(brandingJobRepository,
                 new com.kitehub.branding.wizard.sse.SseTokenService("test-sse-secret", 120),
+                null,
                 maxEmittersPerJob);
     }
 
@@ -279,6 +290,12 @@ public class DeployStreamController {
             body.put("jobId", job.getId().toString());
             body.put("finalStatus", "DEPLOYED");
             body.put("ts", Instant.now().toString());
+            // G1 walk 2026-06-12: FE DoneStep cần frontendUrl từ complete event — thiếu nó
+            // FE fallback tự build https://{slug}.kiteclass.vn (sai domain local + sai slug).
+            String frontendUrl = resolveFrontendUrl(job);
+            if (frontendUrl != null) {
+                body.put("frontendUrl", frontendUrl);
+            }
             emitter.send(SseEmitter.event().name("complete").data(body));
         } else if (job.getStatus() == JobStatus.FAILED) {
             Map<String, Object> body = new LinkedHashMap<>();
@@ -286,6 +303,41 @@ public class DeployStreamController {
             body.put("message", job.getErrorMessage() != null ? job.getErrorMessage() : "job failed");
             body.put("retryable", true);
             emitter.send(SseEmitter.event().name("error").data(body));
+        }
+    }
+
+    /**
+     * Đọc {@code frontendUrl} từ marker {@code deploy-completed} mới nhất của instance
+     * (metadata JSON do MockProvisioningService ghi — same source GAP-1108 deploy-status).
+     * Null-safe mọi nhánh: repo vắng (test seam) / marker chưa ghi / metadata hỏng → null.
+     */
+    private String resolveFrontendUrl(BrandingJob job) {
+        if (lifecycleEventRepository == null || job.getInstanceId() == null) {
+            return null;
+        }
+        try {
+            return lifecycleEventRepository
+                    .findByInstanceIdSince(job.getInstanceId(),
+                            java.time.LocalDateTime.now().minusYears(5),
+                            org.springframework.data.domain.PageRequest.of(0, 50))
+                    .stream()
+                    .filter(e -> "deploy-completed".equals(e.getEventType()))
+                    .findFirst()
+                    .map(e -> {
+                        try {
+                            com.fasterxml.jackson.databind.JsonNode meta =
+                                    new com.fasterxml.jackson.databind.ObjectMapper()
+                                            .readTree(e.getMetadataJson());
+                            com.fasterxml.jackson.databind.JsonNode url = meta.get("frontendUrl");
+                            return url != null && url.isTextual() ? url.asText() : null;
+                        } catch (Exception ex) {
+                            return null;
+                        }
+                    })
+                    .orElse(null);
+        } catch (RuntimeException ex) {
+            log.debug("resolveFrontendUrl failed for job {}: {}", job.getId(), ex.getMessage());
+            return null;
         }
     }
 

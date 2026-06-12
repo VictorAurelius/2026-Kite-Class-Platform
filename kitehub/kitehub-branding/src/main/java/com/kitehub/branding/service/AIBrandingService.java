@@ -43,7 +43,7 @@ public class AIBrandingService {
      */
     public Mono<String> generateHeroImage(String organizationName, String theme, String colors) {
         String prompt = buildHeroImagePrompt(organizationName, theme, colors);
-        return aiClient.generateImage(prompt, "1792x1024");
+        return aiClient.generateImage(prompt, "1536x1024"); // gpt-image-1 landscape (G1 walk 2026-06-12)
     }
 
     /**

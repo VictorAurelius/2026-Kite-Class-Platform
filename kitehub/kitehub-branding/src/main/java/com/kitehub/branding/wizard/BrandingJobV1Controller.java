@@ -214,7 +214,7 @@ public class BrandingJobV1Controller {
                 // GAP-1135: gọi image-gen THẬT (GPT image-gen qua ResilientAIClient circuit
                 // breaker). Prompt compose từ org/copy/portrait/palette per ai-branding-
                 // guidelines §2.3 (backend composes the fixed prompt; user never writes it).
-                String aiUrl = generateFullAiBanner(body, colours);
+                String aiUrl = generateFullAiBanner(body, colours, instanceId);
                 if (aiUrl == null || aiUrl.isBlank()) {
                     // Generation failed → fall back to TEMPLATE WITHOUT charging quota
                     // (consumer-trust: no charge for output the user can't get).
@@ -279,17 +279,40 @@ public class BrandingJobV1Controller {
      * <p>Per {@code ai-branding-guidelines.md} §2.3 the backend builds the prompt — the user
      * never writes free-form prompt text (constrained presets only).</p>
      */
-    private String generateFullAiBanner(PreviewBannerRequest body, BrandColours colours) {
+    private String generateFullAiBanner(PreviewBannerRequest body, BrandColours colours,
+            UUID instanceId) {
         String prompt = buildFullAiBannerPrompt(body, colours);
         try {
-            // 1792x1024 = wide banner aspect (matches the TEMPLATE banner ratio).
-            return resilientAiClient.generateImage(prompt, "1792x1024")
-                    .block(Duration.ofSeconds(60));
+            // G1 walk 2026-06-12: (1) STRICT call — không placeholder-fallback; lỗi propagate
+            // để caller trả GENERATION_FAILED + KHÔNG trừ quota (GAP-1218). (2) Size
+            // 1536x1024 = landscape hợp lệ của gpt-image-1 (1792x1024 là size dall-e-3 cũ).
+            String result = resilientAiClient.generateImageStrict(prompt, "1536x1024")
+                    .block(Duration.ofSeconds(120));
+            return persistFullAiBanner(result, instanceId);
         } catch (Exception ex) {
             log.warn("FULL_AI banner generation failed → fallback TEMPLATE (no quota charge): {}",
                     ex.getMessage());
             return null;
         }
+    }
+
+    /**
+     * gpt-image-1 trả base64 (data-URI từ OpenAIClient) — persist vào MinIO rồi trả
+     * presigned URL (data-URI ~2-3MB không phù hợp giữ trong FE state / job assets).
+     * URL thường (dall-e legacy) passthrough.
+     */
+    private String persistFullAiBanner(String urlOrDataUri, UUID instanceId) {
+        if (urlOrDataUri == null || !urlOrDataUri.startsWith("data:image/")) {
+            return urlOrDataUri;
+        }
+        int comma = urlOrDataUri.indexOf(',');
+        byte[] bytes = java.util.Base64.getDecoder().decode(urlOrDataUri.substring(comma + 1));
+        String tenant = instanceId == null ? "unknown" : instanceId.toString();
+        String path = "instances/" + tenant + "/branding/full-ai-banner-"
+                + System.currentTimeMillis() + ".png";
+        s3StorageService.uploadAsset(
+                new java.io.ByteArrayInputStream(bytes), path, "image/png", bytes.length);
+        return s3StorageService.getPresignedAssetUrl(path);
     }
 
     /** Build the fixed FULL_AI banner prompt from constrained wizard inputs (no free text). */

@@ -53,3 +53,12 @@ Sau khi AI Branding wizard deploy THÀNH CÔNG (deploy-stream 100% + instance DE
 ## Log
 
 - **2026-06-12** (Wave branding-100 Bucket C — landing-link mở rộng sang event chuỗi): Chuỗi post-deploy "event cuối chứa link landing" giờ phủ thêm cross-service: `branding.deployed` event (GAP-1213) carry `frontendUrl` sang KC-core → đúng landing per-tenant đổi theme thật (không chỉ deploy-status card BE-only như AC #1-#3 đã có). AC #4 (browser re-walk: deploy 100% → /branding có data + link) vẫn pending coordinator runtime-walk — Status giữ PARTIAL.
+
+## Log — 2026-06-12 G1 walk: SSE complete thiếu frontendUrl (Bug #5) + fix
+
+G1 walk: DoneStep render đẹp nhưng landing link = `https://sky-education-2.kiteclass.vn`
+(FE fallback) vì SSE `complete` body chỉ `{jobId, finalStatus, ts}` — KHÔNG mang frontendUrl.
+Fix: `DeployStreamController.emitTerminal` đọc marker `deploy-completed` (same source
+deploy-status GAP-1108) → thêm `frontendUrl` vào complete event; FE `DoneStep` fallback đổi
+env-driven `NEXT_PUBLIC_TENANT_LANDING_URL_TEMPLATE` (local default `http://localhost:3000/?tenant={slug}`
+— hết deadlink GAP-803 class). api-contract.md sync cùng PR. Chờ re-walk G1.

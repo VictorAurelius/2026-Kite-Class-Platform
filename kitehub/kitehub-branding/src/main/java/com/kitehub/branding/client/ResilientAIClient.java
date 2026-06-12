@@ -67,6 +67,18 @@ public class ResilientAIClient implements AIClient {
         return delegate.generateImage(prompt, size);
     }
 
+    /**
+     * GAP-1218 / G1 walk 2026-06-12 — STRICT image-gen cho FULL_AI path: KHÔNG fallback
+     * placeholder. Fallback nuốt lỗi làm controller tưởng generation thành công →
+     * trừ quota + toast "đã trừ 1 lượt" trên banner placehold.co (consumer-trust violation).
+     * CB vẫn đếm lỗi (cùng CB_NAME); caller tự catch → fallbackReason GENERATION_FAILED,
+     * KHÔNG charge.
+     */
+    @CircuitBreaker(name = CB_NAME)
+    public Mono<String> generateImageStrict(String prompt, String size) {
+        return delegate.generateImage(prompt, size);
+    }
+
     @CircuitBreaker(name = CB_NAME, fallbackMethod = "generateTextFallback")
     @Override
     public Mono<String> generateText(String prompt) {

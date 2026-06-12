@@ -171,7 +171,8 @@ openai:
     base-url: https://api.openai.com/v1
   models:
     vision: gpt-4-vision-preview
-    dalle: dall-e-3
+    # G1 walk 2026-06-12: dall-e-3 deprecated cho project keys mới → gpt-image-1.
+    dalle: ${OPENAI_IMAGE_MODEL:gpt-image-1}
     text: gpt-4-turbo
   rate-limit:
     requests-per-minute: 10
