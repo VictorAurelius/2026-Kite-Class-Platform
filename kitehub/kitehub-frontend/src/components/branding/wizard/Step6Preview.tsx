@@ -6,11 +6,14 @@
 // Spec: `documents/02-architecture/design-system/ui_kits/ai-branding-wizard-v2/screens/step6-preview-default.html`
 //
 // What this component owns:
-//   - Live iframe preview of the generated tenant site, rendered CLIENT-SIDE
-//     via `<iframe srcDoc>` from brand colours + org name + logo + the live
-//     banner WebP. The preview is the wave-landing-100 STANDARD tenant landing
-//     (see `buildLandingPreviewHtml`) — not an ad-hoc colour-chip demo
-//     (GAP-1144). Replaces the previous per-template body composer.
+//   - Live iframe preview that points at the REAL KiteClass landing render path
+//     (GAP-1215): `<iframe src>` → kiteclass `/preview` route (TemplateRenderer +
+//     section components) themed by the selected palette variant + draft org /
+//     logo / banner via query params. ONE render path → preview == deploy
+//     source; new sections/themes auto-appear with no hand-sync. Replaces the
+//     drift-prone `buildLandingPreviewHtml` srcDoc composer.
+//   - Multi-variant pick (GAP-1212 kit v3): 3 palette variants derived from the
+//     BE-resolved base; picking one re-themes the live preview + banner.
 //   - Live banner preview (GAP-1143): `useBannerPreview` POSTs the FE palette to
 //     the backend `preview-banner` endpoint → TEMPLATE-mode WebP (no FULL_AI
 //     quota burned while exploring); the URL feeds the landing hero + the
@@ -45,7 +48,8 @@ import {
   type GenerationMode,
 } from './GenerationModeSelector';
 import { AssetReusePicker } from './AssetReusePicker';
-import { buildLandingPreviewHtml } from './buildLandingPreviewHtml';
+import { buildPaletteVariants } from './paletteVariants';
+import { useLandingPreviewUrl } from './hooks/useLandingPreviewUrl';
 import { toast } from 'sonner';
 import {
   ORG_TYPE_OPTIONS,
@@ -56,7 +60,6 @@ import { useAssets } from '@/hooks/use-branding';
 import { useBrandingTier } from '@/hooks/use-branding-tier';
 import type { PricingTier } from '@/types/subscription';
 import {
-  usePreview,
   usePreviewBrandColors,
   useDeployStream,
   useRegenerateQuota,
@@ -330,8 +333,9 @@ export function Step6Preview({
   ]);
 
   // Wave 34 (GAP-272k): brand colours sourced from real backend job.
-  const { brandColors: jobBrandColors, isLoading: brandColorsLoading } =
-    usePreviewBrandColors(wizardState.jobId ?? undefined);
+  const { brandColors: jobBrandColors } = usePreviewBrandColors(
+    wizardState.jobId ?? undefined,
+  );
 
   const brandColors = useMemo<BrandColours>(() => {
     if (brandColorsOverride) return brandColorsOverride;
@@ -353,9 +357,21 @@ export function Step6Preview({
     [wizardState.templateId],
   );
 
-  // Wave 34 (GAP-272j): documented FALLBACK only — preview renders client-side.
-  const hookedPreviewUrl = usePreview(wizardState.jobId ?? undefined);
-  const previewUrl = previewUrlOverride ?? hookedPreviewUrl ?? '';
+  // GAP-1212: derive 3 palette variants from the BE-resolved base. Variant A =
+  // base (deploy-faithful); B/C are preview-only alternatives. Picking one
+  // re-themes the live preview iframe + regenerates the preview banner.
+  const paletteVariants = useMemo(
+    () =>
+      buildPaletteVariants({
+        primary: brandColors.primary,
+        secondary: brandColors.secondary,
+        accent: accentColor,
+      }),
+    [brandColors.primary, brandColors.secondary, accentColor],
+  );
+  const [selectedVariantId, setSelectedVariantId] = useState<string>('variant-a');
+  const selectedVariant =
+    paletteVariants.find((v) => v.id === selectedVariantId) ?? paletteVariants[0];
 
   // -------------------------------------------------------------------------
   // GAP-1143 — live banner preview (TEMPLATE, no quota). Triggered on mount +
@@ -381,14 +397,15 @@ export function Step6Preview({
       portraitUrls,
       themeIcon: undefined,
       colours: {
-        primary: brandColors.primary,
-        secondary: brandColors.secondary,
-        accent: accentColor,
+        // GAP-1212: banner reflects the SELECTED palette variant.
+        primary: selectedVariant.primary,
+        secondary: selectedVariant.secondary,
+        accent: selectedVariant.accent,
         neutral: brandColors.foreground,
         background: brandColors.background,
       },
     }),
-    [wizardState.tenantName, wizardState.logoUrl, portraitUrls, brandColors, accentColor],
+    [wizardState.tenantName, wizardState.logoUrl, portraitUrls, selectedVariant, brandColors.foreground, brandColors.background],
   );
 
   const { generate: generateBannerPreview } = bannerPreview;
@@ -402,32 +419,23 @@ export function Step6Preview({
   // Reused library asset wins over the freshly-composed preview.
   const effectiveBannerUrl = reusedBannerUrl ?? bannerPreview.bannerUrl;
 
-  // GAP-1144: preview = wave-landing-100 standard landing, banner as hero.
-  const previewHtml = useMemo<string>(
-    () =>
-      buildLandingPreviewHtml({
-        brand: brandColors,
-        accent: accentColor,
-        orgName: wizardState.tenantName,
-        slug: wizardState.slug,
-        logoUrl: wizardState.logoUrl,
-        bannerUrl: effectiveBannerUrl,
-        templateId: wizardState.templateId ?? null,
-        templateName: selectedTemplate?.name ?? null,
-        loading: brandColorsLoading,
-      }),
-    [
-      brandColors,
-      accentColor,
-      wizardState.tenantName,
-      wizardState.slug,
-      wizardState.logoUrl,
-      effectiveBannerUrl,
-      wizardState.templateId,
-      selectedTemplate,
-      brandColorsLoading,
-    ],
-  );
+  // GAP-1215: WYSIWYG preview = the REAL landing render path. The iframe points
+  // at the kiteclass `/preview` route themed by the selected variant + draft
+  // org/logo/banner — one render path, preview == deploy source. Sections/themes
+  // that land on the real landing auto-appear here with no hand-sync.
+  const landingPreviewSrc = useLandingPreviewUrl({
+    primary: selectedVariant.primary,
+    secondary: selectedVariant.secondary,
+    accent: selectedVariant.accent,
+    templateType: wizardState.templateId ?? undefined,
+    orgName: wizardState.tenantName,
+    logoUrl: wizardState.logoUrl,
+    heroImage: effectiveBannerUrl,
+    tenant:
+      typeof wizardState.instanceId === 'string' ? wizardState.instanceId : undefined,
+  });
+  // Test hook: an explicit `previewUrl` prop overrides the composed landing URL.
+  const previewSrc = previewUrlOverride ?? landingPreviewSrc;
 
   const approvedCount = wizardState.approvedResources.length;
   const totalResources = RESOURCES.length;
@@ -701,19 +709,18 @@ export function Step6Preview({
             </div>
 
             <iframe
-              srcDoc={previewHtml}
-              src={previewHtml ? undefined : previewUrl || undefined}
+              src={previewSrc}
               title="Xem trước trang web"
               data-testid="step6-preview-iframe"
               className="w-full border-0 bg-white"
               style={{ aspectRatio: '16 / 10', minHeight: 320 }}
-              sandbox="allow-same-origin"
+              sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
             />
           </div>
 
           <p className="text-xs text-muted-foreground flex items-center gap-2">
             <Info className="w-3.5 h-3.5" aria-hidden="true" />
-            Trang chủ chuẩn theo bộ giao diện KiteClass — render từ theme + banner đã chọn.
+            Đây là trang chủ THẬT (render path KiteClass) — đúng bản sẽ lên sóng khi triển khai.
           </p>
 
           {/* G11 ThemePreview — wired with LIVE brand colours from wizard state. */}
@@ -749,6 +756,43 @@ export function Step6Preview({
                   : 'Tạo bằng AI cao cấp (tốn 1 lượt)'}
               </Button>
             )}
+          </div>
+
+          {/* GAP-1212 — multi-variant pick (kit v3 "AI tạo biến thể — chọn 1").
+              Picking a variant re-themes the live preview + banner instantly.
+              Variant A = the deploy-faithful base palette. */}
+          <div data-testid="step6-variant-picker" className="rounded-lg border bg-card p-3 space-y-2">
+            <h3 className="text-sm font-bold">Biến thể bảng màu — chọn 1</h3>
+            <p className="text-xs text-muted-foreground">
+              Chọn 1 biến thể; bản xem trước bên trái đổi theo ngay.
+            </p>
+            <div className="grid grid-cols-3 gap-2">
+              {paletteVariants.map((v) => {
+                const isSelected = v.id === selectedVariantId;
+                return (
+                  <button
+                    key={v.id}
+                    type="button"
+                    onClick={() => setSelectedVariantId(v.id)}
+                    aria-pressed={isSelected}
+                    data-testid={`step6-${v.id}`}
+                    data-selected={isSelected ? 'true' : 'false'}
+                    className={`overflow-hidden rounded-md border text-left transition ${
+                      isSelected
+                        ? 'border-primary ring-2 ring-primary/30'
+                        : 'border-border hover:border-primary/60'
+                    }`}
+                  >
+                    <span
+                      className="block h-9"
+                      style={{ background: `linear-gradient(120deg, ${v.primary}, ${v.accent})` }}
+                      aria-hidden="true"
+                    />
+                    <span className="block px-2 py-1 text-[11px] font-medium">{v.label}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* GAP-1143 — reuse banner from library. The banner itself is the hero
@@ -860,12 +904,12 @@ export function Step6Preview({
                   </span>
                 </div>
                 <iframe
-                  srcDoc={previewHtml}
+                  src={previewSrc}
                   title="Xem trước toàn màn hình"
                   data-testid="step6-fullscreen-iframe"
                   className="w-full border-0 bg-white"
                   style={{ height: '70vh', minHeight: 360 }}
-                  sandbox="allow-same-origin"
+                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
                 />
               </div>
             </div>

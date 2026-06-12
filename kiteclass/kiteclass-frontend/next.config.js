@@ -95,6 +95,32 @@ const nextConfig = {
       // when delivered via Content-Security-Policy-Report-Only (browser warning).
       // Re-add under enforcing CSP (not report-only) per Wave 86 Bucket E flip plan.
     ].join('; ');
+    // GAP-1215 — the AI Branding wizard (KiteHub `:3001`) embeds the landing
+    // `/preview` route in a cross-origin iframe so the owner sees the REAL render
+    // path themed by their draft brand. Only `/preview` is framable, and only by
+    // the KiteHub wizard origin (NOT wildcard); `/` keeps `X-Frame-Options: DENY`.
+    const khFrameAncestors = [
+      "'self'",
+      'https://kitehub.me',
+      'https://*.kitehub.me',
+      ...(isDev ? ['http://localhost:3001'] : []),
+    ].join(' ');
+    const previewCsp = cspDirectives.replace(
+      "frame-ancestors 'none'",
+      `frame-ancestors ${khFrameAncestors}`,
+    );
+    const previewSecurityHeaders = [
+      // Enforcing frame-ancestors → restricts framing to the KiteHub wizard origin
+      // only (defense even before the full CSP flips off report-only). NOTE: no
+      // `X-Frame-Options` here on purpose — its DENY can't allow a specific cross
+      // origin, so we drop it for `/preview` and rely on frame-ancestors.
+      { key: 'Content-Security-Policy', value: `frame-ancestors ${khFrameAncestors}` },
+      { key: 'Content-Security-Policy-Report-Only', value: previewCsp },
+      { key: 'X-Content-Type-Options', value: 'nosniff' },
+      { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+      { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), payment=()' },
+      { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' },
+    ];
     return [
       {
         source: '/sw.js',
@@ -111,10 +137,16 @@ const nextConfig = {
           { key: 'Content-Type', value: 'application/manifest+json; charset=utf-8' },
         ],
       },
+      // GAP-1215 — wizard preview surface: framable by the KiteHub origin only,
+      // no X-Frame-Options DENY. Must precede the broad rule + the broad rule
+      // excludes `/preview` (negative lookahead) so DENY is never sent here.
+      { source: '/preview', headers: previewSecurityHeaders },
+      { source: '/preview/:path*', headers: previewSecurityHeaders },
       // Wave 86 Bucket E Fix 3 — CSP + security headers per OWASP A05.
       // Phase 1 BETA Report-Only mode; flip to enforce after 1 week clean.
+      // `/preview` excluded (negative lookahead) — it gets previewSecurityHeaders.
       {
-        source: '/(.*)',
+        source: '/((?!preview).*)',
         headers: [
           { key: 'Content-Security-Policy-Report-Only', value: cspDirectives },
           { key: 'X-Frame-Options', value: 'DENY' },

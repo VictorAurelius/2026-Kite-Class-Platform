@@ -298,7 +298,7 @@ describe('TemplateStep custom-prompt gating (§2.1)', () => {
 // ---------------------------------------------------------------------------
 
 describe('Step6Preview iframe + G11 ThemePreview', () => {
-  it('renders iframe preview client-side via srcDoc (AC2 fix / GAP-272j)', () => {
+  it('points the iframe at the REAL landing /preview render path (GAP-1215)', () => {
     renderWithQuery(
       <Step6Preview
         wizardState={makeState({
@@ -312,14 +312,15 @@ describe('Step6Preview iframe + G11 ThemePreview', () => {
     );
     const iframe = screen.getByTestId('step6-preview-iframe') as HTMLIFrameElement;
     expect(iframe).toBeInTheDocument();
-    // AC2 fix: preview is rendered CLIENT-SIDE via srcDoc (brand colours +
-    // org name + logo), NOT an unauthenticated backend <iframe src> that
-    // 401/404s into a blank frame. srcDoc reflects the wizard state.
-    const srcDoc = iframe.getAttribute('srcdoc') ?? '';
-    expect(srcDoc).toContain('Toán Master');
-    expect(srcDoc).toContain('toan-master.kiteclass.vn');
-    // No backend src request issued (would lack the auth header).
-    expect(iframe.getAttribute('src')).toBeNull();
+    // GAP-1215: preview = deploy source. The iframe loads the kiteclass `/preview`
+    // route (TemplateRenderer + sections) themed by the wizard's draft brand,
+    // NOT a separate hand-built HTML document that drifts from the real landing.
+    const src = iframe.getAttribute('src') ?? '';
+    expect(src).toContain('/preview?');
+    // Draft org name flows through as a query param (URL-encoded).
+    expect(src).toContain('orgName=To%C3%A1n+Master');
+    // No stale srcDoc composer anymore.
+    expect(iframe.getAttribute('srcdoc')).toBeNull();
   });
 
   it('renders G11 ThemePreview with brand colours (fallback while job loads)', () => {

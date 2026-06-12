@@ -47,6 +47,14 @@ const nextConfig = {
     const isDev = process.env.NODE_ENV !== 'production';
     const devImg = isDev ? ' http://localhost:9100' : '';
     const devConnect = isDev ? ' http://localhost:9000 ws://localhost:9000' : '';
+    // GAP-1215 — the AI Branding wizard embeds the KiteClass landing `/preview`
+    // route (cross-origin iframe) so the owner sees the REAL render path. Allow
+    // ONLY the KiteClass origin in frame-src (NOT wildcard); without it the CSP
+    // would fall back to default-src 'self' and block the preview iframe once the
+    // report-only CSP flips to enforce.
+    const frameSrc = isDev
+      ? "frame-src 'self' http://localhost:3000"
+      : "frame-src 'self' https://kiteclass.com https://*.kiteclass.com";
     const cspDirectives = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
@@ -54,6 +62,7 @@ const nextConfig = {
       `img-src 'self' data: https: blob:${devImg}`,
       "font-src 'self' https://fonts.gstatic.com data:",
       `connect-src 'self' https://kitehub.me https://*.kitehub.me wss://*.kitehub.me${devConnect}`,
+      frameSrc,
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",

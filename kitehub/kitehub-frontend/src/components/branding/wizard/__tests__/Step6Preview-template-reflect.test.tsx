@@ -1,21 +1,26 @@
 /**
- * GAP-272 §3a — Step6Preview "preview phải theo template" tests.
+ * GAP-1231 (un-skipped) — Step6Preview preview-source contract, rewritten for
+ * GAP-1215 (preview-source = deploy-source).
  *
- * Before the fix, buildPreviewHtml rendered ONE hard-coded hero+features layout
- * for every template (the template only changed a palette text label). These
- * tests lock in that picking a different template now produces a visibly
- * different `<iframe srcDoc>` body — each of the 6 wizard templates maps to its
- * own landing archetype (see renderTemplateBody in Step6Preview.tsx).
+ * The old contract (#2279/#2289 era) asserted a per-template `<iframe srcDoc>`
+ * HTML body with a `data-preview-template` marker — a SECOND render path that
+ * drifted from the real landing (the WYSIWYG bug GAP-1215 fixes). The preview is
+ * now the REAL kiteclass landing render path: `<iframe src>` → `/preview` themed
+ * by the wizard's draft brand + selected palette variant.
+ *
+ * This locks in the §3a spirit ("preview reflects the user's choice → different
+ * preview"): picking a different palette variant (GAP-1212) produces a visibly
+ * different preview URL, and the live brand colours flow into that URL.
  */
 
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 import { Step6Preview } from '../Step6Preview';
 import { INITIAL_WIZARD_STATE, type WizardState } from '../wizard-shared';
 
-// Stub heavy ThemePreview — irrelevant to the srcDoc composition under test.
+// Stub heavy ThemePreview — irrelevant to the preview URL under test.
 vi.mock('@kite/shared-ui', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@kite/shared-ui')>();
   return { ...actual, ThemePreview: () => <div data-testid="theme-preview-stub" /> };
@@ -49,7 +54,7 @@ function makeState(templateId: string | null): WizardState {
   };
 }
 
-// Deterministic brand colours so the srcDoc only varies by template.
+// Deterministic brand colours so the preview URL only varies by template/variant.
 const BRAND = {
   primary: '#0F1E3D',
   secondary: '#F59E0B',
@@ -57,9 +62,9 @@ const BRAND = {
   foreground: '#0F172A',
 };
 
-function renderSrcDoc(templateId: string | null): string {
+function renderPreview(templateId: string | null) {
   const Wrapper = makeWrapper();
-  const { unmount } = render(
+  return render(
     <Wrapper>
       <Step6Preview
         wizardState={makeState(templateId)}
@@ -70,68 +75,57 @@ function renderSrcDoc(templateId: string | null): string {
       />
     </Wrapper>,
   );
-  const iframe = screen.getByTestId('step6-preview-iframe');
-  const srcDoc = iframe.getAttribute('srcdoc') ?? '';
-  unmount();
-  return srcDoc;
 }
 
-// GAP-1231 QUARANTINE (2026-06-11): 7/8 fail SẴN trên main — preview builder rewrite
-// (#2279/#2289) drop marker data-preview-template + per-template bodies; CI path-filter
-// che từ lúc merge. KHÔNG phải lỗi PR hiện tại. Un-skip trong cụm AI-chain GAP-1215
-// (rework preview-source = deploy-source; design source ui_kits/ai-branding-wizard-v2/v3/).
-describe.skip('Step6Preview — preview reflects selected template (GAP-272 §3a)', () => {
-  it('renders T1 Navy Focus body (centered exam hero)', () => {
-    const html = renderSrcDoc('template-t1-navy-focus');
-    expect(html).toContain('data-preview-template="template-t1-navy-focus"');
-    expect(html).toContain('98% học viên đạt điểm 9+');
+function previewSrc(templateId: string | null): string {
+  const { unmount } = renderPreview(templateId);
+  const iframe = screen.getByTestId('step6-preview-iframe');
+  const src = iframe.getAttribute('src') ?? '';
+  unmount();
+  return src;
+}
+
+describe('Step6Preview — preview = landing render path (GAP-1215/1231)', () => {
+  it('iframe src targets the real kiteclass /preview route', () => {
+    const src = previewSrc('template-t1-navy-focus');
+    expect(src).toContain('/preview?');
+    expect(src).not.toContain('srcdoc');
   });
 
-  it('renders T2 Score Board body (score bars)', () => {
-    const html = renderSrcDoc('template-t2-score-board');
-    expect(html).toContain('data-preview-template="template-t2-score-board"');
-    expect(html).toContain('Bảng điểm 2025');
-    expect(html).toContain('t-bars');
+  it('carries the live brand colours into the preview URL', () => {
+    const u = new URL(previewSrc('template-t1-navy-focus'));
+    // paletteVariants normalises to lowercase; bareHex strips the leading '#'.
+    expect(u.searchParams.get('primary')).toBe('0f1e3d');
+    expect(u.searchParams.get('secondary')).toBe('f59e0b');
   });
 
-  it('renders T4 Result Stripes body (3 stat columns)', () => {
-    const html = renderSrcDoc('template-t4-result-stripes');
-    expect(html).toContain('data-preview-template="template-t4-result-stripes"');
-    expect(html).toContain('điểm trung bình');
-    expect(html).toContain('t-stat');
+  it('carries the draft org name into the preview URL', () => {
+    const u = new URL(previewSrc('template-t1-navy-focus'));
+    expect(u.searchParams.get('orgName')).toBe('Trung tâm Toán Master');
   });
 
-  it('renders T5 Schedule Grid body (seats-left badges)', () => {
-    const html = renderSrcDoc('template-t5-schedule-grid');
-    expect(html).toContain('data-preview-template="template-t5-schedule-grid"');
-    expect(html).toContain('Lịch khai giảng');
-    expect(html).toContain('Còn 8 chỗ');
+  it('reflects the selected template — different template → different preview URL', () => {
+    const t1 = previewSrc('template-t1-navy-focus');
+    const t2 = previewSrc('template-t2-score-board');
+    expect(t1).not.toBe(t2);
   });
 
-  it('renders T6 Roadmap Vertical body (milestone timeline)', () => {
-    const html = renderSrcDoc('template-t6-roadmap-vertical');
-    expect(html).toContain('data-preview-template="template-t6-roadmap-vertical"');
-    expect(html).toContain('Lộ trình 12 tháng');
-  });
+  it('multi-variant pick re-themes the preview (variant B changes the URL palette)', () => {
+    const { unmount } = renderPreview('template-t1-navy-focus');
+    const iframe = screen.getByTestId('step6-preview-iframe');
+    const before = new URL(iframe.getAttribute('src') ?? '');
+    expect(before.searchParams.get('primary')).toBe('0f1e3d'); // variant A (base)
 
-  it('falls back to a generic body when no template selected', () => {
-    const html = renderSrcDoc(null);
-    expect(html).toContain('data-preview-template="default"');
-    expect(html).toContain('class="features"');
-  });
+    // 3 variant cards rendered + variant B is a real alternative.
+    expect(screen.getByTestId('step6-variant-a')).toBeInTheDocument();
+    const variantB = screen.getByTestId('step6-variant-b');
+    expect(screen.getByTestId('step6-variant-c')).toBeInTheDocument();
 
-  it('produces a DIFFERENT srcDoc per template (the core §3a guarantee)', () => {
-    const t1 = renderSrcDoc('template-t1-navy-focus');
-    const t2 = renderSrcDoc('template-t2-score-board');
-    const t4 = renderSrcDoc('template-t4-result-stripes');
-    const t6 = renderSrcDoc('template-t6-roadmap-vertical');
-    const variants = new Set([t1, t2, t4, t6]);
-    expect(variants.size).toBe(4); // all distinct — picking a template changes the preview
-  });
+    fireEvent.click(variantB);
 
-  it('still carries live brand colours through every template body', () => {
-    const html = renderSrcDoc('template-t4-result-stripes');
-    expect(html).toContain('--primary:#0F1E3D');
-    expect(html).toContain('--accent:#F59E0B');
+    const after = new URL(iframe.getAttribute('src') ?? '');
+    expect(after.searchParams.get('primary')).not.toBe('0f1e3d'); // re-themed
+    expect(screen.getByTestId('step6-variant-b').getAttribute('data-selected')).toBe('true');
+    unmount();
   });
 });
