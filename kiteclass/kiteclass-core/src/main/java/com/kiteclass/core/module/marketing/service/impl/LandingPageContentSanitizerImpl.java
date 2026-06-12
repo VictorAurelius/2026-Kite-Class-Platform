@@ -159,7 +159,15 @@ public class LandingPageContentSanitizerImpl implements LandingPageContentSaniti
         String host = uri.getHost() == null ? "" : uri.getHost().toLowerCase(Locale.ROOT);
 
         if (host.isEmpty()) {
-            // javascript:, data:, mailto:, relative, or opaque URI → no host → reject
+            // G2 walk 2026-06-12: root-relative path ("/demo-banners/x.webp") là asset
+            // same-origin hợp lệ (FE serve từ public dir; seed-pack dùng). Cho phép KHI
+            // và CHỈ KHI: không scheme + bắt đầu "/" + KHÔNG "//" (protocol-relative =
+            // cross-origin) — javascript:/data:/mailto: vẫn bị chặn (có scheme, không "/").
+            String trimmed = url.trim();
+            if (scheme.isEmpty() && trimmed.startsWith("/") && !trimmed.startsWith("//")) {
+                return trimmed;
+            }
+            // javascript:, data:, mailto:, protocol-relative, or opaque URI → reject
             throw new ValidationException("landing.image.url.invalid", url);
         }
 
