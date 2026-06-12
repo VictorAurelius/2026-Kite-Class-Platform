@@ -65,21 +65,18 @@
 }
 /* Cô Hà — xanh dương (Toán) */
 .theme-ha{
-  --banner-img:url("../_shared/assets/banners/co-ha-toan.webp");
   --theme-primary:37 99 235; --theme-secondary:59 130 246; --theme-accent:14 165 233;
   --cta:249 115 22; --cta-strong:194 65 12;
   --hero-from:30 64 175; --hero-to:30 58 138;
 }
 /* Thầy Nhì — xanh lá (Hóa/Khoa học) */
 .theme-nhi{
-  --banner-img:url("../_shared/assets/banners/thay-nhi-hoa.webp");
   --theme-primary:22 163 74; --theme-secondary:5 150 105; --theme-accent:13 148 136;
   --cta:245 158 11; --cta-strong:180 83 9;
   --hero-from:22 101 52; --hero-to:6 78 59;
 }
-/* Cô Khánh — cam (Tiếng Anh/luyện thi) */
+/* Cô Khánh — cam (Pháp luật & GDCD — per demo-trio thật, GAP-1232 v2) */
 .theme-khanh{
-  --banner-img:url("../_shared/assets/banners/co-khanh-phapluat.webp");
   --theme-primary:234 88 12; --theme-secondary:249 115 22; --theme-accent:217 119 6;
   --cta:37 99 235; --cta-strong:29 78 216;
   --hero-from:154 52 18; --hero-to:124 45 18;
@@ -179,13 +176,10 @@ h1,h2,h3{margin:0;line-height:1.18;letter-spacing:-0.02em;}
   border:1px solid rgba(255,255,255,.25);background:#0f172a;}
 .slides{position:relative;aspect-ratio:16/10;}
 .slide{position:absolute;inset:0;opacity:0;visibility:hidden;transition:opacity .5s ease;
-  display:flex;flex-direction:column;justify-content:flex-end;padding:26px;
-  /* GAP-1232: banner AI-scene THẬT làm nền (nguồn documents/08-thesis/portrait, webp optimized
-     đồng bộ production /demo-banners) + scrim tối giữ contrast text-overlay ≥4.5:1 (pattern
-     GAP-810 — ảnh nền + overlay HTML, KHÔNG bake text vào ảnh). Fallback gradient khi thiếu ảnh. */
-  background:linear-gradient(180deg,rgba(15,23,42,.30) 0%,rgba(15,23,42,.62) 70%,rgba(15,23,42,.78) 100%),
-    var(--banner-img, linear-gradient(140deg,rgb(var(--theme-primary)) 0%,rgb(var(--theme-secondary)) 100%));
-  background-size:cover;background-position:center top;}
+  /* GAP-1232 v2: slide = ảnh banner THẬT thuần (nguồn documents/08-thesis/portrait, webp) —
+     banner tự chứa nội dung thiết kế, KHÔNG overlay text/scrim. Fallback gradient khi thiếu ảnh. */
+  background:linear-gradient(140deg,rgb(var(--theme-primary)) 0%,rgb(var(--theme-secondary)) 100%);
+  background-size:cover;background-position:center;}
 .slide.on{opacity:1;visibility:visible;}
 .slide .emoji{position:absolute;top:18px;right:22px;font-size:60px;opacity:.85;filter:drop-shadow(0 4px 10px rgba(0,0,0,.3));}
 .slide .badge{align-self:flex-start;background:rgb(var(--cta-strong));color:#fff;font-size:12px;font-weight:800;
@@ -363,7 +357,7 @@ h1,h2,h3{margin:0;line-height:1.18;letter-spacing:-0.02em;}
       <span>Demo giáo viên:</span>
       <button class="sw-ha"    data-theme="theme-ha"    aria-pressed="true">Cô Hà · Toán</button>
       <button class="sw-nhi"   data-theme="theme-nhi"   aria-pressed="false">Thầy Nhì · Hóa</button>
-      <button class="sw-khanh" data-theme="theme-khanh" aria-pressed="false">Cô Khánh · Anh</button>
+      <button class="sw-khanh" data-theme="theme-khanh" aria-pressed="false">Cô Khánh · GDCD</button>
     </div>
   </div>
 </div>
@@ -396,9 +390,9 @@ h1,h2,h3{margin:0;line-height:1.18;letter-spacing:-0.02em;}
   <div class="container">
     <div class="hero-grid">
       <div>
-        <span class="hero-eyebrow"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg> Gia sư Toán · 12 năm kinh nghiệm</span>
-        <h1>Lấy lại căn bản <span class="hl">môn Toán</span> cùng cô Hà</h1>
-        <p class="hero-sub">Lớp nhỏ 6–8 học viên, lộ trình riêng cho từng con. Cô đồng hành sát sao, phụ huynh nhận báo cáo tiến bộ mỗi tuần qua Zalo.</p>
+        <span class="hero-eyebrow"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg> <span id="heroEyebrow">Gia sư Toán · 12 năm kinh nghiệm</span></span>
+        <h1 id="heroH1">Lấy lại căn bản <span class="hl">môn Toán</span> cùng cô Hà</h1>
+        <p class="hero-sub" id="heroSub">Lớp nhỏ 6–8 học viên, lộ trình riêng cho từng con. Cô đồng hành sát sao, phụ huynh nhận báo cáo tiến bộ mỗi tuần qua Zalo.</p>
         <div class="hero-actions">
           <a href="#register" class="btn btn-cta btn-lg">Đăng ký học thử miễn phí <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
           <a href="#programs" class="btn btn-on-dark btn-lg">Xem khóa học</a>
@@ -413,24 +407,8 @@ h1,h2,h3{margin:0;line-height:1.18;letter-spacing:-0.02em;}
       <div class="banner-frame">
         <div class="carousel" id="carousel" aria-roledescription="băng chuyền banner" aria-label="Banner khuyến mãi">
           <div class="slides" id="slides">
-            <!-- slide 0 -->
-            <div class="slide on" role="group" aria-roledescription="slide" aria-label="1 / 3">
-              <span class="badge">Đang tuyển sinh</span>
-              <h3>Khai giảng khóa Toán lớp 5 — tháng 7</h3>
-              <p>Còn 4 chỗ. Đăng ký trước 30/06 tặng 1 buổi học thử.</p>
-            </div>
-            <!-- slide 1 -->
-            <div class="slide" role="group" aria-roledescription="slide" aria-label="2 / 3">
-              <span class="badge">Cam kết</span>
-              <h3>Tiến bộ rõ sau 8 buổi — hoặc học bù miễn phí</h3>
-              <p>Kiểm tra đầu vào, đặt mục tiêu cùng phụ huynh, theo dõi từng tuần.</p>
-            </div>
-            <!-- slide 2 -->
-            <div class="slide" role="group" aria-roledescription="slide" aria-label="3 / 3">
-              <span class="badge">Học thử</span>
-              <h3>Buổi học thử miễn phí cùng cô Hà</h3>
-              <p>Trải nghiệm phương pháp trước khi quyết định — không ràng buộc.</p>
-            </div>
+            <!-- GAP-1232 v2 (user-flagged): slide = ẢNH banner THẬT thuần (banner đã có nội dung
+                 thiết kế sẵn — KHÔNG overlay text). Slides build runtime theo GV active từ BANNERS map. -->
           </div>
           <button class="arrow prev" id="prev" aria-label="Banner trước"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button>
           <button class="arrow next" id="next" aria-label="Banner sau"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></button>
@@ -723,64 +701,82 @@ h1,h2,h3{margin:0;line-height:1.18;letter-spacing:-0.02em;}
 
 <script>
 /* ============================================================
-   CAROUSEL — vanilla JS (GAP-826)
-   states: default(auto-rotate 5s) · paused(hover) · single(degrade tĩnh)
+   CAROUSEL đa-banner ẢNH THẬT (GAP-826 + GAP-1232 v2) + THEME SWITCHER (GAP-274)
+   - BANNERS: danh sách banner THẬT per GV (nguồn documents/08-thesis/portrait → webp)
+   - Slide = ảnh thuần, không overlay text (banner tự chứa nội dung thiết kế)
+   - Đổi GV → rebuild slides + dots + đổi brand identity + HERO COPY theo GV
    ============================================================ */
 (function(){
+  var BRAND = {
+    'theme-ha': {
+      mark:'H', name:'Lớp Toán cô Hà', tag:'Gia sư Toán tiểu học',
+      eyebrow:'Gia sư Toán · 12 năm kinh nghiệm',
+      h1:'Lấy lại căn bản <span class="hl">môn Toán</span> cùng cô Hà',
+      sub:'Lớp nhỏ 6–8 học viên, lộ trình riêng cho từng con. Cô đồng hành sát sao, phụ huynh nhận báo cáo tiến bộ mỗi tuần qua Zalo.',
+      banners:['co-ha-toan.webp','ha-hoc-sinh.webp','ha-quyet-tam-1.webp','ha-quyet-tam-2.webp']
+    },
+    'theme-nhi': {
+      mark:'N', name:'Lớp Hóa thầy Nhì', tag:'Luyện Hóa THPT',
+      eyebrow:'Luyện Hóa THPT · 9 năm kinh nghiệm',
+      h1:'Bứt phá điểm <span class="hl">môn Hóa</span> cùng thầy Nhì',
+      sub:'Lộ trình bám sát chương trình THPT, chữa đề chi tiết từng buổi. Phụ huynh nhận báo cáo tiến bộ định kỳ qua Zalo.',
+      banners:['thay-nhi-hoa.webp','nhi-hoa-1.webp','nhi-hoa-2.webp','nhi-quyet-tam.webp']
+    },
+    'theme-khanh': {
+      mark:'K', name:'Lớp GDCD cô Khánh', tag:'Pháp luật & Giáo dục công dân',
+      eyebrow:'GV Pháp luật – GDCD · luyện thi tốt nghiệp',
+      h1:'Học đúng hướng <span class="hl">môn GDCD</span> cùng cô Khánh',
+      sub:'Hiểu đúng – làm đúng: tư duy phản biện, bám đề thi tốt nghiệp. Phụ huynh đồng hành qua nhóm Zalo của lớp.',
+      banners:['co-khanh-phapluat.webp','khanh-hoc-sinh.webp','khanh-quyet-tam.webp']
+    }
+  };
+  var BASE = '../_shared/assets/banners/';
+
+  var body   = document.getElementById('topbody');
+  var btns   = Array.prototype.slice.call(document.querySelectorAll('.theme-switch button'));
   var root   = document.getElementById('carousel');
-  var slides = Array.prototype.slice.call(document.querySelectorAll('#slides .slide'));
+  var slidesEl = document.getElementById('slides');
   var dotsEl = document.getElementById('dots');
   var prev   = document.getElementById('prev');
   var next   = document.getElementById('next');
-  var n = slides.length, active = 0, timer = null, paused = false;
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  // Degrade tĩnh khi chỉ 1 slide → ẩn dots + arrows, không auto-rotate.
-  if (n <= 1){ root.classList.add('single'); return; }
-
-  // build dots
-  for (var i=0;i<n;i++){
-    var b = document.createElement('button');
-    b.setAttribute('role','tab');
-    b.setAttribute('aria-label','Banner ' + (i+1));
-    b.addEventListener('click', (function(idx){ return function(){ go(idx); }; })(i));
-    dotsEl.appendChild(b);
-  }
-  var dots = Array.prototype.slice.call(dotsEl.children);
+  var slides = [], dots = [], n = 0, active = 0, timer = null, paused = false;
 
   function render(){
     slides.forEach(function(s,i){ s.classList.toggle('on', i===active); });
     dots.forEach(function(d,i){ d.classList.toggle('on', i===active); d.setAttribute('aria-selected', i===active); });
   }
   function go(i){ active = (i + n) % n; render(); restart(); }
-  function start(){ if (paused || reduce) return; timer = setInterval(function(){ go(active+1); }, 5000); }
+  function start(){ if (paused || reduce || n <= 1) return; timer = setInterval(function(){ go(active+1); }, 5000); }
   function restart(){ clearInterval(timer); start(); }
 
-  prev.addEventListener('click', function(){ go(active-1); });
-  next.addEventListener('click', function(){ go(active+1); });
-  root.addEventListener('mouseenter', function(){ paused = true; clearInterval(timer); });
-  root.addEventListener('mouseleave', function(){ paused = false; start(); });
-  // keyboard: ← → khi focus trong carousel
-  root.addEventListener('keydown', function(e){
-    if (e.key === 'ArrowLeft'){ go(active-1); }
-    if (e.key === 'ArrowRight'){ go(active+1); }
-  });
+  function buildSlides(theme){
+    var b = BRAND[theme]; if (!b) return;
+    clearInterval(timer);
+    slidesEl.innerHTML = ''; dotsEl.innerHTML = '';
+    slides = b.banners.map(function(file, i){
+      var d = document.createElement('div');
+      d.className = 'slide' + (i===0 ? ' on' : '');
+      d.setAttribute('role','group');
+      d.setAttribute('aria-roledescription','slide');
+      d.setAttribute('aria-label', (i+1) + ' / ' + b.banners.length + ' — banner ' + b.name);
+      d.style.backgroundImage = 'url("' + BASE + file + '")';
+      slidesEl.appendChild(d);
+      return d;
+    });
+    dots = b.banners.map(function(_, i){
+      var btn = document.createElement('button');
+      btn.setAttribute('role','tab');
+      btn.setAttribute('aria-label','Banner ' + (i+1));
+      btn.addEventListener('click', (function(idx){ return function(){ go(idx); }; })(i));
+      dotsEl.appendChild(btn);
+      return btn;
+    });
+    n = slides.length; active = 0;
+    root.classList.toggle('single', n <= 1);
+    render(); start();
+  }
 
-  render(); start();
-})();
-
-/* ============================================================
-   THEME SWITCHER — runtime per-tenant color swap (GAP-274)
-   đổi class trên <body> + cập nhật brand identity demo
-   ============================================================ */
-(function(){
-  var body = document.getElementById('topbody');
-  var btns = Array.prototype.slice.call(document.querySelectorAll('.theme-switch button'));
-  var BRAND = {
-    'theme-ha':    { mark:'H', name:'Lớp Toán cô Hà',    tag:'Gia sư Toán tiểu học' },
-    'theme-nhi':   { mark:'N', name:'Lớp Hóa thầy Nhì',  tag:'Luyện Hóa THPT' },
-    'theme-khanh': { mark:'K', name:'Anh ngữ cô Khánh',  tag:'Luyện thi IELTS' }
-  };
   function apply(theme){
     body.className = theme;
     var b = BRAND[theme];
@@ -788,10 +784,26 @@ h1,h2,h3{margin:0;line-height:1.18;letter-spacing:-0.02em;}
       document.getElementById('brandMark').textContent = b.mark;
       document.getElementById('brandName').textContent = b.name;
       document.getElementById('brandTagline').textContent = b.tag;
+      // GAP-1232 v2 (user point 3): hero copy switch theo GV — không còn chỉ mỗi cô Hà
+      document.getElementById('heroEyebrow').textContent = b.eyebrow;
+      document.getElementById('heroH1').innerHTML = b.h1;
+      document.getElementById('heroSub').textContent = b.sub;
     }
     btns.forEach(function(x){ x.setAttribute('aria-pressed', x.getAttribute('data-theme')===theme); });
+    buildSlides(theme);
   }
+
+  prev.addEventListener('click', function(){ go(active-1); });
+  next.addEventListener('click', function(){ go(active+1); });
+  root.addEventListener('mouseenter', function(){ paused = true; clearInterval(timer); });
+  root.addEventListener('mouseleave', function(){ paused = false; start(); });
+  root.addEventListener('keydown', function(e){
+    if (e.key === 'ArrowLeft'){ go(active-1); }
+    if (e.key === 'ArrowRight'){ go(active+1); }
+  });
   btns.forEach(function(x){ x.addEventListener('click', function(){ apply(x.getAttribute('data-theme')); }); });
+
+  apply('theme-ha');
 })();
 </script>
 </body>
