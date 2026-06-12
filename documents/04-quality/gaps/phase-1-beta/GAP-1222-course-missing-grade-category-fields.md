@@ -22,3 +22,7 @@ Thêm `gradeLevel` (enum/int range) vào Course + search param + index; FE chuy�
 ## Related
 
 - GAP-274 port notes; kit kiteclass-public catalog spec
+
+## Log
+
+- **2026-06-12:** User-approved DEFER khỏi wave landing-100 (AskUserQuestion — heuristic client-side hoạt động đúng cho 3 tenant demo, không trừ điểm rubric; fix schema ~1 ngày ROI thấp khi catalog chỉ seed data). Trailer `WAVE_QUALITY_TARGET_DEFER: GAP-1222` ghi trong PR fix GAP-1221. Fix đúng (gradeLevel enum + migration + server query) execute khi catalog có course thật (Phase 1.5).

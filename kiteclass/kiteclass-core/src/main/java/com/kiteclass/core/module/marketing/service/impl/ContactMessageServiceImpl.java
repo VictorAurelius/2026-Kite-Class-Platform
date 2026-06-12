@@ -55,6 +55,11 @@ public class ContactMessageServiceImpl implements ContactMessageService {
     public ContactMessageResponse createContactMessage(CreateContactMessageRequest request, UUID tenantId) {
         log.info("Creating contact message from: {}, tenantId: {}", request.getEmail(), tenantId);
 
+        // GAP-1221: subject optional trên form public — default server-side trước khi map
+        if (request.getSubject() == null || request.getSubject().isBlank()) {
+            request.setSubject("Liên hệ từ " + request.getName());
+        }
+
         ContactMessage contactMessage = contactMessageMapper.toEntity(request);
 
         // CRITICAL: Set instanceId for multi-tenant isolation
@@ -64,10 +69,14 @@ public class ContactMessageServiceImpl implements ContactMessageService {
 
         // BR-MKT-003: Send notification email to teacher/admin
         try {
+            // GAP-1221: email optional — placeholder để template notify không render null
+            String senderEmail = (request.getEmail() == null || request.getEmail().isBlank())
+                    ? "(không cung cấp email)"
+                    : request.getEmail();
             emailService.sendContactNotification(
                     adminEmail,
                     request.getName(),
-                    request.getEmail(),
+                    senderEmail,
                     request.getSubject(),
                     request.getMessage()
             );

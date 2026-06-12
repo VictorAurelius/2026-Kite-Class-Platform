@@ -32,8 +32,7 @@ public class ContactMessage extends BaseEntity {
     @Size(max = 200, message = "{contact.name.size}")
     private String name;
 
-    @Column(name = "email", nullable = false)
-    @NotBlank(message = "{contact.email.required}")
+    @Column(name = "email")
     @Email(message = "{contact.email.invalid}")
     @Size(max = 255, message = "{contact.email.size}")
     private String email;

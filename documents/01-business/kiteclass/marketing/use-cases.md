@@ -15,7 +15,7 @@
 
 **Steps:**
 1. FE: Display contact form on landing page (name, email, phone, subject, message)
-2. User: Fill required fields (name, email, subject, message per BR-MKT-001)
+2. User: Fill name + message (bắt buộc); email/subject/phone optional per BR-MKT-001 v2 (GAP-1221 — subject trống → server default "Liên hệ từ {name}")
 3. System: Validate input fields and size constraints
 4. System: Save contact message linked to tenant via `X-Tenant-Id` (BR-MKT-005)
 5. System: Send email notification to tenant admin/teacher (BR-MKT-003)

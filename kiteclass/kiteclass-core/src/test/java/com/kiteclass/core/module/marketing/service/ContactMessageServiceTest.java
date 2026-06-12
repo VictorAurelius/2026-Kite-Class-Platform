@@ -96,6 +96,51 @@ class ContactMessageServiceTest {
     }
 
     @Test
+    void createContactMessage_shouldDefaultSubjectWhenBlank() {
+        // Given — GAP-1221: form public VN cho phép bỏ trống subject; server tự sinh default
+        createRequest.setSubject(null);
+        when(contactMessageMapper.toEntity(any(CreateContactMessageRequest.class))).thenReturn(contactMessage);
+        when(contactMessageRepository.save(any(ContactMessage.class))).thenReturn(contactMessage);
+        when(contactMessageMapper.toResponse(any(ContactMessage.class))).thenReturn(contactMessageResponse);
+
+        // When
+        contactMessageService.createContactMessage(createRequest, tenantId);
+
+        // Then — subject defaulted server-side trước khi map entity + dùng cho email notify
+        assertThat(createRequest.getSubject()).isEqualTo("Liên hệ từ " + createRequest.getName());
+        verify(emailService).sendContactNotification(
+                anyString(),
+                eq(createRequest.getName()),
+                anyString(),
+                eq("Liên hệ từ " + createRequest.getName()),
+                eq(createRequest.getMessage())
+        );
+    }
+
+    @Test
+    void createContactMessage_shouldAcceptMissingEmail() {
+        // Given — GAP-1221: phụ huynh VN để SĐT, email optional
+        createRequest.setEmail(null);
+        when(contactMessageMapper.toEntity(any(CreateContactMessageRequest.class))).thenReturn(contactMessage);
+        when(contactMessageRepository.save(any(ContactMessage.class))).thenReturn(contactMessage);
+        when(contactMessageMapper.toResponse(any(ContactMessage.class))).thenReturn(contactMessageResponse);
+
+        // When
+        ContactMessageResponse result = contactMessageService.createContactMessage(createRequest, tenantId);
+
+        // Then — vẫn tạo thành công; email notify nhận placeholder thay vì null
+        assertThat(result).isNotNull();
+        verify(contactMessageRepository).save(any(ContactMessage.class));
+        verify(emailService).sendContactNotification(
+                anyString(),
+                eq(createRequest.getName()),
+                eq("(không cung cấp email)"),
+                anyString(),
+                eq(createRequest.getMessage())
+        );
+    }
+
+    @Test
     void markAsRead_shouldUpdateReadStatus() {
         // Given
         String readBy = "admin@example.com";
