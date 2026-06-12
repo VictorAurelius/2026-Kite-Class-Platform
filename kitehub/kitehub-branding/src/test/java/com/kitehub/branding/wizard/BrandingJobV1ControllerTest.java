@@ -66,6 +66,9 @@ class BrandingJobV1ControllerTest {
     private FullAiQuotaService fullAiQuotaService;
 
     @Mock
+    private com.kitehub.branding.client.ResilientAIClient resilientAiClient;
+
+    @Mock
     private S3StorageService s3StorageService;
 
     private final BrandColoursDeriver coloursDeriver = new BrandColoursDeriver();
@@ -80,7 +83,8 @@ class BrandingJobV1ControllerTest {
         controller = new BrandingJobV1Controller(
                 jobRepository, coloursDeriver, brandingJobService, mockProvisioningService,
                 qualityScoreAggregator,
-                bannerHtmlComposer, bannerRenderer, fullAiQuotaService, s3StorageService);
+                bannerHtmlComposer, bannerRenderer, fullAiQuotaService, resilientAiClient,
+                s3StorageService);
         jobId = UUID.randomUUID();
         job = new BrandingJob();
         job.setId(jobId);
@@ -166,15 +170,13 @@ class BrandingJobV1ControllerTest {
     }
 
     @org.junit.jupiter.api.Test
-    @DisplayName("GAP-1147: FULL_AI from PREMIUM with quota → mode FULL_AI + quota recorded")
+    @DisplayName("GAP-1135/1147: FULL_AI granted (real key) → calls generateImage, surfaces AI banner, records quota")
     void previewBanner_fullAiPremiumWithQuota_grantsFullAi() {
-        // GAP-1218: FULL_AI chỉ granted khi image-gen thật khả dụng.
+        // GAP-1218/GAP-1135: FULL_AI chỉ granted khi flag bật && provider có key thật (!mockMode).
         org.springframework.test.util.ReflectionTestUtils.setField(controller, "fullAiImageGenEnabled", true);
-        BannerComposition composition = new BannerComposition("<html></html>", 1200, 630);
-        when(bannerHtmlComposer.compose(any(), any(), any(), any(), any(), any()))
-                .thenReturn(composition);
-        when(bannerRenderer.render(eq(composition), any()))
-                .thenReturn("https://cdn.example.com/banner.webp");
+        when(resilientAiClient.getProviderName()).thenReturn("resilient(openai)"); // real key, not mock
+        when(resilientAiClient.generateImage(org.mockito.ArgumentMatchers.anyString(), eq("1792x1024")))
+                .thenReturn(reactor.core.publisher.Mono.just("https://oai.example/ai-banner.png"));
         when(fullAiQuotaService.canUseFullAi(any(), eq("PREMIUM"))).thenReturn(true);
 
         PreviewBannerRequest req = new PreviewBannerRequest(
@@ -186,7 +188,34 @@ class BrandingJobV1ControllerTest {
         Map<String, Object> body = (Map<String, Object>) response.getBody();
         assertThat(body).containsEntry("mode", "FULL_AI");
         assertThat(body).doesNotContainKey("fallbackReason");
+        // GAP-1135: the FULL_AI banner is the real generated image (NOT the TEMPLATE compose).
+        assertThat(body).containsEntry("bannerUrl", "https://oai.example/ai-banner.png");
         org.mockito.Mockito.verify(fullAiQuotaService).recordFullAiUsage(any(), eq("PREMIUM"));
+    }
+
+    @Test
+    @DisplayName("GAP-1135: FULL_AI flag ON but provider mock-mode (no real key) → NOT_AVAILABLE + no quota + no generateImage")
+    void previewBanner_fullAiMockMode_notAvailableNoQuota() {
+        // Flag bật nhưng provider chạy mock (sk-mock key) → label thật NOT_AVAILABLE, không trừ quota.
+        org.springframework.test.util.ReflectionTestUtils.setField(controller, "fullAiImageGenEnabled", true);
+        when(resilientAiClient.getProviderName()).thenReturn("resilient(openai-mock)");
+        BannerComposition composition = new BannerComposition("<html></html>", 1200, 630);
+        when(bannerHtmlComposer.compose(any(), any(), any(), any(), any(), any())).thenReturn(composition);
+        when(bannerRenderer.render(eq(composition), any())).thenReturn("https://cdn.example.com/tpl.webp");
+
+        PreviewBannerRequest req = new PreviewBannerRequest(
+                "Trung tâm Sky", "Học giỏi", null, null, null, null, "FULL_AI");
+
+        ResponseEntity<?> response = controller.previewBanner(req, "PREMIUM");
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> body = (Map<String, Object>) response.getBody();
+        assertThat(body).containsEntry("mode", "TEMPLATE");
+        assertThat(body).containsEntry("fallbackReason", "NOT_AVAILABLE");
+        org.mockito.Mockito.verify(fullAiQuotaService, org.mockito.Mockito.never())
+                .recordFullAiUsage(any(), any());
+        org.mockito.Mockito.verify(resilientAiClient, org.mockito.Mockito.never())
+                .generateImage(org.mockito.ArgumentMatchers.anyString(), any());
     }
 
     @Test
@@ -214,8 +243,10 @@ class BrandingJobV1ControllerTest {
     @Test
     @DisplayName("GAP-1147: FULL_AI from PREMIUM with exhausted quota → fallback TEMPLATE")
     void previewBanner_fullAiPremiumExhausted_fallsBackTemplate() {
-        // GAP-1218: bật image-gen để chạm tới nhánh quota (NOT_AVAILABLE precede).
+        // GAP-1218/GAP-1135: bật image-gen + provider có key thật để chạm tới nhánh quota
+        // (NOT_AVAILABLE/mock-mode precede the quota check).
         org.springframework.test.util.ReflectionTestUtils.setField(controller, "fullAiImageGenEnabled", true);
+        when(resilientAiClient.getProviderName()).thenReturn("resilient(openai)");
         BannerComposition composition = new BannerComposition("<html></html>", 1200, 630);
         when(bannerHtmlComposer.compose(any(), any(), any(), any(), any(), any()))
                 .thenReturn(composition);

@@ -36,13 +36,25 @@ import java.util.UUID;
  * tenant's instance. Each endpoint now verifies {@code X-Instance-Id} matches the gateway-trusted
  * {@code X-Tenant-Id} via {@link TenantOwnershipGuard} (platform admins bypass).</p>
  *
+ * <p><strong>GAP-1252 (branding-100 Bucket E) — DEPRECATED legacy path.</strong> This controller
+ * is the legacy {@code /api/platform/branding/jobs} surface that returns the raw {@link BrandingJob}
+ * entity. The wizard + KiteClass consumers use the v1 successor
+ * {@link com.kitehub.branding.wizard.BrandingJobV1Controller} at {@code /api/v1/branding/jobs},
+ * which returns the {@code BrandingJobResponse} DTO (brandColors, contract-stable status mapping).
+ * New callers MUST target the v1 path; this controller is retained only for in-flight legacy
+ * clients and will be removed once they migrate. See
+ * {@code documents/01-business/kitehub/ai-branding/api-contract.md}.</p>
+ *
  * @since 1.0
+ * @deprecated GAP-1252 — use {@link com.kitehub.branding.wizard.BrandingJobV1Controller}
+ *     ({@code /api/v1/branding/jobs}) which returns the contract-stable {@code BrandingJobResponse}.
  */
+@Deprecated
 @Slf4j
 @RestController
 @RequestMapping("/api/platform/branding/jobs")
 @RequiredArgsConstructor
-@Tag(name = "Branding Jobs", description = "Branding job lifecycle management")
+@Tag(name = "Branding Jobs", description = "Branding job lifecycle management (DEPRECATED — use /api/v1/branding/jobs)")
 @Timed(value = "http.server.requests", percentiles = {0.5, 0.95, 0.99},
        extraTags = {"slo", "tier-b", "controller", "branding-job"})
 public class BrandingJobController {

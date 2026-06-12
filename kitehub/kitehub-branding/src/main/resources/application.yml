@@ -186,6 +186,13 @@ branding:
   banner:
     renderer-url: ${BANNER_RENDERER_URL:}
     renderer-timeout-seconds: ${BANNER_RENDERER_TIMEOUT:30}
+  # GAP-1135 / GAP-1147 (branding-100 Bucket E): FULL_AI banner image-gen wiring flag.
+  # true = preview/deploy may call the real GPT image generator when FULL_AI is granted.
+  # Safe by default: the controller additionally requires a REAL provider key (not mock
+  # mode) before granting — when OPENAI_API_KEY is a placeholder (sk-mock) FULL_AI still
+  # resolves to NOT_AVAILABLE with NO quota charge (GAP-1218 consumer-trust guard).
+  full-ai:
+    image-gen-enabled: ${BRANDING_FULL_AI_IMAGE_GEN_ENABLED:true}
 
 # Storage Configuration
 storage:

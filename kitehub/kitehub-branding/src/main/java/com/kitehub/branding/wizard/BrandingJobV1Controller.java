@@ -1,5 +1,6 @@
 package com.kitehub.branding.wizard;
 
+import com.kitehub.branding.client.ResilientAIClient;
 import com.kitehub.branding.domain.entity.BrandingJob;
 import com.kitehub.branding.domain.enums.GenerationMode;
 import com.kitehub.branding.repository.BrandingJobRepository;
@@ -35,6 +36,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Duration;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -76,6 +78,13 @@ public class BrandingJobV1Controller {
     private final BannerRenderer bannerRenderer;
     /** GAP-1147 — FULL_AI preview tier-gate + monthly quota meter (PREMIUM cap / ENTERPRISE ∞). */
     private final FullAiQuotaService fullAiQuotaService;
+    /**
+     * GAP-1135 / GAP-1147 (branding-100 Bucket E) — real FULL_AI banner image-gen.
+     * When FULL_AI is granted the preview now calls {@code generateImage} (GPT image-gen
+     * via the {@link ResilientAIClient} circuit breaker) instead of re-rendering the
+     * TEMPLATE composer, so the FULL_AI banner genuinely differs from the template output.
+     */
+    private final ResilientAIClient resilientAiClient;
 
     /**
      * GAP-1218: FULL_AI image-gen wiring flag. Until the real GPT-5.5 banner
@@ -188,32 +197,54 @@ public class BrandingJobV1Controller {
         // quota is only consumed when FULL_AI is genuinely granted.
         String resolvedMode = "TEMPLATE";
         String fallbackReason = null;
+        // GAP-1135: when FULL_AI is granted, this holds the real image-gen banner URL
+        // (different pixels than the TEMPLATE composer). Null → fall back to TEMPLATE render.
+        String fullAiBannerUrl = null;
         if ("FULL_AI".equalsIgnoreCase(body.mode())) {
             if (GenerationMode.forTier(tier) != GenerationMode.FULL_AI) {
                 fallbackReason = "TIER_NOT_ELIGIBLE"; // FREE/BASIC → TEMPLATE
-            } else if (!fullAiImageGenEnabled) {
-                // GAP-1218: image-gen chưa wire — KHÔNG trừ lượt, label thật.
+            } else if (!fullAiImageGenEnabled || isAiMockMode()) {
+                // GAP-1218 + GAP-1135: image-gen chưa wire (flag off) HOẶC provider chạy
+                // mock-mode (chưa có API key thật) → KHÔNG trừ lượt, label thật. Điều kiện
+                // FULL_AI granted = flag bật && có key thật (!mockMode).
                 fallbackReason = "NOT_AVAILABLE";
             } else if (!fullAiQuotaService.canUseFullAi(instanceId, tier)) {
                 fallbackReason = "QUOTA_EXHAUSTED"; // PREMIUM monthly cap spent → TEMPLATE
             } else {
-                fullAiQuotaService.recordFullAiUsage(instanceId, tier);
-                resolvedMode = "FULL_AI";
+                // GAP-1135: gọi image-gen THẬT (GPT image-gen qua ResilientAIClient circuit
+                // breaker). Prompt compose từ org/copy/portrait/palette per ai-branding-
+                // guidelines §2.3 (backend composes the fixed prompt; user never writes it).
+                String aiUrl = generateFullAiBanner(body, colours);
+                if (aiUrl == null || aiUrl.isBlank()) {
+                    // Generation failed → fall back to TEMPLATE WITHOUT charging quota
+                    // (consumer-trust: no charge for output the user can't get).
+                    fallbackReason = "GENERATION_FAILED";
+                } else {
+                    fullAiQuotaService.recordFullAiUsage(instanceId, tier);
+                    resolvedMode = "FULL_AI";
+                    fullAiBannerUrl = aiUrl;
+                }
             }
         }
 
-        // GAP-1146b: inline portrait + logo as data: URIs. The browser-presigned URLs
-        // point at the host port (localhost:9100), unreachable from the in-container
-        // Playwright renderer → the portrait silently dropped out of the banner. Inlining
-        // the bytes (fetched via the internal S3 client) makes the render host-agnostic.
-        String inlinedLogo = s3StorageService.inlineImageDataUri(body.logoUrl());
-        List<String> inlinedPortraits = body.portraitUrls() == null
-                ? null
-                : body.portraitUrls().stream().map(s3StorageService::inlineImageDataUri).toList();
-        BannerComposition composition = bannerHtmlComposer.compose(
-                body.organizationName(), body.copy(), inlinedLogo,
-                inlinedPortraits, body.themeIcon(), colours);
-        String bannerUrl = bannerRenderer.render(composition, instanceId);
+        String bannerUrl;
+        if ("FULL_AI".equals(resolvedMode) && fullAiBannerUrl != null) {
+            // FULL_AI granted + rendered → surface the AI image directly (skip TEMPLATE compose).
+            bannerUrl = fullAiBannerUrl;
+        } else {
+            // GAP-1146b: inline portrait + logo as data: URIs. The browser-presigned URLs
+            // point at the host port (localhost:9100), unreachable from the in-container
+            // Playwright renderer → the portrait silently dropped out of the banner. Inlining
+            // the bytes (fetched via the internal S3 client) makes the render host-agnostic.
+            String inlinedLogo = s3StorageService.inlineImageDataUri(body.logoUrl());
+            List<String> inlinedPortraits = body.portraitUrls() == null
+                    ? null
+                    : body.portraitUrls().stream().map(s3StorageService::inlineImageDataUri).toList();
+            BannerComposition composition = bannerHtmlComposer.compose(
+                    body.organizationName(), body.copy(), inlinedLogo,
+                    inlinedPortraits, body.themeIcon(), colours);
+            bannerUrl = bannerRenderer.render(composition, instanceId);
+        }
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("bannerUrl", bannerUrl); // nullable — FE falls back to logo/placeholder
         out.put("mode", resolvedMode);
@@ -223,6 +254,70 @@ public class BrandingJobV1Controller {
         log.debug("Preview banner composed for '{}' (mode={}, fallback={}, rendered={})",
                 body.organizationName(), resolvedMode, fallbackReason, bannerUrl != null);
         return ResponseEntity.ok(out);
+    }
+
+    /**
+     * GAP-1135: whether the AI provider is running in mock mode (no real API key).
+     * The {@link ResilientAIClient} provider name wraps the delegate, e.g.
+     * {@code "resilient(openai-mock)"} when {@code OPENAI_API_KEY} is a placeholder.
+     * In mock mode FULL_AI must resolve to {@code NOT_AVAILABLE} (no real output, no quota
+     * charge) even when the {@code image-gen-enabled} flag is on — the flag enables the
+     * wiring, the real key enables genuine generation.
+     */
+    private boolean isAiMockMode() {
+        String provider = resilientAiClient.getProviderName();
+        return provider == null || provider.contains("mock");
+    }
+
+    /**
+     * GAP-1135: compose the fixed FULL_AI banner prompt from the wizard selections and
+     * call the real image generator (GPT image-gen via {@link ResilientAIClient} — circuit
+     * breaker falls back to a placeholder URL if the provider errors). Returns the generated
+     * banner URL, or {@code null} when generation yields nothing usable so the caller can
+     * fall back to TEMPLATE without charging quota.
+     *
+     * <p>Per {@code ai-branding-guidelines.md} §2.3 the backend builds the prompt — the user
+     * never writes free-form prompt text (constrained presets only).</p>
+     */
+    private String generateFullAiBanner(PreviewBannerRequest body, BrandColours colours) {
+        String prompt = buildFullAiBannerPrompt(body, colours);
+        try {
+            // 1792x1024 = wide banner aspect (matches the TEMPLATE banner ratio).
+            return resilientAiClient.generateImage(prompt, "1792x1024")
+                    .block(Duration.ofSeconds(60));
+        } catch (Exception ex) {
+            log.warn("FULL_AI banner generation failed → fallback TEMPLATE (no quota charge): {}",
+                    ex.getMessage());
+            return null;
+        }
+    }
+
+    /** Build the fixed FULL_AI banner prompt from constrained wizard inputs (no free text). */
+    private static String buildFullAiBannerPrompt(PreviewBannerRequest body, BrandColours colours) {
+        String org = body.organizationName() != null && !body.organizationName().isBlank()
+                ? body.organizationName() : "Trung tâm giáo dục";
+        StringBuilder prompt = new StringBuilder();
+        prompt.append("Professional marketing banner for the Vietnamese education centre \"")
+                .append(org).append("\".");
+        if (body.copy() != null && !body.copy().isBlank()) {
+            prompt.append(" Headline message: \"").append(body.copy()).append("\".");
+        }
+        if (body.themeIcon() != null && !body.themeIcon().isBlank()) {
+            prompt.append(" Theme/subject: ").append(body.themeIcon()).append(".");
+        }
+        if (body.portraitUrls() != null && !body.portraitUrls().isEmpty()) {
+            prompt.append(" Feature a friendly, professional teacher portrait.");
+        }
+        if (colours != null && colours.primary() != null) {
+            prompt.append(" Brand colour palette primary ").append(colours.primary());
+            if (colours.accent() != null) {
+                prompt.append(", accent ").append(colours.accent());
+            }
+            prompt.append('.');
+        }
+        prompt.append(" Clean modern layout, high contrast, Vietnamese-friendly typography,"
+                + " trustworthy and welcoming tone. No lorem ipsum, no watermark.");
+        return prompt.toString();
     }
 
     /** Resolve the JWT tenant claim to a UUID, or a throwaway id for ephemeral previews. */

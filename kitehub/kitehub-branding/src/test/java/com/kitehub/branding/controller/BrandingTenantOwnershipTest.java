@@ -38,6 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import(SecurityConfig.class)
 @ActiveProfiles("rbac-test")
 @DisplayName("BrandingJobController — cross-tenant ownership (GAP-1019)")
+@SuppressWarnings("deprecation") // GAP-1252: intentionally tests the deprecated legacy controller
 class BrandingTenantOwnershipTest {
 
     private static final UUID OWN_INSTANCE = UUID.fromString("aaaaaaaa-0000-0000-0000-000000000001");

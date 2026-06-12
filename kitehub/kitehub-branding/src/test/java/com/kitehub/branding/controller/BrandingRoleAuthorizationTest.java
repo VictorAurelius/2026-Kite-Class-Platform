@@ -45,6 +45,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import(SecurityConfig.class)
 @ActiveProfiles("rbac-test")
 @DisplayName("BrandingJobController — RBAC security")
+@SuppressWarnings("deprecation") // GAP-1252: intentionally tests the deprecated legacy controller
 class BrandingRoleAuthorizationTest {
 
     @Autowired
