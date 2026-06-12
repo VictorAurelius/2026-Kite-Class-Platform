@@ -69,7 +69,16 @@ public class SlugAvailabilityService {
      * unavailable, empty list otherwise.
      */
     public SlugAvailabilityResponse check(String slug) {
-        boolean taken = isTaken(slug);
+        return check(slug, null);
+    }
+
+    /**
+     * G1 walk 2026-06-12 (re-brand UX): owner đang re-brand tenant hiện hữu PHẢI được
+     * giữ chính subdomain của mình — exempt own instance khỏi "taken". {@code ownInstanceId}
+     * = gateway-trusted X-Tenant-Id của caller (null cho anonymous/new-tenant flow).
+     */
+    public SlugAvailabilityResponse check(String slug, java.util.UUID ownInstanceId) {
+        boolean taken = isTaken(slug, ownInstanceId);
         if (!taken) {
             return new SlugAvailabilityResponse(true, List.of());
         }
@@ -77,6 +86,10 @@ public class SlugAvailabilityService {
     }
 
     private boolean isTaken(String slug) {
+        return isTaken(slug, null);
+    }
+
+    private boolean isTaken(String slug, java.util.UUID ownInstanceId) {
         String normalized = slug.toLowerCase(Locale.ROOT);
         if (RESERVED.contains(normalized)) {
             return true;
@@ -87,10 +100,15 @@ public class SlugAvailabilityService {
         // authoritative "taken" signal. (The branding_jobs.organization_name
         // check below stays as a secondary best-effort proxy. A cross-DB check
         // against kiteclass-core frontend_instances is a further follow-up.)
-        Boolean subdomainTaken = jdbcTemplate.queryForObject(
-                "SELECT EXISTS(SELECT 1 FROM instances "
-                        + "WHERE LOWER(subdomain) = ? AND deleted = false)",
-                Boolean.class, normalized);
+        Boolean subdomainTaken = ownInstanceId == null
+                ? jdbcTemplate.queryForObject(
+                        "SELECT EXISTS(SELECT 1 FROM instances "
+                                + "WHERE LOWER(subdomain) = ? AND deleted = false)",
+                        Boolean.class, normalized)
+                : jdbcTemplate.queryForObject(
+                        "SELECT EXISTS(SELECT 1 FROM instances "
+                                + "WHERE LOWER(subdomain) = ? AND deleted = false AND id <> ?)",
+                        Boolean.class, normalized, ownInstanceId);
         if (Boolean.TRUE.equals(subdomainTaken)) {
             return true;
         }

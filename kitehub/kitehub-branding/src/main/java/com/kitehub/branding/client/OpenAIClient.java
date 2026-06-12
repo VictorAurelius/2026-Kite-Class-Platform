@@ -105,13 +105,15 @@ public class OpenAIClient implements AIClient {
 
         log.info("Generating image with DALL-E 3: {}", prompt);
 
-        Map<String, Object> requestBody = Map.of(
-            "model", openAIConfig.getModels().getDalle(),
-            "prompt", prompt,
-            "n", 1,
-            "size", size,
-            "quality", "standard"
-        );
+        // G1 walk 2026-06-12: OpenAI deprecated dall-e-3 cho project keys mới
+        // ("The model 'dall-e-3' does not exist") → default model = gpt-image-1.
+        // gpt-image-1 KHÔNG nhận "quality":"standard" (chỉ low/medium/high/auto) và
+        // trả b64_json thay vì url — request shape per-model, parse cả 2 dạng.
+        String model = openAIConfig.getModels().getDalle();
+        Map<String, Object> requestBody = model.startsWith("gpt-image")
+            ? Map.of("model", model, "prompt", prompt, "n", 1, "size", size)
+            : Map.of("model", model, "prompt", prompt, "n", 1, "size", size,
+                     "quality", "standard");
 
         return openAIWebClient.post()
             .uri("/images/generations")
@@ -262,7 +264,14 @@ public class OpenAIClient implements AIClient {
     private String parseImageGenerationResponse(Map<String, Object> response) {
         try {
             List<Map<String, Object>> data = (List<Map<String, Object>>) response.get("data");
-            return (String) data.get(0).get("url");
+            // dall-e trả url; gpt-image-1 trả b64_json (không có url) → data-URI để caller
+            // (BrandingJobV1Controller.generateFullAiBanner) decode + persist MinIO.
+            String url = (String) data.get(0).get("url");
+            if (url != null) {
+                return url;
+            }
+            String b64 = (String) data.get(0).get("b64_json");
+            return b64 == null ? null : "data:image/png;base64," + b64;
         } catch (Exception e) {
             log.error("Failed to parse image generation response", e);
             throw new RuntimeException("Failed to parse DALL-E 3 response", e);

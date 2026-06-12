@@ -65,7 +65,10 @@ public class BrandingWizardController {
     // ---------------------------------------------------------------------
     @GetMapping("/slug-availability")
     @PreAuthorize(OWNER_OR_STAFF_AUTHZ)
-    public ResponseEntity<Object> checkSlug(@RequestParam("slug") String slug) {
+    public ResponseEntity<Object> checkSlug(
+            @RequestParam("slug") String slug,
+            @org.springframework.web.bind.annotation.RequestHeader(value = "X-Tenant-Id",
+                    required = false) String tenantHeader) {
         String formatErr = slugService.validateFormat(slug);
         if (formatErr != null) {
             Map<String, Object> body = new LinkedHashMap<>();
@@ -74,7 +77,16 @@ public class BrandingWizardController {
             body.put("slug", slug);
             return ResponseEntity.badRequest().body(body);
         }
-        SlugAvailabilityResponse result = slugService.check(slug);
+        // G1 walk 2026-06-12: gateway-trusted X-Tenant-Id → own-subdomain exempt (re-brand).
+        java.util.UUID ownInstanceId = null;
+        if (tenantHeader != null && !tenantHeader.isBlank()) {
+            try {
+                ownInstanceId = java.util.UUID.fromString(tenantHeader.trim());
+            } catch (IllegalArgumentException ignored) {
+                // non-UUID header → treat as anonymous (no exemption)
+            }
+        }
+        SlugAvailabilityResponse result = slugService.check(slug, ownInstanceId);
         return ResponseEntity.ok(result);
     }
 

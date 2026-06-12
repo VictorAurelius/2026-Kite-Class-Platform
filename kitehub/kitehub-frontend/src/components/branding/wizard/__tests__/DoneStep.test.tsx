@@ -28,7 +28,8 @@ describe('DoneStep', () => {
       <DoneStep tenantName="TT" frontendUrl={null} slug="my-center" onManage={() => {}} />,
     );
     const link = screen.getByTestId('done-step-open-landing') as HTMLAnchorElement;
-    expect(link.getAttribute('href')).toBe('https://my-center.kiteclass.vn');
+    // G1 walk 2026-06-12: fallback env-driven — local default = KC :3000 ?tenant=
+    expect(link.getAttribute('href')).toBe('http://localhost:3000/?tenant=my-center');
   });
 
   it('shows the no-url placeholder when neither frontendUrl nor slug present', () => {

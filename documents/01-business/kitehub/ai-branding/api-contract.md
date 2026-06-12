@@ -319,6 +319,10 @@ All write endpoints delegate to `InstanceLifecycleService` (BR-LIFE-003); state-
 > **Error envelope (project convention):** all error responses follow `{ "error": "<CODE>", "message": "<human-readable>", ...optional context }`. Error codes are SCREAMING_SNAKE_CASE matching the v1 endpoints above (`AI_RATE_LIMIT_EXCEEDED`, `AI_INPUT_TOO_LONG`, etc.).
 
 ## GET /api/v1/branding/slug-availability
+
+> **Own-subdomain exempt (G1 walk 2026-06-12 — GAP-1239):** caller đã login có
+> `X-Tenant-Id` (gateway-trusted) — slug TRÙNG chính `instances.subdomain` của tenant đó
+> trả `available: true` (re-brand giữ slug). Anonymous/new-tenant: semantics cũ giữ nguyên.
 **Use case:** Wizard step "choose tenant slug"; replaces Wave 32 v1 inline `MOCK_TAKEN_SLUGS` (sub-GAP-272i)
 **Auth:** Bearer token
 **Request params:** `?slug={slug}` (required; 3–63 chars, lowercase alphanumeric + hyphens, no leading/trailing hyphen)
@@ -398,7 +402,7 @@ Event types (line `event: <name>` followed by `data: <json>`):
 | `log` | `{ "ts": "ISO8601", "level": "INFO\|WARN\|ERROR", "message": "..." }` | Each step log line |
 | `progress` | `{ "step": "ANALYZE\|PLAN\|GENERATE\|REVIEW\|DEPLOY", "percent": 0-100 }` | Per-step progress tick |
 | `state-change` | `{ "from": "GENERATING", "to": "DEPLOYED", "ts": "ISO8601" }` | Lifecycle state transition (BR-LIFE-002) |
-| `complete` | `{ "jobId": "...", "finalStatus": "DEPLOYED", "ts": "ISO8601" }` | Stream terminates successfully |
+| `complete` | `{ "jobId": "...", "finalStatus": "DEPLOYED", "ts": "ISO8601", "frontendUrl": "http://..." }` | Stream terminates successfully. `frontendUrl` (optional — G1 walk 2026-06-12) đọc từ marker `deploy-completed`; FE DoneStep dùng làm landing link, vắng → FE fallback env-driven |
 | `error` | `{ "errorCode": "...", "message": "...", "retryable": true }` | Stream terminates with error |
 | `heartbeat` | `{}` | Every ~30s while idle (proxy keepalive) |
 

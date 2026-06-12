@@ -26,3 +26,13 @@ Tới khi GAP-1135 wire xong: FULL_AI disabled với badge "sắp ra mắt" (kh�
 ## Log
 
 - **2026-06-12 (PARTIAL 90% — Bucket F branding-100):** Code shipped: (BE) `BrandingJobV1Controller` guard `branding.full-ai.image-gen-enabled:false` — FULL_AI request khi image-gen chưa wire → `fallbackReason=NOT_AVAILABLE` + mode TEMPLATE + **KHÔNG gọi `recordFullAiUsage`** (test verify never()); Bucket E flips flag khi wire generator thật (GAP-1135). (FE) toast NOT_AVAILABLE nói thật "KHÔNG trừ lượt của bạn"; success toast chỉ claim trừ lượt khi mode=FULL_AI thật. Tests: BE 10/10 + FE suite 112 PASS. Residual: G1 browser walk wave branding-100.
+
+## Log — 2026-06-12 G1 walk: guard bị ResilientAIClient fallback vô hiệu (Bug #6) + fix
+
+G1 walk FULL_AI: click "Tạo bằng AI cao cấp" → OpenAI 400 (dall-e-3 deprecated) NHƯNG
+`ResilientAIClient.generateImage` fallback nuốt lỗi trả `placehold.co` → controller tưởng
+thành công → TRỪ QUOTA + toast "đã trừ 1 lượt" trên banner placeholder — đúng violation
+gap này guard. Fix: `generateImageStrict` (CircuitBreaker không fallbackMethod) cho FULL_AI
+path → lỗi propagate → GENERATION_FAILED + KHÔNG trừ quota. Kèm: model `gpt-image-1` +
+size 1536x1024 + parse b64_json → persist MinIO. Residual external: key billing hard limit
+→ GAP-1240 PENDING (user nạp credit) → re-walk real-image.

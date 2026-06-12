@@ -55,7 +55,7 @@ class BrandingWizardControllerTest {
     @Test
     void slugAvailability_available_returnsTrueEmptySuggestions() throws Exception {
         when(slugService.validateFormat("free-slug")).thenReturn(null);
-        when(slugService.check("free-slug"))
+        when(slugService.check(org.mockito.ArgumentMatchers.eq("free-slug"), org.mockito.ArgumentMatchers.any()))
                 .thenReturn(new SlugAvailabilityResponse(true, List.of()));
 
         mockMvc.perform(get("/api/v1/branding/slug-availability").param("slug", "free-slug"))
@@ -67,7 +67,7 @@ class BrandingWizardControllerTest {
     @Test
     void slugAvailability_taken_returnsSuggestions() throws Exception {
         when(slugService.validateFormat("abc-school")).thenReturn(null);
-        when(slugService.check("abc-school")).thenReturn(new SlugAvailabilityResponse(
+        when(slugService.check(org.mockito.ArgumentMatchers.eq("abc-school"), org.mockito.ArgumentMatchers.any())).thenReturn(new SlugAvailabilityResponse(
                 false, List.of("abc-school-2", "abc-school-vn", "abc-school-edu")));
 
         mockMvc.perform(get("/api/v1/branding/slug-availability").param("slug", "abc-school"))

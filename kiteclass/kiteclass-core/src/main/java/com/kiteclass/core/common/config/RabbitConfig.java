@@ -10,10 +10,13 @@ import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFacto
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.support.converter.DefaultJackson2JavaTypeMapper;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.Map;
 
 /**
  * RabbitMQ configuration for message queue integration.
@@ -78,11 +81,27 @@ public class RabbitConfig {
     /**
      * Configures JSON message converter for serializing/deserializing message payloads.
      *
-     * @return Jackson2JsonMessageConverter
+     * <p>GAP-1213 (G1 walk 2026-06-12): cross-service events từ kitehub mang header
+     * {@code __TypeId__} = FQN class phía producer (vd
+     * {@code com.kitehub.branding.outbox.BrandingDeployedEvent}) — class đó KHÔNG tồn tại
+     * trong classpath kiteclass-core → {@code ClassNotFoundException} → container reject +
+     * drop message TRƯỚC KHI listener chạy (kể cả listener nhận raw {@code Message}: Spring
+     * AMQP 3.x {@code MessagingMessageListenerAdapter.extractPayload} vẫn chạy converter).
+     * Map tường minh FQN producer → class local để conversion thành công; listener raw-Message
+     * vẫn tự parse body như cũ.</p>
+     *
+     * @return Jackson2JsonMessageConverter với idClassMapping cho cross-service events
      */
     @Bean
     public MessageConverter jsonMessageConverter() {
-        return new Jackson2JsonMessageConverter();
+        Jackson2JsonMessageConverter converter = new Jackson2JsonMessageConverter();
+        DefaultJackson2JavaTypeMapper typeMapper = new DefaultJackson2JavaTypeMapper();
+        typeMapper.setIdClassMapping(Map.of(
+                "com.kitehub.branding.outbox.BrandingDeployedEvent",
+                com.kiteclass.core.module.branding.events.BrandingDeployedEvent.class
+        ));
+        converter.setJavaTypeMapper(typeMapper);
+        return converter;
     }
 
     /**

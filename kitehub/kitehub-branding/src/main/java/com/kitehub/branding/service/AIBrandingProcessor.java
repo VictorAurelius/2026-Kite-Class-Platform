@@ -60,7 +60,8 @@ public class AIBrandingProcessor {
 
     /** Bound each blocking AI call so a slow/unreachable provider can't stall the worker. */
     private static final Duration AI_CALL_TIMEOUT = Duration.ofSeconds(90);
-    private static final String DEFAULT_BANNER_SIZE = "1792x1024";
+    // G1 walk 2026-06-12: 1536x1024 = landscape hợp lệ của gpt-image-1 (1792x1024 là size dall-e-3 cũ).
+    private static final String DEFAULT_BANNER_SIZE = "1536x1024";
 
     private final BrandingJobService jobService;
     private final ObjectMapper objectMapper;
