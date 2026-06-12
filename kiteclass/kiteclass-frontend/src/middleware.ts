@@ -105,6 +105,14 @@ function extractSlug(req: NextRequest): string | null {
 }
 
 export async function middleware(req: NextRequest): Promise<NextResponse> {
+  // G2 walk 2026-06-12 — /preview là draft surface của wizard (GAP-1215): slug có thể
+  // CHƯA tồn tại (persona tạo brand mới nhập slug mới). Bỏ qua tenant-gating
+  // (not-found header / suspended 307) — page tự fetch base theo ?tenant=, miss →
+  // default base + draft params override. KHÔNG ảnh hưởng landing thật (path khác).
+  if (req.nextUrl.pathname === '/preview') {
+    return NextResponse.next();
+  }
+
   const slug = extractSlug(req);
   if (!slug) {
     // No subdomain (apex marketing, localhost without `?tenant=`, IP probe).

@@ -435,8 +435,9 @@ export function Step6Preview({
     orgName: wizardState.tenantName,
     logoUrl: wizardState.logoUrl,
     heroImage: effectiveBannerUrl,
-    tenant:
-      typeof wizardState.instanceId === 'string' ? wizardState.instanceId : undefined,
+    // G2 walk 2026-06-12: /preview resolve tenant theo SLUG (by-subdomain) — truyền
+    // instanceId (UUID) làm iframe render "Không tìm thấy trung tâm". Dùng slug từ Bước 1.
+    tenant: wizardState.slug || undefined,
   });
   // Test hook: an explicit `previewUrl` prop overrides the composed landing URL.
   const previewSrc = previewUrlOverride ?? landingPreviewSrc;
