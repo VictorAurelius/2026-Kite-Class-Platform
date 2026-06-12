@@ -97,12 +97,21 @@ export async function generateMetadata({
     heroSubtitle || tagline || `${name} — đăng ký học, xem khóa học và lịch khai giảng.`;
   const logoUrl = typeof ld.logoUrl === 'string' ? ld.logoUrl : undefined;
   // GAP-1229: favicon per-tenant từ branding (BE resolve transient + durable URL);
-  // chưa cấu hình → fallback /icon.svg default KiteClass (src/app/icon.svg).
-  const faviconUrl = typeof ld.faviconUrl === 'string' && ld.faviconUrl ? ld.faviconUrl : '/icon.svg';
+  // chưa cấu hình → fallback default KiteClass: icon.svg (kite mark) + PNG sẵn có
+  // public/icons/icon-192.png (reuse asset đã serve trên remote — user direction 2026-06-12).
+  const tenantFavicon = typeof ld.faviconUrl === 'string' && ld.faviconUrl ? ld.faviconUrl : undefined;
 
   return {
     title: { default: name, template: `%s | ${name}` },
-    icons: { icon: faviconUrl },
+    icons: tenantFavicon
+      ? { icon: tenantFavicon, apple: tenantFavicon }
+      : {
+          icon: [
+            { url: '/icon.svg', type: 'image/svg+xml' },
+            { url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+          ],
+          apple: '/icons/icon-192.png',
+        },
     description,
     alternates: { canonical: APP_URL },
     openGraph: {
