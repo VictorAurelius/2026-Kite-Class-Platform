@@ -1,47 +1,59 @@
 'use client';
 
 /**
- * Wave 32 Bucket A — 7-step progress indicator for AI Branding Wizard v2.
+ * GAP-1216 — output-first 5-step progress indicator for AI Branding Wizard v2.
  *
- * Spec source: documents/02-architecture/design-system/ui_kits/ai-branding-wizard-v2/screens/step1-welcome-default.html
- * (`.wiz-stepper` markup joined by `.wiz-step-bar` connectors).
+ * Spec source: documents/02-architecture/design-system/ui_kits/ai-branding-wizard-v2/v3/index.html
+ * (flow chip bar §2.5, hội tụ 3 audit 2026-06-11).
  *
- * Step 3 "Chân dung" (portrait upload) added GAP-1134 — bumps the flow from 6
- * to 7 steps. Org-type select (GAP-1133) lives inside Step 1, not a new step.
+ * Steps: 1 Bắt đầu · 2 Phong cách · 3 Hình ảnh · 4 Mẫu · 5 Xem & Tạo.
+ * Mode-aware: in FULL_AI mode the Template step (4) is skipped, so it is hidden
+ * from the indicator entirely (the FULL_AI route is Welcome → Personality →
+ * Assets → Preview).
  *
  * States per step:
- *   - completed (number < currentStep) — Check icon + filled primary background
- *   - current   (number === currentStep) — number + ring highlight + aria-current="step"
- *   - upcoming  (number > currentStep) — muted background + muted text
+ *   - completed (step < currentStep) — Check icon + filled primary background
+ *   - current   (step === currentStep) — number + ring highlight + aria-current="step"
+ *   - upcoming  (step > currentStep) — muted background + muted text
  */
 
 import { Check } from 'lucide-react';
+import type { WizardStep } from './wizard-shared';
+import type { GenerationMode } from './GenerationModeSelector';
 
-const WIZARD_STEPS: ReadonlyArray<{ number: 1 | 2 | 3 | 4 | 5 | 6 | 7; label: string }> = [
-  { number: 1, label: 'Chào mừng' },
-  { number: 2, label: 'Logo' },
-  { number: 3, label: 'Chân dung' },
-  { number: 4, label: 'Đối tượng' },
-  { number: 5, label: 'Phong cách' },
-  { number: 6, label: 'Mẫu thiết kế' },
-  { number: 7, label: 'Phê duyệt' },
+const ALL_WIZARD_STEPS: ReadonlyArray<{ number: WizardStep; label: string }> = [
+  { number: 1, label: 'Bắt đầu' },
+  { number: 2, label: 'Phong cách' },
+  { number: 3, label: 'Hình ảnh' },
+  { number: 4, label: 'Mẫu thiết kế' },
+  { number: 5, label: 'Xem & Tạo' },
 ];
 
 export interface StepIndicatorProps {
-  /** Active step (1-7). */
-  currentStep: 1 | 2 | 3 | 4 | 5 | 6 | 7;
+  /** Active step (1-5). */
+  currentStep: WizardStep;
+  /**
+   * Generation mode (GAP-1216) — FULL_AI hides the Template step (4) since that
+   * route skips template selection. Defaults to TEMPLATE (all 5 steps shown).
+   */
+  mode?: GenerationMode;
   /** Optional className override for outer wrapper. */
   className?: string;
 }
 
-export function StepIndicator({ currentStep, className = '' }: StepIndicatorProps) {
+export function StepIndicator({ currentStep, mode = 'TEMPLATE', className = '' }: StepIndicatorProps) {
+  const steps =
+    mode === 'FULL_AI'
+      ? ALL_WIZARD_STEPS.filter((s) => s.number !== 4)
+      : ALL_WIZARD_STEPS;
+
   return (
     <nav
       aria-label="Tiến trình"
       data-testid="wizard-step-indicator"
       className={`flex items-start justify-center flex-wrap gap-y-3 ${className}`}
     >
-      {WIZARD_STEPS.map((step, idx) => {
+      {steps.map((step, idx) => {
         const isCompleted = step.number < currentStep;
         const isCurrent = step.number === currentStep;
 
@@ -74,7 +86,7 @@ export function StepIndicator({ currentStep, className = '' }: StepIndicatorProp
               <p className={labelClasses}>{step.label}</p>
             </div>
 
-            {idx < WIZARD_STEPS.length - 1 && (
+            {idx < steps.length - 1 && (
               <div
                 className={[
                   'h-0.5 w-6 md:w-12 lg:w-16 mx-1 md:mx-2 mb-6 transition-colors',

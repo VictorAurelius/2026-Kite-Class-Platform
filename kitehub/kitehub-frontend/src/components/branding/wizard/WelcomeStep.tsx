@@ -30,7 +30,9 @@ import {
   type WizardState,
   type WizardAction,
 } from './wizard-shared';
+import { GenerationModeSelector } from './GenerationModeSelector';
 import { useSlugAvailability } from './hooks';
+import type { PricingTier } from '@/types/subscription';
 
 // Debounce window for slug validation (ms). Matches kit's "validating" sub-state expectation.
 const DEBOUNCE_MS = 600;
@@ -42,10 +44,24 @@ export interface WelcomeStepProps {
   wizardState: WizardState;
   dispatch: React.Dispatch<WizardAction>;
   onNext: () => void;
+  /**
+   * GAP-1216 — subscription tier drives FULL_AI eligibility in the embedded
+   * mode selector. Optional (defaults FREE) so unit tests can render the step
+   * without a tier source.
+   */
+  tier?: PricingTier;
+  /** FULL_AI upgrade CTA handler (FREE/BASIC). */
+  onUpgradeClick?: () => void;
 }
 
-export function WelcomeStep({ wizardState, dispatch, onNext }: WelcomeStepProps) {
-  const { tenantName, slug, slugStatus, conflictSuggestions, orgType } = wizardState;
+export function WelcomeStep({
+  wizardState,
+  dispatch,
+  onNext,
+  tier = 'FREE',
+  onUpgradeClick,
+}: WelcomeStepProps) {
+  const { tenantName, slug, slugStatus, conflictSuggestions, orgType, mode } = wizardState;
   const { checkSlug } = useSlugAvailability();
 
   // Track active in-flight slug to discard stale responses.
@@ -103,7 +119,7 @@ export function WelcomeStep({ wizardState, dispatch, onNext }: WelcomeStepProps)
     <div className="space-y-6">
       <WizardCard>
         <WizardStepHeader
-          eyebrow="Bước 1 / 7"
+          eyebrow="Bước 1 / 5"
           title="Chào mừng đến với Kite Branding Studio"
           subtitle="Hệ thống AI sẽ tạo trang web cho trung tâm của bạn dựa trên vài lựa chọn nhỏ. Bạn không cần kỹ năng thiết kế — chỉ cần chọn vài tuỳ chọn, AI sẽ lo phần còn lại."
         />
@@ -271,6 +287,23 @@ export function WelcomeStep({ wizardState, dispatch, onNext }: WelcomeStepProps)
             </div>
           </div>
 
+          {/* Generation mode (GAP-1216 / GAP-1142) — moved to Step 1 so the
+              TEMPLATE/FULL_AI choice is made up front (output-first flow). It
+              drives the Step-3 Portrait branch + Step-4 Template skip. */}
+          <div data-testid="welcome-generation-mode">
+            <p className="block text-sm font-semibold mb-1">Cách tạo thương hiệu</p>
+            <p className="text-xs text-muted-foreground mb-3">
+              <strong>Mẫu</strong> — miễn phí, chọn từ bộ mẫu có sẵn.{' '}
+              <strong>AI cao cấp</strong> — AI tự vẽ banner riêng (gói PREMIUM trở lên).
+            </p>
+            <GenerationModeSelector
+              tier={tier}
+              value={mode}
+              onChange={(m) => dispatch({ type: 'SET_MODE', mode: m })}
+              onUpgradeClick={onUpgradeClick}
+            />
+          </div>
+
           {/* Tip */}
           <div className="bg-sky-50 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-900 rounded-md p-3">
             <p className="text-sm font-semibold text-sky-900 dark:text-sky-200 mb-1">
@@ -288,7 +321,8 @@ export function WelcomeStep({ wizardState, dispatch, onNext }: WelcomeStepProps)
       <div className="flex items-center justify-between max-w-2xl mx-auto px-1">
         {/* GAP-1219(c): escape-ramp ngay từ Welcome — benchmark norm "logo không
             bắt buộc, defaults trước, refine sau". Áp defaults an toàn theo orgType
-            rồi nhảy thẳng tới chọn Mẫu (bước 6). */}
+            rồi nhảy thẳng: TEMPLATE → chọn Mẫu (bước 4); FULL_AI → Tạo & Duyệt
+            (bước 5, Template được bỏ qua per GAP-1216). */}
         <Button
           variant="ghost"
           disabled={!canContinue}
@@ -299,13 +333,13 @@ export function WelcomeStep({ wizardState, dispatch, onNext }: WelcomeStepProps)
               audience: wizardState.orgType === 'SOLO_TEACHER' ? 'exam-prep' : 'english-center',
             });
             dispatch({ type: 'SET_TONE', tone: 'professional' });
-            dispatch({ type: 'GO_TO_STEP', step: 6 });
+            dispatch({ type: 'GO_TO_STEP', step: mode === 'FULL_AI' ? 5 : 4 });
           }}
         >
           <Sparkles className="mr-2 h-4 w-4" />
           Dùng gợi ý an toàn — thiết lập sau
         </Button>
-        <p className="text-xs text-muted-foreground">Bước 1 / 7 · Mất ~5 phút</p>
+        <p className="text-xs text-muted-foreground">Bước 1 / 5 · Mất ~5 phút</p>
         <Button onClick={onNext} disabled={!canContinue} data-testid="wizard-step1-continue">
           Tiếp tục
           <ArrowRight className="ml-2 h-4 w-4" />

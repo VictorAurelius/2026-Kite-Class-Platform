@@ -54,20 +54,29 @@ vi.mock('sonner', () => ({
 }));
 
 describe('wizardReducer — step transitions', () => {
-  it('NEXT_STEP / PREV_STEP cap at boundaries 1..7', () => {
+  it('NEXT_STEP / PREV_STEP cap at boundaries 1..5 (GAP-1216 output-first reorder)', () => {
     let s: WizardState = INITIAL_WIZARD_STATE;
     expect(s.currentStep).toBe(1);
 
     s = wizardReducer(s, { type: 'PREV_STEP' });
     expect(s.currentStep).toBe(1);
 
-    for (let i = 0; i < 8; i++) {
+    // TEMPLATE mode walks all 5 steps.
+    for (let i = 0; i < 6; i++) {
       s = wizardReducer(s, { type: 'NEXT_STEP' });
     }
-    expect(s.currentStep).toBe(7);
+    expect(s.currentStep).toBe(5);
 
     s = wizardReducer(s, { type: 'GO_TO_STEP', step: 3 });
     expect(s.currentStep).toBe(3);
+  });
+
+  it('FULL_AI mode skips the Template step (4): Assets (3) ⇄ Preview (5)', () => {
+    let s: WizardState = { ...INITIAL_WIZARD_STATE, mode: 'FULL_AI', currentStep: 3 };
+    s = wizardReducer(s, { type: 'NEXT_STEP' });
+    expect(s.currentStep).toBe(5); // 3 → 5, template skipped
+    s = wizardReducer(s, { type: 'PREV_STEP' });
+    expect(s.currentStep).toBe(3); // 5 → 3, mirror skip
   });
 
   it('SET_ORG_TYPE persists the user-type axis (GAP-1133)', () => {
@@ -137,27 +146,25 @@ describe('wizardReducer — approvedResources (Bucket C compliance)', () => {
 });
 
 describe('StepIndicator', () => {
-  it('renders all 7 steps and marks currentStep as aria-current="step"', () => {
+  it('renders all 5 steps (TEMPLATE) and marks currentStep as aria-current="step"', () => {
     render(<StepIndicator currentStep={3} />);
 
-    const labels = [
-      'Chào mừng',
-      'Logo',
-      'Chân dung',
-      'Đối tượng',
-      'Phong cách',
-      'Mẫu thiết kế',
-      'Phê duyệt',
-    ];
+    const labels = ['Bắt đầu', 'Phong cách', 'Hình ảnh', 'Mẫu thiết kế', 'Xem & Tạo'];
     for (const label of labels) {
       expect(screen.getByText(label)).toBeInTheDocument();
     }
 
-    const current = screen.getByLabelText(/Bước 3: Chân dung \(đang làm\)/);
+    const current = screen.getByLabelText(/Bước 3: Hình ảnh \(đang làm\)/);
     expect(current).toHaveAttribute('aria-current', 'step');
 
-    const completed = screen.getByLabelText(/Bước 1: Chào mừng \(đã xong\)/);
+    const completed = screen.getByLabelText(/Bước 1: Bắt đầu \(đã xong\)/);
     expect(completed).not.toHaveAttribute('aria-current');
+  });
+
+  it('FULL_AI mode hides the Template step (4) from the indicator (GAP-1216)', () => {
+    render(<StepIndicator currentStep={3} mode="FULL_AI" />);
+    expect(screen.queryByText('Mẫu thiết kế')).not.toBeInTheDocument();
+    expect(screen.getByText('Xem & Tạo')).toBeInTheDocument();
   });
 });
 

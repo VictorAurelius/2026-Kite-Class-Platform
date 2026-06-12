@@ -56,7 +56,7 @@ function makeWrapper() {
 function makeState(overrides: Partial<WizardState> = {}): WizardState {
   return {
     ...INITIAL_WIZARD_STATE,
-    currentStep: 6,
+    currentStep: 5,
     tenantName: 'Test Center',
     slug: 'test-center',
     audience: 'high-school',
@@ -150,10 +150,10 @@ describe('Step6Preview — orchestrator wiring (GAP-272o)', () => {
   });
 });
 
-describe('wizardReducer — Step 6 entry sanity', () => {
-  it('NEXT_STEP reaches Step 6 cleanly', () => {
+describe('wizardReducer — Preview (Step 5) entry sanity', () => {
+  it('NEXT_STEP reaches the Preview step (5) cleanly in TEMPLATE mode', () => {
     let s: WizardState = INITIAL_WIZARD_STATE;
     for (let i = 0; i < 5; i++) s = wizardReducer(s, { type: 'NEXT_STEP' });
-    expect(s.currentStep).toBe(6);
+    expect(s.currentStep).toBe(5);
   });
 });

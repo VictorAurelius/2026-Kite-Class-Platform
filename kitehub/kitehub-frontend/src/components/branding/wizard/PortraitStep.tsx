@@ -47,8 +47,9 @@ const ACCEPTED_MIME = ['image/png', 'image/jpeg', 'image/webp'];
 export function PortraitStep({
   wizardState,
   instanceId,
-  onNext,
-  onBack,
+  onNext = () => {},
+  onBack = () => {},
+  embedded = false,
 }: PortraitStepProps) {
   const { orgType } = wizardState;
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -120,7 +121,7 @@ export function PortraitStep({
     <div className="space-y-6">
       <WizardCard>
         <WizardStepHeader
-          eyebrow="Bước 3 / 7 · Tuỳ chọn"
+          eyebrow={embedded ? 'Ảnh chân dung · Tuỳ chọn' : 'Bước 3 / 5 · Tuỳ chọn'}
           title="Thêm ảnh chân dung"
           subtitle="Ảnh chân dung giáo viên là lớp trung tâm của banner. Bạn có thể bỏ qua — AI vẫn tạo được banner không cần ảnh."
         />
@@ -232,24 +233,26 @@ export function PortraitStep({
         )}
       </WizardCard>
 
-      {/* Footer actions */}
-      <div className="mx-auto flex max-w-2xl items-center justify-between px-1">
-        <Button variant="ghost" onClick={onBack} data-testid="wizard-step3-back">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Quay lại
-        </Button>
-        <p className="text-xs text-muted-foreground">
-          Bước 3 / 7 · Tuỳ chọn — bỏ qua nếu chưa có ảnh
-        </p>
-        <Button
-          onClick={onNext}
-          disabled={uploadMutation.isPending}
-          data-testid="wizard-step3-continue"
-        >
-          Tiếp tục
-          <ArrowRight className="ml-2 h-4 w-4" />
-        </Button>
-      </div>
+      {/* Footer actions — suppressed when embedded inside the merged Assets step. */}
+      {!embedded && (
+        <div className="mx-auto flex max-w-2xl items-center justify-between px-1">
+          <Button variant="ghost" onClick={onBack} data-testid="wizard-step3-back">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Quay lại
+          </Button>
+          <p className="text-xs text-muted-foreground">
+            Bước 3 / 5 · Tuỳ chọn — bỏ qua nếu chưa có ảnh
+          </p>
+          <Button
+            onClick={onNext}
+            disabled={uploadMutation.isPending}
+            data-testid="wizard-step3-continue"
+          >
+            Tiếp tục
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

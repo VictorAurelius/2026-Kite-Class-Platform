@@ -22,7 +22,8 @@
 
 import { useEffect, useRef } from 'react';
 import { Card } from '@/components/ui/card';
-import { Info, Loader2 } from 'lucide-react';
+import { Info, Loader2, AlertTriangle, RotateCw, ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { LifecycleInline } from './LifecycleInline';
 import type { LifecycleInlineProps } from './LifecycleInline';
 
@@ -46,6 +47,19 @@ export interface DeployingStepProps {
   lifecycleStateOverride?: LifecycleInlineProps['stateOverride'];
   /** Optional retry handler when FAILED state appears. */
   onRetry?: () => void;
+  /**
+   * FAILED recovery (GAP-1216). When set, the component renders a terminal
+   * error panel with retry + back actions INSTEAD of the in-progress copy —
+   * the deploy stream emitted an `error` event (GENERATION_FAILED / deploy
+   * failure / STREAM_DISCONNECTED). Keeps the user out of a dead-end.
+   */
+  errorMessage?: string;
+  /** Machine error code surfaced for support (e.g. GENERATION_FAILED). */
+  errorCode?: string;
+  /** Whether the surfaced error is retryable (drives retry CTA visibility). */
+  errorRetryable?: boolean;
+  /** Back-to-preview handler (FAILED panel secondary action). */
+  onBack?: () => void;
 }
 
 const LEVEL_PREFIX: Record<DeployingLogEntry['level'], string> = {
@@ -63,13 +77,75 @@ const LEVEL_CLASS: Record<DeployingLogEntry['level'], string> = {
 };
 
 export function DeployingStep(props: DeployingStepProps) {
-  const { logs, progressPercent, instanceId, lifecycleStateOverride, onRetry } = props;
+  const {
+    logs,
+    progressPercent,
+    instanceId,
+    lifecycleStateOverride,
+    onRetry,
+    errorMessage,
+    errorCode,
+    errorRetryable = true,
+    onBack,
+  } = props;
   const logEndRef = useRef<HTMLDivElement | null>(null);
 
   // Auto-scroll log feed to latest line.
   useEffect(() => {
     logEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }, [logs.length]);
+
+  // GAP-1216 — FAILED recovery panel: deploy stream emitted an error. Surface a
+  // clear message + retry/back instead of leaving the user stuck on a spinner.
+  if (errorMessage) {
+    return (
+      <div className="max-w-2xl mx-auto space-y-4" data-testid="deploying-step-failed">
+        <Card className="p-6 text-center space-y-4 border-destructive/40">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+            <AlertTriangle className="h-7 w-7" aria-hidden="true" />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-foreground">Triển khai chưa thành công</h2>
+            <p className="mt-2 text-sm text-muted-foreground" data-testid="deploying-step-error-message">
+              {errorMessage}
+            </p>
+            {errorCode && (
+              <p className="mt-1 font-mono text-xs text-muted-foreground">
+                Mã lỗi: {errorCode}
+              </p>
+            )}
+          </div>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
+            {errorRetryable && onRetry && (
+              <Button onClick={onRetry} data-testid="deploying-step-retry">
+                <RotateCw className="mr-2 h-4 w-4" aria-hidden="true" />
+                Thử lại
+              </Button>
+            )}
+            {onBack && (
+              <Button variant="outline" onClick={onBack} data-testid="deploying-step-back">
+                <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" />
+                Quay lại chỉnh sửa
+              </Button>
+            )}
+          </div>
+        </Card>
+        <Card className="p-3" data-testid="deploying-step-log">
+          <div className="text-xs space-y-1 font-mono max-h-40 overflow-y-auto" role="log">
+            {logs.map((entry, idx) => (
+              <div
+                key={`${entry.timestamp}-${idx}`}
+                className={LEVEL_CLASS[entry.level]}
+                data-testid={`deploying-step-log-line-${idx}`}
+              >
+                {LEVEL_PREFIX[entry.level]} {entry.timestamp.slice(11, 19)} — {entry.message}
+              </div>
+            ))}
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto space-y-4" data-testid="deploying-step">

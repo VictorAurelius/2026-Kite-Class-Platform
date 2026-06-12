@@ -1,34 +1,32 @@
-// shell-exempt: full-screen multi-step branding wizard, focused flow by design (no dashboard chrome)
+// shell-exempt: focused redirect surface to the canonical KiteHub branding wizard
 'use client';
 
-import { Suspense } from 'react';
-import { BrandingWizard } from '@/components/branding/wizard/BrandingWizard';
+import { Suspense, useEffect } from 'react';
+import { ExternalLink } from 'lucide-react';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { useAuthStore } from '@/stores/auth-store';
-import { useTenantFromUrl } from '@/hooks/useTenantFromUrl';
-import type { Tier } from '@/components/branding/wizard/types';
 
 /**
- * Branding wizard page at {@code /branding/wizard}.
+ * Branding wizard route at {@code /branding/wizard} (KiteClass `:3000`).
  *
- * Tier + tenant metadata are resolved from the authenticated session (auth-store
- * tenantId from JWT claim) + tenant slug (query param / subdomain / localStorage
- * via {@code useTenantFromUrl}). Previously these were hard-coded
- * ({@code tenantId="current-tenant" slug="my-school"}), which rendered the wizard
- * against a non-existent tenant and produced a blank page for seeded owners
- * (GAP-726).
+ * GAP-1214 — UNIFY: the AI Branding generation wizard is a KiteHub platform
+ * capability (KH-6). KiteClass previously shipped a SECOND, divergent XState
+ * wizard ({@code BrandingWizard} + {@code wizard-machine.ts}) whose preview
+ * rendered {@code about:blank} — a maintenance-drift orphan vs the canonical
+ * KiteHub 7-step wizard. This route now REDIRECTS to the canonical KiteHub
+ * wizard ({@code :3001 (customer)/branding/wizard}) instead of rendering the
+ * orphan FSM. The orphan component is retired from the live flow (marked
+ * deprecated; kept only for its standalone tests until removed in a follow-up).
  *
- * The inner component reads {@code useSearchParams} (via {@code useTenantFromUrl}),
- * so it is wrapped in {@code <Suspense>} to satisfy the Next.js production-build
- * prerender boundary requirement (per fe-build-local-verify rule).
+ * Per `.claude/rules/kitehub-kiteclass-boundary.md` §2: KiteHub FE = `:3001`,
+ * resolved from {@code NEXT_PUBLIC_KITEHUB_URL} (local default `:3001`).
  *
- * @since Wave 3 Sub-PR 3.7 (GAP-013 + GAP-031 + GAP-069)
- * @since GAP-726 — read tenantId/slug from session instead of hard-coded scaffold
+ * @since GAP-1214 (Wave branding-100 Đợt 3) — supersedes GAP-726 route scaffold.
  */
 export default function BrandingWizardPage() {
   return (
     <Suspense fallback={<WizardLoading />}>
-      <BrandingWizardResolved />
+      <BrandingWizardRedirect />
     </Suspense>
   );
 }
@@ -41,26 +39,24 @@ function WizardLoading() {
   );
 }
 
-function BrandingWizardResolved() {
+/** Canonical KiteHub AI Branding wizard URL. */
+function kitehubWizardUrl(): string {
+  const base = process.env.NEXT_PUBLIC_KITEHUB_URL || 'http://localhost:3001';
+  return `${base.replace(/\/$/, '')}/branding/wizard`;
+}
+
+function BrandingWizardRedirect() {
   const tenantId = useAuthStore((state) => state.tenantId);
-  const tenantSlug = useTenantFromUrl();
+  const target = kitehubWizardUrl();
 
-  // tier follows the tenant subscription; default PRO scaffold until the
-  // subscription tier is surfaced on the session (tracked separately).
-  const tier: Tier = 'PRO';
+  // Auto-redirect once authenticated; the manual link is the no-JS / fallback path.
+  useEffect(() => {
+    if (!tenantId) return;
+    if (typeof window !== 'undefined') {
+      window.location.assign(target);
+    }
+  }, [tenantId, target]);
 
-  // Resolve slug from URL (query param / subdomain) with a localStorage fallback.
-  // tenantSubdomain is written by useTenantFromUrl. (The tenantId UUID — stored
-  // tenant-scoped per GAP-1074 — is not a slug, so it is not a slug fallback.)
-  const slug =
-    tenantSlug ||
-    (typeof window !== 'undefined'
-      ? localStorage.getItem('tenantSubdomain')
-      : null);
-
-  // tenantId comes from the JWT claim stored at login. If the session has not
-  // hydrated yet (or the user is not authenticated), show a graceful message
-  // instead of a blank page — the dashboard layout already guards /login redirect.
   if (!tenantId) {
     return (
       <div className="mx-auto max-w-3xl p-6">
@@ -75,5 +71,23 @@ function BrandingWizardResolved() {
     );
   }
 
-  return <BrandingWizard tier={tier} tenantId={tenantId} slug={slug ?? tenantId} />;
+  return (
+    <div className="mx-auto max-w-3xl p-6" data-testid="kc-wizard-redirect">
+      <div className="rounded-xl border border-muted bg-muted/30 p-10 text-center">
+        <p className="font-medium">Đang chuyển tới Trình hướng dẫn AI Branding…</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Trình tạo thương hiệu nay nằm trên KiteHub. Nếu trình duyệt không tự chuyển,
+          hãy nhấn nút bên dưới.
+        </p>
+        <a
+          href={target}
+          data-testid="kc-wizard-redirect-link"
+          className="mt-4 inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
+        >
+          <ExternalLink className="h-4 w-4" aria-hidden="true" />
+          Mở Trình hướng dẫn AI Branding
+        </a>
+      </div>
+    </div>
+  );
 }

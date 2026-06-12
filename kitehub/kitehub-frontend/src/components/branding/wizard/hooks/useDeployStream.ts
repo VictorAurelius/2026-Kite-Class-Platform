@@ -16,8 +16,8 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
+import apiClient from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
-import { getAccessToken } from '@/lib/auth/jwt-storage';
 import type {
   DeployStreamEvent,
   DeployStreamEventName,
@@ -63,83 +63,105 @@ export function useDeployStream(
     if (!enabled || !jobId) return;
     completedRef.current = false;
     if (typeof window === 'undefined' || typeof window.EventSource === 'undefined') {
-      // SSR or jsdom without EventSource polyfill — bail silently.
+      // SSR or jsdom without EventSource polyfill — bail silently (no mint call).
       return;
     }
 
-    // GAP-1021 pt2: browser EventSource cannot set the Authorization header, so
-    // the JWT is passed as a short-lived `?token=` query param. The gateway
-    // (JwtAuthenticationGatewayFilter) accepts token-in-query when no Bearer
-    // header is present and injects the X-User-* headers downstream.
-    // GAP-1105: EventSource resolves a relative URL against window.location.origin
-    // (the frontend :3001), NOT the axios baseURL — so a relative path 404'd at
-    // Next.js → STREAM_DISCONNECTED. Prepend the SAME gateway base apiClient uses
-    // so the SSE actually reaches the gateway (:9000) + branding deploy-stream.
-    const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000';
-    const baseUrl = `${apiBase}${endpoints.brandingV1.jobDeployStream(jobId)}`;
-    const token = getAccessToken();
-    const url = token
-      ? `${baseUrl}?token=${encodeURIComponent(token)}`
-      : baseUrl;
-    const source = new window.EventSource(url, { withCredentials: true });
-    setIsStreaming(true);
-
+    let aborted = false;
+    let source: EventSource | null = null;
     const handlers: Array<{ name: DeployStreamEventName; fn: (e: MessageEvent) => void }> = [];
+    let onError: ((e: Event) => void) | null = null;
 
-    for (const name of EVENT_NAMES) {
-      const fn = (e: MessageEvent) => {
-        // GAP-1105: the browser delivers its NATIVE EventSource connection error
-        // to the listener registered for the server-sent `error` event too — but
-        // with no `data`. That null-data event rendered as "Lỗi triển khai
-        // (UNKNOWN)" even when the deploy actually succeeded. Ignore it here:
-        // `onError` handles genuine disconnects, and a real server `error` event
-        // (JOB_FAILED / JOB_NOT_FOUND / ...) always carries a JSON payload.
-        if (name === 'error' && !e.data) return;
-        let data: unknown = null;
-        try {
-          data = e.data ? JSON.parse(e.data) : null;
-        } catch {
-          data = e.data;
-        }
-        if (name === 'heartbeat') {
-          return; // keepalive — drop
-        }
-        const event: DeployStreamEvent = { name, data };
-        setEvents((prev) => [...prev, event]);
-        if (name === 'complete' || name === 'error') {
-          completedRef.current = true;
-          setIsStreaming(false);
-          source.close();
-        }
-      };
-      source.addEventListener(name, fn as EventListener);
-      handlers.push({ name, fn });
-    }
+    // GAP-1021 — open the stream with a freshly-minted, short-lived `?access_token=`
+    // token (SseQueryTokenAuthFilter). Chosen over raw `?token=<JWT>` (the legacy
+    // gateway path): the minted token is short, scoped to this job, and won't
+    // expire mid-walk like a full JWT carried in the URL.
+    const openStream = (accessToken: string) => {
+      if (aborted) return;
+      // GAP-1105: EventSource resolves a relative URL against window.location.origin
+      // (the frontend), NOT the axios baseURL — so a relative path 404'd at Next.js
+      // → STREAM_DISCONNECTED. Prepend the SAME gateway base apiClient uses so the
+      // SSE actually reaches the gateway (:9000) + branding deploy-stream.
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000';
+      const baseUrl = `${apiBase}${endpoints.brandingV1.jobDeployStream(jobId)}`;
+      const url = `${baseUrl}?access_token=${encodeURIComponent(accessToken)}`;
+      const src = new window.EventSource(url, { withCredentials: true });
+      source = src;
+      setIsStreaming(true);
 
-    const onError = () => {
-      // GAP-1105: a native EventSource error right after a terminal event is the
-      // post-complete socket close, not a real disconnect — swallow it silently.
-      if (completedRef.current) {
-        setIsStreaming(false);
-        source.close();
-        return;
+      for (const name of EVENT_NAMES) {
+        const fn = (e: MessageEvent) => {
+          // GAP-1105: the browser delivers its NATIVE EventSource connection error
+          // to the listener registered for the server-sent `error` event too — but
+          // with no `data`. Ignore it here: `onError` handles genuine disconnects,
+          // and a real server `error` event always carries a JSON payload.
+          if (name === 'error' && !e.data) return;
+          let data: unknown = null;
+          try {
+            data = e.data ? JSON.parse(e.data) : null;
+          } catch {
+            data = e.data;
+          }
+          if (name === 'heartbeat') {
+            return; // keepalive — drop
+          }
+          const event: DeployStreamEvent = { name, data };
+          setEvents((prev) => [...prev, event]);
+          if (name === 'complete' || name === 'error') {
+            completedRef.current = true;
+            setIsStreaming(false);
+            src.close();
+          }
+        };
+        src.addEventListener(name, fn as EventListener);
+        handlers.push({ name, fn });
       }
-      // Genuine network drop — close and surface as an `error` event.
-      setIsStreaming(false);
-      setEvents((prev) => [
-        ...prev,
-        { name: 'error', data: { errorCode: 'STREAM_DISCONNECTED', retryable: true } },
-      ]);
-      source.close();
+
+      onError = () => {
+        // GAP-1105: a native EventSource error right after a terminal event is the
+        // post-complete socket close, not a real disconnect — swallow it silently.
+        if (completedRef.current) {
+          setIsStreaming(false);
+          src.close();
+          return;
+        }
+        // Genuine network drop — close and surface as an `error` event.
+        setIsStreaming(false);
+        setEvents((prev) => [
+          ...prev,
+          { name: 'error', data: { errorCode: 'STREAM_DISCONNECTED', retryable: true } },
+        ]);
+        src.close();
+      };
+      src.addEventListener('error', onError);
     };
-    source.addEventListener('error', onError);
+
+    // Mint first (Bearer JWT auto-attached by apiClient interceptor), then open.
+    apiClient
+      .post<{ token: string; expiresInSeconds: number }>(
+        endpoints.brandingV1.jobSseToken(jobId),
+      )
+      .then((res) => {
+        if (!aborted && res.data?.token) openStream(res.data.token);
+      })
+      .catch(() => {
+        if (aborted) return;
+        setIsStreaming(false);
+        setEvents((prev) => [
+          ...prev,
+          { name: 'error', data: { errorCode: 'SSE_TOKEN_MINT_FAILED', retryable: true } },
+        ]);
+      });
 
     return () => {
-      for (const { name, fn } of handlers) {
-        source.removeEventListener(name, fn as EventListener);
+      aborted = true;
+      if (source) {
+        for (const { name, fn } of handlers) {
+          source.removeEventListener(name, fn as EventListener);
+        }
+        if (onError) source.removeEventListener('error', onError);
+        source.close();
       }
-      source.removeEventListener('error', onError);
-      source.close();
       setIsStreaming(false);
     };
   }, [enabled, jobId]);

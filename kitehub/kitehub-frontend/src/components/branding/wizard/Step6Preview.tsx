@@ -42,6 +42,7 @@ import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { ResourceToggle, type ApprovableResource } from './ResourceToggle';
 import { TEMPLATES } from './TemplateGrid';
 import { DeployingStep, type DeployingLogEntry } from './DeployingStep';
+import { DoneStep } from './DoneStep';
 import { RegenerateCounter } from './RegenerateCounter';
 import {
   GenerationModeSelector,
@@ -280,9 +281,12 @@ export function Step6Preview({
   const { mutate: createJobMutate } = useCreateBrandingJobV1();
   const createStartedRef = useRef(false);
 
-  // GAP-1142: generation mode the owner picks (TEMPLATE default; FULL_AI commits
-  // on Deploy for eligible tiers). GAP-1143: optional reused banner from library.
-  const [generationMode, setGenerationMode] = useState<GenerationMode>('TEMPLATE');
+  // GAP-1142 / GAP-1216: generation mode now lives in WizardState (picked in
+  // Step 1). Read from there + write via dispatch so the choice stays consistent
+  // across the Welcome selector + this preview selector. GAP-1143: optional reused
+  // banner from library.
+  const generationMode: GenerationMode = wizardState.mode;
+  const setGenerationMode = (m: GenerationMode) => dispatch({ type: 'SET_MODE', mode: m });
   const [reusedBannerUrl, setReusedBannerUrl] = useState<string | null>(null);
 
   useEffect(() => {
@@ -463,18 +467,14 @@ export function Step6Preview({
 
   const decisionRows = useMemo<ReadonlyArray<DecisionRow>>(
     () => [
+      // GAP-1216 — jump-to-edit steps remapped to the output-first 5-step flow:
+      // org-type → Welcome (1); audience/tone → Brand personality (2);
+      // logo/portrait → Assets (3); template → Template (4).
       {
         key: 'org-type',
         label: 'Loại tổ chức',
         value: ORG_TYPE_OPTIONS.find((o) => o.id === wizardState.orgType)?.label ?? 'Chưa chọn',
         step: 1,
-      },
-      { key: 'logo', label: 'Logo', value: logoValue, step: 2 },
-      {
-        key: 'portrait',
-        label: 'Chân dung',
-        value: portraitCount > 0 ? `${portraitCount} ảnh` : 'Chưa có',
-        step: 3,
       },
       {
         key: 'audience',
@@ -482,19 +482,26 @@ export function Step6Preview({
         value: wizardState.audience
           ? AUDIENCE_LABELS[wizardState.audience] ?? wizardState.audience
           : 'Chưa chọn',
-        step: 4,
+        step: 2,
       },
       {
         key: 'tone',
         label: 'Phong cách',
         value: wizardState.tone ? TONE_LABELS[wizardState.tone] ?? wizardState.tone : 'Chưa chọn',
-        step: 5,
+        step: 2,
+      },
+      { key: 'logo', label: 'Logo', value: logoValue, step: 3 },
+      {
+        key: 'portrait',
+        label: 'Chân dung',
+        value: portraitCount > 0 ? `${portraitCount} ảnh` : 'Chưa có',
+        step: 3,
       },
       {
         key: 'template',
         label: 'Mẫu thiết kế',
         value: selectedTemplate?.name ?? 'Chưa chọn',
-        step: 6,
+        step: 4,
       },
     ],
     [
@@ -518,6 +525,13 @@ export function Step6Preview({
 
   const [isDeploying, setIsDeploying] = useState(false);
   const [upsellModalOpen, setUpsellModalOpen] = useState(false);
+  // GAP-1108 FE — terminal "done" screen + live landing URL (frontendUrl from
+  // the approve 202 / `complete` SSE event). GAP-1216 — FAILED recovery state.
+  const [deployDone, setDeployDone] = useState(false);
+  const [deployFrontendUrl, setDeployFrontendUrl] = useState<string | null>(null);
+  const [deployError, setDeployError] = useState<
+    { message: string; code?: string; retryable: boolean } | null
+  >(null);
 
   const { mutate: approveMutate } = useApproveBrandingJob();
   const { quota, regenerate } = useRegenerateQuota();
@@ -544,26 +558,97 @@ export function Step6Preview({
     }
   }, [quotaExceeded, quotaTier, upsellModalOpen]);
 
+  // GAP-1108 FE — on a terminal `complete` SSE event, surface the DONE screen
+  // (with the live landing URL) instead of silently routing away. GAP-1216 — on
+  // a terminal `error` event, surface the FAILED panel (retry/back).
   const deployCompletedRef = useRef(false);
   useEffect(() => {
-    if (!isDeploying) return;
+    if (!isDeploying || deployCompletedRef.current) return;
     const latest = deployStream.latestEvent;
-    if (latest?.name === 'complete' && !deployCompletedRef.current) {
+    if (latest?.name === 'complete') {
       deployCompletedRef.current = true;
-      toast.success('Triển khai thành công — đang chuyển tới trang Thương hiệu');
-      onDeploy();
+      const data = (latest.data ?? {}) as { frontendUrl?: string };
+      if (data.frontendUrl) setDeployFrontendUrl(data.frontendUrl);
+      toast.success('Triển khai thành công!');
+      setDeployDone(true);
+    } else if (latest?.name === 'error') {
+      deployCompletedRef.current = true;
+      const data = (latest.data ?? {}) as {
+        message?: string;
+        errorCode?: string;
+        retryable?: boolean;
+      };
+      setDeployError({
+        message:
+          data.message ??
+          'Quá trình triển khai gặp sự cố. Bạn có thể thử lại hoặc quay lại chỉnh sửa.',
+        code: data.errorCode,
+        retryable: data.retryable ?? true,
+      });
     }
-  }, [isDeploying, deployStream.latestEvent, onDeploy]);
+  }, [isDeploying, deployStream.latestEvent]);
+
+  const startDeploy = () => {
+    if (!wizardState.jobId) return;
+    deployCompletedRef.current = false;
+    setDeployError(null);
+    setDeployDone(false);
+    approveMutate(
+      {
+        jobId: wizardState.jobId,
+        slug: wizardState.slug || undefined,
+        templateId: wizardState.templateId,
+        approvedResources: wizardState.approvedResources,
+      },
+      {
+        onSuccess: (res) => {
+          if (res?.frontendUrl) setDeployFrontendUrl(res.frontendUrl);
+        },
+        onError: (err) => {
+          const e = err as {
+            response?: { status?: number; data?: { errorCode?: string; qualityScore?: number } };
+          };
+          const status = e?.response?.status;
+          const code = e?.response?.data?.errorCode;
+          // GAP-1217 — server-side quality gate rejected the approve (422).
+          // Keep the user on the preview so they can edit + retry; don't dead-end.
+          if (status === 422 || code === 'QUALITY_GATE_FAILED') {
+            const score = e?.response?.data?.qualityScore;
+            toast.error(
+              `Chưa đạt chuẩn chất lượng${
+                score != null ? ` (điểm ${score}/100)` : ''
+              } — hãy điều chỉnh rồi triển khai lại.`,
+            );
+            setIsDeploying(false);
+            deployCompletedRef.current = true;
+            return;
+          }
+          // Other approve failures → FAILED panel (retryable).
+          setDeployError({
+            message: 'Không gửi được yêu cầu triển khai. Vui lòng thử lại.',
+            code,
+            retryable: true,
+          });
+          deployCompletedRef.current = true;
+        },
+      },
+    );
+    setIsDeploying(true);
+  };
 
   const handleDeployClick = () => {
     if (!allApproved || !wizardState.jobId) return;
-    approveMutate({
-      jobId: wizardState.jobId,
-      slug: wizardState.slug || undefined,
-      templateId: wizardState.templateId,
-      approvedResources: wizardState.approvedResources,
-    });
-    setIsDeploying(true);
+    startDeploy();
+  };
+
+  const handleRetryDeploy = () => {
+    startDeploy();
+  };
+
+  const handleBackFromDeploy = () => {
+    setIsDeploying(false);
+    setDeployError(null);
+    deployCompletedRef.current = false;
   };
 
   const handleRegenerateClick = () => {
@@ -633,6 +718,18 @@ export function Step6Preview({
   // Deploying sub-state render branch
   // -------------------------------------------------------------------------
 
+  // GAP-1108 FE — terminal success screen with the live landing link.
+  if (deployDone) {
+    return (
+      <DoneStep
+        tenantName={wizardState.tenantName}
+        frontendUrl={deployFrontendUrl}
+        slug={wizardState.slug}
+        onManage={onDeploy}
+      />
+    );
+  }
+
   if (isDeploying) {
     return (
       <DeployingStep
@@ -642,6 +739,11 @@ export function Step6Preview({
             ? wizardState.instanceId
             : undefined
         }
+        errorMessage={deployError?.message}
+        errorCode={deployError?.code}
+        errorRetryable={deployError?.retryable}
+        onRetry={handleRetryDeploy}
+        onBack={handleBackFromDeploy}
       />
     );
   }
@@ -651,7 +753,7 @@ export function Step6Preview({
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-sm font-semibold text-primary uppercase tracking-wide mb-1">
-            Bước 7 / 7 — Cuối cùng!
+            Bước 5 / 5 — Xem & Tạo
           </p>
           <h1 className="text-2xl font-bold text-foreground mb-2">
             Xem trước trang web của bạn

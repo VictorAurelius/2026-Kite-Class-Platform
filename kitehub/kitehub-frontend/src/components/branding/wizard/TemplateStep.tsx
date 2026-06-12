@@ -224,7 +224,7 @@ export function TemplateStep({
   return (
     <div className="space-y-6">
       <WizardStepHeader
-        eyebrow={`Bước 6 / 7${tierInfo.canUseCustomPrompt ? ' · ENTERPRISE' : ''}`}
+        eyebrow={`Bước 4 / 5${tierInfo.canUseCustomPrompt ? ' · ENTERPRISE' : ''}`}
         title={
           tierInfo.canUseCustomPrompt
             ? 'Chọn mẫu hoặc tự định hướng'
@@ -271,7 +271,7 @@ export function TemplateStep({
           <Info className="w-3.5 h-3.5 mt-0.5 shrink-0" aria-hidden="true" />
           <span>
             Tất cả mẫu pass WCAG AA contrast và responsive 320px → 3840px. Mỗi
-            mẫu có thể đổi font, màu phụ ở Bước 6.
+            mẫu có thể đổi font, màu phụ ở bước xem trước.
           </span>
         </p>
       </WizardCard>
