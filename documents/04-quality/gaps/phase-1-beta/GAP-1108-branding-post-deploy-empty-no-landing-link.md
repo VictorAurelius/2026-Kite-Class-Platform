@@ -47,4 +47,9 @@ Sau khi AI Branding wizard deploy THÀNH CÔNG (deploy-stream 100% + instance DE
 - GAP-1107 #2 (assets parse Object-vs-Array — same root cho assets-0)
 - GAP-1105 (deploy-stream fixes — deploy giờ chạy 100%)
 - GAP-1021 (Agent D deploy pipeline) needs-rework parent
+- GAP-1213 (cross-service `branding.deployed` propagation — Wave branding-100 Bucket C)
 - Rule: `ai-branding-guidelines.md` §4.2 (preview before commit) + post-deploy UX
+
+## Log
+
+- **2026-06-12** (Wave branding-100 Bucket C — landing-link mở rộng sang event chuỗi): Chuỗi post-deploy "event cuối chứa link landing" giờ phủ thêm cross-service: `branding.deployed` event (GAP-1213) carry `frontendUrl` sang KC-core → đúng landing per-tenant đổi theme thật (không chỉ deploy-status card BE-only như AC #1-#3 đã có). AC #4 (browser re-walk: deploy 100% → /branding có data + link) vẫn pending coordinator runtime-walk — Status giữ PARTIAL.

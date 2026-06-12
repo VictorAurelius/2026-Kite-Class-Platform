@@ -7,10 +7,14 @@ import io.micrometer.core.annotation.Timed;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -64,18 +68,32 @@ public class DeployStreamController {
 
     private final BrandingJobRepository brandingJobRepository;
 
+    /** GAP-1021 — mints the short-lived token a browser EventSource carries via ?access_token. */
+    private final com.kitehub.branding.wizard.sse.SseTokenService sseTokenService;
+
     @org.springframework.beans.factory.annotation.Autowired
     public DeployStreamController(
             BrandingJobRepository brandingJobRepository,
+            com.kitehub.branding.wizard.sse.SseTokenService sseTokenService,
             @org.springframework.beans.factory.annotation.Value(
                     "${kitehub.branding.deploy-stream.max-emitters-per-job:20}") int maxEmittersPerJob) {
         this.brandingJobRepository = brandingJobRepository;
+        this.sseTokenService = sseTokenService;
         this.maxEmittersPerJob = maxEmittersPerJob;
     }
 
     /** Test seam — preserve no-arg-equivalent constructor for unit tests. */
     public DeployStreamController(BrandingJobRepository brandingJobRepository) {
-        this(brandingJobRepository, 20);
+        this(brandingJobRepository,
+                new com.kitehub.branding.wizard.sse.SseTokenService("test-sse-secret", 120),
+                20);
+    }
+
+    /** Test seam — preserve the (repo, maxEmitters) constructor used by backpressure tests. */
+    public DeployStreamController(BrandingJobRepository brandingJobRepository, int maxEmittersPerJob) {
+        this(brandingJobRepository,
+                new com.kitehub.branding.wizard.sse.SseTokenService("test-sse-secret", 120),
+                maxEmittersPerJob);
     }
 
     @GetMapping(value = "/{jobId}/deploy-stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
@@ -146,6 +164,35 @@ public class DeployStreamController {
         }
 
         return emitter;
+    }
+
+    /**
+     * Mint a short-lived SSE access token (GAP-1021 part 2 — FM-4).
+     *
+     * <p>Called by an already-authenticated fetch (carrying gateway {@code X-User-*} headers)
+     * BEFORE opening the {@code deploy-stream}/{@code preview} EventSource. The browser then
+     * opens {@code .../deploy-stream?access_token=<token>} — EventSource can't set headers, so
+     * {@code SseQueryTokenAuthFilter} verifies this token to re-establish auth for the stream.</p>
+     *
+     * @return {@code {token, expiresInSeconds}}, or {@code 404} if the job doesn't exist.
+     */
+    @PostMapping("/{jobId}/sse-token")
+    @PreAuthorize("hasAnyRole('OWNER','MANAGER','TEACHER','ACCOUNTANT','PLATFORM_ADMIN','ADMIN','STAFF')")
+    public ResponseEntity<Map<String, Object>> mintSseToken(
+            @PathVariable UUID jobId,
+            @RequestHeader(value = "X-User-Id", required = false) String userId,
+            @RequestHeader(value = "X-User-Roles", required = false) String roles) {
+        if (brandingJobRepository.findById(jobId).isEmpty()) {
+            Map<String, Object> notFound = new LinkedHashMap<>();
+            notFound.put("error", "JOB_NOT_FOUND");
+            notFound.put("jobId", jobId.toString());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(notFound);
+        }
+        String token = sseTokenService.mint(userId, roles, jobId);
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("token", token);
+        body.put("expiresInSeconds", sseTokenService.getTtlSeconds());
+        return ResponseEntity.ok(body);
     }
 
     /**

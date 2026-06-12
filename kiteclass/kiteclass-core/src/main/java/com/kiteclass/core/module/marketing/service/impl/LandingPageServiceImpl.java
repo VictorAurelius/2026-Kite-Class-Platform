@@ -195,4 +195,48 @@ public class LandingPageServiceImpl implements LandingPageService {
                     return landingPageRepository.save(newLandingPage);
                 });
     }
+
+    private static final java.util.regex.Pattern HEX = java.util.regex.Pattern.compile("^#[0-9A-Fa-f]{6}$");
+
+    /**
+     * GAP-1213 — apply a freshly-deployed AI-branding theme onto the tenant landing page so the
+     * public landing changes after wizard deploy. Idempotent on {@code brandingVersion}; evicts
+     * the {@code landingPages} cache (same key the public read uses) so the next visitor sees it.
+     */
+    @Override
+    @Transactional
+    @CacheEvict(value = "landingPages", key = "#tenantId")
+    public boolean applyDeployedBranding(UUID tenantId, String primaryColor, String secondaryColor,
+                                         String logoUrl, Integer brandingVersion) {
+        LandingPage landingPage = getOrCreateDefault(tenantId);
+
+        // Idempotency: ignore stale/duplicate deploy events (incoming version not newer).
+        if (brandingVersion != null && landingPage.getBrandingVersion() != null
+                && brandingVersion <= landingPage.getBrandingVersion()) {
+            log.info("branding.deployed skipped for tenant {} — version {} <= applied {}",
+                    tenantId, brandingVersion, landingPage.getBrandingVersion());
+            return false;
+        }
+
+        boolean changed = false;
+        if (primaryColor != null && HEX.matcher(primaryColor).matches()) {
+            landingPage.setPrimaryColor(primaryColor);
+            changed = true;
+        }
+        if (secondaryColor != null && HEX.matcher(secondaryColor).matches()) {
+            landingPage.setSecondaryColor(secondaryColor);
+            changed = true;
+        }
+        if (logoUrl != null && !logoUrl.isBlank()) {
+            landingPage.setLogoUrl(logoUrl);
+            changed = true;
+        }
+        if (brandingVersion != null) {
+            landingPage.setBrandingVersion(brandingVersion);
+        }
+        landingPageRepository.save(landingPage);
+        log.info("Applied branding.deployed to landing for tenant {} (version {}, changed={})",
+                tenantId, brandingVersion, changed);
+        return changed;
+    }
 }

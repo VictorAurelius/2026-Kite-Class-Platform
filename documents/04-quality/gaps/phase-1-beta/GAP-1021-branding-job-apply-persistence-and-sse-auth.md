@@ -1,6 +1,6 @@
 # GAP-1021: Branding job assets không persist thành active theme + SSE preview/deploy auth qua EventSource
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL
 **Priority:** 🟠 P1
 **Domain:** Mixed
 **Found:** 2026-06-06 (KH-6 AI Branding wizard G1 walk)
@@ -25,9 +25,9 @@ KH-6 G1 walk surface 2 "apply/approval" gap:
 
 ## Acceptance Criteria
 
-- [ ] Job COMPLETED → approve → instance active theme = job assets + lifecycle DEPLOYED
-- [ ] SSE preview/deploy stream kết nối được từ browser EventSource (auth qua query-token/cookie)
-- [ ] Quality gate §5 chạy trước DEPLOYED (score ≥70)
+- [ ] Job COMPLETED → approve → instance active theme = job assets + lifecycle DEPLOYED — **partial**: approve endpoint persist assets + lifecycle→DEPLOYED đã có; theme active per-tenant giờ propagate sang KC-core landing qua `branding.deployed` (GAP-1213). Còn browser-walk xác minh.
+- [x] SSE preview/deploy stream kết nối được từ browser EventSource (auth qua query-token/cookie) — **code-level DONE** (BE side): `SseTokenService` (HMAC short-lived token bound jobId) + `POST /jobs/{id}/sse-token` mint (authenticated) + `SseQueryTokenAuthFilter` (SecurityConfig, re-run async dispatch) verify `?access_token=` → establish auth cho EventSource. Test PASS `SseTokenServiceTest` (6: round-trip/wrong-jobId/tamper/diff-secret/expiry/malformed). Gateway-whitelist SSE path còn (out-of-scope Agent C, runtime-walk).
+- [x] Quality gate §5 chạy trước DEPLOYED (score ≥70) — **code-level DONE** via GAP-1217 (gate trong `approve` trước `provisionAsync`).
 
 ## Related
 
@@ -35,6 +35,8 @@ KH-6 G1 walk surface 2 "apply/approval" gap:
 - Related: `ai-branding-guidelines.md` §4.2 preview+approve + §5 quality gate + §6 lifecycle
 
 ## Log
+
+- **2026-06-12** (Wave branding-100 Bucket C — SSE auth + theme-propagate code-level DONE, runtime-walk pending): Part 2 (SSE auth FM-4) shipped BE-side: `SseTokenService` mint+verify HMAC token (printable base64url segments, bound jobId, TTL 120s configurable) + `POST /api/v1/branding/jobs/{jobId}/sse-token` (DeployStreamController, gateway-header-authenticated) + `SseQueryTokenAuthFilter` trong SecurityConfig (chạy trước XUserRolesHeaderFilter, re-run async+error dispatch cho SSE) — EventSource mở `?access_token=` → filter verify → establish auth. KHÔNG mở permitAll SSE path (default-deny giữ; token validate). Part 1 (persist active theme) addressed via cross-service `branding.deployed` (GAP-1213) — job approve persist + lifecycle DEPLOYED đã có, theme giờ tới landing KC-core. AC3 quality gate = GAP-1217. Tests PASS `SseTokenServiceTest` 6. Còn: gateway whitelist SSE path (cross-cutting, ngoài scope Agent C) + per-resource approve FE + runtime SSE browser-walk → Status PARTIAL.
 
 - **2026-06-07** (Wave g2-blockers-1 Bucket B — investigation, NOT fixed): Để OPEN — security-config surgery + new endpoint, không rush vào high-context. Findings cho next session:
   - **Part 1 (job approve/apply persist theme):** `BrandingJobV1Controller` (`wizard/BrandingJobV1Controller.java`) hiện chỉ có `getJob` (GET /{jobId}) — KHÔNG có approve/apply endpoint → wizard approve dead-end. Cần thêm POST approve/apply persist generated theme thành instance active branding (study `BrandingJobService` + cách template-apply persist hiện tại để mirror persistence path).

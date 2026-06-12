@@ -50,6 +50,11 @@ class BrandingTenantOwnershipTest {
     @MockitoBean
     private BrandingJobService jobService;
 
+    // GAP-1021 (Bucket C): SecurityConfig giờ inject SseTokenService (SseQueryTokenAuthFilter)
+    // — slice context cần mock để load.
+    @MockitoBean
+    private com.kitehub.branding.wizard.sse.SseTokenService sseTokenService;
+
     @BeforeEach
     void setUp() {
         Mockito.reset(jobService);

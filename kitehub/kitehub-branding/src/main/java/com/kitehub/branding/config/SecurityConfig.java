@@ -68,7 +68,9 @@ public class SecurityConfig {
 
     @Bean
     @Profile("!test")
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            com.kitehub.branding.wizard.sse.SseTokenService sseTokenService) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -77,6 +79,8 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         // ── Authenticated surface — role enforced per-method via @PreAuthorize ──
+                        // SSE deploy-stream/preview authenticate via ?access_token query param
+                        // (GAP-1021) handled by SseQueryTokenAuthFilter below, then authenticated().
                         .requestMatchers("/api/platform/branding/**").authenticated()
                         .requestMatchers("/api/v1/branding/**").authenticated()
                         // ── Default-deny tail ──
@@ -85,6 +89,12 @@ public class SecurityConfig {
                 .exceptionHandling(eh -> eh
                         .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
                 )
+                // GAP-1021 — SSE EventSource auth via short-lived ?access_token query param
+                // (browsers can't set X-User-* headers). Runs before the header filter so a
+                // valid token establishes auth for the stream; absent/invalid token = default-deny.
+                .addFilterBefore(
+                        new com.kitehub.branding.wizard.sse.SseQueryTokenAuthFilter(sseTokenService),
+                        UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(new XUserRolesHeaderFilter(),
                         UsernamePasswordAuthenticationFilter.class);
 

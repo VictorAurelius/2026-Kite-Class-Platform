@@ -53,6 +53,11 @@ class BrandingRoleAuthorizationTest {
     @MockitoBean
     private BrandingJobService jobService;
 
+    // GAP-1021 (Bucket C): SecurityConfig giờ inject SseTokenService (SseQueryTokenAuthFilter)
+    // — slice context cần mock để load.
+    @MockitoBean
+    private com.kitehub.branding.wizard.sse.SseTokenService sseTokenService;
+
     private static final UUID INSTANCE_ID = UUID.randomUUID();
     private static final UUID JOB_ID = UUID.randomUUID();
 

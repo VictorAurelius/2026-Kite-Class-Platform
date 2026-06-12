@@ -13,7 +13,10 @@ import com.kitehub.branding.service.banner.BannerRenderer;
 import com.kitehub.branding.wizard.dto.BrandColours;
 import com.kitehub.branding.wizard.dto.BrandingJobResponse;
 import com.kitehub.branding.wizard.dto.PreviewBannerRequest;
+import com.kitehub.branding.wizard.dto.ApproveDeployRequest;
 import com.kitehub.branding.wizard.quality.BrandColoursDeriver;
+import com.kitehub.branding.wizard.quality.QualityScoreAggregator;
+import com.kitehub.branding.wizard.quality.dto.QualityScoreResponse;
 import com.kitehub.branding.wizard.service.MockProvisioningService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,6 +54,9 @@ class BrandingJobV1ControllerTest {
     private MockProvisioningService mockProvisioningService;
 
     @Mock
+    private QualityScoreAggregator qualityScoreAggregator;
+
+    @Mock
     private BannerHtmlComposer bannerHtmlComposer;
 
     @Mock
@@ -73,6 +79,7 @@ class BrandingJobV1ControllerTest {
     void setUp() {
         controller = new BrandingJobV1Controller(
                 jobRepository, coloursDeriver, brandingJobService, mockProvisioningService,
+                qualityScoreAggregator,
                 bannerHtmlComposer, bannerRenderer, fullAiQuotaService, s3StorageService);
         jobId = UUID.randomUUID();
         job = new BrandingJob();
@@ -289,5 +296,48 @@ class BrandingJobV1ControllerTest {
         @SuppressWarnings("unchecked")
         Map<String, Object> body = (Map<String, Object>) response.getBody();
         assertThat(body).containsEntry("error", "JOB_NOT_FOUND");
+    }
+
+    @Test
+    @DisplayName("GAP-1217: approve blocks deploy when quality score < threshold (FAILED, no provision)")
+    void approve_qualityBelowThreshold_blocksDeploy() {
+        when(jobRepository.findById(jobId)).thenReturn(Optional.of(job));
+        when(qualityScoreAggregator.aggregate(job)).thenReturn(new QualityScoreResponse(
+                jobId.toString(), 55, false, 70,
+                java.util.Map.of(), java.util.List.of(), java.time.Instant.now()));
+
+        ResponseEntity<?> response = controller.approve(jobId,
+                new ApproveDeployRequest("acme", "modern", List.of("logo", "colors")));
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> body = (Map<String, Object>) response.getBody();
+        assertThat(body).containsEntry("error", "QUALITY_GATE_FAILED");
+        assertThat(body).containsEntry("score", 55);
+        org.mockito.Mockito.verify(brandingJobService).markJobFailed(eq(jobId), any());
+        org.mockito.Mockito.verify(mockProvisioningService, org.mockito.Mockito.never())
+                .provisionAsync(any(), any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("GAP-1217: approve proceeds to deploy when quality score >= threshold (202 + score)")
+    void approve_qualityPasses_deploys() {
+        when(jobRepository.findById(jobId)).thenReturn(Optional.of(job));
+        when(qualityScoreAggregator.aggregate(job)).thenReturn(new QualityScoreResponse(
+                jobId.toString(), 88, true, 70,
+                java.util.Map.of(), java.util.List.of(), java.time.Instant.now()));
+
+        ResponseEntity<?> response = controller.approve(jobId,
+                new ApproveDeployRequest("acme", "modern", List.of("logo", "colors")));
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> body = (Map<String, Object>) response.getBody();
+        assertThat(body).containsEntry("status", "INITIALIZING");
+        assertThat(body).containsEntry("qualityScore", 88);
+        org.mockito.Mockito.verify(mockProvisioningService)
+                .provisionAsync(eq(jobId), eq("acme"), eq("modern"), any());
+        org.mockito.Mockito.verify(brandingJobService, org.mockito.Mockito.never())
+                .markJobFailed(any(), any());
     }
 }
