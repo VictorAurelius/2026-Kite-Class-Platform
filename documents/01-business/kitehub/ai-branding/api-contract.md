@@ -559,6 +559,82 @@ Stream closes after `complete` or `error`. FE reconnect via `Last-Event-ID` head
 
 ---
 
+# Wave branding-100 — Wizard job lifecycle endpoints (GAP-1251)
+
+Core wizard flow served by `BrandingJobV1Controller` tại `/api/v1/branding/jobs`:
+**submit job → preview banner → approve/deploy**. Write endpoints chỉ owner-tier
+(`OWNER`/`PLATFORM_ADMIN`/`ADMIN`).
+
+## POST /api/v1/branding/jobs
+**Use case:** FE vào bước "Generate" → tạo `BrandingJob` thật (status `QUEUED`) gắn với instance tenant của caller (JWT `tenantId` claim), để `jobId` non-empty và preview + deploy-stream hook enable (GAP-1021). Không enqueue heavy AI pipeline (Phase 1 MOCK provisioning).
+**Auth:** Bearer token (owner-tier write)
+**Request body** (`CreateWizardJobRequest`, mọi field nullable-tolerant):
+```json
+{
+  "organizationName": "Trung tâm Anh ngữ Sky Education",
+  "slug": "sky-education",
+  "language": "vi",
+  "logoUrl": "https://cdn.../logo.png",
+  "orgType": "SMALL_CENTER",
+  "tone": "FRIENDLY",
+  "templateId": "tpl-edu-modern-001"
+}
+```
+**Response 201:** `BrandingJobResponse` (cùng shape với `GET /jobs/{jobId}` — gồm `jobId` + `brandColors`).
+**Errors:**
+- 400: `{ "error": "TENANT_CONTEXT_REQUIRED", "message": "Không xác định được trung tâm từ phiên đăng nhập" }` — thiếu/invalid JWT tenant claim
+- 401/403: unauthenticated / non-owner role
+
+## POST /api/v1/branding/jobs/preview-banner
+**Use case:** Bước "Generate & Live Preview" — compose + rasterise banner WebP cho owner xem trước deploy. Stateless: KHÔNG ghi DB. Mode mặc định `TEMPLATE` (HTML compose → renderer; miễn phí, không bao giờ trừ quota). Opt-in `mode:"FULL_AI"` (GAP-1147/1135) cho PREMIUM/ENTERPRISE — gate **server-side**.
+**Auth:** Bearer token (owner-tier write) + header `X-Subscription-Tier` (gateway-inject; mặc định `FREE`)
+**Request body** (`PreviewBannerRequest`):
+```json
+{
+  "organizationName": "Trung tâm Sky",
+  "copy": "Học giỏi cùng Sky",
+  "logoUrl": "https://cdn.../logo.png",
+  "portraitUrls": ["https://cdn.../teacher1.png"],
+  "themeIcon": "📚",
+  "colours": { "primary": "#1E40AF", "secondary": "#F59E0B", "accent": "#F59E0B", "neutral": "#0F172A", "background": "#FFFFFF", "source": "TEMPLATE" },
+  "mode": "TEMPLATE"
+}
+```
+**Response 200:**
+```json
+{ "bannerUrl": "https://.../banner.webp", "mode": "TEMPLATE", "fallbackReason": null }
+```
+- `mode` ∈ `TEMPLATE | FULL_AI` — mode HIỆU LỰC resolve server-side (không bao giờ tin mode client gửi).
+- `bannerUrl` — nullable (FE fallback logo/placeholder). Khi `mode=FULL_AI` được grant, đây là URL ảnh GPT image-gen thật (GAP-1135); ngược lại là output TEMPLATE composer.
+- `fallbackReason` (chỉ xuất hiện khi `FULL_AI` được request nhưng fallback về `TEMPLATE`):
+
+  | `fallbackReason` | Nghĩa | Trừ quota? |
+  |---|---|:---:|
+  | `TIER_NOT_ELIGIBLE` | tier FREE/BASIC — FULL_AI không khả dụng | Không |
+  | `NOT_AVAILABLE` | flag image-gen tắt HOẶC provider mock-mode (chưa có key thật) — guard consumer-trust GAP-1218 | Không |
+  | `QUOTA_EXHAUSTED` | hết quota FULL_AI tháng của PREMIUM | Không |
+  | `GENERATION_FAILED` | đã grant + gọi nhưng image-gen không trả output dùng được | Không |
+
+  Quota FULL_AI (`FullAiQuotaService`) CHỈ bị trừ khi banner thật được sinh (`mode=FULL_AI` + không có `fallbackReason`).
+
+## POST /api/v1/branding/jobs/{jobId}/approve
+**Use case:** Bước "Deploy" — chạy quality gate (≥70, GAP-1217) rồi trigger async MOCK deploy provisioning; SSE `deploy-stream` surface tiến trình live. Trả `202` ngay.
+**Auth:** Bearer token (owner-tier write)
+**Request body** (`ApproveDeployRequest`): `{ "slug": "sky-education", "templateId": "tpl-...", "approvedResources": ["logo","colors","banner"] }`
+**Response 202:**
+```json
+{ "jobId": "...", "status": "INITIALIZING", "frontendUrl": "https://sky-education.kiteclass.vn", "qualityScore": 88, "message": "Đang triển khai (mock provisioning)" }
+```
+**Errors:**
+- 404: `{ "error": "JOB_NOT_FOUND", "jobId": "..." }`
+- 422: `{ "error": "QUALITY_GATE_FAILED", "jobId": "...", "score": 55, "threshold": 70, "issues": [...], "message": "Điểm chất lượng 55/100 dưới ngưỡng 70 — không thể triển khai tự động" }` — asset score dưới gate; job mark FAILED, không provisioning.
+
+## DEPRECATED — `/api/platform/branding/jobs/**` (legacy `BrandingJobController`, GAP-1252)
+
+Legacy `BrandingJobController` (`@Deprecated`, GAP-1252) trả raw entity `BrandingJob` tại `/api/platform/branding/jobs` (POST/GET/GET `{id}`/GET `{id}/assets`/DELETE `{id}`). **Caller mới PHẢI dùng path v1 ở trên** (`/api/v1/branding/jobs`) trả DTO contract-stable `BrandingJobResponse`. Path legacy chỉ giữ cho client legacy đang chạy, sẽ remove sau khi migrate xong.
+
+---
+
 ## Approval endpoints (TBD — UC-AIB-10)
 
 > **Note:** `RebrandApprovalService` exists (Wave 3 Sub-PR 3.5, GAP-070) but REST controller chưa được landed. Khi landed sẽ thêm vào doc:

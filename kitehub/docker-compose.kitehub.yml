@@ -454,6 +454,10 @@ services:
       OLLAMA_VISION_MODEL: ${OLLAMA_VISION_MODEL:-llava:13b}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-sk-mock-key}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      # GAP-1135/GAP-1147 (branding-100 Bucket E): FULL_AI banner image-gen wiring flag.
+      # Enabled by default; the controller still requires a REAL OPENAI_API_KEY (not the
+      # sk-mock-key default above) before granting — mock mode → NOT_AVAILABLE, no quota.
+      BRANDING_FULL_AI_IMAGE_GEN_ENABLED: ${BRANDING_FULL_AI_IMAGE_GEN_ENABLED:-true}
       AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-kitehub}
       AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:?required}
       S3_ENDPOINT: http://kite-minio:9000
