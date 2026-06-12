@@ -1,0 +1,39 @@
+{
+  "pr": 2369,
+  "title": "feat(branding): branding-100 \u0110\u1ee3t 3 \u2014 reorder output-first + unify + deploy-stream FE + done screen (GAP-1214/1216/1134/1160/1108/1021-FE)",
+  "branch": "feature/branding-100-dot3-fe-reorder",
+  "created_at": null,
+  "merged_at": "2026-06-12T08:02:37Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [
+      "ui-review",
+      "api-contract-audit"
+    ],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-06-12T08:02:44.667035",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 30,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": [
+          "ui-review",
+          "api-contract-audit"
+        ]
+      }
+    }
+  ],
+  "compliance_score": "0/2",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-3556516"
+  }
+}

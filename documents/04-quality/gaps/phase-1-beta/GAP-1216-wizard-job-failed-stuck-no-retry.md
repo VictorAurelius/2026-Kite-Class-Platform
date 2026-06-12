@@ -24,7 +24,7 @@ FAILED state UI: lý do ngắn + Retry (re-enqueue) + Back-to-edit + liên hệ 
 - Failure-mode #3; GAP-1021 (SSE), persona F7
 
 
-## Cập nhật Đợt 3 (2026-06-12) — code-level DONE
+## Cập nhật Đợt 3 (2026-06-12, PR #2369) — code-level DONE
 
 Wave branding-100 Đợt 3 ship FE wizard reorder **output-first 7→5 bước** (GAP-1216):
 1. Welcome + Mode (GenerationModeSelector vào Welcome; escape-ramp → bước 4 TEMPLATE / bước 5 FULL_AI)
