@@ -25,22 +25,26 @@ status: ready-for-human-walk
 
 ## 1. Nhánh A — TEMPLATE (mọi tier, không tốn OpenAI)
 
+> **Flow đã update theo kit v3 (PR #2376/#2378 — 2026-06-12):** stepper 5 bước
+> `Bắt đầu / Phong cách / Hình ảnh / Tạo & Duyệt / Triển khai` — KHÔNG còn bước
+> "Mẫu thiết kế" riêng; **Triển khai là bước 5 trong stepper**; Bước 2 có mục
+> **nhập thông tin trung tâm** (thu gọn) sẽ tự lên landing sau deploy.
+
 | # | Hành động (browser) | Kỳ vọng |
 |---|---|---|
 | A1 | Mở `http://localhost:3001/login` → đăng nhập `owner@skyedu.vn` / `SkyEdu@2026` | Vào `/dashboard` KH |
-| A2 | Sidebar → **AI Branding** → vào wizard | Step indicator **5 bước**: Bắt đầu / Phong cách / Hình ảnh / Mẫu thiết kế / Xem & Tạo |
-| A3 | Bước 1: tên `Sky Education`, slug `sky-education`, loại hình "Trung tâm nhỏ", mode **"Mẫu"** → Tiếp tục | ✅ Slug **CHÍNH MÌNH không báo trùng** (fix GAP-1239). Card "AI cao cấp" hiện **mở khóa + quota tháng** (PREMIUM) |
-| A4 | Bước 2: chọn audience (vd "Trung tâm tiếng Anh") + tone (vd "Thân thiện") → Tiếp tục | 1 trang gộp — không còn 2 bước rời |
-| A5 | Bước 3 Hình ảnh: bỏ qua (hoặc thử upload logo) → Tiếp tục | Optional, đi tiếp được không cần gì |
-| A6 | Bước 4: chọn 1 template (vd T1) → Tiếp tục | Grid 6 template + "Xem toàn màn hình" |
-| A7 | Bước 5: xem preview iframe (WYSIWYG = đúng render landing thật), thử đổi **biến thể màu A/B/C**, bật **4 toggle phê duyệt** (logo/màu/banner/hero) | Counter "4/4 tài nguyên đã phê duyệt" → nút **"Triển khai trang web"** sáng |
-| A8 | Bấm **Triển khai trang web** | Màn Deploying + progress SSE → **"TRIỂN KHAI THÀNH CÔNG"** + link **"Mở trang web của bạn"** = `http://localhost:3000/?tenant=sky-education` (đúng slug mình, không phải -2) |
-| A9 | **QUAN TRỌNG — landing đổi THẬT:** mở `http://sky-education.127.0.0.1.nip.io:3000/` (subdomain thật, KHÔNG dùng `?tenant=` làm bằng chứng) | Landing Sky render với **màu theme vừa deploy** (đổi so với trước walk) |
-| A10 | Verify DB (BE-only): `docker exec kite-postgres psql -U kitehub -d kiteclass_shared -c "SELECT branding_version, primary_color FROM landing_pages WHERE instance_id='e8ff87e1-69fc-4842-a263-7385c68b4ffb';"` | `branding_version` tăng +1 so với trước bấm deploy; màu khớp variant đã chọn |
+| A2 | Sidebar → **AI Branding** | Stepper 5 bước: Bắt đầu / Phong cách / Hình ảnh / **Tạo & Duyệt** / **Triển khai** |
+| A3 | Bước 1: tên `Sky Education`, slug `sky-education` (slug CHÍNH MÌNH không báo trùng — GAP-1239), card **"Mẫu dựng sẵn"** (badge Khuyến nghị) → Tiếp tục | Không còn chọn loại hình trung tâm (gỡ per kit); card "AI vẽ toàn bộ" hiện quota PREMIUM |
+| A4 | Bước 2: chọn đối tượng + phong cách; mở mục **"Thông tin hiển thị trên trang"** → nhập địa chỉ + SĐT (+ học phí nếu muốn, format `1.500.000đ`) → Tiếp tục | Mục thông tin thu gọn mặc định; các trường optional |
+| A5 | Bước 3 Hình ảnh: bỏ qua (hoặc thử upload logo) → Tiếp tục | Optional |
+| A6 | Bước 4 **Tạo & Duyệt**: preview WYSIWYG render ngay (slug mới chưa tồn tại cũng render draft — fix #2375); đổi **biến thể A/B/C**; xem **panel Điểm chất lượng**; bật **4 toggle phê duyệt** | Footer "Bước 4 / 5 · 4/4 phần được áp dụng" → nút **"Triển khai & lên sóng"** sáng |
+| A7 | Bấm **Triển khai & lên sóng** | Stepper nhảy **bước 5 Triển khai** (SSE progress trong stepper) → "TRIỂN KHAI THÀNH CÔNG" + link `http://localhost:3000/?tenant=sky-education` |
+| A8 | Mở `http://sky-education.127.0.0.1.nip.io:3000/` (subdomain thật — KHÔNG dùng `?tenant=` làm bằng chứng) | Landing đổi **màu theme** + hiển thị **SĐT/địa chỉ vừa nhập ở A4** (footer/contact section) |
+| A9 | Verify DB (BE-only): `docker exec kite-postgres psql -U kitehub -d kiteclass_shared -c "SELECT branding_version, contact_phone, address FROM landing_pages WHERE instance_id='e8ff87e1-69fc-4842-a263-7385c68b4ffb';"` | `branding_version` +1; phone/address khớp A4 |
 
 **Sad path A (bắt buộc 1 trong 2):**
 - A-sad-1: Bước 1 nhập slug của tenant KHÁC (vd `co-ha-toan`) → phải báo **trùng** + suggestions.
-- A-sad-2: Ở bước 5 KHÔNG bật đủ 4 toggle → nút Triển khai phải **disabled**.
+- A-sad-2: Bước 4 KHÔNG bật đủ 4 toggle → nút "Triển khai & lên sóng" phải **disabled**.
 
 ## 2. Nhánh B — FULL_AI (PREMIUM, tốn ~$0.25/ảnh — SAU khi nạp billing GAP-1240)
 
@@ -48,7 +52,7 @@ status: ready-for-human-walk
 |---|---|---|
 | B1 | Wizard mới: Bước 1 chọn mode **"AI cao cấp"** | Card không khóa (PREMIUM + quota còn) |
 | B2 | Bước 2 như A4; Bước 3 thử **upload chân dung** (portrait — chỉ hiện ở FULL_AI) | `wizard-portrait-drop` hiện; upload OK |
-| B3 | Sau Bước 3 → **nhảy thẳng Bước 5** (bỏ qua Mẫu thiết kế) | Indicator ẩn bước Template |
+| B3 | Sau Bước 3 → vào **Bước 4 Tạo & Duyệt** (không còn bước Mẫu — cả 2 mode cùng stepper 5 bước) | — |
 | B4 | Bước 5: bấm **"Tạo bằng AI cao cấp (tốn 1 lượt)"** → đợi 15–60s | Toast "Đã tạo banner bằng AI cao cấp — đã trừ 1 lượt"; banner trong preview = **ảnh AI thật** (URL MinIO `full-ai-banner-*.png`, KHÔNG phải placehold.co) |
 | B5 | Approve 4 toggle → Triển khai → mở landing nip.io | Landing đổi theme + banner AI |
 | B-sad | (Khi billing CHƯA nạp) bấm Tạo AI | Toast **GENERATION_FAILED dùng bản Mẫu** + **KHÔNG trừ lượt** (fix GAP-1218 — verify quota label không giảm) |
