@@ -175,7 +175,7 @@ export function LogoStep({
         <WizardStepHeader
           eyebrow="Bước 2 / 7 · Tuỳ chọn"
           title="Bạn đã có logo chưa?"
-          subtitle="Bạn có thể upload logo có sẵn, hoặc để AI tự tạo logo từ tên trung tâm. Đổi sau lúc nào cũng được."
+          subtitle="Bạn có thể upload logo có sẵn, hoặc để hệ thống tạo logo chữ lồng (monogram) từ tên trung tâm. Đổi sau lúc nào cũng được."
         />
 
         {/* Fork selector */}
@@ -195,8 +195,8 @@ export function LogoStep({
           <ForkCard
             selected={fork === 'ai-generate'}
             icon={<Sparkles className="w-5 h-5 text-orange-500 dark:text-orange-400" />}
-            title="Để AI tạo logo"
-            subtitle="AI sẽ tạo logo dựa trên tên trung tâm."
+            title="Tạo logo tự động"
+            subtitle="Logo chữ lồng từ tên trung tâm + màu thương hiệu — thay logo thật sau bất cứ lúc nào."
             onSelect={() => handleSelectFork('ai-generate')}
             data-testid="wizard-logo-fork-ai"
           />
@@ -344,7 +344,7 @@ export function LogoStep({
           >
             <Sparkles className="w-5 h-5 text-orange-600 dark:text-orange-400 mt-0.5 shrink-0" />
             <div className="text-sm text-orange-900 dark:text-orange-100">
-              <p className="font-semibold mb-1">AI sẽ lo phần logo</p>
+              <p className="font-semibold mb-1">Hệ thống sẽ lo phần logo</p>
               <p className="text-xs">
                 Hệ thống sẽ tạo logo dựa trên tên trung tâm + phong cách bạn chọn ở
                 Bước 4. Bạn có thể đổi logo bất kỳ lúc nào sau khi triển khai.

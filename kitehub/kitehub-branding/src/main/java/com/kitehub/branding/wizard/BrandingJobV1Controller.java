@@ -19,6 +19,7 @@ import com.kitehub.branding.wizard.service.MockProvisioningService;
 import io.micrometer.core.annotation.Timed;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
@@ -71,6 +72,17 @@ public class BrandingJobV1Controller {
     private final BannerRenderer bannerRenderer;
     /** GAP-1147 — FULL_AI preview tier-gate + monthly quota meter (PREMIUM cap / ENTERPRISE ∞). */
     private final FullAiQuotaService fullAiQuotaService;
+
+    /**
+     * GAP-1218: FULL_AI image-gen wiring flag. Until the real GPT-5.5 banner
+     * generator lands (GAP-1135, branding-100 Bucket E), FULL_AI requests resolve
+     * to TEMPLATE with {@code fallbackReason=NOT_AVAILABLE} and the monthly quota
+     * is NOT consumed — charging quota for template-identical output is a
+     * consumer-trust violation (Luật Quảng cáo VN). Bucket E flips this to
+     * {@code true} when wiring the generator.
+     */
+    @Value("${branding.full-ai.image-gen-enabled:false}")
+    private boolean fullAiImageGenEnabled;
     /** GAP-1146b — inline portrait/logo as data: URIs so the in-container Playwright can render them. */
     private final S3StorageService s3StorageService;
 
@@ -175,6 +187,9 @@ public class BrandingJobV1Controller {
         if ("FULL_AI".equalsIgnoreCase(body.mode())) {
             if (GenerationMode.forTier(tier) != GenerationMode.FULL_AI) {
                 fallbackReason = "TIER_NOT_ELIGIBLE"; // FREE/BASIC → TEMPLATE
+            } else if (!fullAiImageGenEnabled) {
+                // GAP-1218: image-gen chưa wire — KHÔNG trừ lượt, label thật.
+                fallbackReason = "NOT_AVAILABLE";
             } else if (!fullAiQuotaService.canUseFullAi(instanceId, tier)) {
                 fallbackReason = "QUOTA_EXHAUSTED"; // PREMIUM monthly cap spent → TEMPLATE
             } else {

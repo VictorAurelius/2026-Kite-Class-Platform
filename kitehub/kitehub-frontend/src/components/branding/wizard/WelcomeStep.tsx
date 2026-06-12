@@ -22,7 +22,7 @@
 
 import { useEffect, useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ArrowRight, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
+import { ArrowRight, AlertCircle, CheckCircle2, Loader2, Sparkles } from 'lucide-react';
 import {
   WizardCard,
   WizardStepHeader,
@@ -277,8 +277,8 @@ export function WelcomeStep({ wizardState, dispatch, onNext }: WelcomeStepProps)
               Mẹo cho người mới
             </p>
             <p className="text-xs text-sky-900/90 dark:text-sky-200/90">
-              Bạn có thể bỏ qua bước upload logo — AI sẽ tự tạo logo từ tên trung tâm.
-              Đổi sau lúc nào cũng được.
+              Bạn có thể bỏ qua bước upload logo — hệ thống tự tạo logo chữ lồng
+              (monogram) từ tên trung tâm + màu thương hiệu. Đổi sau lúc nào cũng được.
             </p>
           </div>
         </div>
@@ -286,9 +286,24 @@ export function WelcomeStep({ wizardState, dispatch, onNext }: WelcomeStepProps)
 
       {/* Footer actions */}
       <div className="flex items-center justify-between max-w-2xl mx-auto px-1">
-        <Button variant="ghost" disabled>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Quay lại
+        {/* GAP-1219(c): escape-ramp ngay từ Welcome — benchmark norm "logo không
+            bắt buộc, defaults trước, refine sau". Áp defaults an toàn theo orgType
+            rồi nhảy thẳng tới chọn Mẫu (bước 6). */}
+        <Button
+          variant="ghost"
+          disabled={!canContinue}
+          data-testid="wizard-step1-use-defaults"
+          onClick={() => {
+            dispatch({
+              type: 'SET_AUDIENCE',
+              audience: wizardState.orgType === 'SOLO_TEACHER' ? 'exam-prep' : 'english-center',
+            });
+            dispatch({ type: 'SET_TONE', tone: 'professional' });
+            dispatch({ type: 'GO_TO_STEP', step: 6 });
+          }}
+        >
+          <Sparkles className="mr-2 h-4 w-4" />
+          Dùng gợi ý an toàn — thiết lập sau
         </Button>
         <p className="text-xs text-muted-foreground">Bước 1 / 7 · Mất ~5 phút</p>
         <Button onClick={onNext} disabled={!canContinue} data-testid="wizard-step1-continue">

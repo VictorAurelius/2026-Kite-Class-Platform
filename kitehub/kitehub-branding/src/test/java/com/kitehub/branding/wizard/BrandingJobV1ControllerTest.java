@@ -142,8 +142,27 @@ class BrandingJobV1ControllerTest {
     }
 
     @Test
+    @DisplayName("GAP-1218: FULL_AI khi image-gen chưa wire → NOT_AVAILABLE + KHÔNG trừ quota")
+    void previewBanner_fullAiImageGenDisabled_fallsBackWithoutCharging() {
+        // Default flag = false (image-gen chưa wire per GAP-1135).
+        PreviewBannerRequest req = new PreviewBannerRequest(
+                "Trung tâm Sky", "Học giỏi", null, null, null, null, "FULL_AI");
+
+        ResponseEntity<?> response = controller.previewBanner(req, "PREMIUM");
+
+        @SuppressWarnings("unchecked")
+        java.util.Map<String, Object> body = (java.util.Map<String, Object>) response.getBody();
+        assertThat(body).containsEntry("mode", "TEMPLATE");
+        assertThat(body).containsEntry("fallbackReason", "NOT_AVAILABLE");
+        org.mockito.Mockito.verify(fullAiQuotaService, org.mockito.Mockito.never())
+                .recordFullAiUsage(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyString());
+    }
+
+    @org.junit.jupiter.api.Test
     @DisplayName("GAP-1147: FULL_AI from PREMIUM with quota → mode FULL_AI + quota recorded")
     void previewBanner_fullAiPremiumWithQuota_grantsFullAi() {
+        // GAP-1218: FULL_AI chỉ granted khi image-gen thật khả dụng.
+        org.springframework.test.util.ReflectionTestUtils.setField(controller, "fullAiImageGenEnabled", true);
         BannerComposition composition = new BannerComposition("<html></html>", 1200, 630);
         when(bannerHtmlComposer.compose(any(), any(), any(), any(), any(), any()))
                 .thenReturn(composition);
@@ -188,6 +207,8 @@ class BrandingJobV1ControllerTest {
     @Test
     @DisplayName("GAP-1147: FULL_AI from PREMIUM with exhausted quota → fallback TEMPLATE")
     void previewBanner_fullAiPremiumExhausted_fallsBackTemplate() {
+        // GAP-1218: bật image-gen để chạm tới nhánh quota (NOT_AVAILABLE precede).
+        org.springframework.test.util.ReflectionTestUtils.setField(controller, "fullAiImageGenEnabled", true);
         BannerComposition composition = new BannerComposition("<html></html>", 1200, 630);
         when(bannerHtmlComposer.compose(any(), any(), any(), any(), any(), any()))
                 .thenReturn(composition);

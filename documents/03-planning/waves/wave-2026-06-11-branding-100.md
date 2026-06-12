@@ -1,6 +1,6 @@
 ---
 title: Wave branding-100 — wizard AI Branding "thông chuỗi thật + UX chuẩn ngành 100%"
-status: draft
+status: in-progress
 created: 2026-06-11
 updated: 2026-06-11
 waves: [branding-100]
@@ -86,6 +86,8 @@ references:
 - Sync gap-status.csv + ROADMAP + wave-history + campaign row KH-6/KC-10.
 
 ## 8. Log
+
+- **2026-06-12 (execute start — Đợt 1):** Wave start sau landing-100 complete. Spawn 2 Opus agents (Bucket A kit redesign §2.5 + Bucket C deploy chain thật P0) + coordinator inline Bucket F (PR này — GAP-1218 NOT_AVAILABLE guard không trừ quota + GAP-1219 regenerate gating/logo copy/escape-ramp). Per agent-concurrency-budget-inline-hybrid.
 
 - **2026-06-12 (draft v2 — pre-execute reconcile):** 3 chỉnh sửa per user-approved state-check: (1) GAP-1231 add vào gaps + Bucket D (un-skip Step6Preview test là AC, fix = GAP-1215 preview-source); (2) §4 reconcile GAP-272c/272e — bucket C dùng lại endpoint đã ship, không duplicate GAP-1217/1021, stubs giữ phase-2; (3) §2.5 trục content — GAP-1234 design (facts progressive-disclosure) + GAP-815 FE explicit out-of-scope. Nền design #2347/#2348 (click-through + content steps) ghi nhận tại §4 cho Bucket A.
 - **2026-06-11 (draft):** Plan tạo từ user directive "nên tạo wave 100 cho ai branding" + 3 outside-in audit (persona 12 findings / benchmark 7 sản phẩm / failure-mode 23/42 vỡ) chạy TRƯỚC khi lock scope per `outside-in-coverage-trigger` (user pick "cả 3 song song" AskUserQuestion). 7 gap mới filed từ findings (GAP-1213..1219). Quality-target gate khai báo tại creation per wave-closure v1.2.0 §2.5 (lần đầu áp creation-time mandate). Execute sau khi landing-100 đóng (human G2★).

@@ -54,7 +54,8 @@ export interface PreviewBannerResponse {
    * GAP-1147 — present only when a FULL_AI request was downgraded to TEMPLATE:
    * `'TIER_NOT_ELIGIBLE'` (FREE/BASIC) or `'QUOTA_EXHAUSTED'` (PREMIUM cap spent).
    */
-  fallbackReason?: 'TIER_NOT_ELIGIBLE' | 'QUOTA_EXHAUSTED';
+  // GAP-1218: NOT_AVAILABLE = image-gen chưa wire (GAP-1135) — server không trừ quota.
+  fallbackReason?: 'TIER_NOT_ELIGIBLE' | 'QUOTA_EXHAUSTED' | 'NOT_AVAILABLE';
 }
 
 // Relative path (matches the brandingV1 endpoint convention); baseURL is

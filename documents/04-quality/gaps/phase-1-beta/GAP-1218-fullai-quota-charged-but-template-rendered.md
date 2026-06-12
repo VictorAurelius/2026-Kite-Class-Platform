@@ -1,6 +1,6 @@
 # GAP-1218: FULL_AI trừ quota + toast "đã tạo AI cao cấp" nhưng render TEMPLATE y hệt — consumer trust
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (90% — code+tests shipped, chờ G1 walk wave branding-100)
 **Priority:** 🟡 P2
 **Domain:** Mixed
 **Found:** 2026-06-11 (branding-100 failure-mode audit #5)
@@ -22,3 +22,7 @@ Tới khi GAP-1135 wire xong: FULL_AI disabled với badge "sắp ra mắt" (kh�
 ## Related
 
 - Failure-mode #5; GAP-1135/1147; vn-localization §2 tone trung thực
+
+## Log
+
+- **2026-06-12 (PARTIAL 90% — Bucket F branding-100):** Code shipped: (BE) `BrandingJobV1Controller` guard `branding.full-ai.image-gen-enabled:false` — FULL_AI request khi image-gen chưa wire → `fallbackReason=NOT_AVAILABLE` + mode TEMPLATE + **KHÔNG gọi `recordFullAiUsage`** (test verify never()); Bucket E flips flag khi wire generator thật (GAP-1135). (FE) toast NOT_AVAILABLE nói thật "KHÔNG trừ lượt của bạn"; success toast chỉ claim trừ lượt khi mode=FULL_AI thật. Tests: BE 10/10 + FE suite 112 PASS. Residual: G1 browser walk wave branding-100.

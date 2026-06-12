@@ -58,6 +58,13 @@ export interface RegenerateCounterProps {
   onContinueWithCurrent: () => void;
   /** Notifies parent when modal opens/closes (controlled). */
   onUpsellModalOpenChange: (open: boolean) => void;
+  /**
+   * GAP-1219(a): whether a first generate has happened. When false the
+   * regenerate button is a no-op — disable it + explain, instead of showing
+   * "Tạo lại lần 1" that burns user trust on a dead click.
+   * Defaults true for back-compat with existing callers.
+   */
+  hasGenerated?: boolean;
 }
 
 const TIER_LABEL: Record<PricingTier, string> = {
@@ -120,6 +127,7 @@ export function RegenerateCounter(props: RegenerateCounterProps) {
     onUpgradeClick,
     onContinueWithCurrent,
     onUpsellModalOpenChange,
+    hasGenerated = true,
   } = props;
 
   const isUnlimited = regenerateQuota === -1;
@@ -172,11 +180,13 @@ export function RegenerateCounter(props: RegenerateCounterProps) {
             <span className="text-sm text-muted-foreground">Gói hiện tại</span>
           </div>
           <span className="text-sm font-semibold text-foreground" data-testid="regenerate-counter-status">
-            {isUnlimited
-              ? 'Không giới hạn'
-              : isQuotaEmpty
-                ? `Đã hết ${regenerateQuota}/${regenerateQuota} lượt`
-                : `${remaining}/${regenerateQuota} lượt còn`}
+            {!hasGenerated
+              ? 'Khả dụng sau khi tạo bản đầu tiên'
+              : isUnlimited
+                ? 'Không giới hạn'
+                : isQuotaEmpty
+                  ? `Đã hết ${regenerateQuota}/${regenerateQuota} lượt`
+                  : `${remaining}/${regenerateQuota} lượt còn`}
           </span>
         </div>
         <div className="flex items-center gap-3">
@@ -199,16 +209,18 @@ export function RegenerateCounter(props: RegenerateCounterProps) {
             type="button"
             size="sm"
             variant="secondary"
-            disabled={isQuotaEmpty}
-            onClick={onRegenerate}
+            disabled={isQuotaEmpty || !hasGenerated}
+            onClick={hasGenerated ? onRegenerate : undefined}
             data-testid="regenerate-counter-button"
           >
             <RefreshCw className="w-3.5 h-3.5" />
-            {isUnlimited
+            {!hasGenerated
               ? 'Tạo lại'
-              : isQuotaEmpty
+              : isUnlimited
                 ? 'Tạo lại'
-                : `Tạo lại lần ${used + 1}`}
+                : isQuotaEmpty
+                  ? 'Tạo lại'
+                  : `Tạo lại lần ${used + 1}`}
           </Button>
         </div>
       </Card>
