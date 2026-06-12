@@ -5,7 +5,7 @@ created: 2026-06-11
 updated: 2026-06-11
 waves: [branding-100]
 tag_primary: branding-100
-gaps: [GAP-1021, GAP-1108, GAP-1134, GAP-1135, GAP-1147, GAP-1160, GAP-1212, GAP-1213, GAP-1214, GAP-1215, GAP-1216, GAP-1217, GAP-1218, GAP-1219]
+gaps: [GAP-1021, GAP-1108, GAP-1134, GAP-1135, GAP-1147, GAP-1160, GAP-1212, GAP-1213, GAP-1214, GAP-1215, GAP-1216, GAP-1217, GAP-1218, GAP-1219, GAP-1231]
 references:
   - documents/04-quality/audits/persona-review/2026-06-11-branding-100-persona-simulation.md
   - documents/04-quality/audits/persona-review/2026-06-11-branding-100-benchmark.md
@@ -45,6 +45,8 @@ references:
 
 `Welcome+Mode (escape-ramp)` → `Brand personality (gộp Audience+Tone)` → `Assets (Logo/Portrait — optional, branch theo mode; FULL_AI bỏ qua)` → `Generate & Live Preview THẬT (multi-variant + quality gate /100 + per-resource approve)` → `Deploy (SSE + FAILED recovery)` → `Hoàn tất + link landing`. ≤5 bước nhập liệu; generate xảy ra NGAY sau bước 2 với defaults (output-first), các bước sau là refine.
 
+**Trục content (2026-06-12):** facts thật cho AI draft (môn/năm KN/học phí/bằng cấp — design `step2-info` GAP-1234 DONE) đi vào redesign dạng **progressive-disclosure** (không thêm bước chặn flow chính — benchmark norm). Editor 7 section `Cài đặt → Trang giới thiệu` (3 màn design GAP-815 đã có) — **FE implementation GAP-815 = explicit OUT-OF-SCOPE wave này** (P3 Phase 1.5 self-service; không chặn metric wizard rubric). Nếu walk trong wave surface content-entry friction → trỏ về GAP-815, không file mới.
+
 ## 3. Scope (buckets)
 
 | Bucket | Việc | Gaps | Layer |
@@ -52,13 +54,17 @@ references:
 | **A. Kit redesign** | `ui_kits/ai-branding-wizard-v3` (hoặc v2 annotate superseded + v3) theo §2 bộ bước — screens đủ states (GENERATING/FAILED/quota/approve), ≥105/128 | GAP-1212 | Design |
 | **B. Unify wizard** | Chốt canonical KH 7-bước; KC route embed/redirect; retire FSM orphan + preview about:blank | GAP-1214 | FE |
 | **C. Chuỗi deploy thật (P0)** | Outbox `branding.deployed` → KC-core consumer áp theme/assets vào Branding/LandingPage + evict cache; persist active theme + SSE auth; quality gate ≥70 trước DEPLOYED; post-deploy summary + link landing | GAP-1213, GAP-1021, GAP-1217, GAP-1108 | BE+Mixed |
-| **D. WYSIWYG preview** | Preview dùng chính landing render path (`?tenant=` preview mode) thay `buildLandingPreviewHtml`; multi-variant pick | GAP-1215 | FE+BE |
+| **D. WYSIWYG preview** | Preview dùng chính landing render path (`?tenant=` preview mode) thay `buildLandingPreviewHtml`; multi-variant pick; **un-skip `Step6Preview` test quarantined (GAP-1231 AC — test contract viết lại theo preview-source mới)** | GAP-1215, GAP-1231 | FE+BE |
 | **E. UX reorder (output-first)** | Mode lên đầu + gộp audience/tone + generate sớm + FAILED retry/back + portrait step + banner generate wire | GAP-1216, GAP-1134, GAP-1135, GAP-1147, GAP-1160 | FE+BE |
 | **F. Trust/copy** | FULL_AI không trừ quota khi chưa có output thật + label đúng; regenerate no-op; logo over-promise; escape-ramp | GAP-1218, GAP-1219 | FE |
 
 ## 4. State-Check Evidence
 
 3 audit artifacts 2026-06-11 (refs frontmatter) — mọi finding cite file:line; GAP-826/1204/1210 (landing render + heroImages + presigned regenerate) vừa ship wave landing-100 = nền cho bucket C/D. GAP-1147 tier-gate server-side + GAP-1160 portrait inline + GAP-1105 SSE reconnect đã ship trước (không lặp).
+
+**Reconcile GAP-272c/272e (phase-2 PARTIAL, 2026-06-12 — tránh double-track):** KHÔNG duplicate với GAP-1217/1021 — bucket C **dùng lại nền đã ship** của chúng: GAP-272c đã có aggregator endpoint `GET /branding/jobs/{jobId}/quality-score` (Wave 34 #906) → GAP-1217 chỉ wire enforcement ≥70 vào pipeline trước DEPLOYED; GAP-272e đã có SSE endpoint (Wave 34 #907/#910) → GAP-1021 chỉ thêm auth + persist theme. Phần còn lại của 272c (5 sub-check stubs → GAP-226/227/228) + 272e (transport poll→RabbitMQ) GIỮ phase-2, không kéo vào wave.
+
+**Nền design click-through + content (2026-06-12, đã merge #2347/#2348):** GAP-1233 (kit v3 click-through navigation) + GAP-1234 (bước `step2-info` facts thật + 3 màn editor GAP-815 design source) — Bucket A redesign theo §2.5 PHẢI giữ 2 trục này (walkable flow + content-entry mapping), gấp `step2-info` vào dạng progressive-disclosure.
 
 ## 5. Verification Gates
 
@@ -81,4 +87,5 @@ references:
 
 ## 8. Log
 
+- **2026-06-12 (draft v2 — pre-execute reconcile):** 3 chỉnh sửa per user-approved state-check: (1) GAP-1231 add vào gaps + Bucket D (un-skip Step6Preview test là AC, fix = GAP-1215 preview-source); (2) §4 reconcile GAP-272c/272e — bucket C dùng lại endpoint đã ship, không duplicate GAP-1217/1021, stubs giữ phase-2; (3) §2.5 trục content — GAP-1234 design (facts progressive-disclosure) + GAP-815 FE explicit out-of-scope. Nền design #2347/#2348 (click-through + content steps) ghi nhận tại §4 cho Bucket A.
 - **2026-06-11 (draft):** Plan tạo từ user directive "nên tạo wave 100 cho ai branding" + 3 outside-in audit (persona 12 findings / benchmark 7 sản phẩm / failure-mode 23/42 vỡ) chạy TRƯỚC khi lock scope per `outside-in-coverage-trigger` (user pick "cả 3 song song" AskUserQuestion). 7 gap mới filed từ findings (GAP-1213..1219). Quality-target gate khai báo tại creation per wave-closure v1.2.0 §2.5 (lần đầu áp creation-time mandate). Execute sau khi landing-100 đóng (human G2★).
