@@ -253,6 +253,14 @@ class JwtAuthenticationGatewayFilterTest {
         assertThat(filter.isChallenge2faPath("/api/v1/auth/2fa/verify")).isTrue();
         assertThat(filter.isChallenge2faPath("/api/auth/2fa/enroll-init")).isTrue();
         assertThat(filter.isChallenge2faPath("/api/v1/admin/beta-requests")).isFalse();
+        // GAP-1021 (branding-100): SSE deploy-stream — EventSource không set được
+        // Authorization header; gateway pass-through, auth enforced service-side bằng
+        // SseQueryTokenAuthFilter (HMAC ?access_token= bound jobId, TTL 120s).
+        assertThat(filter.isPublicPath("/api/v1/branding/jobs/42/deploy-stream")).isTrue();
+        // Mint endpoint + các path branding khác VẪN cần JWT (default-deny giữ).
+        assertThat(filter.isPublicPath("/api/v1/branding/jobs/42/sse-token")).isFalse();
+        assertThat(filter.isPublicPath("/api/v1/branding/jobs/42")).isFalse();
+        assertThat(filter.isPublicPath("/api/v1/branding/jobs/42/deploy-stream/extra")).isFalse();
         assertThat(filter.isPublicPath("/actuator/health")).isTrue();
         assertThat(filter.isPublicPath("/docs/swagger.json")).isTrue();
         assertThat(filter.isPublicPath("/fallback/auth")).isTrue();

@@ -294,6 +294,13 @@ public class JwtAuthenticationGatewayFilter implements GlobalFilter, Ordered {
                 // (not logged in). Mirror webhooks pattern — anonymous request must
                 // not be rejected as missing JWT before reaching the controller.
                 || path.equals("/api/platform/sales-leads")
+                // GAP-1021 (branding-100 Bucket C residual) — SSE deploy-stream:
+                // browser EventSource KHÔNG set được Authorization header → gateway
+                // pass-through path này; auth enforced SERVICE-SIDE bởi
+                // SseQueryTokenAuthFilter (kitehub-branding SecurityConfig) verify
+                // HMAC ?access_token= (bound jobId, TTL 120s, mint qua authenticated
+                // POST /jobs/{id}/sse-token). KHÔNG phải permitAll thật — token gate.
+                || (path.startsWith("/api/v1/branding/jobs/") && path.endsWith("/deploy-stream"))
                 || path.equals("/actuator/health")
                 || path.startsWith("/actuator/health/")
                 || path.startsWith("/docs/")
