@@ -72,6 +72,8 @@ public class MockProvisioningService {
     private final InstanceLifecycleService lifecycleService;
     private final BrandColoursDeriver coloursDeriver;
     private final ObjectMapper objectMapper;
+    /** GAP-1213 — emits branding.deployed so kiteclass-core applies the theme to the landing. */
+    private final com.kitehub.branding.outbox.BrandingDeployedPublisher deployedPublisher;
 
     /**
      * Delay between deploy steps (ms). Long enough for the 2s SSE poller to
@@ -94,12 +96,14 @@ public class MockProvisioningService {
             InstanceLifecycleService lifecycleService,
             BrandColoursDeriver coloursDeriver,
             ObjectMapper objectMapper,
+            com.kitehub.branding.outbox.BrandingDeployedPublisher deployedPublisher,
             @Value("${kitehub.branding.mock-provision.step-delay-ms:2200}") long stepDelayMs) {
         this.brandingJobService = brandingJobService;
         this.jobRepository = jobRepository;
         this.lifecycleService = lifecycleService;
         this.coloursDeriver = coloursDeriver;
         this.objectMapper = objectMapper;
+        this.deployedPublisher = deployedPublisher;
         this.stepDelayMs = stepDelayMs;
     }
 
@@ -129,13 +133,26 @@ public class MockProvisioningService {
             // can parse it — a metadata OBJECT threw MismatchedInputException and
             // surfaced "0 assets" post-deploy (GAP-1107 #2).
             String frontendUrl = buildFrontendUrl(slug);
-            persistAssets(jobId, slug, templateId, approvedResources);
+            BrandColours colours = persistAssets(jobId, slug, templateId, approvedResources);
 
             // Step 4 — GENERATING → DEPLOYED (PROCESSING → COMPLETED). Lifecycle
             // hinge in updateJobProgress drives instance state to DEPLOYED.
             brandingJobService.updateJobProgress(jobId, JobStatus.COMPLETED, 100, "Đã triển khai");
 
             recordDeployMarker(jobId, frontendUrl, templateId, slug);
+
+            // GAP-1213 — propagate the deployed theme/assets cross-service so kiteclass-core
+            // applies them to the tenant landing page (the broken last mile). Best-effort:
+            // publish runs in its own REQUIRES_NEW txn + swallows broker errors, so a publish
+            // miss never fails the mock deploy.
+            jobRepository.findById(jobId).ifPresent(job -> {
+                try {
+                    deployedPublisher.publishDeployed(
+                            job.getInstanceId(), slug, frontendUrl, colours, job.getLogoUrl());
+                } catch (Exception ex) {
+                    log.warn("branding.deployed publish failed for job {}: {}", jobId, ex.getMessage());
+                }
+            });
             log.info("MOCK provision complete: job={} frontendUrl={}", jobId, frontendUrl);
         } catch (Exception ex) {
             log.error("MOCK provision failed: job={} err={}", jobId, ex.getMessage(), ex);
@@ -168,11 +185,11 @@ public class MockProvisioningService {
      * Real theme-table persistence is deferred (see {@link BrandColoursDeriver}
      * TODO + GAP-1055).
      */
-    private void persistAssets(UUID jobId, String slug, String templateId,
-                               List<String> approvedResources) {
+    private BrandColours persistAssets(UUID jobId, String slug, String templateId,
+                                       List<String> approvedResources) {
         Optional<BrandingJob> jobOpt = jobRepository.findById(jobId);
         if (jobOpt.isEmpty()) {
-            return;
+            return null;
         }
         BrandColours colours = coloursDeriver.derive(jobOpt.get());
         List<BrandingAsset> assets = buildDeployedAssets(slug, templateId, approvedResources, colours);
@@ -181,6 +198,9 @@ public class MockProvisioningService {
         } catch (Exception ex) {
             log.warn("Failed to serialize mock assets for job {}: {}", jobId, ex.getMessage());
         }
+        // GAP-1213: return the derived colours so provisionAsync can carry them onto the
+        // cross-service branding.deployed event without re-deriving.
+        return colours;
     }
 
     /**

@@ -38,4 +38,24 @@ public interface LandingPageService {
      * @return LandingPageResponse with updated landing page content
      */
     LandingPageResponse updateLandingPage(UUID tenantId, @Valid UpdateLandingPageRequest request);
+
+    /**
+     * Apply a deployed AI-branding theme onto the tenant's landing page (GAP-1213).
+     *
+     * <p>Invoked by the {@code branding.deployed} cross-service consumer when kitehub-branding
+     * finishes a wizard deploy, so the PUBLIC per-tenant landing actually changes (theme colours
+     * + logo) — the broken last mile where "Deploy thành công" never reached the landing.
+     * Idempotent: skips when {@code brandingVersion} is not newer than the version already
+     * applied (stale/duplicate event). Evicts the {@code landingPages} cache so the next
+     * anonymous visitor sees the new theme.</p>
+     *
+     * @param tenantId        instance UUID (RLS tenant)
+     * @param primaryColor    new primary theme colour ({@code #RRGGBB}), nullable = unchanged
+     * @param secondaryColor  new secondary theme colour, nullable = unchanged
+     * @param logoUrl         new logo URL/object-key, nullable = unchanged
+     * @param brandingVersion deploy version for idempotency (nullable = always apply)
+     * @return {@code true} if the landing was updated, {@code false} if skipped (stale version)
+     */
+    boolean applyDeployedBranding(UUID tenantId, String primaryColor, String secondaryColor,
+                                  String logoUrl, Integer brandingVersion);
 }

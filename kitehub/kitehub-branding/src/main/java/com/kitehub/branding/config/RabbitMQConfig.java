@@ -32,6 +32,18 @@ public class RabbitMQConfig {
     public static final String DLQ_ROUTING_KEY = "branding.job.failed";
 
     /**
+     * Cross-service topic exchange for branding lifecycle events consumed by kiteclass-core
+     * (GAP-1213). Mirrors the {@code branding.events} {@link TopicExchange} declared in
+     * kiteclass-core {@code BrandingEventsConfig} — same name + type + durable so the broker
+     * declaration is idempotent across both services. The {@code branding.deployed} event
+     * (theme + assets propagation) is published here when a wizard deploy reaches DEPLOYED;
+     * kiteclass-core binds {@code branding.deployed.kiteclass.queue} and applies the theme
+     * to the tenant landing page.
+     */
+    public static final String BRANDING_EVENTS_EXCHANGE = "branding.events";
+    public static final String BRANDING_DEPLOYED_ROUTING_KEY = "branding.deployed";
+
+    /**
      * Message converter for JSON serialization.
      *
      * @return Jackson2JsonMessageConverter
@@ -138,5 +150,19 @@ public class RabbitMQConfig {
         return BindingBuilder.bind(brandingDLQ)
                 .to(brandingDLQExchange)
                 .with(DLQ_ROUTING_KEY);
+    }
+
+    /**
+     * Cross-service {@code branding.events} TopicExchange (GAP-1213).
+     *
+     * <p>Re-declared here (idempotent — same name, type topic, durable) so kitehub-branding
+     * can publish {@code branding.deployed} to it; kiteclass-core owns the consumer queue +
+     * binding. Topic type matches kiteclass-core {@code BrandingEventsConfig.brandingEventsExchange}.
+     *
+     * @return durable {@link TopicExchange} {@code branding.events}
+     */
+    @Bean
+    public TopicExchange brandingEventsExchange() {
+        return new TopicExchange(BRANDING_EVENTS_EXCHANGE, /*durable*/ true, /*autoDelete*/ false);
     }
 }

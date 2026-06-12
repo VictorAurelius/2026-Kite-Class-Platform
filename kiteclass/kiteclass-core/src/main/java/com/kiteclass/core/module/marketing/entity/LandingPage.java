@@ -85,6 +85,13 @@ public class LandingPage extends BaseEntity {
     @Pattern(regexp = "^#[0-9A-Fa-f]{6}$", message = "{landing.color.invalid}")
     private String secondaryColor = "#8B5CF6";
 
+    // GAP-1213 — last applied AI-branding deploy version (from the cross-service
+    // branding.deployed event). Drives consumer idempotency: a deploy event is applied
+    // only when its version is newer than this, so duplicate/stale redeliveries are ignored.
+    // V98__landing_branding_version.sql. Default 0 = no AI deploy applied yet.
+    @Column(name = "branding_version")
+    private Integer brandingVersion = 0;
+
     // Contact Info
     @Column(name = "contact_email")
     @Email(message = "{landing.email.invalid}")

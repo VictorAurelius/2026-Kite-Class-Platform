@@ -15,6 +15,8 @@ import com.kitehub.branding.wizard.dto.BrandingJobResponse;
 import com.kitehub.branding.wizard.dto.CreateWizardJobRequest;
 import com.kitehub.branding.wizard.dto.PreviewBannerRequest;
 import com.kitehub.branding.wizard.quality.BrandColoursDeriver;
+import com.kitehub.branding.wizard.quality.QualityScoreAggregator;
+import com.kitehub.branding.wizard.quality.dto.QualityScoreResponse;
 import com.kitehub.branding.wizard.service.MockProvisioningService;
 import io.micrometer.core.annotation.Timed;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -67,6 +69,8 @@ public class BrandingJobV1Controller {
     private final BrandColoursDeriver coloursDeriver;
     private final BrandingJobService brandingJobService;
     private final MockProvisioningService mockProvisioningService;
+    /** GAP-1217 — quality gate aggregator (GAP-272c, Wave 34 #906); enforce ≥70 before deploy. */
+    private final QualityScoreAggregator qualityScoreAggregator;
     /** GAP-1141 — Step 7 live banner preview (compose → sidecar render, no Gemini/DB/quota). */
     private final BannerHtmlComposer bannerHtmlComposer;
     private final BannerRenderer bannerRenderer;
@@ -259,6 +263,27 @@ public class BrandingJobV1Controller {
                     "jobId", jobId.toString()
             ));
         }
+        BrandingJob job = jobOpt.get();
+
+        // GAP-1217 — quality gate BEFORE deploy. Asset score <70 must never auto-deploy
+        // (ai-branding-guidelines.md §5). Failing the gate marks the job FAILED with the
+        // reason + score so the wizard surfaces it at the approve step instead of shipping
+        // a low-quality landing. Reuses the GAP-272c aggregator (no rebuild).
+        QualityScoreResponse quality = qualityScoreAggregator.aggregate(job);
+        if (!quality.passed()) {
+            String reason = "Điểm chất lượng " + quality.score() + "/100 dưới ngưỡng "
+                    + quality.threshold() + " — không thể triển khai tự động";
+            brandingJobService.markJobFailed(jobId, reason);
+            Map<String, Object> failBody = new LinkedHashMap<>();
+            failBody.put("error", "QUALITY_GATE_FAILED");
+            failBody.put("jobId", jobId.toString());
+            failBody.put("score", quality.score());
+            failBody.put("threshold", quality.threshold());
+            failBody.put("issues", quality.issues());
+            failBody.put("message", reason);
+            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(failBody);
+        }
+
         String slug = req != null ? req.slug() : null;
         if (slug == null || slug.isBlank()) {
             slug = "tenant";
@@ -274,6 +299,8 @@ public class BrandingJobV1Controller {
         body.put("jobId", jobId.toString());
         body.put("status", "INITIALIZING");
         body.put("frontendUrl", "https://" + slug + ".kiteclass.vn");
+        // GAP-1217 — surface the passing score at the approve/deploy step.
+        body.put("qualityScore", quality.score());
         body.put("message", "Đang triển khai (mock provisioning)");
         return ResponseEntity.accepted().body(body);
     }
