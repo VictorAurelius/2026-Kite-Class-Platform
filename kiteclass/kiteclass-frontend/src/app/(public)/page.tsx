@@ -132,7 +132,20 @@ export async function generateMetadata({
 export default async function LandingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tenant?: string; template?: string; primary?: string; secondary?: string; accent?: string }>;
+  searchParams: Promise<{
+    tenant?: string;
+    template?: string;
+    primary?: string;
+    secondary?: string;
+    accent?: string;
+    // GAP-1215 — draft-theme preview params used by the AI Branding wizard so the
+    // wizard `/preview` iframe shows the REAL landing render path themed by the
+    // owner's in-progress brand (org name + logo + freshly-generated banner)
+    // BEFORE the tenant exists. Same preview-override class as ?primary= / ?tenant=.
+    orgName?: string;
+    logo?: string;
+    heroImage?: string;
+  }>;
 }) {
   const params = await searchParams;
 
@@ -156,6 +169,19 @@ export default async function LandingPage({
   if (params.primary) landingData.primaryColor = `#${params.primary}`;
   if (params.secondary) landingData.secondaryColor = `#${params.secondary}`;
   if (params.accent) (landingData as Record<string, unknown>).accentColor = `#${params.accent}`;
+
+  // GAP-1215 — draft-theme preview overrides (wizard `/preview`). Only applied when
+  // present; absent → real tenant/default data preserved. React escapes text, so
+  // orgName injection is render-safe (same trust class as the existing ?tenant= /
+  // ?primary= preview params). The framing-allowed `/preview` route + noindex
+  // metadata keep these off the public homepage.
+  const od = landingData as Record<string, unknown>;
+  if (params.orgName && params.orgName.trim()) {
+    od.centerName = params.orgName.trim();
+    od.heroTitle = params.orgName.trim();
+  }
+  if (params.logo) od.logoUrl = params.logo;
+  if (params.heroImage) od.heroImageUrl = params.heroImage;
 
   // Build per-section slot data from the landing payload. Previously the renderer
   // received no `slots`, so every section fell back to hardcoded defaults and the
