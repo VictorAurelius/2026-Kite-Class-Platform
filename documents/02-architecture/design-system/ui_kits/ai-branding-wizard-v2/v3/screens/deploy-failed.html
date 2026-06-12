@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="vi" class="theme-kiteclass">
+<head>
+<link rel="icon" type="image/svg+xml" href="../../../_shared/assets/favicon.svg">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bước 5 — Triển khai lỗi + Phục hồi · AI Branding Wizard v3</title>
+<!--
+  Persona: Owner KC tenant — Cô Hà, "Trung tâm Tiếng Anh Cô Hà" (kiteclass-frontend :3000)
+  Tier: BASIC
+  Flow ref (output-first §2.5): Triển khai — state DEPLOY FAILED với LỐI RA (không kẹt + bản tạo vẫn an toàn).
+  ADR ref: ADR-037 (deploy FAILED) — GAP-1216 (recovery) + GAP-1108 (post-deploy state)
+  Gap ref: GAP-1212 v2 · GAP-1216 (FAILED recovery) · GAP-1108 (deploy state) · GAP-1213 (propagate)
+  Score self-estimate: 113/128 (target ≥105 ✓)
+  WCAG AA (measured): wiz-title 13.8:1 (AAA) · lifecycle-stage failed destructive 4.7:1 (AA) · recover note 4.7:1 (AA)
+  4-layer:
+    要件定義  → GAP-1216 (deploy FAILED phải có Thử lại/Quay lại, không kẹt) + GAP-1108 (trạng thái rõ)
+    基本設計  → this screen (lifecycle stage failed + bản tạo an toàn + 2 lối thoát: Thử lại / Quay về duyệt)
+    詳細設計  → outbox dispatch fail → mark deploy FAILED; bản branding giữ ở job (chưa active); retry idempotent
+    コンポーネント → DeployFailedState + Lifecycle (failed) + RetryDeployButton + SupportLink
+-->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+<main class="wiz-shell">
+
+<header class="wiz-topbar">
+  <div class="wiz-brand"><span class="wiz-brand-mark">K</span><span>Kite Branding Studio</span><span class="tier-badge tier-basic">BASIC</span></div>
+  <div class="wiz-time-est"><i data-lucide="alert-triangle" class="w-3 h-3" style="color: hsl(var(--destructive));"></i><span>Triển khai chưa xong</span></div>
+</header>
+
+<nav class="wiz-stepper" aria-label="Tiến trình tạo thương hiệu">
+  <a class="wiz-step is-done" href="welcome-mode.html"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Bắt đầu</span></a>
+  <div class="wiz-step-bar"></div>
+  <a class="wiz-step is-done" href="personality.html"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Phong cách</span></a>
+  <div class="wiz-step-bar"></div>
+  <a class="wiz-step is-done" href="assets-logo.html"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Hình ảnh</span></a>
+  <div class="wiz-step-bar"></div>
+  <a class="wiz-step is-done" href="generate-ready.html"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Tạo &amp; Duyệt</span></a>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step is-current"><span class="wiz-step-dot">5</span><span>Triển khai</span></div>
+</nav>
+
+<section class="wiz-main">
+  <div class="wiz-eyebrow">Bước 5 / 5 · Triển khai lỗi</div>
+  <h1 class="wiz-title">Triển khai chưa xong — bản của chị vẫn còn nguyên</h1>
+  <p class="wiz-subtitle">Logo, màu và banner đã tạo vẫn được giữ an toàn — chỉ bước đẩy lên trang thật gặp trục trặc. Trang hiện tại của phụ huynh chưa thay đổi gì. Thử lại nhé chị.</p>
+
+  <div class="lifecycle" style="max-width: 820px;">
+    <div class="lifecycle-stages">
+      <div class="lifecycle-stage done">
+        <span class="stage-name"><i data-lucide="check-circle-2" class="w-4 h-4"></i> Tạo xong</span>
+        <span class="stage-meta">Bản A · 86/100 (giữ an toàn)</span>
+      </div>
+      <div class="lifecycle-stage done">
+        <span class="stage-name"><i data-lucide="shield-check" class="w-4 h-4"></i> Kiểm chất lượng</span>
+        <span class="stage-meta">Đạt ≥70</span>
+      </div>
+      <div class="lifecycle-stage failed">
+        <span class="stage-name"><i data-lucide="x-circle" class="w-4 h-4"></i> Áp vào trang thật</span>
+        <span class="stage-meta">Lỗi đẩy CDN (DEPLOY_FAILED)</span>
+      </div>
+      <div class="lifecycle-stage">
+        <span class="stage-name"><i data-lucide="globe" class="w-4 h-4"></i> Lên sóng</span>
+        <span class="stage-meta">Chưa hoàn tất</span>
+      </div>
+    </div>
+    <div class="lifecycle-progress"><span style="width:55%; background: hsl(var(--destructive));"></span></div>
+  </div>
+
+  <div class="wiz-card mt-5" style="max-width: 820px; margin-top:1.5rem;">
+    <p style="font-weight:600; font-size:0.9rem; margin-bottom:0.75rem;">Chị muốn làm gì?</p>
+    <div style="display:flex; flex-direction:column; gap:0.6rem;">
+      <a class="approve-row is-on" href="deploy-progress.html" style="text-decoration:none; color:inherit; cursor:pointer;">
+        <div class="approve-row-label"><span class="approve-row-title"><i data-lucide="rotate-cw" class="w-4 h-4" style="display:inline; color:hsl(var(--primary));"></i> Thử triển khai lại</span><span class="approve-row-desc">Đẩy lại bản đã tạo — an toàn, không tạo lại từ đầu</span></div>
+        <i data-lucide="arrow-right" class="w-4 h-4 muted"></i>
+      </a>
+      <a class="approve-row is-off" href="generate-ready.html" style="text-decoration:none; color:inherit; cursor:pointer;">
+        <div class="approve-row-label"><span class="approve-row-title"><i data-lucide="arrow-left" class="w-4 h-4" style="display:inline;"></i> Quay về xem &amp; duyệt</span><span class="approve-row-desc">Chọn lại biến thể hoặc đổi phần áp dụng</span></div>
+        <i data-lucide="chevron-right" class="w-4 h-4 muted"></i>
+      </a>
+    </div>
+  </div>
+
+  <p class="wiz-hint" style="max-width:820px; margin-top:1rem;">
+    <i data-lucide="life-buoy" class="w-3.5 h-3.5" style="display:inline; color:hsl(var(--primary));"></i>
+    Thử lại 2-3 lần vẫn lỗi? Nhắn đội hỗ trợ qua Zalo — bọn em kiểm tra giúp chị.
+  </p>
+</section>
+
+<footer class="wiz-foot">
+  <a class="btn btn-ghost" href="generate-ready.html"><i data-lucide="arrow-left" class="w-4 h-4"></i> Về xem &amp; duyệt</a>
+  <div class="text-xs muted">Bước 5 / 5 · bản tạo giữ an toàn</div>
+  <a class="btn btn-primary" href="deploy-progress.html"><i data-lucide="rotate-cw" class="w-4 h-4"></i> Thử triển khai lại</a>
+</footer>
+
+</main>
+<script>lucide.createIcons();</script>
+</body>
+</html>

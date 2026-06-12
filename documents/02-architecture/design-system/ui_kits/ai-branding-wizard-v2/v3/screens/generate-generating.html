@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="vi" class="theme-kiteclass">
+<head>
+<link rel="icon" type="image/svg+xml" href="../../../_shared/assets/favicon.svg">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bước 4 — Đang tạo (GENERATING) · AI Branding Wizard v3</title>
+<!--
+  Persona: Owner KC tenant — Cô Hà, "Trung tâm Tiếng Anh Cô Hà" (kiteclass-frontend :3000)
+  Tier: BASIC (TEMPLATE generation)
+  Flow ref (output-first §2.5): Tạo & Live Preview — state GENERATING (1/4 trạng thái: GENERATING/FAILED/READY/quality-fail)
+  ADR ref: ADR-037 (generation job) + GAP-1021 (SSE generate progress real-time)
+  Gap ref: GAP-1212 v2 · GAP-1135 (banner GENERATING) · GAP-1021 (SSE) · GAP-1105 (reconnect)
+  Score self-estimate: 112/128 (target ≥105 ✓)
+  WCAG AA (measured): wiz-title 13.8:1 (AAA) · sse-log ok 8.9:1 (AAA) · cancel note 4.7:1 (AA)
+  4-layer:
+    要件定義  → GAP-1135 (GENERATING) + GAP-1021 (SSE progress) + ADR-037 job lifecycle
+    基本設計  → this screen (shimmer banner + SSE generate log + cancel ramp; auto-advance → READY)
+    詳細設計  → BrandingJob QUEUED→PROCESSING; SSE GET /api/v1/branding/{id}/events; useDeployStream
+    コンポーネント → BannerGenerateStage (generating) + SseLog + GenerationProgress
+-->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+<main class="wiz-shell">
+
+<header class="wiz-topbar">
+  <div class="wiz-brand"><span class="wiz-brand-mark">K</span><span>Kite Branding Studio</span><span class="tier-badge tier-basic">BASIC</span></div>
+  <div class="wiz-time-est"><i data-lucide="loader" class="w-3 h-3"></i><span>Đang tạo… ~10 giây</span></div>
+</header>
+
+<nav class="wiz-stepper" aria-label="Tiến trình tạo thương hiệu">
+  <a class="wiz-step is-done" href="welcome-mode.html"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Bắt đầu</span></a>
+  <div class="wiz-step-bar"></div>
+  <a class="wiz-step is-done" href="personality.html"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Phong cách</span></a>
+  <div class="wiz-step-bar"></div>
+  <a class="wiz-step is-done" href="assets-logo.html"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Hình ảnh</span></a>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step is-current"><span class="wiz-step-dot">4</span><span>Tạo &amp; Duyệt</span></div>
+  <div class="wiz-step-bar"></div>
+  <a class="wiz-step" href="done.html"><span class="wiz-step-dot">5</span><span>Triển khai</span></a>
+</nav>
+
+<section class="wiz-main">
+  <div class="wiz-eyebrow">Bước 4 / 5 · Đang tạo</div>
+  <h1 class="wiz-title">AI đang tạo thương hiệu cho trung tâm… ✨</h1>
+  <p class="wiz-subtitle">Tạo logo, bảng màu và banner cho "Trung tâm Tiếng Anh Cô Hà". Chị chờ một chút, sắp xong rồi.</p>
+
+  <div class="banner-stage" style="max-width: 760px;">
+    <div class="banner-canvas generating">
+      <div style="display:flex; flex-direction:column; align-items:center; gap:0.5rem; color: hsl(var(--muted-foreground));">
+        <i data-lucide="wand-sparkles" class="w-8 h-8" style="color: hsl(var(--primary));"></i>
+        <span style="font-size:0.85rem; font-weight:600;">Đang dựng banner…</span>
+      </div>
+    </div>
+    <div class="banner-foot">
+      <span class="banner-mode-tag"><i data-lucide="layout-template" class="w-3 h-3"></i> Mẫu dựng sẵn · chữ Việt</span>
+      <span class="muted">1920×720 · WebP</span>
+    </div>
+  </div>
+
+  <p class="wiz-label" style="margin-top:1.5rem; max-width:760px;">Tiến trình (thời gian thực)</p>
+  <div class="sse-log" role="log" aria-live="polite" style="max-width:760px;">
+    <div><span class="ts">[10:44:58]</span> <span class="ok">✓</span> Phân tích thông tin trung tâm + phong cách</div>
+    <div><span class="ts">[10:45:01]</span> <span class="ok">✓</span> Tạo bảng màu thương hiệu (Xanh chuyên nghiệp)</div>
+    <div><span class="ts">[10:45:03]</span> <span class="ok">✓</span> Soạn nội dung hero + giới thiệu (AI draft)</div>
+    <div><span class="ts">[10:45:06]</span> <span class="run">▸</span> Dựng banner Mẫu + chụp ảnh WebP… <span class="sse-cursor"></span></div>
+  </div>
+
+  <p class="wiz-hint" style="max-width:760px; margin-top:0.75rem;">
+    <i data-lucide="info" class="w-3.5 h-3.5" style="display:inline; color: hsl(var(--primary));"></i>
+    Bước này <strong>chưa trừ lượt nào</strong> — chỉ tính khi banner tạo xong và chị giữ lại.
+  </p>
+</section>
+
+<footer class="wiz-foot">
+  <a class="btn btn-ghost" href="assets-logo.html"><i data-lucide="x" class="w-4 h-4"></i> Hủy tạo</a>
+  <div class="text-xs muted">Bước 4 / 5 · Đang tạo… (mô phỏng SSE)</div>
+  <a class="btn btn-primary" href="generate-ready.html" title="Mô phỏng: tạo xong → xem các biến thể"><i data-lucide="arrow-right" class="w-4 h-4"></i> Xem kết quả</a>
+</footer>
+
+</main>
+<script>lucide.createIcons();</script>
+</body>
+</html>

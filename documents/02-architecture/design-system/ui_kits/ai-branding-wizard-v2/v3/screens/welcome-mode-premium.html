@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="vi" class="theme-kiteclass">
+<head>
+<link rel="icon" type="image/svg+xml" href="../../../_shared/assets/favicon.svg">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bước 1 (PREMIUM) — Bắt đầu + FULL_AI · AI Branding Wizard v3</title>
+<!--
+  Persona: Owner KC tenant PREMIUM — Thầy Nhì, "Trung tâm Luyện thi Thầy Nhì" (FULL_AI mở khóa)
+  Tier: PREMIUM (FULL_AI eligible, quota 5 GPT-5.5/tháng; ENTERPRISE = unlimited)
+  Biến thể: PREMIUM variant của welcome-mode (FULL_AI selectable + quota meter hiển thị) — walk nhánh FULL_AI
+  ADR ref: ADR-037 Amendment 2026-06-10 — FULL_AI route GPT-5.5 image
+  Gap ref: GAP-1147 (FULL_AI mode) · GAP-1137 (PREMIUM 5/tháng + ENTERPRISE unlimited) · GAP-1218 (quota label "chưa trừ khi chưa có output")
+  Score self-estimate: 114/128 (target ≥105 ✓)
+  WCAG AA (measured): mode-card-title 13.9:1 (AAA) · quota-meter 4.7:1 (AA) · cost chip 4.6:1 (AA)
+  4-layer:
+    要件定義  → GAP-1147 + GAP-1137 + ADR-037 Decision (FULL_AI eligibility by tier)
+    基本設計  → this screen (PREMIUM: FULL_AI selectable + quota meter 5/tháng + nhánh portrait)
+    詳細設計  → GenerationMode.forTier(PREMIUM)=FULL_AI eligible; FullAiQuotaService (Redis monthly)
+    コンポーネント → ModeSelectorStep (premium variant) + QuotaMeter + TierGateBanner
+-->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+<main class="wiz-shell">
+
+<header class="wiz-topbar">
+  <div class="wiz-brand"><span class="wiz-brand-mark">K</span><span>Kite Branding Studio</span><span class="tier-badge tier-premium">PREMIUM</span></div>
+  <div class="wiz-time-est"><i data-lucide="crown" class="w-3 h-3"></i><span>FULL_AI đã mở khóa</span></div>
+</header>
+
+<nav class="wiz-stepper" aria-label="Tiến trình tạo thương hiệu">
+  <div class="wiz-step is-current"><span class="wiz-step-dot">1</span><span>Bắt đầu</span></div>
+  <div class="wiz-step-bar"></div>
+  <a class="wiz-step" href="personality.html"><span class="wiz-step-dot">2</span><span>Phong cách</span></a>
+  <div class="wiz-step-bar"></div>
+  <a class="wiz-step" href="assets-portrait.html"><span class="wiz-step-dot">3</span><span>Hình ảnh</span></a>
+  <div class="wiz-step-bar"></div>
+  <a class="wiz-step" href="generate-ready-fullai.html"><span class="wiz-step-dot">4</span><span>Tạo &amp; Duyệt</span></a>
+  <div class="wiz-step-bar"></div>
+  <a class="wiz-step" href="done.html"><span class="wiz-step-dot">5</span><span>Triển khai</span></a>
+</nav>
+
+<section class="wiz-main">
+  <div class="wiz-eyebrow">Bước 1 / 5 · PREMIUM · FULL_AI</div>
+  <h1 class="wiz-title">Tạo thương hiệu cho Trung tâm Luyện thi Thầy Nhì</h1>
+  <p class="wiz-subtitle">
+    Gói PREMIUM mở khóa <strong>AI vẽ banner</strong> bằng GPT-5.5 — banner độc đáo theo phong cách riêng.
+    Chị/anh vẫn xem được bản thật trước khi triển khai.
+  </p>
+
+  <div class="wiz-card" style="max-width: 620px;">
+    <label class="wiz-label" for="tenant-name">Tên hiển thị của trung tâm</label>
+    <input class="wiz-input" id="tenant-name" type="text" value="Trung tâm Luyện thi Thầy Nhì" />
+    <label class="wiz-label" for="slug" style="margin-top:1.25rem;">Địa chỉ trang giới thiệu</label>
+    <div class="slug-row">
+      <span class="slug-prefix">https://</span>
+      <input class="slug-input" id="slug" type="text" value="thay-nhi" aria-describedby="slug-status" />
+      <span class="slug-suffix">.kiteclass.vn</span>
+    </div>
+    <div class="slug-status ok" id="slug-status" role="status">
+      <i data-lucide="check-circle-2" class="w-4 h-4"></i> Địa chỉ còn trống — có thể dùng
+    </div>
+  </div>
+
+  <p class="wiz-label" style="margin-top:1.75rem; max-width:620px;">Cách AI tạo banner</p>
+  <div class="mode-grid">
+    <!-- TEMPLATE -->
+    <div class="mode-card" tabindex="0" role="button" aria-pressed="false">
+      <div class="mode-card-head">
+        <span class="mode-card-title"><i data-lucide="layout-template" class="w-5 h-5" style="color: hsl(var(--primary));"></i> Mẫu dựng sẵn</span>
+      </div>
+      <p class="mode-card-desc">Nhanh, chữ Việt nét, miễn phí. Phù hợp khi cần nhanh, ổn định.</p>
+      <div class="mode-card-meta">
+        <span class="mode-chip free"><i data-lucide="gift" class="w-3 h-3"></i> Miễn phí</span>
+        <span class="mode-chip"><i data-lucide="zap" class="w-3 h-3"></i> ~10 giây</span>
+      </div>
+    </div>
+
+    <!-- FULL_AI — selected (unlocked) -->
+    <div class="mode-card is-selected" tabindex="0" role="button" aria-pressed="true">
+      <span class="mode-recommended">Đã mở khóa</span>
+      <div class="mode-card-head">
+        <span class="mode-card-title"><i data-lucide="wand-sparkles" class="w-5 h-5" style="color: hsl(var(--accent));"></i> AI vẽ toàn bộ</span>
+        <i data-lucide="check-circle-2" class="w-5 h-5" style="color: hsl(var(--primary));"></i>
+      </div>
+      <p class="mode-card-desc">GPT-5.5 vẽ ảnh banner gốc từ ảnh chân dung + phong cách của trung tâm.</p>
+      <div class="mode-card-meta">
+        <span class="mode-chip cost"><i data-lucide="crown" class="w-3 h-3"></i> Tốn 1 lượt khi tạo thật</span>
+        <span class="mode-chip"><i data-lucide="image" class="w-3 h-3"></i> Ảnh AI gốc</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quota meter (GAP-1218: label rõ chưa trừ khi chưa có output thật) -->
+  <div class="wiz-card mt-6" style="margin-top:1.5rem; max-width:560px;">
+    <p style="font-weight:600; font-size:0.85rem; margin-bottom:0.5rem;">Hạn mức AI vẽ banner tháng 6/2026</p>
+    <div class="quota-meter">
+      <span class="quota-dots">
+        <span></span><span></span><span></span><span></span><span></span>
+      </span>
+      <span>Còn <strong>5 / 5</strong> lượt GPT-5.5</span>
+    </div>
+    <p class="wiz-hint" style="margin-top:0.5rem;">
+      <i data-lucide="shield-check" class="w-3.5 h-3.5" style="display:inline; color: hsl(var(--success));"></i>
+      Chỉ trừ 1 lượt <strong>khi banner AI tạo thành công</strong>. Xem trước và thử mẫu không tốn lượt. Hết hạn mức → tự chuyển về Mẫu dựng sẵn (miễn phí).
+    </p>
+  </div>
+</section>
+
+<footer class="wiz-foot">
+  <a class="btn btn-ghost" href="welcome-mode.html"><i data-lucide="arrow-left" class="w-4 h-4"></i> Xem nhánh BASIC</a>
+  <a class="btn btn-secondary" href="generate-generating.html"><i data-lucide="sparkles" class="w-4 h-4"></i> Tạo ngay với mặc định</a>
+  <a class="btn btn-primary" href="personality.html">Chọn phong cách <i data-lucide="arrow-right" class="w-4 h-4"></i></a>
+</footer>
+
+</main>
+<script>lucide.createIcons();</script>
+</body>
+</html>

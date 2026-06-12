@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="vi" class="theme-kiteclass">
+<head>
+<link rel="icon" type="image/svg+xml" href="../../../_shared/assets/favicon.svg">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bước 4 (FULL_AI) — Kết quả AI vẽ (READY) · AI Branding Wizard v3</title>
+<!--
+  Persona: Owner KC tenant PREMIUM — Thầy Nhì, "Trung tâm Luyện thi Thầy Nhì" (FULL_AI branch)
+  Tier: PREMIUM (FULL_AI — GPT-5.5 ảnh banner gốc)
+  Biến thể: PREMIUM variant của generate-ready (multi-variant AI images + quota trừ 1 khi giữ)
+  ADR ref: ADR-037 (FULL_AI route GPT-5.5 image) + GAP-1217 (quality gate) + GAP-1218 (quota trust)
+  Gap ref: GAP-1212 v2 · GAP-1135 (FULL_AI READY) · GAP-1147 (FULL_AI) · GAP-1218 (label "trừ khi giữ bản thật")
+  Score self-estimate: 116/128 (target ≥105 ✓)
+  WCAG AA (measured): wiz-title 13.8:1 (AAA) · qgate-score pass 5.1:1 (AA) · quota note 4.7:1 (AA)
+  4-layer:
+    要件定義  → GAP-1147 (FULL_AI) + GAP-1217 (gate) + GAP-1218 (trust — trừ lượt đúng lúc)
+    基本設計  → this screen (3 biến thể AI-image + qgate + quota-trừ-1-khi-giữ + approve + preview)
+    詳細設計  → FullAiQuotaService.recordFullAiUsage (chỉ khi COMPLETED+kept); GPT-5.5 image route
+    コンポーネント → VariantPicker (AI) + QualityGateWidget + QuotaMeter + PreviewStep
+-->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="stylesheet" href="../styles.css" />
+<style>
+  .variant-pick { display:grid; grid-template-columns: repeat(3, 1fr); gap:0.75rem; max-width:760px; }
+  @media (max-width:720px){ .variant-pick { grid-template-columns: 1fr 1fr; } }
+  .variant-card { border:1px solid hsl(var(--border)); border-radius: var(--radius-md); overflow:hidden; cursor:pointer; background:hsl(var(--card)); transition: all 150ms; }
+  .variant-card:hover { border-color: hsl(var(--accent)); transform: translateY(-2px); box-shadow: var(--shadow-soft); }
+  .variant-card.is-selected { border-color: hsl(var(--accent)); box-shadow: 0 0 0 2px hsl(var(--accent) / 0.25); }
+  .variant-thumb { aspect-ratio: 16/7; display:grid; place-items:center; color:white; font-weight:800; font-size:0.78rem; text-align:center; padding:0.5rem; position:relative; }
+  .variant-thumb .ai-tag { position:absolute; top:0.3rem; left:0.3rem; font-size:0.6rem; background:hsl(var(--card)/0.9); color:hsl(var(--accent)); padding:0.1rem 0.4rem; border-radius:999px; font-weight:700; }
+  .variant-cap { padding:0.4rem 0.6rem; font-size:0.72rem; display:flex; align-items:center; justify-content:space-between; gap:0.3rem; }
+  .ready-grid { display:grid; grid-template-columns: 1.2fr 1fr; gap:1.25rem; max-width:980px; margin-top:1.25rem; }
+  @media (max-width:880px){ .ready-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main class="wiz-shell">
+
+<header class="wiz-topbar">
+  <div class="wiz-brand"><span class="wiz-brand-mark">K</span><span>Kite Branding Studio</span><span class="tier-badge tier-premium">PREMIUM</span></div>
+  <div class="wiz-time-est"><i data-lucide="wand-sparkles" class="w-3 h-3"></i><span>AI vẽ xong — chọn &amp; duyệt</span></div>
+</header>
+
+<nav class="wiz-stepper" aria-label="Tiến trình tạo thương hiệu">
+  <a class="wiz-step is-done" href="welcome-mode-premium.html"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Bắt đầu</span></a>
+  <div class="wiz-step-bar"></div>
+  <a class="wiz-step is-done" href="personality.html"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Phong cách</span></a>
+  <div class="wiz-step-bar"></div>
+  <a class="wiz-step is-done" href="assets-portrait.html"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Hình ảnh</span></a>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step is-current"><span class="wiz-step-dot">4</span><span>Tạo &amp; Duyệt</span></div>
+  <div class="wiz-step-bar"></div>
+  <a class="wiz-step" href="done.html"><span class="wiz-step-dot">5</span><span>Triển khai</span></a>
+</nav>
+
+<section class="wiz-main">
+  <div class="wiz-eyebrow">Bước 4 / 5 · FULL_AI · Kết quả</div>
+  <h1 class="wiz-title">AI đã vẽ 3 banner gốc cho trung tâm 🎨</h1>
+  <p class="wiz-subtitle">GPT-5.5 vẽ từ ảnh chân dung Thầy Nhì + phong cách đã chọn. Chọn 1 bản — chỉ trừ 1 lượt khi chị/anh giữ bản này.</p>
+
+  <p class="wiz-label" style="max-width:760px;">3 biến thể AI vẽ — chọn 1</p>
+  <div class="variant-pick">
+    <div class="variant-card is-selected" tabindex="0" role="button" aria-pressed="true">
+      <div class="variant-thumb" style="background: linear-gradient(135deg, hsl(265 60% 45%), hsl(199 89% 48%));"><span class="ai-tag">AI gốc</span>Luyện thi cùng Thầy Nhì</div>
+      <div class="variant-cap"><span><i data-lucide="check-circle-2" class="w-3.5 h-3.5" style="display:inline; color:hsl(var(--accent));"></i> Bản A · giáo viên</span></div>
+    </div>
+    <div class="variant-card" tabindex="0" role="button" aria-pressed="false">
+      <div class="variant-thumb" style="background: linear-gradient(135deg, hsl(20 90% 50%), hsl(45 90% 50%));"><span class="ai-tag">AI gốc</span>Bứt phá điểm số</div>
+      <div class="variant-cap"><span>Bản B · lớp học</span></div>
+    </div>
+    <div class="variant-card" tabindex="0" role="button" aria-pressed="false">
+      <div class="variant-thumb" style="background: linear-gradient(135deg, hsl(221 50% 25%), hsl(265 50% 45%));"><span class="ai-tag">AI gốc</span>Cam kết đầu ra</div>
+      <div class="variant-cap"><span>Bản C · trừu tượng</span></div>
+    </div>
+  </div>
+
+  <div class="ready-grid">
+    <div>
+      <div class="preview-frame">
+        <div class="preview-frame-head">
+          <span class="preview-frame-dots"><span></span><span></span><span></span></span>
+          <span class="mono" style="font-size:0.7rem;">thay-nhi.kiteclass.vn</span>
+        </div>
+        <div class="preview-iframe">
+          <div class="fake-tenant-nav">
+            <div style="display:flex; align-items:center; gap:0.4rem;">
+              <span class="fav-tile sz16" style="border-radius:3px;">N</span>
+              <strong style="font-size:0.8rem;">Trung tâm Luyện thi Thầy Nhì</strong>
+            </div>
+            <span style="font-size:0.7rem; background:white; color:hsl(var(--primary)); padding:0.15rem 0.5rem; border-radius:999px; font-weight:700;">Đăng ký</span>
+          </div>
+          <div class="fake-tenant-hero" style="background: linear-gradient(135deg, hsl(265 60% 45% / 0.12), hsl(199 89% 48% / 0.12));">
+            <div class="fake-tenant-logo" style="background: linear-gradient(135deg, hsl(265 60% 45%), hsl(199 89% 48%));">N</div>
+            <strong style="font-size:0.95rem; text-align:center;">Luyện thi cùng Thầy Nhì — cam kết đầu ra</strong>
+            <span style="font-size:0.72rem; color:hsl(var(--muted-foreground)); text-align:center;">Banner AI vẽ riêng · học thử miễn phí</span>
+          </div>
+        </div>
+      </div>
+      <p class="wiz-hint" style="margin-top:0.5rem;">
+        <i data-lucide="eye" class="w-3.5 h-3.5" style="display:inline; color:hsl(var(--accent));"></i>
+        Bản render giống hệt trang thật sẽ lên sóng (WYSIWYG).
+      </p>
+    </div>
+
+    <div>
+      <div class="qgate pass">
+        <div class="qgate-head">
+          <span style="font-weight:600; font-size:0.9rem; display:flex; align-items:center; gap:0.4rem;"><i data-lucide="shield-check" class="w-4 h-4" style="color:hsl(var(--success));"></i> Điểm chất lượng</span>
+          <span class="qgate-score">91<span class="qgate-score-out">/100</span></span>
+        </div>
+        <div class="qgate-bar"><span style="width:91%;"></span></div>
+        <div class="qgate-checks">
+          <div class="qgate-check ok">Ảnh AI rõ nét, không méo khuôn mặt</div>
+          <div class="qgate-check ok">Chữ tiếng Việt overlay sắc nét</div>
+          <div class="qgate-check ok">Độ tương phản đạt WCAG AA</div>
+          <div class="qgate-check ok">Phong cách khớp "Chuyên nghiệp"</div>
+        </div>
+        <p class="wiz-hint" style="margin:0;">Đạt ngưỡng ≥70 — sẵn sàng triển khai.</p>
+      </div>
+
+      <!-- Quota meter (GAP-1218: trừ 1 lượt khi giữ bản thật) -->
+      <div class="quota-meter" style="margin-top:1rem;">
+        <span class="quota-dots">
+          <span></span><span></span><span></span><span></span><span class="spent"></span>
+        </span>
+        <span>Còn <strong>4 / 5</strong> lượt — sẽ trừ 1 khi giữ bản này</span>
+      </div>
+
+      <p class="wiz-label" style="margin-top:1.25rem;">Chọn phần muốn áp dụng</p>
+      <div class="approve-stack">
+        <div class="approve-row is-on">
+          <div class="approve-row-label"><span class="approve-row-title">Banner AI (Bản A)</span><span class="approve-row-desc">Ảnh GPT-5.5 gốc</span></div>
+          <div class="switch is-on" role="switch" aria-checked="true" tabindex="0"></div>
+        </div>
+        <div class="approve-row is-on">
+          <div class="approve-row-label"><span class="approve-row-title">Bảng màu</span><span class="approve-row-desc">Tím-xanh từ banner</span></div>
+          <div class="switch is-on" role="switch" aria-checked="true" tabindex="0"></div>
+        </div>
+        <div class="approve-row is-on">
+          <div class="approve-row-label"><span class="approve-row-title">Logo + favicon</span><span class="approve-row-desc">Logo chữ "N"</span></div>
+          <div class="switch is-on" role="switch" aria-checked="true" tabindex="0"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="wiz-hint" style="max-width:980px; margin-top:1rem;">
+    Mô phỏng trạng thái khác:
+    <a href="generate-quota-empty.html" style="text-decoration:underline; color:hsl(var(--primary));">hết hạn mức FULL_AI</a> ·
+    <a href="generate-failed.html" style="text-decoration:underline; color:hsl(var(--primary));">AI vẽ lỗi (FAILED)</a> ·
+    <a href="generate-ready.html" style="text-decoration:underline; color:hsl(var(--primary));">bản TEMPLATE (BASIC)</a>
+  </p>
+</section>
+
+<footer class="wiz-foot">
+  <a class="btn btn-ghost" href="generate-generating.html"><i data-lucide="arrow-left" class="w-4 h-4"></i> Vẽ lại</a>
+  <div class="text-xs muted">Bước 4 / 5 · điểm 91/100 · trừ 1 lượt khi giữ</div>
+  <a class="btn btn-primary" href="deploy-progress.html"><i data-lucide="rocket" class="w-4 h-4"></i> Giữ bản này &amp; triển khai</a>
+</footer>
+
+</main>
+<script>lucide.createIcons();</script>
+</body>
+</html>

@@ -4,12 +4,15 @@
 <link rel="icon" type="image/svg+xml" href="../../_shared/assets/favicon.svg">
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>AI Branding Wizard v3 — KC per-tenant (ADR-037) · kit index</title>
+<title>AI Branding Wizard v3 — output-first ≤5 bước (ADR-037) · kit index</title>
 <!--
-  v3 hub — KiteClass per-tenant branding wizard refresh per ADR-037.
-  Canonical: wizard 9 bước (BrandingWizard.tsx + ADR-037 + bước Thông tin GAP-1234) + 3 màn editor nội dung landing (GAP-815).
-  Tier canonical FREE/BASIC/PREMIUM/ENTERPRISE (PricingTier.java) — KHÔNG dùng PRO.
-  Wave ui-kits-100 Bucket D · GAP-1212 · content-steps 2026-06-12: GAP-1234 (bước Thông tin) + GAP-815 design source (editor).
+  v3 hub — KiteClass per-tenant branding wizard, REDESIGN output-first (GAP-1212 v2 / Wave branding-100).
+  Bộ bước §2.5 (hội tụ 3 audit 2026-06-11): Welcome+Mode (escape-ramp) → Brand personality (gộp Audience+Tone)
+  → Assets (Logo/Portrait optional, branch theo mode) → Generate & Live Preview THẬT (multi-variant + quality gate /100
+  + per-resource approve) → Deploy (SSE + FAILED recovery) → Hoàn tất + link landing. Generate xảy ra NGAY sau personality.
+  Click-through navigation (GAP-1233) + content facts progressive-disclosure (GAP-1234) + 3 màn editor (GAP-815).
+  Tier canonical FREE/BASIC/PREMIUM/ENTERPRISE (PricingTier.java); FULL_AI = PREMIUM 5/tháng + ENTERPRISE unlimited (GAP-1137).
+  Chạy ở kiteclass-frontend :3000 (KC nghiệp vụ trường, per kitehub-kiteclass-boundary.md §2).
 -->
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
@@ -26,6 +29,8 @@
   .screen-link .score { font-family: var(--font-mono); font-size:0.75rem; color: hsl(var(--success)); font-weight:600; }
   .sect { background: hsl(var(--card)); border:1px solid hsl(var(--border)); border-radius: var(--radius); padding:1.5rem; }
   .layer-table td, .layer-table th { padding:0.4rem 0.65rem; border-bottom:1px solid hsl(var(--border)); font-size:0.8rem; text-align:left; vertical-align:top; }
+  .flow-step { display:flex; align-items:center; gap:0.4rem; padding:0.35rem 0.7rem; border-radius:999px; background:hsl(var(--primary) / 0.08); color:hsl(var(--primary)); font-size:0.78rem; font-weight:600; white-space:nowrap; }
+  .flow-arrow { color:hsl(var(--muted-foreground)); }
 </style>
 </head>
 <body style="background: hsl(var(--muted) / 0.4);">
@@ -33,8 +38,8 @@
 <header class="wiz-topbar">
   <div class="wiz-brand"><span class="wiz-brand-mark">K</span>
     <div>
-      <div style="font-weight:700;">AI Branding Wizard v3</div>
-      <div class="text-xs muted">KiteClass per-tenant · ADR-037 · GAP-1212</div>
+      <div style="font-weight:700;">AI Branding Wizard v3 — output-first</div>
+      <div class="text-xs muted">KiteClass per-tenant · ADR-037 · GAP-1212 v2 · Wave branding-100</div>
     </div>
   </div>
   <div class="flex items-center gap-2 text-xs">
@@ -48,26 +53,41 @@
 <main class="max-w-5xl mx-auto px-6 py-8 space-y-6">
 
   <section class="sect">
-    <h1 class="text-2xl font-extrabold mb-2">Wizard tạo thương hiệu KiteClass (per-tenant)</h1>
+    <h1 class="text-2xl font-extrabold mb-2">Wizard tạo thương hiệu KiteClass — redesign output-first</h1>
     <p class="muted text-sm">
-      Refresh v2 (Direction C / KH-provisioning) → khớp wizard production hiện hành
-      (<code style="background:hsl(var(--muted)); padding:0.1rem 0.35rem; border-radius:4px;">BrandingWizard.tsx</code>: Welcome → Logo → Đối tượng → Phong cách → Mẫu → Phê duyệt)
-      cộng các bước AI mới theo <strong>ADR-037</strong> (chế độ AI TEMPLATE/FULL_AI, ảnh chân dung, banner GENERATING/FAILED/READY, SSE deploy)
-      và <strong>bước Thông tin trung tâm</strong> (GAP-1234 — facts thật cho AI soạn nội dung, không bịa số liệu) + <strong>trình chỉnh sửa nội dung landing</strong> (GAP-815 — 7 section, hybrid AI-draft/manual/auto).
+      Thiết kế lại theo bộ bước hội tụ từ 3 audit (persona / benchmark / failure-mode 2026-06-11):
+      <strong>≤5 bước nhập liệu</strong>, AI tạo bản xem trước thật <strong>ngay sau bước Phong cách</strong> (output-first),
+      các bước sau là tinh chỉnh. Chế độ AI (TEMPLATE/FULL_AI) lên đầu, logo không bắt buộc, escape-ramp "Tạo ngay với mặc định".
       Chạy ở <strong>kiteclass-frontend :3000</strong> (KC nghiệp vụ trường).
     </p>
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 text-sm">
+
+    <!-- Bộ bước output-first §2.5 -->
+    <div style="display:flex; flex-wrap:wrap; align-items:center; gap:0.4rem; margin-top:1rem;">
+      <span class="flow-step"><i data-lucide="rocket" class="w-3.5 h-3.5"></i> Bắt đầu + Chế độ</span>
+      <i data-lucide="arrow-right" class="w-4 h-4 flow-arrow"></i>
+      <span class="flow-step"><i data-lucide="palette" class="w-3.5 h-3.5"></i> Phong cách (gộp)</span>
+      <i data-lucide="arrow-right" class="w-4 h-4 flow-arrow"></i>
+      <span class="flow-step"><i data-lucide="image" class="w-3.5 h-3.5"></i> Hình ảnh (tùy chọn)</span>
+      <i data-lucide="sparkles" class="w-4 h-4 flow-arrow" style="color:hsl(var(--accent));"></i>
+      <span class="flow-step" style="background:hsl(var(--accent) / 0.1); color:hsl(var(--accent));"><i data-lucide="eye" class="w-3.5 h-3.5"></i> Tạo &amp; Duyệt THẬT</span>
+      <i data-lucide="arrow-right" class="w-4 h-4 flow-arrow"></i>
+      <span class="flow-step"><i data-lucide="cloud-upload" class="w-3.5 h-3.5"></i> Triển khai (SSE)</span>
+      <i data-lucide="arrow-right" class="w-4 h-4 flow-arrow"></i>
+      <span class="flow-step" style="background:hsl(var(--success) / 0.12); color:hsl(var(--success));"><i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> Hoàn tất + landing</span>
+    </div>
+
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5 text-sm">
       <div class="p-3 rounded-lg" style="background:hsl(var(--primary) / 0.08);">
-        <div class="text-2xl font-extrabold" style="color:hsl(var(--primary));">15</div>
+        <div class="text-2xl font-extrabold" style="color:hsl(var(--primary));">17</div>
         <div class="text-xs">màn hình v3</div>
       </div>
       <div class="p-3 rounded-lg" style="background:hsl(var(--success) / 0.08);">
-        <div class="text-2xl font-extrabold" style="color:hsl(var(--success));">9</div>
-        <div class="text-xs">bước wizard</div>
+        <div class="text-2xl font-extrabold" style="color:hsl(var(--success));">≤5</div>
+        <div class="text-xs">bước nhập liệu</div>
       </div>
       <div class="p-3 rounded-lg" style="background:hsl(var(--accent) / 0.08);">
-        <div class="text-2xl font-extrabold" style="color:hsl(var(--accent));">4</div>
-        <div class="text-xs">affordance ADR-037</div>
+        <div class="text-2xl font-extrabold" style="color:hsl(var(--accent));">9</div>
+        <div class="text-xs">trạng thái Generate/Deploy</div>
       </div>
       <div class="p-3 rounded-lg" style="background:hsl(var(--warning) / 0.1);">
         <div class="text-2xl font-extrabold" style="color:hsl(38 92% 42%);">~114</div>
@@ -76,38 +96,52 @@
     </div>
   </section>
 
+  <!-- Luồng chính (click-through GAP-1233) -->
   <section class="sect">
-    <h2 class="text-lg font-bold mb-4">Các bước wizard (click-through từ bước 1 — GAP-1233)</h2>
+    <h2 class="text-lg font-bold mb-1">Luồng chính — bắt đầu click ở đây (GAP-1233)</h2>
+    <p class="muted text-sm mb-4">Walk được trọn bằng click cho cả 2 nhánh TEMPLATE (BASIC) và FULL_AI (PREMIUM).</p>
     <div class="grid sm:grid-cols-2 gap-2">
-      <a class="screen-link" href="screens/step1-welcome.html">1 · Chào mừng + tenant <span class="score">112</span></a>
-      <a class="screen-link" href="screens/step2-info.html"><strong>2 · Thông tin trung tâm — facts thật cho AI</strong> (GAP-1234) <span class="score">112</span></a>
-      <a class="screen-link" href="screens/step3-logo.html">3 · Logo + favicon (GAP-1229) <span class="score">113</span></a>
-      <a class="screen-link" href="screens/step5-audience.html">5 · Đối tượng <span class="score">113</span></a>
-      <a class="screen-link" href="screens/step6-tone.html">6 · Phong cách <span class="score">116</span></a>
-      <a class="screen-link" href="screens/step7-template.html">7 · Mẫu thiết kế (TEMPLATE) <span class="score">114</span></a>
-      <a class="screen-link" href="screens/step9-preview.html"><strong>9 · Phê duyệt + SSE deploy</strong> <span class="score">118</span></a>
+      <a class="screen-link" href="screens/welcome-mode.html"><strong>1 · Bắt đầu + Chế độ AI</strong> (escape-ramp) <span class="score">116</span></a>
+      <a class="screen-link" href="screens/personality.html"><strong>2 · Phong cách</strong> — gộp Đối tượng + Phong cách + facts (GAP-1234) <span class="score">115</span></a>
+      <a class="screen-link" href="screens/assets-logo.html">3 · Hình ảnh — Logo + favicon (tùy chọn, GAP-1229) <span class="score">113</span></a>
+      <a class="screen-link" href="screens/generate-ready.html"><strong>4 · Tạo &amp; Duyệt THẬT</strong> — multi-variant + quality gate + approve <span class="score">119</span></a>
+      <a class="screen-link" href="screens/deploy-progress.html">5 · Triển khai — SSE progress (GAP-1021) <span class="score">113</span></a>
+      <a class="screen-link" href="screens/done.html"><strong>Hoàn tất + link landing tenant</strong> (GAP-1108) <span class="score">116</span></a>
     </div>
   </section>
 
+  <!-- Trạng thái Generate (states bắt buộc — failure-mode audit) -->
   <section class="sect" style="border-color:hsl(var(--accent) / 0.4); background:linear-gradient(135deg, hsl(var(--accent) / 0.04), hsl(var(--primary) / 0.04));">
-    <div class="flex items-center gap-2 mb-4">
+    <div class="flex items-center gap-2 mb-1">
       <i data-lucide="sparkles" class="w-5 h-5" style="color:hsl(var(--accent));"></i>
-      <h2 class="text-lg font-bold">Bước mới theo ADR-037</h2>
+      <h2 class="text-lg font-bold">Trạng thái Tạo &amp; Triển khai — đủ states (failure-mode audit 23/42 vỡ)</h2>
     </div>
+    <p class="muted text-sm mb-4">Mỗi trạng thái có lối thoát rõ — không dead-end (GAP-1216).</p>
     <div class="grid sm:grid-cols-2 gap-2">
-      <a class="screen-link" href="screens/step4-mode.html"><strong>4 · Chế độ AI — TEMPLATE vs FULL_AI</strong> (GAP-1147) <span class="score">115</span></a>
-      <a class="screen-link" href="screens/step7a-portrait.html">8a · Ảnh chân dung FULL_AI (GAP-1134) <span class="score">110</span></a>
-      <a class="screen-link" href="screens/step8-banner-generating.html">8 · Banner GENERATING + SSE (GAP-1135/1021) <span class="score">112</span></a>
-      <a class="screen-link" href="screens/step8-banner-failed.html">8 · Banner FAILED + fallback (GAP-1135) <span class="score">113</span></a>
-      <a class="screen-link" href="screens/step8-banner-ready.html">8 · Banner READY + regen counter (GAP-1135) <span class="score">115</span></a>
+      <a class="screen-link" href="screens/generate-generating.html">Tạo · GENERATING + SSE (GAP-1135/1021) <span class="score">112</span></a>
+      <a class="screen-link" href="screens/generate-failed.html">Tạo · FAILED + phục hồi (retry/fallback/back — GAP-1216) <span class="score">114</span></a>
+      <a class="screen-link" href="screens/generate-quality-fail.html">Tạo · Quality gate &lt;70 + hướng dẫn (GAP-1217) <span class="score">113</span></a>
+      <a class="screen-link" href="screens/generate-quota-empty.html">Tạo · Hết hạn mức FULL_AI (GAP-1218) <span class="score">112</span></a>
+      <a class="screen-link" href="screens/deploy-failed.html">Triển khai · FAILED + phục hồi (GAP-1108/1216) <span class="score">113</span></a>
     </div>
   </section>
 
+  <!-- Nhánh FULL_AI (PREMIUM variant) -->
   <section class="sect">
-    <h2 class="text-lg font-bold mb-4">Nội dung landing — bước facts + editor 7 section (GAP-1234 + GAP-815)</h2>
-    <p class="muted text-sm mb-3">Wizard thu facts thật (bước 2) để AI soạn nội dung không bịa; editor <code>Cài đặt → Trang giới thiệu</code> chỉnh đầy đủ sau onboard. Ranh giới chính trực: AI draft cho copy thấp rủi ro · stats auto từ data thật · testimonials chỉ nhập tay.</p>
+    <h2 class="text-lg font-bold mb-1">Nhánh FULL_AI — biến thể PREMIUM (GAP-1147/1137)</h2>
+    <p class="muted text-sm mb-4">FULL_AI mở khóa ở PREMIUM (5 lượt GPT-5.5/tháng) + ENTERPRISE (không giới hạn). Chỉ trừ lượt khi giữ bản thật (GAP-1218).</p>
     <div class="grid sm:grid-cols-2 gap-2">
-      <a class="screen-link" href="screens/step2-info.html"><strong>Wizard 2 · Thông tin trung tâm</strong> (GAP-1234) <span class="score">112</span></a>
+      <a class="screen-link" href="screens/welcome-mode-premium.html"><strong>1 (PREMIUM) · Bắt đầu + FULL_AI mở khóa</strong> + quota meter <span class="score">114</span></a>
+      <a class="screen-link" href="screens/assets-portrait.html">3 (FULL_AI) · Ảnh chân dung → AI vẽ banner (GAP-1134) <span class="score">111</span></a>
+      <a class="screen-link" href="screens/generate-ready-fullai.html">4 (FULL_AI) · Multi-variant AI vẽ + quality gate + quota <span class="score">116</span></a>
+    </div>
+  </section>
+
+  <!-- Nội dung landing — editor 7 section (GAP-815) -->
+  <section class="sect">
+    <h2 class="text-lg font-bold mb-1">Nội dung landing — editor 7 section (GAP-815, giữ nguyên)</h2>
+    <p class="muted text-sm mb-4">Facts thật thu ở bước 2 (progressive-disclosure) → AI soạn nội dung không bịa. Editor <code>Cài đặt → Trang giới thiệu</code> chỉnh đầy đủ sau onboard. Liên kết 2 chiều với wizard.</p>
+    <div class="grid sm:grid-cols-2 gap-2">
       <a class="screen-link" href="screens/editor-overview.html"><strong>Editor · Tổng quan 7 section</strong> (GAP-815) <span class="score">110</span></a>
       <a class="screen-link" href="screens/editor-section-ai-draft.html">Editor · AI soạn nháp + GV duyệt (About/FAQ/Pricing) <span class="score">111</span></a>
       <a class="screen-link" href="screens/editor-testimonials.html">Editor · Đánh giá thật — KHÔNG nút AI <span class="score">110</span></a>
@@ -119,10 +153,10 @@
     <table class="layer-table" style="width:100%; border-collapse:collapse;">
       <thead><tr><th>Layer</th><th>Artifact pointer</th></tr></thead>
       <tbody>
-        <tr><td><strong>要件定義</strong><br>(Requirements)</td><td>GAP-1212 §AC · GAP-1229 (favicon) · GAP-1147/1134/1135/1021 (cụm AI chain) · ADR-037 Context/Decision · types.ts unions (Audience/Tone/Tier)</td></tr>
-        <tr><td><strong>基本設計</strong><br>(External design)</td><td>15 màn hình v3 trong <code>v3/screens/*.html</code> (Welcome→<strong>Info</strong>→Logo→Mode→Audience→Tone→Template→Banner{generating/failed/ready}→Preview + nhánh Portrait + 3 màn editor GAP-815)</td></tr>
-        <tr><td><strong>詳細設計</strong><br>(Internal design)</td><td><code>BrandingWizard.tsx</code> + <code>wizard-machine.ts</code> state machine · ADR-037 generation route (Gemini text/template · GPT-5.5 FULL_AI) · GenerationMode.forTier · FullAiQuotaService · SSE <code>GET /api/v1/branding/{id}/events</code></td></tr>
-        <tr><td><strong>コンポーネント設計</strong><br>(Component design)</td><td>WelcomeStep/LogoStep/AudienceStep/ToneStep/TemplateStep/PreviewStep.tsx · RegenerateCounter/SegmentPicker/WizardProgress.tsx · (mới) ModeSelectorStep/PortraitUploadStep/BannerGenerateStage/SseLog/FaviconUploadField</td></tr>
+        <tr><td><strong>要件定義</strong><br>(Requirements)</td><td>GAP-1212 §AC + 3 audit 2026-06-11 (persona/benchmark/failure-mode) · GAP-1147/1134/1135/1021/1108/1216/1217/1218 (cụm AI chain) · ADR-037 Context/Decision · benchmark "output-first ≤5 bước"</td></tr>
+        <tr><td><strong>基本設計</strong><br>(External design)</td><td>17 màn hình v3 trong <code>v3/screens/*.html</code> — luồng output-first (Welcome+Mode → Personality → Assets → Generate{generating/ready/failed/quality-fail/quota-empty + fullai variant} → Deploy{progress/failed} → Done) + 3 màn editor GAP-815</td></tr>
+        <tr><td><strong>詳細設計</strong><br>(Internal design)</td><td><code>BrandingWizard.tsx</code> + <code>wizard-machine.ts</code> · ADR-037 generation route · GenerationMode.forTier · FullAiQuotaService · quality-score aggregator (GET /branding/jobs/{id}/quality-score) · SSE <code>GET /api/v1/branding/{id}/events</code> · outbox branding.deployed → KC-core consumer</td></tr>
+        <tr><td><strong>コンポーネント設計</strong><br>(Component design)</td><td>WelcomeStep/ModeSelectorStep/BrandPersonalityStep(Audience+Tone)/LogoStep/PortraitUploadStep/PreviewStep · VariantPicker/QualityGateWidget/QuotaMeter/approve-row/switch · BannerGenerateStage{generating/ready/failed}/FailedRecoveryActions · DeployingStep/Lifecycle/SseLog/DeployDoneCard · TenantInfoDetails/FaviconUploadField</td></tr>
       </tbody>
     </table>
   </section>
