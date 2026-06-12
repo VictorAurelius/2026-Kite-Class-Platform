@@ -42,3 +42,11 @@ Mỗi reference khiến Claude (và reader) nhận thức SAI rằng `kiteclass.
 - Sister: GAP-1088 (kitehub.vn/.com email domain drift — different domain, out of scope here)
 - Canonical: GAP-458/459 (kitehub.me Path C), `env-reference.yaml` domain_root
 - Meta: `cross-flow-bug-class-sweep.md` §4.1 (statically-detectable → persistent detector), `kitehub-kiteclass-boundary.md` v1.0.1
+
+## Log — 2026-06-12: merged PR #2374
+
+Sweep merged (#2374, 281 files): code runtime + infra + docs ACTIVE + boundary rule §2 +
+CI detector `check-stale-domain-references.sh` (WARN-mode job `stale-domain-references`,
+strict scan 0 finding). Post-merge: UI kits landing parity smoke ✅; terraform fmt hotfix
+c0bd957ba cùng branch trước merge. Residual cosmetic (ngoài scope): terraform identifier
+`kiteclass_com_*` trong modules/dns (commented-out block, detector không match identifier).
