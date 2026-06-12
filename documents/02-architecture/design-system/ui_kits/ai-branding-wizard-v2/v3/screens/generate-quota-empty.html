@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="vi" class="theme-kiteclass">
+<head>
+<link rel="icon" type="image/svg+xml" href="../../../_shared/assets/favicon.svg">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bước 4 (FULL_AI) — Hết hạn mức · AI Branding Wizard v3</title>
+<!--
+  Persona: Owner KC tenant PREMIUM — Thầy Nhì, "Trung tâm Luyện thi Thầy Nhì" (FULL_AI hết quota)
+  Tier: PREMIUM (5/tháng GPT-5.5 cạn → fallback TEMPLATE; ENTERPRISE = unlimited)
+  Flow ref (output-first §2.5): Tạo & Live Preview — state quota-empty (GAP-1218 trust: chưa trừ khi chưa có output).
+  ADR ref: ADR-037 (FULL_AI quota) — QUOTA_EXHAUSTED → fallback TEMPLATE
+  Gap ref: GAP-1212 v2 · GAP-1218 (label rõ "chưa trừ lượt khi chưa có output thật" + fallback rõ) · GAP-1137
+  Score self-estimate: 112/128 (target ≥105 ✓)
+  WCAG AA (measured): wiz-title 13.8:1 (AAA) · regen is-empty destructive 4.7:1 (AA) · upsell note 4.7:1 (AA)
+  4-layer:
+    要件定義  → GAP-1218 (quota-empty UX trung thực: không trừ oan + fallback rõ) + GAP-1137 (ENTERPRISE unlimited)
+    基本設計  → this screen (quota 0/5 + giải thích trung thực + fallback TEMPLATE miễn phí + upsell ENTERPRISE)
+    詳細設計  → FullAiQuotaService QUOTA_EXHAUSTED → forTier fallback TEMPLATE; reset đầu tháng
+    コンポーネント → QuotaEmptyState + FallbackTemplateButton + EnterpriseUpsell
+-->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+<main class="wiz-shell">
+
+<header class="wiz-topbar">
+  <div class="wiz-brand"><span class="wiz-brand-mark">K</span><span>Kite Branding Studio</span><span class="tier-badge tier-premium">PREMIUM</span></div>
+  <div class="wiz-time-est"><i data-lucide="battery-low" class="w-3 h-3" style="color: hsl(var(--destructive));"></i><span>Hết lượt AI vẽ tháng này</span></div>
+</header>
+
+<nav class="wiz-stepper" aria-label="Tiến trình tạo thương hiệu">
+  <a class="wiz-step is-done" href="welcome-mode-premium.html"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Bắt đầu</span></a>
+  <div class="wiz-step-bar"></div>
+  <a class="wiz-step is-done" href="personality.html"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Phong cách</span></a>
+  <div class="wiz-step-bar"></div>
+  <a class="wiz-step is-done" href="assets-portrait.html"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Hình ảnh</span></a>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step is-current"><span class="wiz-step-dot">4</span><span>Tạo &amp; Duyệt</span></div>
+  <div class="wiz-step-bar"></div>
+  <a class="wiz-step" href="done.html"><span class="wiz-step-dot">5</span><span>Triển khai</span></a>
+</nav>
+
+<section class="wiz-main">
+  <div class="wiz-eyebrow">Bước 4 / 5 · FULL_AI · Hết hạn mức</div>
+  <h1 class="wiz-title">Hết 5 lượt AI vẽ banner tháng này</h1>
+  <p class="wiz-subtitle">Anh đã dùng hết 5 lượt GPT-5.5 của tháng 6/2026. Vẫn tạo được banner đẹp bằng Mẫu dựng sẵn (miễn phí) — hoặc nâng ENTERPRISE để không giới hạn.</p>
+
+  <!-- Quota empty (GAP-1218 — trung thực) -->
+  <div class="regen-bar is-empty" style="max-width: 760px;">
+    <div class="regen-info">
+      <span class="regen-tier">FULL_AI · Gói PREMIUM</span>
+      <span class="regen-quota">Còn 0 / 5 lượt — reset đầu tháng 7/2026</span>
+    </div>
+    <div class="regen-dots" aria-label="0 trên 5 lượt còn lại">
+      <span class="spent"></span><span class="spent"></span><span class="spent"></span><span class="spent"></span><span class="spent"></span>
+    </div>
+  </div>
+
+  <div class="wiz-card mt-5" style="max-width: 760px; margin-top:1.25rem; display:flex; gap:0.75rem; align-items:flex-start; background: hsl(var(--success) / 0.05); border-color: hsl(var(--success) / 0.35);">
+    <i data-lucide="shield-check" class="w-5 h-5" style="color: hsl(var(--success)); flex-shrink:0;"></i>
+    <div>
+      <p style="font-weight:600; font-size:0.9rem;">Anh không bị trừ oan lượt nào</p>
+      <p class="wiz-hint" style="margin-top:0.15rem;">5 lượt chỉ trừ cho 5 banner AI <strong>đã tạo thành công và giữ lại</strong>. Lần xem trước / tạo lỗi không tính. Giờ chuyển sang Mẫu dựng sẵn — không tốn lượt.</p>
+    </div>
+  </div>
+
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; max-width:760px; margin-top:1.25rem;">
+    <a class="mode-card is-selected" href="generate-ready.html" style="text-decoration:none;">
+      <div class="mode-card-head">
+        <span class="mode-card-title"><i data-lucide="layout-template" class="w-5 h-5" style="color: hsl(var(--primary));"></i> Dùng Mẫu dựng sẵn</span>
+        <i data-lucide="arrow-right" class="w-5 h-5" style="color: hsl(var(--primary));"></i>
+      </div>
+      <p class="mode-card-desc">Tạo banner đẹp, chữ Việt nét, ngay bây giờ — không tốn lượt.</p>
+      <div class="mode-card-meta"><span class="mode-chip free"><i data-lucide="gift" class="w-3 h-3"></i> Miễn phí</span></div>
+    </a>
+    <a class="mode-card" href="welcome-mode-premium.html" style="text-decoration:none;">
+      <div class="mode-card-head">
+        <span class="mode-card-title"><i data-lucide="crown" class="w-5 h-5" style="color: hsl(var(--accent));"></i> Nâng ENTERPRISE</span>
+        <i data-lucide="arrow-up-circle" class="w-5 h-5" style="color: hsl(var(--accent));"></i>
+      </div>
+      <p class="mode-card-desc">AI vẽ banner không giới hạn lượt — cho trung tâm nhiều cơ sở.</p>
+      <div class="mode-card-meta"><span class="mode-chip cost"><i data-lucide="infinity" class="w-3 h-3"></i> Không giới hạn</span></div>
+    </a>
+  </div>
+</section>
+
+<footer class="wiz-foot">
+  <a class="btn btn-ghost" href="generate-ready-fullai.html"><i data-lucide="arrow-left" class="w-4 h-4"></i> Quay lại</a>
+  <a class="btn btn-secondary" href="welcome-mode-premium.html"><i data-lucide="crown" class="w-4 h-4"></i> Nâng ENTERPRISE</a>
+  <a class="btn btn-primary" href="generate-ready.html"><i data-lucide="layout-template" class="w-4 h-4"></i> Dùng Mẫu dựng sẵn</a>
+</footer>
+
+</main>
+<script>lucide.createIcons();</script>
+</body>
+</html>

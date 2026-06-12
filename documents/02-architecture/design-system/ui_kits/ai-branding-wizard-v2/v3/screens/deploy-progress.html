@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="vi" class="theme-kiteclass">
+<head>
+<link rel="icon" type="image/svg+xml" href="../../../_shared/assets/favicon.svg">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bước 5 — Đang triển khai (SSE) · AI Branding Wizard v3</title>
+<!--
+  Persona: Owner KC tenant — Cô Hà, "Trung tâm Tiếng Anh Cô Hà" (kiteclass-frontend :3000)
+  Tier: BASIC
+  Flow ref (output-first §2.5): Triển khai — SSE progress real-time (lifecycle stages + log). → Hoàn tất.
+  ADR ref: ADR-037 (deploy pipeline) + GAP-1021 (SSE deploy auth + persist active theme) + GAP-1213 (propagate KC-core)
+  Gap ref: GAP-1212 v2 · GAP-1021 (SSE) · GAP-1213 (propagate landing thật) · GAP-1108 (post-deploy)
+  Score self-estimate: 113/128 (target ≥105 ✓)
+  WCAG AA (measured): wiz-title 13.8:1 (AAA) · lifecycle-stage active 4.7:1 (AA) · sse-log ok 8.9:1 (AAA)
+  4-layer:
+    要件定義  → GAP-1021 (SSE deploy) + GAP-1213 (approve → propagate KC-core active theme — landing thật đổi)
+    基本設計  → this screen (lifecycle 4 stages + SSE log realtime; auto → Hoàn tất; simulate → FAILED)
+    詳細設計  → BrandingJob → approve → outbox branding.deployed → KC-core consumer áp theme; SSE deploy-stream
+    コンポーネント → DeployingStep + Lifecycle + SseLog + DeployStageTracker
+-->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+<main class="wiz-shell">
+
+<header class="wiz-topbar">
+  <div class="wiz-brand"><span class="wiz-brand-mark">K</span><span>Kite Branding Studio</span><span class="tier-badge tier-basic">BASIC</span></div>
+  <div class="wiz-time-est"><i data-lucide="rocket" class="w-3 h-3"></i><span>Đang lên sóng…</span></div>
+</header>
+
+<nav class="wiz-stepper" aria-label="Tiến trình tạo thương hiệu">
+  <a class="wiz-step is-done" href="welcome-mode.html"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Bắt đầu</span></a>
+  <div class="wiz-step-bar"></div>
+  <a class="wiz-step is-done" href="personality.html"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Phong cách</span></a>
+  <div class="wiz-step-bar"></div>
+  <a class="wiz-step is-done" href="assets-logo.html"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Hình ảnh</span></a>
+  <div class="wiz-step-bar"></div>
+  <a class="wiz-step is-done" href="generate-ready.html"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Tạo &amp; Duyệt</span></a>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step is-current"><span class="wiz-step-dot">5</span><span>Triển khai</span></div>
+</nav>
+
+<section class="wiz-main">
+  <div class="wiz-eyebrow">Bước 5 / 5 · Đang triển khai</div>
+  <h1 class="wiz-title">Đang đưa thương hiệu lên trang thật… 🚀</h1>
+  <p class="wiz-subtitle">AI đang áp logo, màu và banner vào trang giới thiệu của "Trung tâm Tiếng Anh Cô Hà". Theo dõi tiến trình bên dưới.</p>
+
+  <div class="lifecycle" style="max-width: 820px;">
+    <div class="lifecycle-stages">
+      <div class="lifecycle-stage done">
+        <span class="stage-name"><i data-lucide="check-circle-2" class="w-4 h-4"></i> Tạo xong</span>
+        <span class="stage-meta">3 biến thể · 86/100</span>
+      </div>
+      <div class="lifecycle-stage done">
+        <span class="stage-name"><i data-lucide="shield-check" class="w-4 h-4"></i> Kiểm chất lượng</span>
+        <span class="stage-meta">Đạt ≥70</span>
+      </div>
+      <div class="lifecycle-stage active">
+        <span class="stage-name"><i data-lucide="loader" class="w-4 h-4"></i> Áp vào trang thật</span>
+        <span class="stage-meta">Đang đẩy CDN…</span>
+      </div>
+      <div class="lifecycle-stage">
+        <span class="stage-name"><i data-lucide="globe" class="w-4 h-4"></i> Lên sóng</span>
+        <span class="stage-meta">co-ha-english.kiteclass.vn</span>
+      </div>
+    </div>
+    <div class="lifecycle-progress"><span style="width:62%;"></span></div>
+  </div>
+
+  <p class="wiz-label" style="margin-top:1.5rem; max-width:820px;">Nhật ký triển khai (thời gian thực · SSE)</p>
+  <div class="sse-log" role="log" aria-live="polite" style="max-width:820px;">
+    <div><span class="ts">[10:46:02]</span> <span class="ok">✓</span> Áp dụng logo + favicon</div>
+    <div><span class="ts">[10:46:04]</span> <span class="ok">✓</span> Cập nhật bảng màu thương hiệu (Xanh chuyên nghiệp)</div>
+    <div><span class="ts">[10:46:07]</span> <span class="ok">✓</span> Lưu nội dung hero + giới thiệu vào trang</div>
+    <div><span class="ts">[10:46:10]</span> <span class="run">▸</span> Đẩy banner WebP lên CDN… <span class="sse-cursor"></span></div>
+  </div>
+
+  <p class="wiz-hint" style="max-width:820px; margin-top:0.75rem;">
+    <i data-lucide="info" class="w-3.5 h-3.5" style="display:inline; color:hsl(var(--primary));"></i>
+    Giữ trang mở đến khi xong. Mất kết nối thì hệ thống tự nối lại (SSE reconnect).
+  </p>
+</section>
+
+<footer class="wiz-foot">
+  <a class="btn btn-ghost" href="generate-ready.html"><i data-lucide="x" class="w-4 h-4"></i> Hủy</a>
+  <a class="text-xs" href="deploy-failed.html" style="color:hsl(var(--muted-foreground)); text-decoration:underline;">Mô phỏng triển khai lỗi →</a>
+  <a class="btn btn-primary" href="done.html" title="Mô phỏng: triển khai xong → Hoàn tất"><i data-lucide="arrow-right" class="w-4 h-4"></i> Xem kết quả</a>
+</footer>
+
+</main>
+<script>lucide.createIcons();</script>
+</body>
+</html>

@@ -15,35 +15,42 @@
 
 ---
 
-## v3 (canonical) — KC per-tenant branding wizard per ADR-037
+## v3 (canonical) — KC per-tenant branding wizard, REDESIGN output-first
 
-**Folder:** [`v3/`](v3/index.html) · **Wave ui-kits-100 Bucket D · GAP-1212 · 2026-06-11**
+**Folder:** [`v3/`](v3/index.html) · **GAP-1212 v2 · Wave branding-100 · 2026-06-12** (redesign output-first; v3 ban đầu Wave ui-kits-100 Bucket D 2026-06-11 là flow 9-bước tuần tự)
 
-v3 refresh khớp wizard production hiện hành + cụm AI chain ADR-037. Khác v2 (KH-provisioning Direction C) ở 2 trục:
-1. **Surface đúng:** KC per-tenant branding wizard (`kiteclass-frontend :3000`, `BrandingWizard.tsx` state machine) — KHÔNG slug/tenant provisioning.
-2. **Bước AI mới (ADR-037):** mode selector TEMPLATE/FULL_AI (GAP-1147) · upload ảnh chân dung FULL_AI (GAP-1134) · trạng thái banner GENERATING/FAILED/READY (GAP-1135) · tiến trình SSE preview/deploy (GAP-1021). Tier canonical `FREE/BASIC/PREMIUM/ENTERPRISE`.
+v3 redesign theo bộ bước **output-first ≤5 bước** (hội tụ 3 audit 2026-06-11: persona / benchmark / failure-mode). Khác bản 9-bước trước ở 3 trục:
+1. **Output-first:** AI tạo bản xem trước thật **ngay sau bước Phong cách** (defaults); các bước sau là tinh chỉnh. Escape-ramp "Tạo ngay với mặc định" từ bước 1.
+2. **Gộp + giảm bước:** Chế độ AI (TEMPLATE/FULL_AI) lên ĐẦU (gộp Welcome); Đối tượng + Phong cách gộp 1 bước; facts thật (GAP-1234) gấp vào progressive-disclosure (không thêm bước chặn); logo không bắt buộc.
+3. **Đủ states (failure-mode audit 23/42 vỡ):** Generate{GENERATING/READY multi-variant/FAILED recovery/quality-fail/quota-empty} + Deploy{SSE progress/FAILED recovery} + Hoàn tất + link landing. Mỗi state có lối thoát (không dead-end, GAP-1216).
 
-| v3 screen | Bước | GAP / ADR |
+Tier canonical `FREE/BASIC/PREMIUM/ENTERPRISE`; FULL_AI = PREMIUM 5/tháng + ENTERPRISE unlimited (GAP-1137).
+
+| v3 screen | Bước / state | GAP / ADR |
 |---|---|---|
-| `step1-welcome` | 1 Chào mừng + tenant | GAP-1212 |
-| `step2-info` | 2 **Thông tin trung tâm** — facts thật (môn/năm KN/bằng cấp/học phí/sĩ số/khác biệt) cho AI draft | GAP-1234 (giải blank-page GAP-815 ghi nhận) + ADR-037 no-fabrication |
-| `step3-logo` | 3 Logo + **favicon** | GAP-1229 (favicon affordance 16/32px ≤200KB) |
-| `step4-mode` | 4 **Chế độ AI** TEMPLATE/FULL_AI | GAP-1147 + ADR-037 Amendment 2-mode |
-| `step5-audience` | 5 Đối tượng | GAP-1212 |
-| `step6-tone` | 6 Phong cách | GAP-1212 |
-| `step7-template` | 7 Mẫu (TEMPLATE route) | ADR-037 HTML+Gemini→Playwright→WebP |
-| `step7a-portrait` | 8a **Ảnh chân dung** (FULL_AI) | GAP-1134 |
-| `step8-banner-generating/failed/ready` | 8 **Banner states** | GAP-1135 (3 states) + GAP-1021 SSE |
-| `step9-preview` | 9 Phê duyệt + **SSE deploy** | GAP-1021 + §4.2 per-resource approve |
+| `welcome-mode` | 1 Bắt đầu + Chế độ AI (TEMPLATE/FULL_AI) + escape-ramp | GAP-1147 (mode) + GAP-1216 (escape) + GAP-1219 (copy) |
+| `welcome-mode-premium` | 1 biến thể PREMIUM — FULL_AI mở khóa + quota meter | GAP-1137 + GAP-1218 (quota label) |
+| `personality` | 2 **Phong cách** — gộp Đối tượng + Phong cách + facts thật (progressive-disclosure) | GAP-1212 v2 (gộp) + GAP-1234 (facts) + ADR-037 no-fabrication |
+| `assets-logo` | 3 Hình ảnh — Logo + **favicon** (tùy chọn, TEMPLATE branch) | GAP-1229 (favicon 16/32px) |
+| `assets-portrait` | 3 Hình ảnh — Ảnh chân dung (tùy chọn, FULL_AI branch) | GAP-1134 (portrait) + GAP-1160 |
+| `generate-generating` | 4 Tạo · GENERATING + SSE | GAP-1135 + GAP-1021 (SSE) |
+| `generate-ready` | 4 Tạo · READY — **multi-variant** + quality gate /100 + per-resource approve + preview | GAP-1135 + GAP-1217 (gate) + GAP-1021 (approve) + GAP-1215 (WYSIWYG) |
+| `generate-ready-fullai` | 4 Tạo · READY FULL_AI (biến thể PREMIUM, multi-variant AI image + quota) | GAP-1147 + GAP-1218 |
+| `generate-failed` | 4 Tạo · FAILED + phục hồi (thử lại / fallback TEMPLATE / quay lại) | GAP-1216 (dead-end fix) |
+| `generate-quality-fail` | 4 Tạo · Quality gate &lt;70 + hướng dẫn (chặn deploy) | GAP-1217 |
+| `generate-quota-empty` | 4 Tạo · Hết hạn mức FULL_AI (fallback TEMPLATE + upsell) | GAP-1218 (quota trust) |
+| `deploy-progress` | 5 Triển khai · SSE progress (lifecycle + log) | GAP-1021 + GAP-1213 (propagate KC-core) |
+| `deploy-failed` | 5 Triển khai · FAILED + phục hồi (bản tạo an toàn) | GAP-1216 + GAP-1108 |
+| `done` | Hoàn tất + **link landing tenant** + summary + CTA editor | GAP-1108 + GAP-1213 |
 | `editor-overview` | Editor · tổng quan 7 section (`Cài đặt → Trang giới thiệu`) | GAP-815 design source (基本設計) |
 | `editor-section-ai-draft` | Editor · AI soạn nháp + GV duyệt (About/Pain/Pricing/FAQ) | GAP-815 + GAP-827 sanitize + ADR-037 |
 | `editor-testimonials` | Editor · đánh giá thật — manual-only, **KHÔNG nút AI** | GAP-815 + Luật Quảng cáo VN + ADR-010 |
 
-**Content-entry mapping (2026-06-12, GAP-1234):** text landing (hero/about/pain/FAQ) = AI Gemini draft từ facts bước 2 + audience/tone; học phí + bằng cấp + năm KN = GV nhập bước 2; teachers = prefill hồ sơ GV; stats = auto từ data thật; testimonials = manual-only tại editor. Wizard 9 bước (8 + bước Thông tin); nhánh FULL_AI 8a giữ nguyên.
+**Content-entry mapping (GAP-1234):** text landing (hero/about/pain/FAQ) = AI Gemini draft từ facts (progressive-disclosure ở bước Phong cách) + audience/tone; học phí + bằng cấp + năm KN = GV nhập; teachers = prefill hồ sơ GV; stats = auto từ data thật; testimonials = manual-only tại editor.
 
-**Implementation cite kit v3 làm design source:** cụm GAP-1134/1147/1135/1021 dùng `v3/screens/*.html` làm 基本設計 (Layer 2). 4-layer pointers đầy đủ trong [`v3/index.html`](v3/index.html) §4-layer coverage.
+**Implementation cite kit v3 làm design source:** cụm GAP-1021/1108/1134/1135/1147/1213/1216/1217/1218 dùng `v3/screens/*.html` làm 基本設計 (Layer 2). 4-layer pointers đầy đủ trong [`v3/index.html`](v3/index.html) §4-layer coverage.
 
-**Click-through navigation (GAP-1233 + renumber GAP-1234, 2026-06-12):** 15 screens v3 wire điều hướng thật giữa các bước (Figma-prototype equivalent) — stepper 9 vị trí là link nhảy bước, footer CTA đi theo flow `1→2→3→4→5→6→7→8→9`, rẽ nhánh ADR-037 walk được bằng click (step4-mode lock-note → nhánh FULL_AI `8a→8`; step8-generating có link mô phỏng kết quả Thành công/Lỗi; wizard ↔ editor link 2 chiều). Bắt đầu walk từ [`v3/screens/step1-welcome.html`](v3/screens/step1-welcome.html) — không cần quay về index giữa các bước. v2 archive giữ nguyên không wire (per annotation trên).
+**Click-through navigation (GAP-1233):** 17 screens v3 wire điều hướng thật giữa các bước (Figma-prototype equivalent) — stepper 5 vị trí là link nhảy bước, footer CTA đi theo flow output-first, escape-ramp + branch link (welcome → FULL_AI premium variant; generate-ready có simulate-result link tới failed/quality-fail/quota-empty/fullai; deploy-progress → deploy-failed; wizard ↔ editor link 2 chiều). Cả 2 nhánh TEMPLATE và FULL_AI walk được trọn bằng click. Bắt đầu walk từ [`v3/screens/welcome-mode.html`](v3/screens/welcome-mode.html). v2 archive giữ nguyên không wire (per annotation trên).
 
 ---
 

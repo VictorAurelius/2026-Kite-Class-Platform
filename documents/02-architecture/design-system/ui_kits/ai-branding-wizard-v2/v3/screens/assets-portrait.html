@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="vi" class="theme-kiteclass">
+<head>
+<link rel="icon" type="image/svg+xml" href="../../../_shared/assets/favicon.svg">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bước 3 (FULL_AI) — Ảnh chân dung · AI Branding Wizard v3</title>
+<!--
+  Persona: Owner KC tenant PREMIUM — Thầy Nhì, "Trung tâm Luyện thi Thầy Nhì" (FULL_AI branch)
+  Tier: PREMIUM (FULL_AI — ảnh chân dung → AI vẽ banner GPT-5.5)
+  Flow ref (output-first §2.5): Hình ảnh branch FULL_AI = portrait upload (thay logo). OPTIONAL — bỏ qua được.
+  ADR ref: ADR-037 (FULL_AI route GPT-5.5 image từ portrait); GAP-1134 (portrait upload step)
+  Gap ref: GAP-1212 v2 · GAP-1134 (portrait upload) · GAP-1160 (portrait inline data-URI)
+  Score self-estimate: 111/128 (target ≥105 ✓)
+  WCAG AA (measured): wiz-title 13.8:1 (AAA) · portrait ptag 7.0:1 (AAA) · consent note 4.7:1 (AA)
+  4-layer:
+    要件定義  → GAP-1134 §AC + ADR-037 (portrait → FULL_AI banner) + consent (ảnh người thật)
+    基本設計  → this screen (portrait-grid upload + consent checkbox + skip ramp → generate FULL_AI)
+    詳細設計  → PortraitUploadStep.tsx; presigned upload → inlineImageDataUri (GAP-1160); FULL_AI gen input
+    コンポーネント → PortraitUploadStep + PortraitTile + ConsentCheckbox
+-->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+<main class="wiz-shell">
+
+<header class="wiz-topbar">
+  <div class="wiz-brand"><span class="wiz-brand-mark">K</span><span>Kite Branding Studio</span><span class="tier-badge tier-premium">PREMIUM</span></div>
+  <div class="wiz-time-est"><i data-lucide="wand-sparkles" class="w-3 h-3"></i><span>Nhánh FULL_AI — tùy chọn</span></div>
+</header>
+
+<nav class="wiz-stepper" aria-label="Tiến trình tạo thương hiệu">
+  <a class="wiz-step is-done" href="welcome-mode-premium.html"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Bắt đầu</span></a>
+  <div class="wiz-step-bar"></div>
+  <a class="wiz-step is-done" href="personality.html"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Phong cách</span></a>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step is-current"><span class="wiz-step-dot">3</span><span>Hình ảnh</span></div>
+  <div class="wiz-step-bar"></div>
+  <a class="wiz-step" href="generate-ready-fullai.html"><span class="wiz-step-dot">4</span><span>Tạo &amp; Duyệt</span></a>
+  <div class="wiz-step-bar"></div>
+  <a class="wiz-step" href="done.html"><span class="wiz-step-dot">5</span><span>Triển khai</span></a>
+</nav>
+
+<section class="wiz-main">
+  <div class="wiz-eyebrow">Bước 3 / 5 · FULL_AI · Tùy chọn</div>
+  <h1 class="wiz-title">Ảnh chân dung giáo viên để AI vẽ banner</h1>
+  <p class="wiz-subtitle">GPT-5.5 dùng ảnh này để vẽ banner cá nhân hóa (giáo viên đứng lớp, không gian học). Bỏ qua thì AI vẽ banner không có người.</p>
+
+  <div class="portrait-grid" style="max-width: 620px;">
+    <div class="portrait-tile">
+      <i data-lucide="user" class="w-9 h-9"></i>
+      <span class="ptag">Thầy Nhì — đứng lớp</span>
+    </div>
+    <div class="portrait-tile">
+      <i data-lucide="users" class="w-9 h-9"></i>
+      <span class="ptag">Lớp học thực tế</span>
+    </div>
+    <div class="portrait-tile add" tabindex="0" role="button">
+      <i data-lucide="plus" class="w-7 h-7"></i>
+      <span style="font-size:0.78rem; margin-top:0.35rem;">Thêm ảnh</span>
+    </div>
+  </div>
+  <p class="wiz-hint" style="max-width:620px; margin-top:0.75rem;">JPG / PNG, rõ mặt, nền gọn. AI giữ khuôn mặt thật — không chỉnh sửa nhận diện.</p>
+
+  <!-- Consent (ảnh người thật) -->
+  <label class="wiz-card mt-5" style="max-width: 620px; margin-top:1.25rem; display:flex; gap:0.75rem; align-items:flex-start; cursor:pointer; background: hsl(var(--primary) / 0.04); border-color: hsl(var(--primary) / 0.3);">
+    <input type="checkbox" checked style="margin-top:0.2rem; width:18px; height:18px; accent-color: hsl(var(--primary));" />
+    <div>
+      <p style="font-weight:600; font-size:0.9rem;">Tôi có quyền sử dụng ảnh này</p>
+      <p class="wiz-hint" style="margin-top:0.15rem;">Ảnh giáo viên trong trung tâm, có sự đồng ý. AI không dùng ảnh cho mục đích khác ngoài tạo banner cho trang của chị/anh.</p>
+    </div>
+  </label>
+</section>
+
+<footer class="wiz-foot">
+  <a class="btn btn-ghost" href="personality.html"><i data-lucide="arrow-left" class="w-4 h-4"></i> Quay lại</a>
+  <a class="btn btn-secondary" href="generate-generating.html" title="Bỏ qua — AI vẽ banner không có người"><i data-lucide="skip-forward" class="w-4 h-4"></i> Bỏ qua</a>
+  <a class="btn btn-primary" href="generate-generating.html"><i data-lucide="wand-sparkles" class="w-4 h-4"></i> AI vẽ banner</a>
+</footer>
+
+</main>
+<script>lucide.createIcons();</script>
+</body>
+</html>

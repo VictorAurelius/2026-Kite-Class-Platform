@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="vi" class="theme-kiteclass">
+<head>
+<link rel="icon" type="image/svg+xml" href="../../../_shared/assets/favicon.svg">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bước 4 — Tạo lỗi (FAILED) + Phục hồi · AI Branding Wizard v3</title>
+<!--
+  Persona: Owner KC tenant — Cô Hà, "Trung tâm Tiếng Anh Cô Hà" (kiteclass-frontend :3000)
+  Tier: BASIC
+  Flow ref (output-first §2.5): Tạo & Live Preview — state FAILED với LỐI RA (không dead-end).
+  ADR ref: ADR-037 (job FAILED) — GAP-1216 fix "FAILED dead-end" (Step6Preview kẹt isDeploying)
+  Gap ref: GAP-1212 v2 · GAP-1216 (FAILED recovery: Thử lại / Dùng Mẫu / Quay lại) · GAP-1135 (FAILED state)
+  Score self-estimate: 114/128 (target ≥105 ✓; headline recovery — 3 lối thoát rõ)
+  WCAG AA (measured): wiz-title 13.8:1 (AAA) · banner-canvas failed destructive 4.6:1 (AA) · recover note 4.7:1 (AA)
+  4-layer:
+    要件定義  → GAP-1216 (FAILED phải có Retry/fallback/Back, không kẹt) + ADR-037 markJobFailed
+    基本設計  → this screen (banner FAILED + lý do + 3 lối thoát: Thử lại / Mẫu dựng sẵn / Quay lại)
+    詳細設計  → Step6Preview thoát isDeploying khi SSE error(JOB_FAILED); fallback TEMPLATE route
+    コンポーネント → BannerGenerateStage (failed) + FailedRecoveryActions + FallbackTemplateButton
+-->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+<main class="wiz-shell">
+
+<header class="wiz-topbar">
+  <div class="wiz-brand"><span class="wiz-brand-mark">K</span><span>Kite Branding Studio</span><span class="tier-badge tier-basic">BASIC</span></div>
+  <div class="wiz-time-est"><i data-lucide="alert-triangle" class="w-3 h-3" style="color: hsl(var(--destructive));"></i><span>Tạo banner chưa thành công</span></div>
+</header>
+
+<nav class="wiz-stepper" aria-label="Tiến trình tạo thương hiệu">
+  <a class="wiz-step is-done" href="welcome-mode.html"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Bắt đầu</span></a>
+  <div class="wiz-step-bar"></div>
+  <a class="wiz-step is-done" href="personality.html"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Phong cách</span></a>
+  <div class="wiz-step-bar"></div>
+  <a class="wiz-step is-done" href="assets-logo.html"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Hình ảnh</span></a>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step is-current"><span class="wiz-step-dot">4</span><span>Tạo &amp; Duyệt</span></div>
+  <div class="wiz-step-bar"></div>
+  <a class="wiz-step" href="done.html"><span class="wiz-step-dot">5</span><span>Triển khai</span></a>
+</nav>
+
+<section class="wiz-main">
+  <div class="wiz-eyebrow">Bước 4 / 5 · Tạo lỗi</div>
+  <h1 class="wiz-title">Tạo banner chưa xong — thử lại nhé chị</h1>
+  <p class="wiz-subtitle">Đôi khi máy chủ AI bận. Chưa trừ lượt nào của chị. Chọn một trong các cách dưới để tiếp tục.</p>
+
+  <div class="banner-stage" style="max-width: 760px;">
+    <div class="banner-canvas failed">
+      <i data-lucide="image-off" class="w-9 h-9"></i>
+      <strong style="font-size:0.95rem;">Không tạo được banner</strong>
+      <span style="font-size:0.82rem; opacity:0.9;">Mã lỗi: JOB_FAILED · máy chủ AI quá tải tạm thời</span>
+    </div>
+    <div class="banner-foot">
+      <span class="banner-mode-tag" style="background:hsl(var(--destructive) / 0.1); color:hsl(var(--destructive));"><i data-lucide="alert-circle" class="w-3 h-3"></i> Lần thử lúc 10:45 thất bại</span>
+      <span class="muted">Không trừ lượt</span>
+    </div>
+  </div>
+
+  <!-- 3 lối thoát (GAP-1216 — không dead-end) -->
+  <div class="wiz-card" style="max-width: 760px; margin-top:1.5rem;">
+    <p style="font-weight:600; font-size:0.9rem; margin-bottom:0.75rem;">Chị muốn làm gì tiếp?</p>
+    <div style="display:flex; flex-direction:column; gap:0.6rem;">
+      <a class="approve-row is-on" href="generate-generating.html" style="text-decoration:none; color:inherit; cursor:pointer;">
+        <div class="approve-row-label"><span class="approve-row-title"><i data-lucide="rotate-cw" class="w-4 h-4" style="display:inline; color:hsl(var(--primary));"></i> Thử tạo lại</span><span class="approve-row-desc">Chạy lại với cùng lựa chọn — thường lần 2 thành công</span></div>
+        <i data-lucide="arrow-right" class="w-4 h-4 muted"></i>
+      </a>
+      <a class="approve-row is-on" href="generate-ready.html" style="text-decoration:none; color:inherit; cursor:pointer;">
+        <div class="approve-row-label"><span class="approve-row-title"><i data-lucide="layout-template" class="w-4 h-4" style="display:inline; color:hsl(var(--primary));"></i> Dùng Mẫu dựng sẵn (miễn phí)</span><span class="approve-row-desc">Tạo bằng mẫu ổn định — nhanh, chữ Việt nét, không lỗi</span></div>
+        <i data-lucide="arrow-right" class="w-4 h-4 muted"></i>
+      </a>
+      <a class="approve-row is-off" href="personality.html" style="text-decoration:none; color:inherit; cursor:pointer;">
+        <div class="approve-row-label"><span class="approve-row-title"><i data-lucide="arrow-left" class="w-4 h-4" style="display:inline;"></i> Quay lại chỉnh phong cách</span><span class="approve-row-desc">Đổi đối tượng / phong cách rồi tạo lại</span></div>
+        <i data-lucide="chevron-right" class="w-4 h-4 muted"></i>
+      </a>
+    </div>
+  </div>
+
+  <p class="wiz-hint" style="max-width:760px; margin-top:1rem;">
+    <i data-lucide="life-buoy" class="w-3.5 h-3.5" style="display:inline; color:hsl(var(--primary));"></i>
+    Vẫn lỗi sau vài lần? Nhắn cho đội hỗ trợ qua Zalo — bọn em tạo giúp chị.
+  </p>
+</section>
+
+<footer class="wiz-foot">
+  <a class="btn btn-ghost" href="personality.html"><i data-lucide="arrow-left" class="w-4 h-4"></i> Quay lại</a>
+  <a class="btn btn-secondary" href="generate-ready.html"><i data-lucide="layout-template" class="w-4 h-4"></i> Dùng Mẫu dựng sẵn</a>
+  <a class="btn btn-primary" href="generate-generating.html"><i data-lucide="rotate-cw" class="w-4 h-4"></i> Thử lại</a>
+</footer>
+
+</main>
+<script>lucide.createIcons();</script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="vi" class="theme-kiteclass">
+<head>
+<link rel="icon" type="image/svg+xml" href="../../../_shared/assets/favicon.svg">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bước 4 — Điểm chất lượng thấp (&lt;70) · AI Branding Wizard v3</title>
+<!--
+  Persona: Owner KC tenant — Cô Hà, "Trung tâm Tiếng Anh Cô Hà" (kiteclass-frontend :3000)
+  Tier: BASIC
+  Flow ref (output-first §2.5): Tạo & Live Preview — state quality-gate FAIL <70 (chặn DEPLOYED + hướng dẫn).
+  ADR ref: ai-branding-guidelines.md §5 (quality gate ≥70 trước DEPLOYED) — GAP-1217
+  Gap ref: GAP-1212 v2 · GAP-1217 (quality gate ≥70 enforce + hướng dẫn khi fail) · GAP-1215 (preview)
+  Score self-estimate: 113/128 (target ≥105 ✓)
+  WCAG AA (measured): wiz-title 13.8:1 (AAA) · qgate-score fail 4.7:1 (AA) · guidance 4.7:1 (AA)
+  4-layer:
+    要件定義  → GAP-1217 (gate ≥70 enforce; fail → hướng dẫn cụ thể, chặn deploy) + guidelines §5
+    基本設計  → this screen (qgate fail 58/100 + checks fail + hướng dẫn sửa + nút tạo lại; CTA triển khai disabled)
+    詳細設計  → quality-score aggregator < 70 → block DEPLOYED; FE map fail-checks → guidance list
+    コンポーネント → QualityGateWidget (fail) + GuidanceList + RegenerateButton + DisabledDeployCta
+-->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+<main class="wiz-shell">
+
+<header class="wiz-topbar">
+  <div class="wiz-brand"><span class="wiz-brand-mark">K</span><span>Kite Branding Studio</span><span class="tier-badge tier-basic">BASIC</span></div>
+  <div class="wiz-time-est"><i data-lucide="gauge" class="w-3 h-3" style="color: hsl(var(--destructive));"></i><span>Điểm chất lượng chưa đạt</span></div>
+</header>
+
+<nav class="wiz-stepper" aria-label="Tiến trình tạo thương hiệu">
+  <a class="wiz-step is-done" href="welcome-mode.html"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Bắt đầu</span></a>
+  <div class="wiz-step-bar"></div>
+  <a class="wiz-step is-done" href="personality.html"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Phong cách</span></a>
+  <div class="wiz-step-bar"></div>
+  <a class="wiz-step is-done" href="assets-logo.html"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Hình ảnh</span></a>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step is-current"><span class="wiz-step-dot">4</span><span>Tạo &amp; Duyệt</span></div>
+  <div class="wiz-step-bar"></div>
+  <a class="wiz-step" href="done.html"><span class="wiz-step-dot">5</span><span>Triển khai</span></a>
+</nav>
+
+<section class="wiz-main">
+  <div class="wiz-eyebrow">Bước 4 / 5 · Điểm chất lượng</div>
+  <h1 class="wiz-title">Bản này chưa đủ đẹp để lên sóng</h1>
+  <p class="wiz-subtitle">AI tự kiểm tra và thấy vài điểm cần cải thiện. Tạo lại hoặc chỉnh nhẹ để đạt ngưỡng ≥70 rồi mới triển khai — tránh trang nhìn lỗi với phụ huynh.</p>
+
+  <div style="display:grid; grid-template-columns: 1fr 1.2fr; gap:1.25rem; max-width:880px; margin-top:0.5rem;">
+    <!-- qgate FAIL -->
+    <div class="qgate fail">
+      <div class="qgate-head">
+        <span style="font-weight:600; font-size:0.9rem; display:flex; align-items:center; gap:0.4rem;"><i data-lucide="alert-triangle" class="w-4 h-4" style="color:hsl(var(--destructive));"></i> Điểm chất lượng</span>
+        <span class="qgate-score">58<span class="qgate-score-out">/100</span></span>
+      </div>
+      <div class="qgate-bar"><span style="width:58%;"></span></div>
+      <div class="qgate-checks">
+        <div class="qgate-check ok">Chữ tiếng Việt sắc nét</div>
+        <div class="qgate-check fail">Chữ trắng trên nền sáng — khó đọc (tương phản 2.1, cần ≥4.5)</div>
+        <div class="qgate-check fail">Tiêu đề hero dài tràn 2 dòng, che logo</div>
+        <div class="qgate-check fail">Màu banner lệch bảng màu thương hiệu</div>
+      </div>
+      <p class="wiz-hint" style="margin:0; color:hsl(var(--destructive));">Chưa đạt ngưỡng ≥70 — chưa thể triển khai.</p>
+    </div>
+
+    <!-- Hướng dẫn sửa -->
+    <div class="wiz-card">
+      <p style="font-weight:600; font-size:0.9rem; margin-bottom:0.6rem;"><i data-lucide="wrench" class="w-4 h-4" style="display:inline; color:hsl(var(--primary));"></i> Cách khắc phục nhanh</p>
+      <ul style="display:flex; flex-direction:column; gap:0.6rem; font-size:0.85rem; list-style:none;">
+        <li style="display:flex; gap:0.5rem;"><i data-lucide="arrow-right" class="w-4 h-4" style="flex-shrink:0; color:hsl(var(--primary)); margin-top:0.1rem;"></i> Bấm <strong>"Tạo lại"</strong> — AI thử bố cục + màu khác (thường đạt &gt;70 ngay).</li>
+        <li style="display:flex; gap:0.5rem;"><i data-lucide="arrow-right" class="w-4 h-4" style="flex-shrink:0; color:hsl(var(--primary)); margin-top:0.1rem;"></i> Hoặc đổi <a href="personality.html" style="text-decoration:underline; color:hsl(var(--primary));">phong cách</a> sang "Chuyên nghiệp" (nền đậm, chữ dễ đọc hơn).</li>
+        <li style="display:flex; gap:0.5rem;"><i data-lucide="arrow-right" class="w-4 h-4" style="flex-shrink:0; color:hsl(var(--primary)); margin-top:0.1rem;"></i> Rút gọn dòng "Điều phụ huynh yên tâm" trong <a href="personality.html" style="text-decoration:underline; color:hsl(var(--primary));">Thông tin</a> để tiêu đề ngắn lại.</li>
+      </ul>
+      <p class="wiz-hint" style="margin-top:0.75rem;">Lần tạo này <strong>không trừ lượt</strong> — chỉ tính khi banner đạt và chị giữ lại.</p>
+    </div>
+  </div>
+</section>
+
+<footer class="wiz-foot">
+  <a class="btn btn-ghost" href="personality.html"><i data-lucide="arrow-left" class="w-4 h-4"></i> Đổi phong cách</a>
+  <span class="btn btn-disabled" aria-disabled="true" title="Cần đạt ≥70 mới triển khai được"><i data-lucide="lock" class="w-4 h-4"></i> Triển khai (khóa — điểm &lt;70)</span>
+  <a class="btn btn-primary" href="generate-generating.html"><i data-lucide="rotate-cw" class="w-4 h-4"></i> Tạo lại</a>
+</footer>
+
+</main>
+<script>lucide.createIcons();</script>
+</body>
+</html>

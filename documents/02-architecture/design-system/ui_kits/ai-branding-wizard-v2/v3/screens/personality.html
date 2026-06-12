@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="vi" class="theme-kiteclass">
+<head>
+<link rel="icon" type="image/svg+xml" href="../../../_shared/assets/favicon.svg">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bước 2 — Phong cách thương hiệu · AI Branding Wizard v3</title>
+<!--
+  Persona: Owner KC tenant — Cô Hà, "Trung tâm Tiếng Anh Cô Hà" (kiteclass-frontend :3000)
+  Tier: BASIC
+  Flow ref (output-first §2.5): GỘP Đối tượng (Audience) + Phong cách (Tone) thành 1 bước "Phong cách"
+    — giảm số bước nhập liệu; facts thật (GAP-1234) gấp vào progressive-disclosure <details> tại đây.
+  ADR ref: ADR-037 (audience/tone feed AI draft); AI CẤM bịa số liệu (Luật Quảng cáo VN)
+  Gap ref: GAP-1212 v2 (gộp audience+tone) · GAP-1234 (facts progressive-disclosure) · GAP-815 (editor)
+  Score self-estimate: 115/128 (target ≥105 ✓)
+  WCAG AA (measured): wiz-title 13.8:1 (AAA) · choice-title 13.9:1 (AAA) · tone-preview-h 7.1:1 (AAA) · integrity note 4.7:1 (AA)
+  4-layer (per design-layer-coverage §2.2):
+    要件定義  → GAP-1212 §AC (gộp) + GAP-1234 §AC (facts) + types.ts Audience/Tone unions + ADR-037 no-fabrication
+    基本設計  → this screen (audience choice-grid + tone preview + collapsible facts form → generate sớm)
+    詳細設計  → BrandingWizard.tsx states 'audience'+'tone' merged; LandingPage 7 JSONB (V76); wizard-machine
+    コンポーネント → AudienceStep + ToneStep (merged BrandPersonalityStep) + TenantInfoDetails + TuitionRowList
+-->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="stylesheet" href="../styles.css" />
+<style>
+  .facts-details { max-width: 620px; margin-top: 1.5rem; border: 1px solid hsl(var(--border)); border-radius: var(--radius); background: hsl(var(--card)); overflow: hidden; }
+  .facts-details > summary { list-style: none; cursor: pointer; padding: 1rem 1.25rem; display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; font-weight: 600; font-size: 0.92rem; }
+  .facts-details > summary::-webkit-details-marker { display: none; }
+  .facts-details > summary:hover { background: hsl(var(--muted) / 0.4); }
+  .facts-details[open] > summary { border-bottom: 1px solid hsl(var(--border)); }
+  .facts-details .facts-body { padding: 1.25rem; }
+  .facts-details .chev { transition: transform 160ms; }
+  .facts-details[open] .chev { transform: rotate(180deg); }
+</style>
+</head>
+<body>
+<main class="wiz-shell">
+
+<header class="wiz-topbar">
+  <div class="wiz-brand"><span class="wiz-brand-mark">K</span><span>Kite Branding Studio</span><span class="tier-badge tier-basic">BASIC</span></div>
+  <div class="wiz-time-est"><i data-lucide="clock" class="w-3 h-3"></i><span>Còn ~2 phút</span></div>
+</header>
+
+<nav class="wiz-stepper" aria-label="Tiến trình tạo thương hiệu">
+  <a class="wiz-step is-done" href="welcome-mode.html"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Bắt đầu</span></a>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step is-current"><span class="wiz-step-dot">2</span><span>Phong cách</span></div>
+  <div class="wiz-step-bar"></div>
+  <a class="wiz-step" href="assets-logo.html"><span class="wiz-step-dot">3</span><span>Hình ảnh</span></a>
+  <div class="wiz-step-bar"></div>
+  <a class="wiz-step" href="generate-ready.html"><span class="wiz-step-dot">4</span><span>Tạo &amp; Duyệt</span></a>
+  <div class="wiz-step-bar"></div>
+  <a class="wiz-step" href="done.html"><span class="wiz-step-dot">5</span><span>Triển khai</span></a>
+</nav>
+
+<section class="wiz-main">
+  <div class="wiz-eyebrow">Bước 2 / 5 · Phong cách</div>
+  <h1 class="wiz-title">Trung tâm của chị muốn toát lên điều gì?</h1>
+  <p class="wiz-subtitle">Chọn đối tượng chính và phong cách — AI dùng để chọn màu, font và giọng văn cho trang giới thiệu.</p>
+
+  <!-- Đối tượng chính (audience) -->
+  <p class="wiz-label" style="max-width:620px;">Đối tượng phụ huynh / học viên chính</p>
+  <div class="choice-grid">
+    <div class="choice-card is-selected" tabindex="0" role="button" aria-pressed="true">
+      <span class="choice-emoji">👨‍👩‍👧</span>
+      <span class="choice-title">Phụ huynh tiểu học</span>
+      <span class="choice-desc">Quan tâm an toàn, tiến bộ, lớp nhỏ</span>
+    </div>
+    <div class="choice-card" tabindex="0" role="button" aria-pressed="false">
+      <span class="choice-emoji">🎓</span>
+      <span class="choice-title">Luyện thi / THCS-THPT</span>
+      <span class="choice-desc">Quan tâm điểm số, cam kết đầu ra</span>
+    </div>
+    <div class="choice-card" tabindex="0" role="button" aria-pressed="false">
+      <span class="choice-emoji">💼</span>
+      <span class="choice-title">Người đi làm</span>
+      <span class="choice-desc">Linh hoạt giờ học, mục tiêu rõ</span>
+    </div>
+  </div>
+
+  <!-- Phong cách (tone) — preview trực quan -->
+  <p class="wiz-label" style="max-width:620px; margin-top:1.5rem;">Phong cách trang giới thiệu</p>
+  <div class="choice-grid">
+    <div class="choice-card tone-friend is-selected" tabindex="0" role="button" aria-pressed="true">
+      <div class="tone-preview">
+        <div class="tone-preview-h">Học vui — tiến bộ thật</div>
+        <span class="tone-preview-btn">Học thử miễn phí</span>
+      </div>
+      <span class="choice-title" style="margin-top:0.5rem;">Thân thiện</span>
+      <span class="choice-desc">Ấm áp, gần gũi phụ huynh</span>
+    </div>
+    <div class="choice-card tone-pro" tabindex="0" role="button" aria-pressed="false">
+      <div class="tone-preview">
+        <div class="tone-preview-h">Cam kết đầu ra IELTS</div>
+        <span class="tone-preview-btn">Đăng ký tư vấn</span>
+      </div>
+      <span class="choice-title" style="margin-top:0.5rem;">Chuyên nghiệp</span>
+      <span class="choice-desc">Tin cậy, học thuật</span>
+    </div>
+    <div class="choice-card tone-energy" tabindex="0" role="button" aria-pressed="false">
+      <div class="tone-preview">
+        <div class="tone-preview-h">Bứt phá điểm số!</div>
+        <span class="tone-preview-btn">Tham gia ngay</span>
+      </div>
+      <span class="choice-title" style="margin-top:0.5rem;">Năng động</span>
+      <span class="choice-desc">Trẻ trung, truyền cảm hứng</span>
+    </div>
+  </div>
+
+  <!-- Facts thật cho AI (GAP-1234) — progressive-disclosure, KHÔNG chặn flow chính -->
+  <details class="facts-details">
+    <summary>
+      <span style="display:flex; align-items:center; gap:0.5rem;">
+        <i data-lucide="sliders-horizontal" class="w-4 h-4" style="color: hsl(var(--primary));"></i>
+        Thông tin thật để AI soạn nội dung chính xác hơn <span class="mode-chip" style="margin-left:0.25rem;">Tùy chọn</span>
+      </span>
+      <i data-lucide="chevron-down" class="w-4 h-4 chev"></i>
+    </summary>
+    <div class="facts-body">
+      <p class="wiz-hint" style="margin-top:0;">AI dùng <strong>đúng những thông tin này</strong> cho tiêu đề, phần giới thiệu, học phí, FAQ — không tự bịa số liệu. Bỏ trống cũng được, AI dùng mẫu an toàn.</p>
+
+      <label class="wiz-label" style="margin-top:1rem;">Môn / chương trình đang dạy</label>
+      <div style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-top:0.35rem;">
+        <span class="mode-chip" style="border-color: hsl(var(--primary)); color: hsl(var(--primary)); font-weight:600;"><i data-lucide="check" class="w-3 h-3"></i> Tiếng Anh tiểu học</span>
+        <span class="mode-chip">Tiếng Anh giao tiếp</span>
+        <span class="mode-chip">Luyện thi IELTS</span>
+        <span class="mode-chip"><i data-lucide="plus" class="w-3 h-3"></i> Thêm môn</span>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:1.25rem;">
+        <div>
+          <label class="wiz-label" for="years">Số năm kinh nghiệm</label>
+          <input class="wiz-input" id="years" type="number" value="12" min="0" />
+        </div>
+        <div>
+          <label class="wiz-label" for="class-size">Sĩ số tối đa mỗi lớp</label>
+          <input class="wiz-input" id="class-size" type="text" value="6–8 học viên" />
+        </div>
+      </div>
+
+      <label class="wiz-label" for="credential" style="margin-top:1.25rem;">Bằng cấp / chứng chỉ chính</label>
+      <input class="wiz-input" id="credential" type="text" value="Cử nhân Sư phạm Tiếng Anh — ĐH Sư phạm Hà Nội" />
+      <p class="wiz-hint">Hiện ở phần "Về giáo viên". Chỉ ghi bằng cấp có thật — phụ huynh có thể hỏi lại.</p>
+
+      <label class="wiz-label" style="margin-top:1.25rem;">Học phí (hiện ở bảng giá + FAQ)</label>
+      <div style="display:grid; grid-template-columns: 1.4fr 1fr auto; gap:0.5rem; align-items:center; margin-top:0.35rem;">
+        <input class="wiz-input" type="text" value="Lớp tiểu học" aria-label="Tên lớp 1" />
+        <input class="wiz-input" type="text" value="800.000đ / tháng" aria-label="Học phí lớp 1" />
+        <button class="btn btn-ghost" aria-label="Xóa dòng"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+        <input class="wiz-input" type="text" value="Luyện thi IELTS" aria-label="Tên lớp 2" />
+        <input class="wiz-input" type="text" value="1.500.000đ / tháng" aria-label="Học phí lớp 2" />
+        <button class="btn btn-ghost" aria-label="Xóa dòng"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+      </div>
+      <button class="btn btn-ghost" style="margin-top:0.5rem;"><i data-lucide="plus" class="w-4 h-4"></i> Thêm lớp / mức phí</button>
+
+      <label class="wiz-label" for="differentiator" style="margin-top:1.25rem;">Điều phụ huynh yên tâm nhất khi gửi con cho chị (1–2 ý)</label>
+      <textarea class="wiz-input" id="differentiator" rows="2" style="resize:vertical;">Lớp nhỏ kèm sát từng con; báo cáo tiến bộ mỗi tuần qua Zalo; học phí có biên nhận tự động.</textarea>
+
+      <div class="wiz-card mt-5" style="margin-top:1.25rem; display:flex; gap:0.75rem; align-items:flex-start; background: hsl(var(--primary) / 0.04); border-color: hsl(var(--primary) / 0.3);">
+        <i data-lucide="shield-check" class="w-5 h-5" style="color: hsl(var(--primary)); flex-shrink:0;"></i>
+        <div>
+          <p style="font-weight:600; font-size:0.88rem;">AI chỉ dùng thông tin thật chị nhập</p>
+          <p class="wiz-hint" style="margin-top:0.15rem;">
+            Số liệu (số học viên đã dạy…) lấy tự động từ dữ liệu hệ thống khi có.
+            <strong>Đánh giá của phụ huynh không tạo ở đây</strong> — chị thêm đánh giá thật sau tại
+            <em>Cài đặt → Trang giới thiệu</em> (<a href="editor-overview.html" style="text-decoration:underline; color: hsl(var(--primary));">trình chỉnh sửa nội dung</a>).
+          </p>
+        </div>
+      </div>
+    </div>
+  </details>
+</section>
+
+<footer class="wiz-foot">
+  <a class="btn btn-ghost" href="welcome-mode.html"><i data-lucide="arrow-left" class="w-4 h-4"></i> Quay lại</a>
+  <a class="btn btn-secondary" href="assets-logo.html" title="Tùy chọn: thêm logo + favicon trước khi tạo"><i data-lucide="image" class="w-4 h-4"></i> Thêm logo / ảnh</a>
+  <a class="btn btn-primary" href="generate-generating.html" title="Output-first: tạo bản xem trước thật ngay với phong cách đã chọn"><i data-lucide="sparkles" class="w-4 h-4"></i> Tạo bản xem trước</a>
+</footer>
+
+</main>
+<script>lucide.createIcons();</script>
+</body>
+</html>
