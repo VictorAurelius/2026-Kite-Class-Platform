@@ -83,3 +83,39 @@ describe('RegenerateCounter — ENTERPRISE tier', () => {
     expect(props.onRegenerate).toHaveBeenCalledTimes(1);
   });
 });
+
+// GAP-1219(a): "Tạo lại" là no-op khi CHƯA generate lần đầu — gate bằng hasGenerated.
+describe('RegenerateCounter — hasGenerated gating (GAP-1219)', () => {
+  const baseProps = {
+    tier: 'FREE' as const,
+    regenerateQuota: 3,
+    regeneratesUsed: 0,
+    upsellModalOpen: false,
+    onRegenerate: vi.fn(),
+    onUpgradeClick: vi.fn(),
+    onContinueWithCurrent: vi.fn(),
+    onUpsellModalOpenChange: vi.fn(),
+  };
+
+  it('disables the regenerate button + shows hint when hasGenerated=false', () => {
+    render(<RegenerateCounter {...baseProps} hasGenerated={false} />);
+    const btn = screen.getByTestId('regenerate-counter-button');
+    expect(btn).toBeDisabled();
+    expect(screen.getByTestId('regenerate-counter-status').textContent).toContain(
+      'Khả dụng sau khi tạo bản đầu tiên',
+    );
+  });
+
+  it('does not call onRegenerate when hasGenerated=false', () => {
+    const onRegenerate = vi.fn();
+    render(<RegenerateCounter {...baseProps} hasGenerated={false} onRegenerate={onRegenerate} />);
+    fireEvent.click(screen.getByTestId('regenerate-counter-button'));
+    expect(onRegenerate).not.toHaveBeenCalled();
+  });
+
+  it('keeps default behavior (enabled) when hasGenerated omitted', () => {
+    render(<RegenerateCounter {...baseProps} />);
+    expect(screen.getByTestId('regenerate-counter-button')).toBeEnabled();
+  });
+});
+

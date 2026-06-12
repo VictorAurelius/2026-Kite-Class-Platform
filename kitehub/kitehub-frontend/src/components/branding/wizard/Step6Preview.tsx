@@ -604,6 +604,12 @@ export function Step6Preview({
       .then((res) => {
         if (res.mode === 'FULL_AI') {
           toast.success('Đã tạo banner bằng AI cao cấp — đã trừ 1 lượt.');
+        } else if (res.fallbackReason === 'NOT_AVAILABLE') {
+          // GAP-1218: image-gen chưa wire (GAP-1135) — server KHÔNG trừ lượt,
+          // toast phải nói thật thay vì claim "AI cao cấp".
+          toast.info(
+            'AI vẽ banner đang hoàn thiện — dùng bản Mẫu chất lượng cao, KHÔNG trừ lượt của bạn.',
+          );
         } else if (res.fallbackReason === 'QUOTA_EXHAUSTED') {
           toast.info(
             'Đã hết lượt AI cao cấp tháng này — đang dùng bản Mẫu. Nâng cấp để có thêm lượt.',
@@ -796,6 +802,9 @@ export function Step6Preview({
               tier={quotaTier}
               regenerateQuota={quotaLimit}
               regeneratesUsed={quotaUsed}
+              // GAP-1219(a): "Tạo lại" chỉ có nghĩa sau khi job đầu tiên tồn tại
+              // (jobId + instanceId set khi create job ở bước này thành công).
+              hasGenerated={Boolean(wizardState.jobId && wizardState.instanceId)}
               upsellModalOpen={upsellModalOpen}
               onRegenerate={handleRegenerateClick}
               onUpgradeClick={handleUpgradeClick}
