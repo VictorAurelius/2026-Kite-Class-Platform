@@ -124,6 +124,23 @@ export default function BrandingWizardPage() {
     return undefined;
   }, [instanceId, instancesError]);
 
+  // G2 walk 2026-06-12 (identity-mismatch bug): Phase 1 mỗi owner = 1 instance —
+  // wizard là RE-BRAND instance hiện có, KHÔNG tạo site mới. Prefill tên hiển thị +
+  // slug từ chính instance (slug bị khóa ở WelcomeStep — gõ slug mới từng làm deploy
+  // áp theme lên tenant thật dưới identity khác + DoneStep link trỏ tenant không tồn tại).
+  const ownInstance = instances?.[0];
+  useEffect(() => {
+    if (!ownInstance) return;
+    if (!state.tenantName && ownInstance.organizationName) {
+      dispatch({ type: 'SET_TENANT_NAME', tenantName: ownInstance.organizationName });
+    }
+    if (!state.slug && ownInstance.subdomain) {
+      dispatch({ type: 'SET_SLUG', slug: ownInstance.subdomain });
+      dispatch({ type: 'SET_SLUG_STATUS', status: 'available' });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ownInstance]);
+
   // Kit v3 — Template step removed: auto-derive a template from tone/audience when
   // the user first reaches the "Tạo & Duyệt" step so the generate request has one.
   useEffect(() => {

@@ -46,7 +46,7 @@ import {
 export async function submitLandingFacts(state: WizardState): Promise<void> {
   const tenantId = state.instanceId;
   if (!tenantId) return;
-  const payload = buildLandingFactsPayload(state.facts);
+  const payload = buildLandingFactsPayload(state.facts, state.tenantName);
   if (!payload) return;
   try {
     await apiClient.put(`/api/v1/tenants/${tenantId}/landing`, payload);
