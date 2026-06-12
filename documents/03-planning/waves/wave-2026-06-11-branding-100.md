@@ -5,7 +5,7 @@ created: 2026-06-11
 updated: 2026-06-11
 waves: [branding-100]
 tag_primary: branding-100
-gaps: [GAP-1021, GAP-1108, GAP-1134, GAP-1135, GAP-1147, GAP-1160, GAP-1212, GAP-1213, GAP-1214, GAP-1215, GAP-1216, GAP-1217, GAP-1218, GAP-1219, GAP-1231, GAP-1211]
+gaps: [GAP-1021, GAP-1108, GAP-1134, GAP-1135, GAP-1147, GAP-1160, GAP-1212, GAP-1213, GAP-1214, GAP-1215, GAP-1216, GAP-1217, GAP-1218, GAP-1219, GAP-1231, GAP-1211, GAP-1251, GAP-1252]
 references:
   - documents/04-quality/audits/persona-review/2026-06-11-branding-100-persona-simulation.md
   - documents/04-quality/audits/persona-review/2026-06-11-branding-100-benchmark.md
@@ -55,7 +55,7 @@ references:
 | **B. Unify wizard** | Chốt canonical KH 7-bước; KC route embed/redirect; retire FSM orphan + preview about:blank | GAP-1214 | FE |
 | **C. Chuỗi deploy thật (P0)** | Outbox `branding.deployed` → KC-core consumer áp theme/assets vào Branding/LandingPage + evict cache; persist active theme + SSE auth; quality gate ≥70 trước DEPLOYED; post-deploy summary + link landing | GAP-1213, GAP-1021, GAP-1217, GAP-1108 | BE+Mixed |
 | **D. WYSIWYG preview** | Preview dùng chính landing render path (`?tenant=` preview mode) thay `buildLandingPreviewHtml`; multi-variant pick; **un-skip `Step6Preview` test quarantined (GAP-1231 AC — test contract viết lại theo preview-source mới)** | GAP-1215, GAP-1231 | FE+BE |
-| **E. UX reorder (output-first)** | Mode lên đầu + gộp audience/tone + generate sớm + FAILED retry/back + portrait step + banner generate wire | GAP-1216, GAP-1134, GAP-1135, GAP-1147, GAP-1160 | FE+BE |
+| **E. UX reorder (output-first)** | Mode lên đầu + gộp audience/tone + generate sớm + FAILED retry/back + portrait step + banner generate wire; **+ docs sync api-contract ~13 endpoint branding (GAP-1251, audit 06-12) + @Deprecated legacy controller (GAP-1252)** | GAP-1216, GAP-1134, GAP-1135, GAP-1147, GAP-1160, GAP-1251, GAP-1252 | FE+BE |
 | **F. Trust/copy** | FULL_AI không trừ quota khi chưa có output thật + label đúng; regenerate no-op; logo over-promise; escape-ramp; **G2★ verify upload banner qua settings UI (GAP-1211 defer từ landing-100 — endpoint+picker đã ship, còn runtime walk)** | GAP-1218, GAP-1219, GAP-1211 | FE |
 
 ## 4. State-Check Evidence
@@ -87,6 +87,7 @@ references:
 
 ## 8. Log
 
+- **2026-06-12 (Đợt 1 COMPLETE + Đợt 2 start):** Đợt 1 merged: #2356 (F trust/copy — GAP-1218 NOT_AVAILABLE guard + GAP-1219 3 UX fix) + #2357 (A kit v3 redesign 17 màn output-first) + #2358 (C deploy chain THẬT — outbox `branding.deployed` → KC-core áp theme + quality gate ≥70 trong approve + SSE HMAC token + V98 idempotency; 2 CI fix: checkstyle 9-param record → bỏ explicit @JsonCreator, slice tests +@MockitoBean SseTokenService) + #2359 (gateway whitelist `deploy-stream` cho EventSource — auth vẫn service-side). Audit cadence 06-14 trả xong (#2360): API 80 (+4, GAP-662/663 verified DONE) / BL 73 (0 delta); 2 gap mới GAP-1251/1252 kéo vào Bucket E per gate v1.2.0 (surfaced-in-wave). Đợt 2 spawned: Agent B+E (unify GAP-1214 + reorder output-first + FULL_AI wire thật 1134/1135/1147/1160 + docs 1251/1252) + Agent D (WYSIWYG preview GAP-1215 + un-skip GAP-1231). Incident ghi nhận: PR conflicting → GitHub không tạo merge ref → 0 checks (root cause "no checks reported"); CSV EOF conflict additive-resolve ×2 per multi-session rule.
 - **2026-06-12 (execute start — Đợt 1):** Wave start sau landing-100 complete. Spawn 2 Opus agents (Bucket A kit redesign §2.5 + Bucket C deploy chain thật P0) + coordinator inline Bucket F (PR này — GAP-1218 NOT_AVAILABLE guard không trừ quota + GAP-1219 regenerate gating/logo copy/escape-ramp). Per agent-concurrency-budget-inline-hybrid.
 
 - **2026-06-12 (draft v2 — pre-execute reconcile):** 3 chỉnh sửa per user-approved state-check: (1) GAP-1231 add vào gaps + Bucket D (un-skip Step6Preview test là AC, fix = GAP-1215 preview-source); (2) §4 reconcile GAP-272c/272e — bucket C dùng lại endpoint đã ship, không duplicate GAP-1217/1021, stubs giữ phase-2; (3) §2.5 trục content — GAP-1234 design (facts progressive-disclosure) + GAP-815 FE explicit out-of-scope. Nền design #2347/#2348 (click-through + content steps) ghi nhận tại §4 cho Bucket A.
