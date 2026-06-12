@@ -37,34 +37,42 @@ export interface AudienceStepProps {
 // 4 audience presets per original plan §3 Bucket B + step3 spec.
 // Stable IDs match the BrandingGenerationRequest.targetAudience contract
 // (free text on backend; FE supplies preset slug).
+// GAP-1231 — relabelled to the kit v3 (`personality.html`) concern-focused
+// voice ("phụ huynh quan tâm gì"). IDs + count kept stable: each id carries a
+// distinct AI reasoning map + theme (AUDIENCE_REASONING) and is sent to the BE
+// as BrandingGenerationRequest.targetAudience, so a 4→3 remap is deferred. The
+// kit's 3 choices map to the closest existing ids:
+//   "Phụ huynh tiểu học (an toàn, lớp nhỏ)"  → preschool
+//   "Luyện thi / THCS-THPT (điểm số, đầu ra)" → secondary / exam-prep
+//   "Người đi làm (linh hoạt giờ học)"        → english-center
 export const AUDIENCE_OPTIONS: readonly AudienceOption[] = [
   {
     id: 'preschool',
-    emoji: '🏫',
-    title: 'Trường mầm non',
-    description: 'Trẻ 2-6 tuổi. Phụ huynh là người ra quyết định. Tone vui, nhiều hình ảnh.',
+    emoji: '👨‍👩‍👧',
+    title: 'Phụ huynh mầm non / tiểu học',
+    description: 'Quan tâm an toàn, tiến bộ, lớp nhỏ. Tone ấm áp, nhiều hình ảnh.',
     example: 'VD: Mầm non Hoa Sen, Tiểu học Xanh',
   },
   {
     id: 'secondary',
-    emoji: '📚',
-    title: 'Trường THCS / THPT',
-    description: 'Học sinh 11-18 tuổi. Cha mẹ + học sinh đều xem. Tone học thuật, chuyên nghiệp.',
-    example: 'VD: THCS-THPT EduPlus',
+    emoji: '🎓',
+    title: 'Luyện thi / THCS-THPT',
+    description: 'Quan tâm điểm số, cam kết đầu ra. Tone học thuật, đáng tin cậy.',
+    example: 'VD: THCS-THPT EduPlus, Toán Master',
   },
   {
     id: 'english-center',
-    emoji: '🌐',
-    title: 'Trung tâm tiếng Anh',
-    description: 'Đa độ tuổi. Quốc tế hoá. Tone hiện đại, năng động.',
+    emoji: '💼',
+    title: 'Người đi làm / tiếng Anh giao tiếp',
+    description: 'Linh hoạt giờ học, mục tiêu rõ. Tone hiện đại, năng động.',
     example: 'VD: ELC Hà Nội, Speak Up',
   },
   {
     id: 'exam-prep',
-    emoji: '🎓',
-    title: 'Lớp luyện thi',
-    description: 'Lớp 9, 12 luyện thi vào trường chuyên / đại học. Tone tập trung, kỷ luật.',
-    example: 'VD: Toán Master, Hocmai 1-1',
+    emoji: '📊',
+    title: 'Lớp luyện thi chuyên sâu',
+    description: 'Quan tâm điểm số, cam kết đầu ra. Tone tập trung, kỷ luật.',
+    example: 'VD: Hocmai 1-1, luyện thi IELTS',
   },
 ] as const;
 

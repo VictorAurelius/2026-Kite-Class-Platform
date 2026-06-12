@@ -23,13 +23,37 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { apiClient } from '@/lib/api/client';
 import type { DeployingLogEntry } from '../DeployingStep';
 import type { WizardAction, WizardState } from '../wizard-shared';
+import { buildLandingFactsPayload } from '../facts-landing';
 import {
   useApproveBrandingJob,
   useDeployStream,
   type DeployStreamEvent,
 } from './index';
+
+/**
+ * Best-effort: PATCH the user-entered landing facts (GAP-1234) into the freshly
+ * deployed tenant's KiteClass landing. Never throws — a failure shows a warning
+ * toast and the deploy still counts as done (the user can fix the contact info
+ * later in Settings → Landing). Skipped when there is no tenant id or nothing to
+ * send.
+ *
+ * Endpoint: PUT /api/v1/tenants/{tenantId}/landing (kiteclass-core, via gateway;
+ * apiClient attaches auth + X-Tenant-Id). Partial body — BE mapper IGNOREs nulls.
+ */
+export async function submitLandingFacts(state: WizardState): Promise<void> {
+  const tenantId = state.instanceId;
+  if (!tenantId) return;
+  const payload = buildLandingFactsPayload(state.facts);
+  if (!payload) return;
+  try {
+    await apiClient.put(`/api/v1/tenants/${tenantId}/landing`, payload);
+  } catch {
+    toast.warning('Lưu thông tin liên hệ chưa thành công — chỉnh lại trong Cài đặt landing.');
+  }
+}
 
 /** Convert raw SSE deploy-stream events into renderable log rows. */
 function eventsToLogEntries(events: readonly DeployStreamEvent[]): DeployingLogEntry[] {
@@ -132,6 +156,9 @@ export function useWizardDeploy(opts: {
       if (data.frontendUrl) setDeployFrontendUrl(data.frontendUrl);
       toast.success('Triển khai thành công!');
       setDeployDone(true);
+      // Best-effort: persist the optional landing facts (GAP-1234) after the
+      // tenant is live. Fire-and-forget — never blocks the DONE screen.
+      void submitLandingFacts(wizardState);
     } else if (latest?.name === 'error') {
       deployCompletedRef.current = true;
       const data = (latest.data ?? {}) as {

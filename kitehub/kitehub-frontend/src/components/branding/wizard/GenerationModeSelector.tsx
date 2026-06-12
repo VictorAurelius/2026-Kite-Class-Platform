@@ -122,17 +122,30 @@ export function GenerationModeSelector({
             className="h-6 w-6 text-foreground"
             aria-hidden="true"
           />
-          {templateSelected && (
-            <CheckCircle2
-              className="h-5 w-5 text-emerald-600"
-              aria-hidden="true"
-            />
-          )}
+          <div className="flex items-center gap-1.5">
+            <span
+              data-testid="mode-template-recommended"
+              className="rounded bg-emerald-100 px-2 py-0.5 text-[10px] font-bold uppercase text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300"
+            >
+              Khuyến nghị
+            </span>
+            {templateSelected && (
+              <CheckCircle2
+                className="h-5 w-5 text-emerald-600"
+                aria-hidden="true"
+              />
+            )}
+          </div>
         </div>
-        <div className="text-base font-semibold text-foreground">Mẫu</div>
+        <div className="text-base font-semibold text-foreground">Mẫu dựng sẵn</div>
         <p className="text-sm text-muted-foreground">
-          Miễn phí · tạo lại không giới hạn
+          AI điền nội dung trung tâm vào mẫu rồi chụp thành ảnh. Chữ tiếng Việt sắc nét, nhanh, ổn định.
         </p>
+        <div className="mt-1 flex flex-wrap gap-1.5">
+          <ModeChip>Miễn phí</ModeChip>
+          <ModeChip>~10 giây</ModeChip>
+          <ModeChip>Chữ Việt nét</ModeChip>
+        </div>
       </button>
 
       {/* ---------------- FULL_AI — tier-gated ---------------- */}
@@ -185,10 +198,17 @@ export function GenerationModeSelector({
             </div>
           </div>
           <div className="text-base font-semibold text-foreground">
-            AI cao cấp
+            AI vẽ toàn bộ
+          </div>
+          <p className="text-sm text-muted-foreground">
+            AI vẽ cả ảnh banner theo phong cách riêng. Phù hợp khi muốn banner độc đáo.
+          </p>
+          <div className="mt-1 flex flex-wrap gap-1.5">
+            <ModeChip>PREMIUM / ENTERPRISE</ModeChip>
+            <ModeChip>Ảnh AI gốc</ModeChip>
           </div>
           <p
-            className="text-sm text-muted-foreground"
+            className="mt-1 text-xs text-muted-foreground"
             data-testid="mode-full-ai-sublabel"
           >
             {fullAiSubLabel()}
@@ -212,5 +232,14 @@ export function GenerationModeSelector({
         )}
       </div>
     </div>
+  );
+}
+
+/** Small pill used for the mode-card affordance chips (kit v3). */
+function ModeChip({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+      {children}
+    </span>
   );
 }
