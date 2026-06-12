@@ -1,6 +1,6 @@
 # GAP-1239: slug-availability không exempt own subdomain — owner re-brand bị ép đổi slug
 
-**Status:** 🟡 PARTIAL (fix shipped wave/branding-100-g1-fixes; chờ re-walk G1 verify)
+**Status:** 🟢 DONE (fix #2371 + re-walk G1 2026-06-12 PASS — own slug available, link đúng slug)
 **Priority:** 🟠 P1
 **Domain:** Mixed
 **Found:** 2026-06-12 (G1 browser walk wave branding-100 — Bug #2)
@@ -28,7 +28,7 @@ giữ nguyên semantics cũ.
 
 - [x] Own subdomain → `available: true` cho owner đã login (unit/controller tests PASS)
 - [x] Slug của tenant KHÁC → vẫn `available: false`
-- [ ] Re-walk G1: owner Sky nhập `sky-education` → không conflict → frontendUrl/asset path đúng slug
+- [x] Re-walk G1 2026-06-12: owner Sky nhập `sky-education` → ✅ AVAILABLE → DoneStep link `http://localhost:3000/?tenant=sky-education` đúng slug
 
 ## Related
 
