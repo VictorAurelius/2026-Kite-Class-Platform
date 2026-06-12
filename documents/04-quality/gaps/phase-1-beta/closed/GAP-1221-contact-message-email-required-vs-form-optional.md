@@ -1,6 +1,6 @@
 # GAP-1221: ContactMessage BE đòi email @NotBlank trong khi form public VN cho email optional → 400
 
-**Status:** 🟡 PARTIAL (90% — code+tests shipped, chờ runtime curl verify post-merge rebuild)
+**Status:** 🟢 DONE
 **Priority:** 🟡 P2
 **Domain:** Backend
 **Found:** 2026-06-11 (GAP-274 port — contact form wire endpoint thật)
@@ -16,7 +16,7 @@ Nới `email` → optional (@Email khi present); `subject` optional default serv
 
 ## Acceptance Criteria
 
-- [ ] Submit chỉ tên+SĐT+lời nhắn → 201 (runtime curl sau rebuild — bean-validation test đã PASS)
+- [x] Submit chỉ tên+SĐT+lời nhắn → 201 (runtime curl verified 2026-06-12 post-rebuild)
 - [x] Email sai format vẫn 400 (khi có) — `CreateContactMessageRequestValidationTest.invalidEmailFormat_shouldStillFail` PASS
 
 ## Fix shipped (2026-06-12)
@@ -26,3 +26,10 @@ DTO bỏ @NotBlank email/subject (giữ @Email + @Size) · Entity email nullable
 ## Related
 
 - GAP-274 port (FE đã wire `/api/v1/contact` thật); kit kiteclass-public contact spec
+
+## Walk evidence (per feature-ship-runtime-walk-mandate.md §3)
+
+Stack local rebuild từ main `31dd08aab` (kiteclass-core healthy), gateway `:9000` Host-based tenant resolution:
+- **Happy path:** `POST /api/v1/contact` (Host co-ha-toan.127.0.0.1.nip.io) body chỉ name+phone+message → **HTTP 201**, response `email:null`, `subject:"Liên hệ từ Chị Trần Thị Hồng"` (server default đúng), DB row id=1 created.
+- **Sad path:** cùng endpoint, `email:"not-an-email"` → **HTTP 400** (@Email format check giữ nguyên khi email có).
+- Tests: 13/13 PASS local + CI core-ci green (#2350).
