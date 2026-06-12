@@ -33,12 +33,19 @@ describe('WelcomeStep — escape-ramp (GAP-1219c)', () => {
     expect(screen.getByTestId('wizard-step1-use-defaults')).toBeDisabled();
   });
 
-  it('áp defaults theo orgType center + nhảy tới bước Mẫu (6)', () => {
+  it('áp defaults theo orgType center + nhảy tới bước Mẫu (4) ở TEMPLATE (GAP-1216)', () => {
     const { dispatch } = renderWelcome(readyState);
     fireEvent.click(screen.getByTestId('wizard-step1-use-defaults'));
     expect(dispatch).toHaveBeenCalledWith({ type: 'SET_AUDIENCE', audience: 'english-center' });
     expect(dispatch).toHaveBeenCalledWith({ type: 'SET_TONE', tone: 'professional' });
-    expect(dispatch).toHaveBeenCalledWith({ type: 'GO_TO_STEP', step: 6 });
+    // TEMPLATE mode (default) → jump to Template step (4).
+    expect(dispatch).toHaveBeenCalledWith({ type: 'GO_TO_STEP', step: 4 });
+  });
+
+  it('FULL_AI mode → escape-ramp nhảy thẳng tới Tạo & Duyệt (5), bỏ qua Mẫu (GAP-1216)', () => {
+    const { dispatch } = renderWelcome({ ...readyState, mode: 'FULL_AI' });
+    fireEvent.click(screen.getByTestId('wizard-step1-use-defaults'));
+    expect(dispatch).toHaveBeenCalledWith({ type: 'GO_TO_STEP', step: 5 });
   });
 
   it('orgType SOLO_TEACHER → audience exam-prep', () => {

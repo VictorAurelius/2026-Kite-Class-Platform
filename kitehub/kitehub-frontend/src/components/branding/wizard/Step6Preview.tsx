@@ -281,9 +281,12 @@ export function Step6Preview({
   const { mutate: createJobMutate } = useCreateBrandingJobV1();
   const createStartedRef = useRef(false);
 
-  // GAP-1142: generation mode the owner picks (TEMPLATE default; FULL_AI commits
-  // on Deploy for eligible tiers). GAP-1143: optional reused banner from library.
-  const [generationMode, setGenerationMode] = useState<GenerationMode>('TEMPLATE');
+  // GAP-1142 / GAP-1216: generation mode now lives in WizardState (picked in
+  // Step 1). Read from there + write via dispatch so the choice stays consistent
+  // across the Welcome selector + this preview selector. GAP-1143: optional reused
+  // banner from library.
+  const generationMode: GenerationMode = wizardState.mode;
+  const setGenerationMode = (m: GenerationMode) => dispatch({ type: 'SET_MODE', mode: m });
   const [reusedBannerUrl, setReusedBannerUrl] = useState<string | null>(null);
 
   useEffect(() => {
@@ -464,18 +467,14 @@ export function Step6Preview({
 
   const decisionRows = useMemo<ReadonlyArray<DecisionRow>>(
     () => [
+      // GAP-1216 — jump-to-edit steps remapped to the output-first 5-step flow:
+      // org-type → Welcome (1); audience/tone → Brand personality (2);
+      // logo/portrait → Assets (3); template → Template (4).
       {
         key: 'org-type',
         label: 'Loại tổ chức',
         value: ORG_TYPE_OPTIONS.find((o) => o.id === wizardState.orgType)?.label ?? 'Chưa chọn',
         step: 1,
-      },
-      { key: 'logo', label: 'Logo', value: logoValue, step: 2 },
-      {
-        key: 'portrait',
-        label: 'Chân dung',
-        value: portraitCount > 0 ? `${portraitCount} ảnh` : 'Chưa có',
-        step: 3,
       },
       {
         key: 'audience',
@@ -483,19 +482,26 @@ export function Step6Preview({
         value: wizardState.audience
           ? AUDIENCE_LABELS[wizardState.audience] ?? wizardState.audience
           : 'Chưa chọn',
-        step: 4,
+        step: 2,
       },
       {
         key: 'tone',
         label: 'Phong cách',
         value: wizardState.tone ? TONE_LABELS[wizardState.tone] ?? wizardState.tone : 'Chưa chọn',
-        step: 5,
+        step: 2,
+      },
+      { key: 'logo', label: 'Logo', value: logoValue, step: 3 },
+      {
+        key: 'portrait',
+        label: 'Chân dung',
+        value: portraitCount > 0 ? `${portraitCount} ảnh` : 'Chưa có',
+        step: 3,
       },
       {
         key: 'template',
         label: 'Mẫu thiết kế',
         value: selectedTemplate?.name ?? 'Chưa chọn',
-        step: 6,
+        step: 4,
       },
     ],
     [
@@ -747,7 +753,7 @@ export function Step6Preview({
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-sm font-semibold text-primary uppercase tracking-wide mb-1">
-            Bước 7 / 7 — Cuối cùng!
+            Bước 5 / 5 — Xem & Tạo
           </p>
           <h1 className="text-2xl font-bold text-foreground mb-2">
             Xem trước trang web của bạn

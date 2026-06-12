@@ -41,7 +41,7 @@ function makeWrapper() {
 function makeState(overrides: Partial<WizardState> = {}): WizardState {
   return {
     ...INITIAL_WIZARD_STATE,
-    currentStep: 6,
+    currentStep: 5,
     tenantName: 'Test Center',
     slug: 'test-center',
     audience: 'high-school',

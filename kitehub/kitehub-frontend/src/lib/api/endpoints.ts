@@ -62,6 +62,9 @@ export const endpoints = {
     // GAP-1021 — approve theme + trigger mock deploy provisioning
     jobApprove: (jobId: string) => `/api/v1/branding/jobs/${jobId}/approve`,
     jobDeployStream: (jobId: string) => `/api/v1/branding/jobs/${jobId}/deploy-stream`,
+    // GAP-1021 — mint a short-lived HMAC token the browser EventSource carries
+    // via ?access_token= (SseQueryTokenAuthFilter). Preferred over raw JWT-in-URL.
+    jobSseToken: (jobId: string) => `/api/v1/branding/jobs/${jobId}/sse-token`,
     jobQualityScore: (jobId: string) => `/api/v1/branding/jobs/${jobId}/quality-score`,
     jobPreview: (jobId: string) => `/api/v1/branding/jobs/${jobId}/preview`,
     instanceLifecycleEvents: (instanceId: string) =>

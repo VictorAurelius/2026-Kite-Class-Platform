@@ -377,9 +377,17 @@ All write endpoints delegate to `InstanceLifecycleService` (BR-LIFE-003); state-
 
 ---
 
+## POST /api/v1/branding/jobs/{jobId}/sse-token
+**Use case:** Mint a short-lived HMAC token cho browser EventSource (GAP-1021). EventSource KHÔNG set được `Authorization` header → FE gọi endpoint này (Bearer JWT) để lấy token ngắn hạn, rồi mở deploy-stream với `?access_token=<token>`.
+**Auth:** Bearer token
+**Response 200:** `{ "token": "<hmac-token>", "expiresInSeconds": <ttl> }`
+**Errors:** 401 unauthenticated · 404 job not found
+
+---
+
 ## GET /api/v1/branding/jobs/{jobId}/deploy-stream
 **Use case:** Live wizard "deploy" step UI streams progress; replaces Wave 32 v1 inline simulated progress (sub-GAP-272e)
-**Auth:** Bearer token
+**Auth:** SSE EventSource → `?access_token=<minted-token>` query param (GAP-1021, `SseQueryTokenAuthFilter`). FE chốt 1 đường = mint sse-token (KHÔNG dùng raw `?token=<JWT>` legacy gateway path — JWT-in-URL dài + dễ hết hạn giữa walk). Mint qua `POST .../sse-token` trước, FE `useDeployStream` carry token vào `?access_token=`.
 **Content-Type:** `text/event-stream` (SSE)
 **Response 200:** SSE stream — events terminated by `\n\n`, heartbeat ~30s.
 

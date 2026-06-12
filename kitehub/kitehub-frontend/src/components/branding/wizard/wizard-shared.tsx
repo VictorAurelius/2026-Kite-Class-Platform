@@ -24,12 +24,25 @@
 
 import { useReducer } from 'react';
 import { Card } from '@/components/ui/card';
+import type { GenerationMode } from './GenerationModeSelector';
 
 // ---------------------------------------------------------------------------
 // Step / slug types
 // ---------------------------------------------------------------------------
 
-export type WizardStep = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+/**
+ * GAP-1216 — output-first reorder (kit v3 §2.5, hội tụ 3 audit 2026-06-11).
+ * The wizard collapsed from 7 input steps to 5:
+ *   1. Welcome + Mode  — tenant name + slug + org-type + TEMPLATE/FULL_AI pick
+ *   2. Brand personality — Audience + Tone merged onto one page (cards kept)
+ *   3. Assets          — Logo + Portrait merged, optional/skip; Portrait only FULL_AI
+ *   4. Template        — TEMPLATE route only (FULL_AI skips this step)
+ *   5. Preview/Generate — live preview + approve + deploy (Step6Preview)
+ *
+ * `mode` (GAP-1142) now lives in WizardState (picked in Step 1) and drives the
+ * step-3 Portrait branch + step-4 Template skip via the mode-aware reducer.
+ */
+export type WizardStep = 1 | 2 | 3 | 4 | 5;
 
 /**
  * Organisation type (GAP-1133) — the SECOND orthogonal axis alongside
@@ -129,11 +142,18 @@ export interface WizardState {
    * is used for the logo resource per ai-branding-guidelines.md §1.
    */
   aiLogo: boolean;
-  /** Audience preset selected in Step 3. */
+  /** Audience preset selected in Step 2 (Brand personality). */
   audience: string | null;
-  /** Tone preset selected in Step 4. */
+  /** Tone preset selected in Step 2 (Brand personality). */
   tone: string | null;
-  /** Template ID selected in Step 5. */
+  /**
+   * Generation mode (GAP-1142 / GAP-1216) picked in Step 1. TEMPLATE = free
+   * template route (Step 4 visible). FULL_AI = AI-generated route (Step 4
+   * Template skipped; Portrait sub-section shown in Step 3). Tier-gating is
+   * enforced by the selector + backend; this is the user's intent.
+   */
+  mode: GenerationMode;
+  /** Template ID selected in Step 4 (TEMPLATE route only). */
   templateId: string | null;
   /** Branding job ID returned from the backend — set when generate starts (Step 5→6). */
   jobId: string | null;
@@ -166,6 +186,7 @@ export const INITIAL_WIZARD_STATE: WizardState = {
   aiLogo: false,
   audience: null,
   tone: null,
+  mode: 'TEMPLATE',
   templateId: null,
   jobId: null,
   instanceId: null,
@@ -188,6 +209,7 @@ export type WizardAction =
   | { type: 'CLEAR_LOGO' }
   | { type: 'SET_AUDIENCE'; audience: string }
   | { type: 'SET_TONE'; tone: string }
+  | { type: 'SET_MODE'; mode: GenerationMode }
   | { type: 'SET_TEMPLATE'; templateId: string; jobId: string }
   | { type: 'SET_JOB_ID'; jobId: string; instanceId?: string }
   | { type: 'APPROVE_RESOURCE'; resource: string }
@@ -201,13 +223,25 @@ export type WizardAction =
 
 export function wizardReducer(state: WizardState, action: WizardAction): WizardState {
   switch (action.type) {
-    case 'NEXT_STEP':
-      if (state.currentStep >= 7) return state;
-      return { ...state, currentStep: (state.currentStep + 1) as WizardStep };
+    case 'NEXT_STEP': {
+      const s = state.currentStep;
+      if (s >= 5) return state;
+      // GAP-1216: FULL_AI skips the Template step (4): Assets (3) → Preview (5).
+      if (s === 3 && state.mode === 'FULL_AI') {
+        return { ...state, currentStep: 5 };
+      }
+      return { ...state, currentStep: (s + 1) as WizardStep };
+    }
 
-    case 'PREV_STEP':
-      if (state.currentStep <= 1) return state;
-      return { ...state, currentStep: (state.currentStep - 1) as WizardStep };
+    case 'PREV_STEP': {
+      const s = state.currentStep;
+      if (s <= 1) return state;
+      // GAP-1216: mirror the FULL_AI skip on the way back: Preview (5) → Assets (3).
+      if (s === 5 && state.mode === 'FULL_AI') {
+        return { ...state, currentStep: 3 };
+      }
+      return { ...state, currentStep: (s - 1) as WizardStep };
+    }
 
     case 'GO_TO_STEP':
       return { ...state, currentStep: action.step };
@@ -249,6 +283,9 @@ export function wizardReducer(state: WizardState, action: WizardAction): WizardS
 
     case 'SET_TONE':
       return { ...state, tone: action.tone };
+
+    case 'SET_MODE':
+      return { ...state, mode: action.mode };
 
     case 'SET_TEMPLATE':
       return {
@@ -390,6 +427,8 @@ export interface PortraitStepProps {
   dispatch: React.Dispatch<WizardAction>;
   /** Tenant instance — required for the asset upload/list endpoint path. */
   instanceId: string;
-  onNext: () => void;
-  onBack: () => void;
+  onNext?: () => void;
+  onBack?: () => void;
+  /** GAP-1216 — embedded inside the merged Assets step (3): drop own footer. */
+  embedded?: boolean;
 }

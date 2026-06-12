@@ -127,7 +127,7 @@ export function QualityGateWidget(props: QualityGateWidgetProps) {
           style={{ color: passed ? 'hsl(var(--primary))' : 'hsl(var(--destructive))' }}
         >
           {passed
-            ? 'Quality gate · 5 kiểm tra · Bước 6'
+            ? 'Quality gate · 5 kiểm tra · Bước 5'
             : 'Quality gate · 5 kiểm tra · Cần xử lý'}
         </p>
         <h2 className="text-2xl font-bold text-foreground mb-2">

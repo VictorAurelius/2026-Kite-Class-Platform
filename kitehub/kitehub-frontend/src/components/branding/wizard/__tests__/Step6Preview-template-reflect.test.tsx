@@ -43,7 +43,7 @@ function makeWrapper() {
 function makeState(templateId: string | null): WizardState {
   return {
     ...INITIAL_WIZARD_STATE,
-    currentStep: 6,
+    currentStep: 5,
     tenantName: 'Trung tâm Toán Master',
     slug: 'toan-master',
     audience: 'exam-prep',

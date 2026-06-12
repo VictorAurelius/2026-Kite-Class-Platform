@@ -1,31 +1,26 @@
 'use client';
 
 /**
- * Wave 32 Bucket A — AI Branding Wizard v2 orchestrator (Direction C 6-step refactor).
+ * AI Branding Wizard — output-first orchestrator (GAP-1216, 5-step reorder).
  *
- * Replaces the legacy 4-step wizard (Upload → Analyze → Generate → Review) with
- * the Direction C 7-step flow per `ai-branding-guidelines.md` §4.1:
- *   1. Welcome   — tenant name + slug + org-type select (GAP-1133)
- *   2. Logo      — upload OR AI-generate fork
- *   3. Portrait  — 1..N teacher headshots (GAP-1134; count hint by org-type)
- *   4. Audience  — 4 VN audience cards   (Bucket B)
- *   5. Tone      — 4 tone cards          (Bucket B)
- *   6. Template  — grid + Enterprise custom-prompt (Bucket C)
- *   7. Preview   — per-resource approve + full-screen preview + deploy (Bucket C+D / GAP-1136)
+ * Replaces the Direction-C 7-step flow with the output-first 5-step flow per
+ * kit v3 §2.5 (hội tụ 3 audit 2026-06-11):
+ *   1. Welcome + Mode  — tenant name + slug + org-type (GAP-1133) + TEMPLATE/FULL_AI
+ *   2. Brand personality — Audience + Tone merged onto one page (BrandPersonalityStep)
+ *   3. Assets          — Logo + Portrait merged, optional/skip (AssetsStep);
+ *                        Portrait sub-section only in FULL_AI mode (GAP-1134)
+ *   4. Template        — TEMPLATE route only; FULL_AI skips this step
+ *   5. Preview/Generate — live preview + per-resource approve + deploy (Step6Preview)
  *
- * Bucket A shipped Steps 1-2 (#883). Buckets B (#889 audience+tone), C (#888
- * template), and C+D (#890 preview / quality gate / deploy) shipped the
- * remaining step components. This file is the orchestrator wire that replaced
- * the Bucket A placeholders with real `dynamic()` imports — Phase B of the
- * locked Post-Wave-32 sequence (see project memory
- * `project_post_wave_32_sequence_plan.md`).
+ * Mode-branching lives in the `wizard-shared.tsx` reducer (NEXT/PREV skip step 4
+ * for FULL_AI). The escape-ramp (GAP-1219) jumps to step 4/5 depending on mode.
  *
  * Bundle-size strategy (preserved from Wave GAP-236 Sub-PR B): each step is
  * loaded via `next/dynamic` so only the active step's chunk is shipped.
  *
- * State: a single useReducer in this orchestrator owns ALL wizard state per
- * `wizard-shared.tsx`. Step components dispatch — they do NOT keep their own
- * shadow copies of canonical fields (rework §3.1 anti-pattern guard).
+ * State: a single useReducer owns ALL wizard state per `wizard-shared.tsx`. Step
+ * components dispatch — they do NOT keep shadow copies of canonical fields
+ * (rework §3.1 anti-pattern guard).
  */
 
 import { useEffect, useMemo, useState } from 'react';
@@ -33,6 +28,7 @@ import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth-store';
 import { useOwnerInstances } from '@/hooks/use-instances';
+import { useBrandingTier } from '@/hooks/use-branding-tier';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { EmptyState } from '@/components/common/EmptyState';
 import { Button } from '@/components/ui/button';
@@ -42,7 +38,7 @@ import { useWizardReducer, type WizardStep } from '@/components/branding/wizard/
 
 const stepLoading = () => <LoadingSpinner className="my-12" />;
 
-// Bucket A — Welcome + Logo
+// Step 1 — Welcome + Mode
 const WelcomeStep = dynamic(
   () =>
     import('@/components/branding/wizard/WelcomeStep').then((m) => ({
@@ -50,43 +46,26 @@ const WelcomeStep = dynamic(
     })),
   { ssr: false, loading: stepLoading }
 );
-const LogoStep = dynamic(
+
+// Step 2 — Brand personality (Audience + Tone merged, GAP-1216).
+const BrandPersonalityStep = dynamic(
   () =>
-    import('@/components/branding/wizard/LogoStep').then((m) => ({
-      default: m.LogoStep,
+    import('@/components/branding/wizard/BrandPersonalityStep').then((m) => ({
+      default: m.BrandPersonalityStep,
     })),
   { ssr: false, loading: stepLoading }
 );
 
-// GAP-1134 — Portrait upload step (Step 3). Reuses the asset upload + library
-// pattern; count hint driven by the org-type chosen in Step 1.
-const PortraitStep = dynamic(
+// Step 3 — Assets (Logo + Portrait merged, optional/skip, GAP-1216 / GAP-1134).
+const AssetsStep = dynamic(
   () =>
-    import('@/components/branding/wizard/PortraitStep').then((m) => ({
-      default: m.PortraitStep,
+    import('@/components/branding/wizard/AssetsStep').then((m) => ({
+      default: m.AssetsStep,
     })),
   { ssr: false, loading: stepLoading }
 );
 
-// Bucket B — Audience + Tone (Wave 32 rework B). Their `onNext(selected)` is
-// adapted by this orchestrator (see currentStep === 3/4 below) so SET_AUDIENCE /
-// SET_TONE dispatch happens here, not inside the step.
-const AudienceStep = dynamic(
-  () =>
-    import('@/components/branding/wizard/AudienceStep').then((m) => ({
-      default: m.AudienceStep,
-    })),
-  { ssr: false, loading: stepLoading }
-);
-const ToneStep = dynamic(
-  () =>
-    import('@/components/branding/wizard/ToneStep').then((m) => ({
-      default: m.ToneStep,
-    })),
-  { ssr: false, loading: stepLoading }
-);
-
-// Bucket C — Template grid + Step 6 preview/approve.
+// Step 4 — Template grid (TEMPLATE route only) + Step 5 preview/approve.
 const TemplateStep = dynamic(
   () =>
     import('@/components/branding/wizard/TemplateStep').then((m) => ({
@@ -107,6 +86,9 @@ export default function BrandingWizardPage() {
   const user = useAuthStore((state) => state.user);
   const { data: instances, isError: instancesError } = useOwnerInstances(user?.id);
   const instanceId = instances?.[0]?.id;
+
+  // GAP-1216: tier drives FULL_AI eligibility in the Step-1 mode selector.
+  const { tier } = useBrandingTier(instanceId);
 
   const [loadingTimedOut, setLoadingTimedOut] = useState(false);
   const [state, dispatch] = useWizardReducer();
@@ -131,26 +113,13 @@ export default function BrandingWizardPage() {
     [dispatch]
   );
 
-  // Bucket B step components (Audience step 4 / Tone step 5) emit the selected
-  // id as the onNext payload — adapt to the orchestrator's "dispatch SET_* then
-  // advance" contract here instead of changing Bucket B's local signature.
-  const handleAudienceNext = useMemo(
-    () => (audience: string) => {
-      dispatch({ type: 'SET_AUDIENCE', audience });
-      dispatch({ type: 'NEXT_STEP' });
-    },
-    [dispatch]
-  );
-  const handleToneNext = useMemo(
-    () => (tone: string) => {
-      dispatch({ type: 'SET_TONE', tone });
-      dispatch({ type: 'NEXT_STEP' });
-    },
-    [dispatch]
-  );
-
   const handleDeploy = useMemo(
     () => () => router.push('/branding'),
+    [router]
+  );
+
+  const handleUpgrade = useMemo(
+    () => () => router.push('/billing/upgrade'),
     [router]
   );
 
@@ -204,7 +173,7 @@ export default function BrandingWizardPage() {
         </div>
       </div>
 
-      <StepIndicator currentStep={currentStep} />
+      <StepIndicator currentStep={currentStep} mode={state.mode} />
 
       <div className="mt-2">
         {currentStep === 1 && (
@@ -212,21 +181,22 @@ export default function BrandingWizardPage() {
             wizardState={state}
             dispatch={dispatch}
             onNext={handleNext}
+            tier={tier}
+            onUpgradeClick={handleUpgrade}
           />
         )}
 
         {currentStep === 2 && (
-          <LogoStep
+          <BrandPersonalityStep
             wizardState={state}
             dispatch={dispatch}
-            instanceId={instanceId}
             onNext={handleNext}
             onBack={handleBack}
           />
         )}
 
         {currentStep === 3 && (
-          <PortraitStep
+          <AssetsStep
             wizardState={state}
             dispatch={dispatch}
             instanceId={instanceId}
@@ -236,22 +206,6 @@ export default function BrandingWizardPage() {
         )}
 
         {currentStep === 4 && (
-          <AudienceStep
-            wizardState={state}
-            onNext={handleAudienceNext}
-            onBack={handleBack}
-          />
-        )}
-
-        {currentStep === 5 && (
-          <ToneStep
-            wizardState={state}
-            onNext={handleToneNext}
-            onBack={handleBack}
-          />
-        )}
-
-        {currentStep === 6 && (
           <TemplateStep
             wizardState={state}
             dispatch={dispatch}
@@ -261,7 +215,7 @@ export default function BrandingWizardPage() {
           />
         )}
 
-        {currentStep === 7 && (
+        {currentStep === 5 && (
           <Step6Preview
             wizardState={state}
             dispatch={dispatch}

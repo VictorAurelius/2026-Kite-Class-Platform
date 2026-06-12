@@ -52,8 +52,14 @@ export interface LogoStepProps {
   dispatch: React.Dispatch<WizardAction>;
   /** Tenant instance — required for the upload endpoint path. */
   instanceId: string;
-  onNext: () => void;
-  onBack: () => void;
+  onNext?: () => void;
+  onBack?: () => void;
+  /**
+   * GAP-1216 — when rendered inside the merged Assets step (3) the composite
+   * owns the shared footer + step header, so this component drops its own
+   * footer and switches its eyebrow to a section label.
+   */
+  embedded?: boolean;
 }
 
 type Fork = 'upload' | 'ai-generate';
@@ -62,8 +68,9 @@ export function LogoStep({
   wizardState,
   dispatch,
   instanceId,
-  onNext,
-  onBack,
+  onNext = () => {},
+  onBack = () => {},
+  embedded = false,
 }: LogoStepProps) {
   const { logoUrl, aiLogo } = wizardState;
 
@@ -173,7 +180,7 @@ export function LogoStep({
     <div className="space-y-6">
       <WizardCard>
         <WizardStepHeader
-          eyebrow="Bước 2 / 7 · Tuỳ chọn"
+          eyebrow={embedded ? 'Logo · Tuỳ chọn' : 'Bước 3 / 5 · Tuỳ chọn'}
           title="Bạn đã có logo chưa?"
           subtitle="Bạn có thể upload logo có sẵn, hoặc để hệ thống tạo logo chữ lồng (monogram) từ tên trung tâm. Đổi sau lúc nào cũng được."
         />
@@ -346,32 +353,35 @@ export function LogoStep({
             <div className="text-sm text-orange-900 dark:text-orange-100">
               <p className="font-semibold mb-1">Hệ thống sẽ lo phần logo</p>
               <p className="text-xs">
-                Hệ thống sẽ tạo logo dựa trên tên trung tâm + phong cách bạn chọn ở
-                Bước 4. Bạn có thể đổi logo bất kỳ lúc nào sau khi triển khai.
+                Hệ thống sẽ tạo logo dựa trên tên trung tâm + phong cách bạn đã chọn.
+                Bạn có thể đổi logo bất kỳ lúc nào sau khi triển khai.
               </p>
             </div>
           </div>
         )}
       </WizardCard>
 
-      {/* Footer actions */}
-      <div className="flex items-center justify-between max-w-2xl mx-auto px-1">
-        <Button variant="ghost" onClick={onBack} data-testid="wizard-step2-back">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Quay lại
-        </Button>
-        <p className="text-xs text-muted-foreground">
-          Bước 2 / 7 · Tuỳ chọn — bỏ qua nếu chưa có
-        </p>
-        <Button
-          onClick={onNext}
-          disabled={!canContinue || uploadMutation.isPending}
-          data-testid="wizard-step2-continue"
-        >
-          Tiếp tục
-          <ArrowRight className="ml-2 h-4 w-4" />
-        </Button>
-      </div>
+      {/* Footer actions — suppressed when embedded inside the merged Assets step
+          (the composite owns one shared footer). */}
+      {!embedded && (
+        <div className="flex items-center justify-between max-w-2xl mx-auto px-1">
+          <Button variant="ghost" onClick={onBack} data-testid="wizard-step2-back">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Quay lại
+          </Button>
+          <p className="text-xs text-muted-foreground">
+            Bước 3 / 5 · Tuỳ chọn — bỏ qua nếu chưa có
+          </p>
+          <Button
+            onClick={onNext}
+            disabled={!canContinue || uploadMutation.isPending}
+            data-testid="wizard-step2-continue"
+          >
+            Tiếp tục
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
