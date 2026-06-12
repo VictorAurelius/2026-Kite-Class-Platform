@@ -341,3 +341,13 @@
   color: hsl(var(--foreground));
   margin-bottom: 1.25rem;
 }
+
+
+/* ============== Click-through navigation (GAP-1233 — kit flow walk) ==============
+   Stepper dots + footer CTAs are real <a> links giữa screens (Figma-prototype
+   equivalent). Anchors reuse .wiz-step/.btn primitives — chỉ cần reset anchor
+   defaults + hover affordance cho stepper. */
+a.wiz-step, a.btn { text-decoration: none; }
+a.wiz-step { color: inherit; }
+a.wiz-step:hover .wiz-step-dot { box-shadow: 0 0 0 3px hsl(var(--primary) / 0.18); }
+a.wiz-step:hover { color: hsl(var(--primary)); }

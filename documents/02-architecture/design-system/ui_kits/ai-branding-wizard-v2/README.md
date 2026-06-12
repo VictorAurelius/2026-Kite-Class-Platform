@@ -37,6 +37,8 @@ v3 refresh khớp wizard production hiện hành + cụm AI chain ADR-037. Khác
 
 **Implementation cite kit v3 làm design source:** cụm GAP-1134/1147/1135/1021 dùng `v3/screens/*.html` làm 基本設計 (Layer 2). 4-layer pointers đầy đủ trong [`v3/index.html`](v3/index.html) §4-layer coverage.
 
+**Click-through navigation (GAP-1233, 2026-06-12):** 11 screens v3 wire điều hướng thật giữa các bước (Figma-prototype equivalent) — stepper là link nhảy bước, footer CTA đi theo flow `1→2→3→4→5→7→8→9`, rẽ nhánh ADR-037 walk được bằng click (step3 lock-note → nhánh FULL_AI `6→8`; step8-generating có link mô phỏng kết quả Thành công/Lỗi). Bắt đầu walk từ [`v3/screens/step1-welcome.html`](v3/screens/step1-welcome.html) — không cần quay về index giữa các bước. v2 archive giữ nguyên không wire (per annotation trên).
+
 ---
 
 ## Why this kit (Direction C scope)
