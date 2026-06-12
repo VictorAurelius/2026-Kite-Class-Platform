@@ -31,6 +31,10 @@ public interface LandingPageMapper {
      * @param landingPage the landing page entity
      * @return LandingPageResponse DTO
      */
+    // GAP-1229: faviconUrl KHÔNG có trên entity (by design — resolve transient từ
+    // settings.Branding tại read time trong LandingPageServiceImpl, không persist copy)
+    // → ignore tường minh để hết MapStruct unmapped-target warning.
+    @Mapping(target = "faviconUrl", ignore = true)
     LandingPageResponse toResponse(LandingPage landingPage);
 
     /**
@@ -50,6 +54,9 @@ public interface LandingPageMapper {
     @Mapping(target = "updatedBy", ignore = true)
     @Mapping(target = "deleted", ignore = true)
     @Mapping(target = "version", ignore = true)
+    // GAP-1213 (V98): brandingVersion = idempotency counter do BrandingDeployedEventConsumer
+    // quản lý — user KHÔNG được edit qua PUT /landing → ignore tường minh.
+    @Mapping(target = "brandingVersion", ignore = true)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateEntity(@MappingTarget LandingPage landingPage, UpdateLandingPageRequest request);
 }
