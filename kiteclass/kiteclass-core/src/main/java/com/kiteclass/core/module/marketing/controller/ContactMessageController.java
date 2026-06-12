@@ -81,7 +81,7 @@ public class ContactMessageController {
      * @return ApiResponse with page of contact messages and HTTP 200
      */
     @GetMapping("/api/v1/contact-messages")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'OWNER')")
     @Operation(summary = "Search contact messages",
             description = "Searches contact messages with optional filters and pagination")
     public ApiResponse<PageResponse<ContactMessageResponse>> getContactMessages(
@@ -114,7 +114,7 @@ public class ContactMessageController {
      * @return ApiResponse with unread count and HTTP 200
      */
     @GetMapping("/api/v1/contact-messages/unread-count")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'OWNER')")
     @Operation(summary = "Count unread messages",
             description = "Counts unread contact messages for a tenant")
     public ApiResponse<Long> getUnreadCount(
@@ -133,7 +133,7 @@ public class ContactMessageController {
      * @return ApiResponse with updated message data and HTTP 200
      */
     @PutMapping("/api/v1/contact-messages/{id}/read")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'OWNER')")
     @Operation(summary = "Mark message as read", description = "Marks a contact message as read (requires ADMIN or TEACHER role)")
     public ApiResponse<ContactMessageResponse> markAsRead(
             @Parameter(description = "Contact message ID") @PathVariable Long id,
@@ -152,7 +152,7 @@ public class ContactMessageController {
      */
     @DeleteMapping("/api/v1/contact-messages/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'OWNER')")
     @Operation(summary = "Delete contact message", description = "Soft-deletes a contact message (sets deleted flag)")
     public void deleteContactMessage(@Parameter(description = "Contact message ID") @PathVariable Long id) {
         log.info("REST request to delete contact message with ID: {}", id);

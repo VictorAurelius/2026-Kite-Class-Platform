@@ -26,7 +26,6 @@ import { ArrowRight, AlertCircle, CheckCircle2, Loader2, Sparkles } from 'lucide
 import {
   WizardCard,
   WizardStepHeader,
-  ORG_TYPE_OPTIONS,
   type WizardState,
   type WizardAction,
 } from './wizard-shared';
@@ -61,7 +60,7 @@ export function WelcomeStep({
   tier = 'FREE',
   onUpgradeClick,
 }: WelcomeStepProps) {
-  const { tenantName, slug, slugStatus, conflictSuggestions, orgType, mode } = wizardState;
+  const { tenantName, slug, slugStatus, conflictSuggestions, mode } = wizardState;
   const { checkSlug } = useSlugAvailability();
 
   // Track active in-flight slug to discard stale responses.
@@ -113,15 +112,15 @@ export function WelcomeStep({
   };
 
   const canContinue =
-    tenantName.trim().length > 0 && slugStatus === 'available' && orgType !== null;
+    tenantName.trim().length > 0 && slugStatus === 'available';
 
   return (
     <div className="space-y-6">
       <WizardCard>
         <WizardStepHeader
-          eyebrow="Bước 1 / 5"
-          title="Chào mừng đến với Kite Branding Studio"
-          subtitle="Hệ thống AI sẽ tạo trang web cho trung tâm của bạn dựa trên vài lựa chọn nhỏ. Bạn không cần kỹ năng thiết kế — chỉ cần chọn vài tuỳ chọn, AI sẽ lo phần còn lại."
+          eyebrow="Bước 1 / 5 · Bắt đầu"
+          title="Cùng tạo thương hiệu cho trung tâm của bạn 👋"
+          subtitle="Chỉ cần tên trung tâm và đường dẫn — AI sẽ tạo bản xem trước trang giới thiệu thật. Bạn không cần kỹ năng thiết kế; chỉnh lại lúc nào cũng được."
         />
 
         <div className="space-y-5">
@@ -131,13 +130,13 @@ export function WelcomeStep({
               htmlFor="wizard-tenant-name"
               className="block text-sm font-semibold mb-1"
             >
-              Tên trung tâm <span className="text-destructive">*</span>
+              Tên hiển thị của trung tâm <span className="text-destructive">*</span>
             </label>
             <input
               id="wizard-tenant-name"
               type="text"
               autoComplete="organization"
-              placeholder="VD: Trung tâm Toán Master"
+              placeholder="VD: Trung tâm Tiếng Anh Cô Hà"
               value={tenantName}
               onChange={(e) =>
                 dispatch({ type: 'SET_TENANT_NAME', tenantName: e.target.value })
@@ -145,7 +144,7 @@ export function WelcomeStep({
               className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             />
             <p className="text-xs text-muted-foreground mt-1">
-              Tên này sẽ xuất hiện trên trang web, hoá đơn, và email gửi học viên.
+              Tên này hiển thị trên trang giới thiệu, hóa đơn và thông báo Zalo gửi phụ huynh.
             </p>
           </div>
 
@@ -155,7 +154,7 @@ export function WelcomeStep({
               htmlFor="wizard-slug"
               className="block text-sm font-semibold mb-1"
             >
-              Đường dẫn website
+              Địa chỉ trang giới thiệu
             </label>
             <div
               data-testid="wizard-slug-row"
@@ -257,45 +256,13 @@ export function WelcomeStep({
             )}
           </div>
 
-          {/* Org type — GAP-1133 user-type axis (constrained preset). Orthogonal
-              to Audience (Step 4); drives portrait count (Step 3) + tier hint. */}
-          <div>
-            <p className="block text-sm font-semibold mb-1">
-              Bạn thuộc nhóm nào? <span className="text-destructive">*</span>
-            </p>
-            <p className="text-xs text-muted-foreground mb-3">
-              Giúp AI chuẩn bị đúng số lượng ảnh chân dung và gợi ý phù hợp. Bạn có
-              thể đổi sau.
-            </p>
-            <div
-              role="radiogroup"
-              aria-label="Loại tổ chức"
-              data-testid="wizard-org-type"
-              className="grid grid-cols-1 sm:grid-cols-3 gap-3"
-            >
-              {ORG_TYPE_OPTIONS.map((opt) => (
-                <OrgTypeCard
-                  key={opt.id}
-                  selected={orgType === opt.id}
-                  emoji={opt.emoji}
-                  label={opt.label}
-                  description={opt.description}
-                  onSelect={() => dispatch({ type: 'SET_ORG_TYPE', orgType: opt.id })}
-                  data-testid={`wizard-org-type-${opt.id}`}
-                />
-              ))}
-            </div>
-          </div>
-
           {/* Generation mode (GAP-1216 / GAP-1142) — moved to Step 1 so the
               TEMPLATE/FULL_AI choice is made up front (output-first flow). It
-              drives the Step-3 Portrait branch + Step-4 Template skip. */}
+              drives the Step-3 Portrait branch + Step-4 Template skip.
+              GAP-1231: org-type card dropped per kit v3 (no org-type in the kit);
+              `orgType` defaults to SMALL_CENTER in WizardState. */}
           <div data-testid="welcome-generation-mode">
-            <p className="block text-sm font-semibold mb-1">Cách tạo thương hiệu</p>
-            <p className="text-xs text-muted-foreground mb-3">
-              <strong>Mẫu</strong> — miễn phí, chọn từ bộ mẫu có sẵn.{' '}
-              <strong>AI cao cấp</strong> — AI tự vẽ banner riêng (gói PREMIUM trở lên).
-            </p>
+            <p className="block text-sm font-semibold mb-1">Cách AI tạo banner cho trung tâm</p>
             <GenerationModeSelector
               tier={tier}
               value={mode}
@@ -337,7 +304,7 @@ export function WelcomeStep({
           }}
         >
           <Sparkles className="mr-2 h-4 w-4" />
-          Dùng gợi ý an toàn — thiết lập sau
+          Tạo ngay với mặc định
         </Button>
         <p className="text-xs text-muted-foreground">Bước 1 / 5 · Mất ~5 phút</p>
         <Button onClick={onNext} disabled={!canContinue} data-testid="wizard-step1-continue">
@@ -346,52 +313,5 @@ export function WelcomeStep({
         </Button>
       </div>
     </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// OrgTypeCard — single radio-style card for the user-type axis (GAP-1133)
-// ---------------------------------------------------------------------------
-
-interface OrgTypeCardProps {
-  selected: boolean;
-  emoji: string;
-  label: string;
-  description: string;
-  onSelect: () => void;
-  'data-testid'?: string;
-}
-
-function OrgTypeCard({
-  selected,
-  emoji,
-  label,
-  description,
-  onSelect,
-  ...rest
-}: OrgTypeCardProps) {
-  return (
-    <button
-      type="button"
-      role="radio"
-      aria-checked={selected}
-      aria-label={label}
-      onClick={onSelect}
-      data-testid={rest['data-testid']}
-      className={[
-        'text-left p-3 rounded-lg border transition-all h-full',
-        selected
-          ? 'border-primary bg-primary/5 ring-2 ring-primary/30'
-          : 'border-input bg-background hover:border-primary/50',
-      ].join(' ')}
-    >
-      <div className="flex items-center gap-2 mb-1">
-        <span aria-hidden="true" className="text-lg">
-          {emoji}
-        </span>
-        <h3 className="font-bold text-sm">{label}</h3>
-      </div>
-      <p className="text-xs text-muted-foreground">{description}</p>
-    </button>
   );
 }

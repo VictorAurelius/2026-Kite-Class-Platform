@@ -358,6 +358,8 @@ describe('Step6Preview iframe + G11 ThemePreview', () => {
       <Step6Preview
         wizardState={makeState({
           templateId: 'template-t2-score-board',
+          // kit v3 — footer "Triển khai & lên sóng" also gates on jobId existing.
+          jobId: 'job-ready',
           approvedResources: ['logo'],
         })}
         dispatch={vi.fn()}
@@ -370,6 +372,7 @@ describe('Step6Preview iframe + G11 ThemePreview', () => {
       <Step6Preview
         wizardState={makeState({
           templateId: 'template-t2-score-board',
+          jobId: 'job-ready',
           approvedResources: ['logo', 'colors', 'banner', 'hero'],
         })}
         dispatch={vi.fn()}

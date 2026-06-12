@@ -71,21 +71,26 @@ describe('wizardReducer — step transitions', () => {
     expect(s.currentStep).toBe(3);
   });
 
-  it('FULL_AI mode skips the Template step (4): Assets (3) ⇄ Preview (5)', () => {
+  it('kit v3 — both modes walk the linear 5 steps (Template step removed)', () => {
+    // FULL_AI no longer skips step 4: Assets (3) → Tạo&Duyệt (4) → Triển khai (5).
     let s: WizardState = { ...INITIAL_WIZARD_STATE, mode: 'FULL_AI', currentStep: 3 };
     s = wizardReducer(s, { type: 'NEXT_STEP' });
-    expect(s.currentStep).toBe(5); // 3 → 5, template skipped
+    expect(s.currentStep).toBe(4);
+    s = wizardReducer(s, { type: 'NEXT_STEP' });
+    expect(s.currentStep).toBe(5);
     s = wizardReducer(s, { type: 'PREV_STEP' });
-    expect(s.currentStep).toBe(3); // 5 → 3, mirror skip
+    expect(s.currentStep).toBe(4);
   });
 
-  it('SET_ORG_TYPE persists the user-type axis (GAP-1133)', () => {
-    expect(INITIAL_WIZARD_STATE.orgType).toBeNull();
+  it('orgType defaults to SMALL_CENTER (GAP-1231 — card dropped from UI) + SET_ORG_TYPE still persists', () => {
+    // GAP-1231: org-type card removed from Step 1; the field defaults to a safe
+    // centre-shaped value and stays mutable for the generate request.
+    expect(INITIAL_WIZARD_STATE.orgType).toBe('SMALL_CENTER');
     const next = wizardReducer(INITIAL_WIZARD_STATE, {
       type: 'SET_ORG_TYPE',
-      orgType: 'SMALL_CENTER',
+      orgType: 'LARGE_CENTER',
     });
-    expect(next.orgType).toBe('SMALL_CENTER');
+    expect(next.orgType).toBe('LARGE_CENTER');
   });
 });
 
@@ -146,13 +151,15 @@ describe('wizardReducer — approvedResources (Bucket C compliance)', () => {
 });
 
 describe('StepIndicator', () => {
-  it('renders all 5 steps (TEMPLATE) and marks currentStep as aria-current="step"', () => {
+  it('renders the 5 kit-v3 steps and marks currentStep as aria-current="step"', () => {
     render(<StepIndicator currentStep={3} />);
 
-    const labels = ['Bắt đầu', 'Phong cách', 'Hình ảnh', 'Mẫu thiết kế', 'Xem & Tạo'];
+    const labels = ['Bắt đầu', 'Phong cách', 'Hình ảnh', 'Tạo & Duyệt', 'Triển khai'];
     for (const label of labels) {
       expect(screen.getByText(label)).toBeInTheDocument();
     }
+    // Template step removed from the flow.
+    expect(screen.queryByText('Mẫu thiết kế')).not.toBeInTheDocument();
 
     const current = screen.getByLabelText(/Bước 3: Hình ảnh \(đang làm\)/);
     expect(current).toHaveAttribute('aria-current', 'step');
@@ -161,10 +168,11 @@ describe('StepIndicator', () => {
     expect(completed).not.toHaveAttribute('aria-current');
   });
 
-  it('FULL_AI mode hides the Template step (4) from the indicator (GAP-1216)', () => {
+  it('kit v3 — FULL_AI mode shows all 5 steps too (no Template skip)', () => {
     render(<StepIndicator currentStep={3} mode="FULL_AI" />);
+    expect(screen.getByText('Tạo & Duyệt')).toBeInTheDocument();
+    expect(screen.getByText('Triển khai')).toBeInTheDocument();
     expect(screen.queryByText('Mẫu thiết kế')).not.toBeInTheDocument();
-    expect(screen.getByText('Xem & Tạo')).toBeInTheDocument();
   });
 });
 
@@ -210,13 +218,11 @@ describe('WelcomeStep — slug validation', () => {
     expect(onNext).toHaveBeenCalledTimes(1);
   });
 
-  it('org-type select dispatches SET_ORG_TYPE + gates Continue until chosen (GAP-1133)', async () => {
+  it('org-type card is dropped from the UI; Continue gates on name + slug only (GAP-1231)', async () => {
     let state: WizardState = {
       ...INITIAL_WIZARD_STATE,
       tenantName: 'Trung tâm Toán Master',
       slug: 'unique-slug',
-      // orgType intentionally null → Continue must stay disabled even when the
-      // slug becomes available.
     };
     const dispatch = vi.fn((action) => {
       state = wizardReducer(state, action);
@@ -226,25 +232,16 @@ describe('WelcomeStep — slug validation', () => {
       <WelcomeStep wizardState={state} dispatch={dispatch} onNext={vi.fn()} />
     );
 
+    // GAP-1231: org-type card no longer rendered in Step 1.
+    expect(screen.queryByTestId('wizard-org-type')).not.toBeInTheDocument();
+
     await act(async () => {
       await vi.advanceTimersByTimeAsync(900);
     });
     expect(state.slugStatus).toBe('available');
 
     rerender(<WelcomeStep wizardState={state} dispatch={dispatch} onNext={vi.fn()} />);
-    // Slug available BUT org-type unset → Continue still disabled.
-    expect(screen.getByTestId('wizard-step1-continue')).toBeDisabled();
-
-    // Pick the "Trung tâm lớn" card → SET_ORG_TYPE dispatched.
-    fireEvent.click(screen.getByTestId('wizard-org-type-LARGE_CENTER'));
-    expect(dispatch).toHaveBeenCalledWith({
-      type: 'SET_ORG_TYPE',
-      orgType: 'LARGE_CENTER',
-    });
-    expect(state.orgType).toBe('LARGE_CENTER');
-
-    rerender(<WelcomeStep wizardState={state} dispatch={dispatch} onNext={vi.fn()} />);
-    // Now name + slug + org-type all set → Continue enabled.
+    // Name + slug available (no org-type gate) → Continue enabled.
     expect(screen.getByTestId('wizard-step1-continue')).not.toBeDisabled();
   });
 

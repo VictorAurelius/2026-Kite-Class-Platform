@@ -65,7 +65,7 @@ public class LandingPageController {
      * @return ApiResponse with updated landing page content and HTTP 200
      */
     @PutMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'OWNER')")
     @Operation(summary = "Update landing page", description = "Updates landing page content for a tenant (requires ADMIN or TEACHER role)")
     public ApiResponse<LandingPageResponse> updateLandingPage(
             @Parameter(description = "Tenant ID") @PathVariable UUID tenantId,

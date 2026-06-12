@@ -18,11 +18,11 @@ describe('Wave 32 Bucket B — AudienceStep (Step 3)', () => {
   it('renders 4 audience cards with VN labels', () => {
     render(<AudienceStep wizardState={{ audience: null }} onNext={vi.fn()} onBack={vi.fn()} />);
 
-    // 4 expected VN-labeled audience cards per plan §3 Bucket B.
-    expect(screen.getByText('Trường mầm non')).toBeInTheDocument();
-    expect(screen.getByText('Trường THCS / THPT')).toBeInTheDocument();
-    expect(screen.getByText('Trung tâm tiếng Anh')).toBeInTheDocument();
-    expect(screen.getByText('Lớp luyện thi')).toBeInTheDocument();
+    // 4 expected VN-labeled audience cards (GAP-1231 kit v3 concern-voice labels).
+    expect(screen.getByText('Phụ huynh mầm non / tiểu học')).toBeInTheDocument();
+    expect(screen.getByText('Luyện thi / THCS-THPT')).toBeInTheDocument();
+    expect(screen.getByText('Người đi làm / tiếng Anh giao tiếp')).toBeInTheDocument();
+    expect(screen.getByText('Lớp luyện thi chuyên sâu')).toBeInTheDocument();
 
     // All 4 are exposed as radio role for a11y per ARIA spec.
     const radios = screen.getAllByRole('radio');
@@ -38,8 +38,8 @@ describe('Wave 32 Bucket B — AudienceStep (Step 3)', () => {
     const continueBtn = screen.getByRole('button', { name: /Tiếp tục/i });
     expect(continueBtn).toBeDisabled();
 
-    // Select "Lớp luyện thi" (matches step3-audience-selected spec).
-    await user.click(screen.getByText('Lớp luyện thi'));
+    // Select "Lớp luyện thi chuyên sâu" (exam-prep).
+    await user.click(screen.getByText('Lớp luyện thi chuyên sâu'));
 
     // Reasoning preview appears + selected card has aria-checked=true + Continue enabled.
     expect(screen.getByTestId('audience-reasoning')).toBeInTheDocument();
@@ -50,7 +50,7 @@ describe('Wave 32 Bucket B — AudienceStep (Step 3)', () => {
       .getAllByRole('radio')
       .find((r) => r.getAttribute('data-selected') === 'true');
     expect(examPrepCard).toBeDefined();
-    expect(within(examPrepCard!).getByText('Lớp luyện thi')).toBeInTheDocument();
+    expect(within(examPrepCard!).getByText('Lớp luyện thi chuyên sâu')).toBeInTheDocument();
   });
 
   it('calls onNext with the selected audience id when Continue is pressed', async () => {
@@ -60,7 +60,7 @@ describe('Wave 32 Bucket B — AudienceStep (Step 3)', () => {
       <AudienceStep wizardState={{ audience: null }} onNext={onNext} onBack={vi.fn()} />,
     );
 
-    await user.click(screen.getByText('Trung tâm tiếng Anh'));
+    await user.click(screen.getByText('Người đi làm / tiếng Anh giao tiếp'));
     await user.click(screen.getByRole('button', { name: /Tiếp tục/i }));
 
     expect(onNext).toHaveBeenCalledTimes(1);
@@ -82,7 +82,7 @@ describe('Wave 32 Bucket B — AudienceStep (Step 3)', () => {
       .getAllByRole('radio')
       .find((r) => r.getAttribute('aria-checked') === 'true');
     expect(preselected).toBeDefined();
-    expect(within(preselected!).getByText('Trường mầm non')).toBeInTheDocument();
+    expect(within(preselected!).getByText('Phụ huynh mầm non / tiểu học')).toBeInTheDocument();
     expect(screen.getByTestId('audience-reasoning')).toBeInTheDocument();
   });
 });

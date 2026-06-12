@@ -11,18 +11,13 @@
  */
 
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
-import { Step6Preview } from '../Step6Preview';
+import { useWizardDeploy } from '../hooks/useWizardDeploy';
 import { INITIAL_WIZARD_STATE, type WizardState } from '../wizard-shared';
 import { server } from '@/test/msw/server';
-
-vi.mock('@kite/shared-ui', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@kite/shared-ui')>();
-  return { ...actual, ThemePreview: () => <div data-testid="theme-preview-stub" /> };
-});
 
 function makeWrapper() {
   const client = new QueryClient({
@@ -53,10 +48,9 @@ function makeState(overrides: Partial<WizardState> = {}): WizardState {
   };
 }
 
-const noop = () => {};
 
-describe('Step6Preview — deploy recovery (GAP-1216 / GAP-1217)', () => {
-  it('returns to the preview when approve fails the quality gate (422)', async () => {
+describe('useWizardDeploy — deploy recovery (GAP-1216 / GAP-1217, kit v3)', () => {
+  it('advances to step 5 then returns to step 4 when approve fails the quality gate (422)', async () => {
     server.use(
       http.post('*/api/v1/branding/jobs/:jobId/approve', () =>
         HttpResponse.json(
@@ -67,20 +61,24 @@ describe('Step6Preview — deploy recovery (GAP-1216 / GAP-1217)', () => {
     );
 
     const Wrapper = makeWrapper();
-    render(
-      <Wrapper>
-        <Step6Preview wizardState={makeState()} dispatch={() => {}} onBack={noop} onDeploy={noop} />
-      </Wrapper>,
+    const dispatch = vi.fn();
+    const { result } = renderHook(
+      () => useWizardDeploy({ wizardState: makeState(), dispatch }),
+      { wrapper: Wrapper },
     );
 
-    expect(screen.getByTestId('step6-preview-iframe')).toBeInTheDocument();
-    fireEvent.click(screen.getByTestId('step6-deploy-button'));
-
-    // After the 422 resolves the wizard returns to the preview (no dead-end),
-    // and never shows the terminal DONE screen.
-    await waitFor(() => {
-      expect(screen.getByTestId('step6-preview-iframe')).toBeInTheDocument();
+    act(() => {
+      result.current.start();
     });
-    expect(screen.queryByTestId('done-step')).toBeNull();
+
+    // start() advances to the explicit "Triển khai" step (5) before approve.
+    expect(dispatch).toHaveBeenCalledWith({ type: 'GO_TO_STEP', step: 5 });
+
+    // After the 422 resolves the controller returns the user to step 4 (review)
+    // so they can edit + retry — no dead-end — and never marks the deploy done.
+    await waitFor(() => {
+      expect(dispatch).toHaveBeenCalledWith({ type: 'GO_TO_STEP', step: 4 });
+    });
+    expect(result.current.deployDone).toBe(false);
   });
 });

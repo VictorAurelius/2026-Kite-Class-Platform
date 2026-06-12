@@ -1,15 +1,16 @@
 'use client';
 
 /**
- * GAP-1216 — output-first 5-step progress indicator for AI Branding Wizard v2.
+ * GAP-1216 / GAP-1212 — output-first 5-step progress indicator (kit v3 parity).
  *
- * Spec source: documents/02-architecture/design-system/ui_kits/ai-branding-wizard-v2/v3/index.html
- * (flow chip bar §2.5, hội tụ 3 audit 2026-06-11).
+ * Spec source: documents/02-architecture/design-system/ui_kits/ai-branding-wizard-v2/v3/
+ * (stepper §2.5 — every screen renders the same 5-step bar).
  *
- * Steps: 1 Bắt đầu · 2 Phong cách · 3 Hình ảnh · 4 Mẫu · 5 Xem & Tạo.
- * Mode-aware: in FULL_AI mode the Template step (4) is skipped, so it is hidden
- * from the indicator entirely (the FULL_AI route is Welcome → Personality →
- * Assets → Preview).
+ * Steps: 1 Bắt đầu · 2 Phong cách · 3 Hình ảnh · 4 Tạo & Duyệt · 5 Triển khai.
+ * The Template step was removed from the flow (kit v3) — template is auto-derived
+ * from tone/audience and edited later in the content editor — so BOTH TEMPLATE
+ * and FULL_AI modes now walk the same 5 steps (no skip). The `mode` prop is kept
+ * for back-compat but no longer hides any step.
  *
  * States per step:
  *   - completed (step < currentStep) — Check icon + filled primary background
@@ -25,27 +26,24 @@ const ALL_WIZARD_STEPS: ReadonlyArray<{ number: WizardStep; label: string }> = [
   { number: 1, label: 'Bắt đầu' },
   { number: 2, label: 'Phong cách' },
   { number: 3, label: 'Hình ảnh' },
-  { number: 4, label: 'Mẫu thiết kế' },
-  { number: 5, label: 'Xem & Tạo' },
+  { number: 4, label: 'Tạo & Duyệt' },
+  { number: 5, label: 'Triển khai' },
 ];
 
 export interface StepIndicatorProps {
   /** Active step (1-5). */
   currentStep: WizardStep;
   /**
-   * Generation mode (GAP-1216) — FULL_AI hides the Template step (4) since that
-   * route skips template selection. Defaults to TEMPLATE (all 5 steps shown).
+   * Generation mode — retained for back-compat. Kit v3 removed the Template step
+   * so both modes walk all 5 steps; this prop no longer hides any step.
    */
   mode?: GenerationMode;
   /** Optional className override for outer wrapper. */
   className?: string;
 }
 
-export function StepIndicator({ currentStep, mode = 'TEMPLATE', className = '' }: StepIndicatorProps) {
-  const steps =
-    mode === 'FULL_AI'
-      ? ALL_WIZARD_STEPS.filter((s) => s.number !== 4)
-      : ALL_WIZARD_STEPS;
+export function StepIndicator({ currentStep, mode: _mode = 'TEMPLATE', className = '' }: StepIndicatorProps) {
+  const steps = ALL_WIZARD_STEPS;
 
   return (
     <nav

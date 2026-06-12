@@ -86,7 +86,7 @@ public class LeadController {
      * @return ApiResponse with page of leads and HTTP 200
      */
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'OWNER')")
     @Operation(summary = "Search leads",
             description = "Searches leads with optional filters and pagination")
     public ApiResponse<PageResponse<LeadResponse>> getLeads(
@@ -119,7 +119,7 @@ public class LeadController {
      * @return ApiResponse with lead data and HTTP 200
      */
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'OWNER')")
     @Operation(summary = "Get lead by ID", description = "Retrieves a lead's information by their ID (requires ADMIN or TEACHER role)")
     public ApiResponse<LeadResponse> getLeadById(
             @Parameter(description = "Lead ID") @PathVariable Long id) {
@@ -137,7 +137,7 @@ public class LeadController {
      * @return ApiResponse with updated lead data and HTTP 200
      */
     @PutMapping("/{id}/status")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'OWNER')")
     @Operation(summary = "Update lead status", description = "Updates lead status (e.g., NEW → CONTACTED → CONVERTED)")
     public ApiResponse<LeadResponse> updateLeadStatus(
             @Parameter(description = "Lead ID") @PathVariable Long id,
@@ -156,7 +156,7 @@ public class LeadController {
      * @return ApiResponse with updated lead data and HTTP 200
      */
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'OWNER')")
     @Operation(summary = "Update lead", description = "Updates an existing lead's information (requires ADMIN or TEACHER role)")
     public ApiResponse<LeadResponse> updateLead(
             @Parameter(description = "Lead ID") @PathVariable Long id,
@@ -175,7 +175,7 @@ public class LeadController {
      */
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'OWNER')")
     @Operation(summary = "Delete lead", description = "Soft-deletes a lead (sets deleted flag)")
     public void deleteLead(@Parameter(description = "Lead ID") @PathVariable Long id) {
         log.info("REST request to delete lead with ID: {}", id);
