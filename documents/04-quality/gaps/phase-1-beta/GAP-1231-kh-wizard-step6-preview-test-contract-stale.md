@@ -25,3 +25,7 @@ Trong cụm AI-chain wave (GAP-1215/1021/1147 — design source: `ui_kits/ai-bra
 
 - GAP-1215 (WYSIWYG class — cùng rewrite), GAP-1212 (design source v3), #2279/#2289 (rewrite PRs), GAP-1220-class (CI path-filter che fail trên main)
 - Discovered in: Wave ui-kits-100 Bucket G PR #2339 (CI surfaced, fail pre-existing trên main — verified local `vitest run` trên main 7/8 fail)
+
+## Log
+
+- **2026-06-12:** Kéo vào scope wave branding-100 (Bucket D cùng GAP-1215 — preview-source = deploy-source; un-skip test là AC closure). Plan: `documents/03-planning/waves/wave-2026-06-11-branding-100.md`.
