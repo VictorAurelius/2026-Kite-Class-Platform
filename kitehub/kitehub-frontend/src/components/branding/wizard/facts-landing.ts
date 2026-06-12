@@ -51,6 +51,7 @@ export interface LandingPricingTier {
  * Every field optional so PATCH semantics hold (BE mapper IGNOREs nulls).
  */
 export interface LandingFactsPayload {
+  centerName?: string;
   address?: string;
   contactPhone?: string;
   contactEmail?: string;
@@ -64,8 +65,15 @@ export interface LandingFactsPayload {
  */
 export function buildLandingFactsPayload(
   facts: WizardFacts,
+  centerName?: string,
 ): LandingFactsPayload | null {
   const payload: LandingFactsPayload = {};
+
+  // G2 walk 2026-06-12 (identity-mismatch): user đổi tên hiển thị trong wizard →
+  // PHẢI propagate vào landing centerName sau deploy, không thì landing giữ tên cũ
+  // trong khi DoneStep nói "thương hiệu của <tên mới> đã được áp dụng".
+  const name = centerName?.trim();
+  if (name) payload.centerName = name;
 
   const address = facts.address?.trim();
   if (address) payload.address = address;

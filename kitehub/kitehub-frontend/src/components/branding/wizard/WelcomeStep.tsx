@@ -170,20 +170,27 @@ export function WelcomeStep({
               <span className="px-3 py-2 text-sm bg-muted text-muted-foreground border-r border-input">
                 https://
               </span>
+              {/* G2 walk 2026-06-12: Phase 1 wizard = RE-BRAND instance hiện có — slug
+                  khóa theo subdomain của chính tenant (page.tsx prefill). Gõ slug mới
+                  từng làm deploy áp identity khác lên tenant thật + link Done deadlink. */}
               <input
                 id="wizard-slug"
                 type="text"
                 placeholder="ten-trung-tam"
                 value={slug}
-                onChange={(e) =>
-                  dispatch({ type: 'SET_SLUG', slug: e.target.value.toLowerCase() })
-                }
-                className="flex-1 px-3 py-2 text-sm bg-background text-foreground focus:outline-none"
+                readOnly
+                aria-readonly="true"
+                data-testid="wizard-slug-locked"
+                className="flex-1 px-3 py-2 text-sm bg-muted/50 text-foreground focus:outline-none cursor-not-allowed"
               />
               <span className="px-3 py-2 text-sm bg-muted text-muted-foreground border-l border-input">
                 .kitehub.me
               </span>
             </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Địa chỉ hiện tại của trung tâm — wizard áp thương hiệu lên trang này.
+              Muốn đổi địa chỉ, vào Cài đặt sau khi triển khai.
+            </p>
 
             {/* Sub-state messaging */}
             {slug.length > 0 && !slugSyntaxValid && (
