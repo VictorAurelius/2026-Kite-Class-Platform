@@ -65,18 +65,21 @@
 }
 /* Cô Hà — xanh dương (Toán) */
 .theme-ha{
+  --banner-img:url("../_shared/assets/banners/co-ha-toan.webp");
   --theme-primary:37 99 235; --theme-secondary:59 130 246; --theme-accent:14 165 233;
   --cta:249 115 22; --cta-strong:194 65 12;
   --hero-from:30 64 175; --hero-to:30 58 138;
 }
 /* Thầy Nhì — xanh lá (Hóa/Khoa học) */
 .theme-nhi{
+  --banner-img:url("../_shared/assets/banners/thay-nhi-hoa.webp");
   --theme-primary:22 163 74; --theme-secondary:5 150 105; --theme-accent:13 148 136;
   --cta:245 158 11; --cta-strong:180 83 9;
   --hero-from:22 101 52; --hero-to:6 78 59;
 }
 /* Cô Khánh — cam (Tiếng Anh/luyện thi) */
 .theme-khanh{
+  --banner-img:url("../_shared/assets/banners/co-khanh-phapluat.webp");
   --theme-primary:234 88 12; --theme-secondary:249 115 22; --theme-accent:217 119 6;
   --cta:37 99 235; --cta-strong:29 78 216;
   --hero-from:154 52 18; --hero-to:124 45 18;
@@ -177,7 +180,12 @@ h1,h2,h3{margin:0;line-height:1.18;letter-spacing:-0.02em;}
 .slides{position:relative;aspect-ratio:16/10;}
 .slide{position:absolute;inset:0;opacity:0;visibility:hidden;transition:opacity .5s ease;
   display:flex;flex-direction:column;justify-content:flex-end;padding:26px;
-  background:linear-gradient(140deg,rgb(var(--theme-primary)) 0%,rgb(var(--theme-secondary)) 100%);}
+  /* GAP-1232: banner AI-scene THẬT làm nền (nguồn documents/08-thesis/portrait, webp optimized
+     đồng bộ production /demo-banners) + scrim tối giữ contrast text-overlay ≥4.5:1 (pattern
+     GAP-810 — ảnh nền + overlay HTML, KHÔNG bake text vào ảnh). Fallback gradient khi thiếu ảnh. */
+  background:linear-gradient(180deg,rgba(15,23,42,.30) 0%,rgba(15,23,42,.62) 70%,rgba(15,23,42,.78) 100%),
+    var(--banner-img, linear-gradient(140deg,rgb(var(--theme-primary)) 0%,rgb(var(--theme-secondary)) 100%));
+  background-size:cover;background-position:center top;}
 .slide.on{opacity:1;visibility:visible;}
 .slide .emoji{position:absolute;top:18px;right:22px;font-size:60px;opacity:.85;filter:drop-shadow(0 4px 10px rgba(0,0,0,.3));}
 .slide .badge{align-self:flex-start;background:rgb(var(--cta-strong));color:#fff;font-size:12px;font-weight:800;
@@ -407,21 +415,18 @@ h1,h2,h3{margin:0;line-height:1.18;letter-spacing:-0.02em;}
           <div class="slides" id="slides">
             <!-- slide 0 -->
             <div class="slide on" role="group" aria-roledescription="slide" aria-label="1 / 3">
-              <span class="emoji" aria-hidden="true">📐</span>
               <span class="badge">Đang tuyển sinh</span>
               <h3>Khai giảng khóa Toán lớp 5 — tháng 7</h3>
               <p>Còn 4 chỗ. Đăng ký trước 30/06 tặng 1 buổi học thử.</p>
             </div>
             <!-- slide 1 -->
             <div class="slide" role="group" aria-roledescription="slide" aria-label="2 / 3">
-              <span class="emoji" aria-hidden="true">🎯</span>
               <span class="badge">Cam kết</span>
               <h3>Tiến bộ rõ sau 8 buổi — hoặc học bù miễn phí</h3>
               <p>Kiểm tra đầu vào, đặt mục tiêu cùng phụ huynh, theo dõi từng tuần.</p>
             </div>
             <!-- slide 2 -->
             <div class="slide" role="group" aria-roledescription="slide" aria-label="3 / 3">
-              <span class="emoji" aria-hidden="true">👩‍🏫</span>
               <span class="badge">Học thử</span>
               <h3>Buổi học thử miễn phí cùng cô Hà</h3>
               <p>Trải nghiệm phương pháp trước khi quyết định — không ràng buộc.</p>
