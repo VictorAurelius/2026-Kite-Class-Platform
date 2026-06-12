@@ -54,7 +54,7 @@ const nextConfig = {
     // report-only CSP flips to enforce.
     const frameSrc = isDev
       ? "frame-src 'self' http://localhost:3000"
-      : "frame-src 'self' https://kiteclass.com https://*.kiteclass.com";
+      : "frame-src 'self' https://kitehub.me https://*.kitehub.me";
     const cspDirectives = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval'",

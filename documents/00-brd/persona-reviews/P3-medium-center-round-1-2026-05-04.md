@@ -70,7 +70,7 @@ P3 (Trung tâm vừa, 250 HS, 12 GV, 30 lớp, 3-5 admin staff) là persona PREM
 | AC-ONBOARD-002 (bulk staff xlsx import 15 người) | 🔴 FAIL | GAP-051 còn OPEN. Không có UI upload xlsx cho staff (search `find kiteclass-frontend -name "*bulk*"` → không có); commission % field trong xlsx schema chưa định nghĩa. | GAP-051 |
 | AC-ONBOARD-003 (academic year + VN holidays setup) | 🟡 PARTIAL | `module/academicyear` exists; nhưng VN holidays preset (Tết, 30/4, 2/9) + 2-semester wizard chưa verify. | GAP-053 |
 | AC-ONBOARD-004 (multi-subject hierarchy 4 môn × 3 levels) | 🔴 FAIL | `module/course` có nhưng không có hierarchy "subject → level"; không có teacher-qualification link với subject. GAP-054 OPEN. | GAP-054 |
-| AC-ONBOARD-005 (branding wizard center identity) | 🟡 PARTIAL | `module/branding` + `kitehub-branding` exists; wizard 6-step + per-resource approve có mock. Subdomain deploy `<slug>.kiteclass.vn` chưa verify production. | — (existing scope) |
+| AC-ONBOARD-005 (branding wizard center identity) | 🟡 PARTIAL | `module/branding` + `kitehub-branding` exists; wizard 6-step + per-resource approve có mock. Subdomain deploy `<slug>.kitehub.me` chưa verify production. | — (existing scope) |
 
 **Score:** 0 PASS / 2 PARTIAL / 3 FAIL → 1.0/5 = **20%**
 

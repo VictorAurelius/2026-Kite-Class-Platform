@@ -8,7 +8,7 @@ Last Updated: 2026-06-10
 
 # Tenant → Domain → Landing — kiến trúc end-to-end
 
-> **TL;DR:** Mỗi tenant (trung tâm) có 1 landing page public riêng, truy cập qua **subdomain** `{slug}.kiteclass.com` (free) hoặc **custom domain** (`skyedu.vn`, tier PREMIUM/ENTERPRISE). Cùng 1 codebase FE + 1 shared-DB (RLS) — nội dung + theme riêng theo tenant, resolve theo Host. Doc này map chuỗi đầy đủ + đánh dấu chỗ đã implement vs gap (GAP-812/814 còn lại). **Vì sao FE render được landing theo tenant (chuỗi FE-render: tenant resolution → fetch landing data → inject theme CSS vars → TemplateRenderer): xem §7.**
+> **TL;DR:** Mỗi tenant (trung tâm) có 1 landing page public riêng, truy cập qua **subdomain** `{slug}.kitehub.me` (free) hoặc **custom domain** (`skyedu.vn`, tier PREMIUM/ENTERPRISE). Cùng 1 codebase FE + 1 shared-DB (RLS) — nội dung + theme riêng theo tenant, resolve theo Host. Doc này map chuỗi đầy đủ + đánh dấu chỗ đã implement vs gap (GAP-812/814 còn lại). **Vì sao FE render được landing theo tenant (chuỗi FE-render: tenant resolution → fetch landing data → inject theme CSS vars → TemplateRenderer): xem §7.**
 
 Nguồn: verified trên code 2026-05-29 (3 research agent + 3 outside-in agent). Cross-ref: [`multi-tenant-architecture.md`](./multi-tenant-architecture.md), [`ssl-automation.md`](./ssl-automation.md) (canonical cho SSL/verify), [`domain-management.md`](./domain-management.md), [ADR-023](./adr/ADR-023-gateway-key-resolver-strategy.md).
 
@@ -18,8 +18,8 @@ Nguồn: verified trên code 2026-05-29 (3 research agent + 3 outside-in agent).
 
 ```mermaid
 flowchart TD
-    Browser["Browser<br/>{slug}.kiteclass.com OR skyedu.vn"]
-    DNS["Cloudflare DNS<br/>*.kiteclass.com + custom domain CNAME/A"]
+    Browser["Browser<br/>{slug}.kitehub.me OR skyedu.vn"]
+    DNS["Cloudflare DNS<br/>*.kitehub.me + custom domain CNAME/A"]
     GW["kite-gateway (kitehub-gateway)<br/>TenantResolverFilter: Host → instance_id<br/>inject X-Tenant-Id"]
     Core["kiteclass-core<br/>LandingPageController + RLS theo X-Tenant-Id"]
     DB["kiteclass_shared (Postgres)<br/>landing_pages 1 row/tenant + RLS"]
@@ -43,7 +43,7 @@ flowchart TD
 
 | Tầng | Cơ chế (verified) | Trạng thái |
 |---|---|---|
-| **DNS** | Cloudflare: `*.kiteclass.com` wildcard (subdomain) + per-custom-domain record | ✅ subdomain; ⚠️ custom domain chờ GAP-812 |
+| **DNS** | Cloudflare: `*.kitehub.me` wildcard (subdomain) + per-custom-domain record | ✅ subdomain; ⚠️ custom domain chờ GAP-812 |
 | **Gateway** (`kitehub-gateway` `TenantResolverGatewayFilterFactory`) | Host → tenant 4 bước: header dev → subdomain suffix-match `${kitehub.domain.base}` → `findByCustomDomain(host)` → JWT claim fallback. Inject `X-Tenant-Id` (UUID). Gate status ACTIVE/TRIAL. | ✅ cho `/api/**`. Landing route `/api/v1/tenants/*/landing` **skip filter** (tenantId từ path). ⚠️ thiếu strip client `X-Tenant-Id` → **GAP-814 (P0 security)** |
 | **Instance domain model** (`kitehub-platform` `Instance`) | `subdomain` (unique, regex, indexed) + `customDomain` + `domainVerifyToken` (TXT) + `domainStatus` (NONE→PENDING_VERIFY→VERIFIED/FAILED) | ✅ subdomain; ⚠️ custom domain entity có, DNS verify + SSL chưa wire → **GAP-812** |
 | **Data isolation** | shared-DB + RLS (ADR-023); `TenantContext` từ `X-Tenant-Id`; mỗi tenant 1 `landing_pages` row (BR-MKT-001) | ✅ RLS; ⚠️ phụ thuộc `X-Tenant-Id` đáng tin → **GAP-814** |
@@ -61,7 +61,7 @@ sequenceDiagram
     participant Core as kiteclass-core
     participant DB as Postgres RLS
 
-    B->>GW: Request Host = slug.kiteclass.com
+    B->>GW: Request Host = slug.kitehub.me
     GW->>GW: extractSubdomain(host) theo base domain
     GW->>IR: findBySubdomain(slug)
     IR-->>GW: Instance (id, status)
@@ -79,10 +79,10 @@ Custom domain: thay `findBySubdomain(slug)` bằng `findByCustomDomain(host)` (c
 
 ## 4. Subdomain vs custom domain
 
-| | Subdomain `{slug}.kiteclass.com` | Custom domain `skyedu.vn` |
+| | Subdomain `{slug}.kitehub.me` | Custom domain `skyedu.vn` |
 |---|---|---|
 | Cấp cho | Mọi tenant (free) | Tier PREMIUM/ENTERPRISE |
-| DNS | Wildcard `*.kiteclass.com` (provision sẵn) | Tenant tự trỏ CNAME (subdomain) / A (apex) |
+| DNS | Wildcard `*.kitehub.me` (provision sẵn) | Tenant tự trỏ CNAME (subdomain) / A (apex) |
 | SSL | Wildcard cert sẵn | Cloudflare for SaaS auto-issue (DCV qua CNAME) — xem `ssl-automation.md` |
 | Verify ownership | Không cần | TXT/Delegated-DCV (tách khỏi routing record) |
 | Trạng thái | ✅ Hoạt động | ⚠️ Scaffold — GAP-812 (DNS verify stub + SSL chưa wire) |
@@ -116,8 +116,8 @@ Thứ tự implement đề xuất: GAP-814 → GAP-813 → GAP-811 → GAP-812.
 
 ```mermaid
 flowchart TD
-    Req["Browser: GET sky.kiteclass.com/"]
-    MW["middleware.ts (edge)<br/>extractSlugFromHost('sky.kiteclass.com') → 'sky'<br/>(ưu tiên ?tenant= preview override)"]
+    Req["Browser: GET sky.kitehub.me/"]
+    MW["middleware.ts (edge)<br/>extractSlugFromHost('sky.kitehub.me') → 'sky'<br/>(ưu tiên ?tenant= preview override)"]
     Resolve["resolveTenant('sky')<br/>GET /api/v1/public/tenants/by-subdomain/sky<br/>qua kite-gateway:9000 + cache 5 phút"]
     Inject["Inject request header<br/>x-tenant-id = UUID + x-tenant-subdomain = sky"]
     Page["(public)/page.tsx (Server Component)<br/>headers().get('x-tenant-id') → tenantId"]
@@ -143,7 +143,7 @@ flowchart TD
 
 ### 7.1 Bước 1 — Tenant resolution (Host → slug → tenantId)
 
-- **Edge middleware** `kiteclass-frontend/src/middleware.ts` chặn mọi request public-page (matcher loại trừ `/api`, `/_next`, asset — dòng 47-49). `extractSlugFromHost()` (dòng 79-91) tách subdomain slug từ `Host` header: `sky.kiteclass.com` → `sky`; apex 2-part / IP / `localhost` → `null`; reserved subdomain (`www/api/admin/staging/beta/preview`) → `null`.
+- **Edge middleware** `kiteclass-frontend/src/middleware.ts` chặn mọi request public-page (matcher loại trừ `/api`, `/_next`, asset — dòng 47-49). `extractSlugFromHost()` (dòng 79-91) tách subdomain slug từ `Host` header: `sky.kitehub.me` → `sky`; apex 2-part / IP / `localhost` → `null`; reserved subdomain (`www/api/admin/staging/beta/preview`) → `null`.
 - **Thứ tự ưu tiên** (dòng 101-105): `?tenant=<slug>` preview query (cho chủ trung tâm xem trước go-live) > Host subdomain.
 - **Resolve qua BE** `src/lib/tenant/resolveTenant.ts` gọi `GET /api/v1/public/tenants/by-subdomain/{slug}` (dòng 115) qua gateway. SSR ưu tiên `INTERNAL_API_URL` (`kite-gateway:9000` docker-network) → fallback `NEXT_PUBLIC_API_URL` (dòng 106-113, convention GAP-809). Backing controller `PublicTenantController` (kitehub-subscription, GAP-813). Cache 5 phút qua `tenantCache.ts` (dòng 101-102). Mã trả: `200`→`{ id (UUID), subdomain, name, status: ACTIVE }`; `404`→`null` (cache negative); `410`→`TenantSuspendedError`; `5xx/network`→`TenantResolveNetworkError`.
 - **Inject header** (dòng 124-130): khi resolve thành công, middleware set `x-tenant-id` (UUID) + `x-tenant-subdomain` vào downstream request → Server Components đọc được qua `next/headers#headers()`. Tenant `SUSPENDED`/`ARCHIVED` → 307 redirect `/suspended` (dòng 132-138). BE down → graceful pass-through + header cảnh báo `x-tenant-resolve-error` (dòng 141-157) để landing degrade về fallback branding, KHÔNG crash.

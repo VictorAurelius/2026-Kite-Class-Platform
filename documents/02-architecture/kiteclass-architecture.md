@@ -29,7 +29,7 @@ KiteClass là sản phẩm thứ hai trong Kite Platform — đối tác của K
 | Lifecycle | Trial, subscription, billing, domain provisioning | Course, class, attendance, grade, payment, gamification |
 | Tenant model | 1 tenant = 1 customer organization | 1 tenant per school/center — multi-tenant single deployment |
 
-Tenant truy cập platform qua subdomain `{tenant}.kiteclass.com`. Shared `kite-gateway` (per [ADR-023](./adr/ADR-023-gateway-key-resolver-strategy.md)) resolve subdomain → tenant ID → forward request với header `X-Tenant-Id` tới `kiteclass-core`.
+Tenant truy cập platform qua subdomain `{tenant}.kitehub.me`. Shared `kite-gateway` (per [ADR-023](./adr/ADR-023-gateway-key-resolver-strategy.md)) resolve subdomain → tenant ID → forward request với header `X-Tenant-Id` tới `kiteclass-core`.
 
 > **Chuỗi domain → landing end-to-end:** xem [`tenant-domain-landing-architecture.md`](tenant-domain-landing-architecture.md). Hai lưu ý implement hiện tại: (1) phần API (`/api/**`) resolve qua gateway như mô tả; nhưng **FE landing public hiện chạy 1-tenant-per-deploy** (`NEXT_PUBLIC_TENANT_ID`) — middleware host→tenant runtime chưa wire ([GAP-811](../04-quality/gaps/phase-1-beta/GAP-811-fe-middleware-host-tenant-resolution.md)). (2) Gateway chưa strip `X-Tenant-Id` client gửi → rủi ro cross-tenant IDOR trên route non-TenantResolver ([GAP-814](../04-quality/gaps/phase-1-beta/GAP-814-tenant-header-spoofing-gateway-strip.md), P0).
 
@@ -37,7 +37,7 @@ Tenant truy cập platform qua subdomain `{tenant}.kiteclass.com`. Shared `kite-
 
 ```mermaid
 flowchart TB
-    subgraph Client["Tenant browser ({tenant}.kiteclass.com)"]
+    subgraph Client["Tenant browser ({tenant}.kitehub.me)"]
         Browser[Student / Teacher / Owner UI]
     end
 
@@ -97,7 +97,7 @@ Routing upstream (subdomain → tenant resolve → forward) do shared `kite-gate
 | Component | Vai trò | Notes |
 |---|---|---|
 | **Tenant JWT publisher** | `kitehub-subscription` (KiteHub side) phát hành JWT khi tenant signup / login từ KiteHub portal | JWT chứa `tenantId`, `userId`, `role`, `instanceId` |
-| **Direct user JWT publisher** | `kiteclass-core` (auth module) phát hành JWT khi end-user (teacher / student) login qua `{tenant}.kiteclass.com/login` | Same JWT shape — single signature key (KMS-rotated) |
+| **Direct user JWT publisher** | `kiteclass-core` (auth module) phát hành JWT khi end-user (teacher / student) login qua `{tenant}.kitehub.me/login` | Same JWT shape — single signature key (KMS-rotated) |
 | **JWT validator** | `kiteclass-core` validate JWT signature + check expiry trên mọi authenticated endpoint | Spring Security `JwtAuthenticationFilter` |
 | **Token rotation** | Refresh token rotation; blacklist on refresh reuse | Per `pre-launch-auth-hardening-checklist.md` §2.8 |
 
@@ -133,7 +133,7 @@ sequenceDiagram
     Sub->>DB: INSERT tenant + instance + owner user
     Sub->>DB: Provision schema + RLS policies
     Sub-->>FE: 201 Created + JWT (role=P2_CENTER_OWNER)
-    FE->>Owner: Redirect → {tenant}.kiteclass.com/onboarding
+    FE->>Owner: Redirect → {tenant}.kitehub.me/onboarding
 
     Owner->>KCFE: Open onboarding wizard
     KCFE->>KCCore: POST /api/v1/classes (Bearer JWT)
@@ -155,7 +155,7 @@ sequenceDiagram
     participant Core as kiteclass-core :8081
     participant DB as kite-postgres
 
-    Client->>Gateway: GET /api/v1/students (Bearer JWT, Host: school1.kiteclass.com)
+    Client->>Gateway: GET /api/v1/students (Bearer JWT, Host: school1.kitehub.me)
     Gateway->>Gateway: Resolve subdomain → tenantId (per ADR-023)
     Gateway->>Core: GET /api/v1/students (Bearer JWT, X-Tenant-Id: <uuid>)
 
@@ -331,7 +331,7 @@ Per [ADR-025](./adr/ADR-025-aws-only-deploy-phase-1-free-tier.md): shared AWS EC
 ```mermaid
 flowchart TB
     subgraph Cloudflare["Cloudflare edge"]
-        CFDNS[DNS<br/>*.kiteclass.com<br/>*.kitehub.me]
+        CFDNS[DNS<br/>*.kitehub.me<br/>*.kitehub.me]
         CFCDN[CDN + DDoS]
     end
 

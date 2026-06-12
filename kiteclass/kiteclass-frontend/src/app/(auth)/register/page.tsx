@@ -16,7 +16,7 @@ import { GraduationCap, Building2 } from 'lucide-react';
 
 export default function RegisterPage() {
   const router = useRouter();
-  const kitehubUrl = process.env.NEXT_PUBLIC_KITEHUB_URL || 'https://hub.kiteclass.com';
+  const kitehubUrl = process.env.NEXT_PUBLIC_KITEHUB_URL || 'https://kitehub.me';
   // Phase 1 BETA invite-only — direct centers to beta access request form
   // instead of public self-signup. See GAP-372 closure follow-up #2.
   const kitehubRegisterUrl = `${kitehubUrl}/auth/request-beta-access`;

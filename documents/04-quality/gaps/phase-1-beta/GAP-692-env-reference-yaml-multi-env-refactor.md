@@ -18,7 +18,7 @@
 | Production env config registry (runtime env-var coverage) | `.claude/rules/production-env-config-registry.md` v1.1.1 | ✅ shipped; scopes `application*.yml` + `docker-compose*.yml` + `fetch-secrets.sh` (17/45 candidates indexed per registry doc) |
 | Env-vars registry doc | `documents/02-architecture/env-vars-registry.md` | ✅ shipped (rule §3.1 mandate) |
 | Audit scripts (runtime coverage) | `scripts/audit-env-coverage.sh` + 3 sister audits | ✅ shipped Wave 71 Bucket E |
-| Terraform variables centralized | `infrastructure/terraform-aws/variables.tf` | ⚠️ partial — `var.aws_region` `var.project_name` `var.rds_db_name` ✅; `var.aws_account_id` ❌; `var.domain_name = "kiteclass.com"` **STALE mismatch** với `kitehub.me`; secrets prefix ❌ |
+| Terraform variables centralized | `infrastructure/terraform-aws/variables.tf` | ⚠️ partial — `var.aws_region` `var.project_name` `var.rds_db_name` ✅; `var.aws_account_id` ❌; `var.domain_name = "kitehub.me"` **STALE mismatch** với `kitehub.me`; secrets prefix ❌ |
 | Spring profile env override pattern | `${VAR:default}` in `application-production.yml` | ✅ shipped |
 
 ### Missing pieces (gap delta)
@@ -36,7 +36,7 @@
 
 | Value | Files | Occurrences | Already var? |
 |-------|------:|------------:|--------------|
-| `kitehub.me` domain | 95 | 1,439 | ⚠️ TF `var.domain_name = "kiteclass.com"` mismatch (STALE) |
+| `kitehub.me` domain | 95 | 1,439 | ⚠️ TF `var.domain_name = "kitehub.me"` mismatch (STALE) |
 | `ap-southeast-1` region | 100 | 559 | ✅ TF `var.aws_region` exists; 93 hardcoded literals trong workflows + helm |
 | `906286017800` account ID | 52 | 214 | ❌ no var; CI secret partial |
 | `kitehub/production/` secret prefix | 32 | 223 | ❌ no var |
@@ -53,7 +53,7 @@
 Phase 1 BETA → Phase 1.5+ multi-env (test / v1 / v2 / staging) sẽ multiply environment-specific values. Hiện tại:
 
 1. **Account swap rebuild requires sweep 52+ files** mỗi lần đổi account ID (per GAP-612 if rebuild triggers Item 1 path B)
-2. **TF var.domain_name = "kiteclass.com"` STALE** mismatch real domain `kitehub.me` — silent risk (TF default applied accidentally → DNS routes to wrong zone)
+2. **TF var.domain_name = "kitehub.me"` STALE** mismatch real domain `kitehub.me` — silent risk (TF default applied accidentally → DNS routes to wrong zone)
 3. **Class 4 failure-mode (config-drift) recurrence rate 100% on rebuild** per outside-in failure-mode matrix synthesis 2026-05-21 — GAP-458→GAP-459 AWS Activate denial pattern
 4. **GitHub-rendered markdown shows raw `{{var}}`** — UX trade-off needs explicit design
 
@@ -72,7 +72,7 @@ Per `meta-gap-priority.md` §3 — META P1 force-multiplier (every future rebuil
 - Outside-in audit synthesis 2026-05-21 — 3 agent reports (A docs scope / B infra scope / C design pattern proposal)
 - `.claude/rules/audit-to-gap-pipeline.md` §2.7 Decision-Doc Code-Sync — exactly this pattern
 - GAP-458 / GAP-459 prior incident (AWS Activate Founder denied due to stale `kitehub.vn` refs)
-- `infrastructure/terraform-aws/variables.tf` line 28-32 — `var.domain_name = "kiteclass.com"` STALE evidence
+- `infrastructure/terraform-aws/variables.tf` line 28-32 — `var.domain_name = "kitehub.me"` STALE evidence
 
 ## Proposed Fix
 
@@ -86,7 +86,7 @@ Ship same PR:
 - `.claude/rules/markdown-variable-reference.md` v1.0.0 — usage convention + migration policy
 - `_examples/env-reference-self-test.md` — roundtrip render test (1 sample doc rendered for prod → verify byte-identical to source with values substituted)
 
-**Fix existing TF mismatch:** update `infrastructure/terraform-aws/variables.tf` `var.domain_name` default `"kiteclass.com"` → `"kitehub.me"` (or remove default entirely, force explicit). Add `var.aws_account_id` + `var.secrets_prefix`.
+**Fix existing TF mismatch:** update `infrastructure/terraform-aws/variables.tf` `var.domain_name` default `"kitehub.me"` → `"kitehub.me"` (or remove default entirely, force explicit). Add `var.aws_account_id` + `var.secrets_prefix`.
 
 ### Phase 2 — Opportunistic refactor top 10 high-leverage files (~3 tuần parallel với feature work)
 
@@ -116,7 +116,7 @@ Pre-commit hook `.husky/check-hardcoded-env-values.sh`:
 - [x] Phase 1 — `env-reference.yaml` shipped với 10+ rows (prod/test/dev values) — Wave 102.8 Bucket B 2026-05-21
 - [x] Phase 1 — `render-env-vars.sh` + `check-unresolved-env-vars.sh` shipped + self-test PASS — Wave 102.8 Bucket B 2026-05-21
 - [x] Phase 1 — `.claude/rules/markdown-variable-reference.md` v1.0.0 with usage examples — Wave 102.8 Bucket B 2026-05-21
-- [x] Phase 1 — TF `var.domain_name` STALE mismatch fixed (`kiteclass.com` → `kitehub.me`) + `var.aws_account_id` + `var.secrets_prefix` added — Wave 102.8 Bucket B 2026-05-21
+- [x] Phase 1 — TF `var.domain_name` STALE mismatch fixed (`kitehub.me` → `kitehub.me`) + `var.aws_account_id` + `var.secrets_prefix` added — Wave 102.8 Bucket B 2026-05-21
 - [x] Phase 1 — CI job `env-vars-render` validates 1 sample rendered doc identical — Wave 102.8 Bucket B 2026-05-21
 - [ ] Phase 2 — Top 10 high-leverage files refactored với `{{var}}` syntax; render for prod = byte-identical to current — defer Wave 103+ (per `gap-done-discipline.md` §3 PARTIAL exit ramp)
 - [ ] Phase 2 — 5,500+ S3/region/account/domain occurrences reduced ≥40% (target audit re-run shows count drop) — defer Wave 103+
@@ -144,7 +144,7 @@ Pre-commit hook `.husky/check-hardcoded-env-values.sh`:
   2. `scripts/render-env-vars.sh` (Python+yaml-based, ~120 LOC, shellcheck-clean) — substitute `{{var_name}}` with values per env; escape `\{{...\}}` for literal pass-through
   3. `scripts/check-unresolved-env-vars.sh` (~30 LOC, shellcheck-clean) — fail when rendered output contains unresolved `{{...}}` placeholder
   4. `.claude/rules/markdown-variable-reference.md` v1.0.0 — codifies `{{var}}` syntax + when-to-use matrix + worked self-test + sister-rule cross-link với `production-env-config-registry.md` v1.1.1 + paired rules-index.csv row
-  5. `infrastructure/terraform-aws/variables.tf` — fixed STALE `var.domain_name = "kiteclass.com"` → `"kitehub.me"` (per GAP-458 Path C domain decision) + added `var.aws_account_id` (no default, force explicit) + `var.secrets_prefix` (default `"kitehub/production"` backward-compat). `terraform validate` PASS (with `TF_VAR_aws_account_id=906286017800`).
+  5. `infrastructure/terraform-aws/variables.tf` — fixed STALE `var.domain_name = "kitehub.me"` → `"kitehub.me"` (per GAP-458 Path C domain decision) + added `var.aws_account_id` (no default, force explicit) + `var.secrets_prefix` (default `"kitehub/production"` backward-compat). `terraform validate` PASS (with `TF_VAR_aws_account_id=906286017800`).
   6. `.github/workflows/script-quality.yml` — new CI job `env-vars-render` validates roundtrip render (`_examples/env-reference-self-test.md` → byte-identical vs `_examples/env-reference-self-test-expected-production.md` control file) + check-unresolved exit 0.
 
   Self-test PASS: render production output matches control byte-identical; check-unresolved exit 0; check-unresolved correctly FAILS on synthetic unresolved placeholder; terraform validate PASS; shellcheck PASS on both scripts; rules-index.csv `check-rules-index-csv.sh` PASS (75 rows); rule-frontmatter PASS (75/75); gap-status.csv `check-gap-status-csv.sh` PASS (518 rows).

@@ -162,7 +162,7 @@ describe('Theme Receiver', () => {
 
       const event = new MessageEvent('message', {
         data: validMessage,
-        origin: 'https://kitehub.kiteclass.com',
+        origin: 'https://kitehub.me',
       });
 
       window.dispatchEvent(event);
@@ -229,8 +229,7 @@ describe('Theme Receiver', () => {
     });
 
     it('should include production origins', () => {
-      expect(ALLOWED_ORIGINS).toContain('https://kitehub.kiteclass.com');
-      expect(ALLOWED_ORIGINS).toContain('https://kiteclass.com');
+      expect(ALLOWED_ORIGINS).toContain('https://kitehub.me');
     });
   });
 

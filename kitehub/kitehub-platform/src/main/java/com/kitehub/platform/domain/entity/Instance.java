@@ -34,7 +34,7 @@ import java.util.UUID;
 public class Instance extends BaseEntity {
 
     /**
-     * Subdomain for this instance (e.g., "customer1" for customer1.kiteclass.com).
+     * Subdomain for this instance (e.g., "customer1" for customer1.kitehub.me).
      */
     @NotBlank(message = "Subdomain is required")
     @Size(min = 3, max = 50, message = "Subdomain must be between 3 and 50 characters")

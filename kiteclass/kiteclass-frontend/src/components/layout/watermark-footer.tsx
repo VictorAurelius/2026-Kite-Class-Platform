@@ -16,7 +16,7 @@ export function WatermarkFooter() {
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <span>Powered by</span>
           <Link
-            href="https://kiteclass.com"
+            href="https://kitehub.me"
             target="_blank"
             rel="noopener noreferrer"
             className="font-semibold text-primary hover:underline"

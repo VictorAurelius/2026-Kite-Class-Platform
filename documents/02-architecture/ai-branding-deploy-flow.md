@@ -22,9 +22,9 @@ Khi owner bấm "Triển khai trang web" ở **Step 6** của AI Branding wizard
 6. SSE event `complete` → FE toast success + `router push` về `/branding`.
 7. Trang `/branding` gọi `GET /api/v1/branding/instances/{instanceId}/deploy-status` → render **deploy-success card** với link "Xem landing".
 
-**Đây là Phase 1 MOCK** (GAP-1021): KHÔNG dựng per-tenant infra thật (DB / MinIO bucket / DNS subdomain — defer GAP-1055), `frontendUrl` chỉ là placeholder `https://{slug}.kiteclass.vn` (defer GAP-811 / GAP-1077 cho Host-based subdomain render). Phần "thật + persisted" là: job status progression, lifecycle state machine, mock asset JSON, deploy marker.
+**Đây là Phase 1 MOCK** (GAP-1021): KHÔNG dựng per-tenant infra thật (DB / MinIO bucket / DNS subdomain — defer GAP-1055), `frontendUrl` chỉ là placeholder `https://{slug}.kitehub.me` (defer GAP-811 / GAP-1077 cho Host-based subdomain render). Phần "thật + persisted" là: job status progression, lifecycle state machine, mock asset JSON, deploy marker.
 
-**Phân biệt KiteHub vs KiteClass** (per `kitehub-kiteclass-boundary.md`): wizard + deploy stream + deploy-status card đều thuộc **KiteHub** (`kitehub-branding` service + `kitehub-frontend` `:3001`). `frontendUrl` placeholder (`{slug}.kiteclass.vn`) trỏ tới landing **KiteClass** tenant (`:3000` / subdomain) — đó là sản phẩm output của deploy, KHÔNG phải nơi wizard chạy.
+**Phân biệt KiteHub vs KiteClass** (per `kitehub-kiteclass-boundary.md`): wizard + deploy stream + deploy-status card đều thuộc **KiteHub** (`kitehub-branding` service + `kitehub-frontend` `:3001`). `frontendUrl` placeholder (`{slug}.kitehub.me`) trỏ tới landing **KiteClass** tenant (`:3000` / subdomain) — đó là sản phẩm output của deploy, KHÔNG phải nơi wizard chạy.
 
 > ⚠️ **Discrepancy với outline gốc:** outline đề cập SSE endpoint là `GET /api/v1/branding/instances/{id}/deploy-stream`. Code **thực tế** keyed theo **jobId**: `GET /api/v1/branding/jobs/{jobId}/deploy-stream` (`DeployStreamController.java:47,81`). Chỉ endpoint **deploy-status** mới keyed theo instanceId (`/api/v1/branding/instances/{instanceId}/deploy-status`). Tài liệu này dùng đường dẫn thật.
 
@@ -234,7 +234,7 @@ Marker `deploy-completed` carry metadata `{jobId, frontendUrl, templateId, slug,
 
 - `buildDeployedAssets` tạo 1 `BrandingAsset` cho mỗi approved resource; fallback `DEFAULT_RESOURCES = {logo, colors, banner, hero}` khi không có resource nào (`MockProvisioningService.java:143-206`).
 - Resource key normalize qua `canonicalAssetType` → uppercase type (`LOGO`/`COLORS`/`BANNER`/`HERO`/`PROFILE`/`OG_IMAGE`) (`:208-220`).
-- URL mock CDN giữ segment `/instances/` để delete-path extraction còn hoạt động: `https://mock-cdn.kiteclass.com/instances/{slug}/branding/{resource}.{svg|json}` (`:222-227`).
+- URL mock CDN giữ segment `/instances/` để delete-path extraction còn hoạt động: `https://mock-cdn.kitehub.me/instances/{slug}/branding/{resource}.{svg|json}` (`:222-227`).
 - `COLORS` type → `contentType=application/json`, `variant=colours.primary`; còn lại → `image/svg+xml`, `variant=templateId` (`:194-204`).
 
 `BrandingAsset` DTO fields: `type, variant, url, sizeBytes, contentType, uploadedAt` (`BrandingAsset.java:18-49`).

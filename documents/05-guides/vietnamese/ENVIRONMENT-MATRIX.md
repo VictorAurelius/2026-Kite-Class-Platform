@@ -6,8 +6,8 @@
 |--------|-------------|---------|---------------------|---------------------|
 | **Profile** | `dev` | `staging` | `prod` | `prod` |
 | **Provider** | Docker Compose | Oracle Cloud | **Oracle Cloud Free** | AWS |
-| **Domain** | localhost:3001 | staging.kiteclass.com | kiteclass.com | kiteclass.com |
-| **API URL** | localhost:9000 | api-staging.kiteclass.com | api.kiteclass.com | api.kiteclass.com |
+| **Domain** | localhost:3001 | staging.kitehub.me | kitehub.me | kitehub.me |
+| **API URL** | localhost:9000 | api-staging.kitehub.me | api.kitehub.me | api.kitehub.me |
 | **Cost** | $0 | $0 | **$0/tháng** | ~$338/tháng |
 
 ---

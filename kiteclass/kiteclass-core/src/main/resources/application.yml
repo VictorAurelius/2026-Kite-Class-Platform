@@ -191,7 +191,7 @@ payment:
 
 # Contact Configuration
 contact:
-  admin-email: ${CONTACT_ADMIN_EMAIL:admin@kiteclass.com}
+  admin-email: ${CONTACT_ADMIN_EMAIL:admin@kitehub.me}
 
 # AI Provider Configuration (Wave 3 Sub-PR 3.2, ADR-008; extended Wave local-doable-9 Bucket C — GAP-867 Phase 1 scaffold, ADR-038)
 # External provider strategy per ADR-038 — active under `ai-external` profile only;
@@ -317,7 +317,7 @@ kiteclass:
   parent-portal:
     enabled: ${PARENT_PORTAL_ENABLED:false}
     invitation-ttl-hours: 24
-    redeem-base-url: ${PARENT_PORTAL_REDEEM_BASE_URL:https://app.kiteclass.vn/parent-invite/}
+    redeem-base-url: ${PARENT_PORTAL_REDEEM_BASE_URL:https://app.kitehub.me/parent-invite/}
     # Hourly sweep (ms) — override for tests via @TestPropertySource.
     expire-sweep-ms: 3600000
 

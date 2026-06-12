@@ -323,7 +323,7 @@ output "staging_ssm_command" {
 
 locals {
   staging_next_steps_template = var.enable_staging ? format(
-    "Staging environment provisioned. Next steps:\n  1. SSM into staging EC2:\n     aws ssm start-session --target %s --region %s\n  2. Configure docker-compose.staging.yml + ECR pull:\n     /etc/ecr-login.sh && docker compose -f docker-compose.staging.yml up -d\n  3. Apply Flyway migrations:\n     psql %s (use kitehub_staging user)\n  4. Seed synthetic fixtures:\n     bash scripts/seed-staging-fixtures.sh\n  5. Update Cloudflare DNS (proxied):\n     staging.kitehub.vn  A  %s\n     staging.kiteclass.vn A  %s\n  6. Run smoke test:\n     ./scripts/smoke-test.sh https://staging.kitehub.vn https://staging.kiteclass.vn",
+    "Staging environment provisioned. Next steps:\n  1. SSM into staging EC2:\n     aws ssm start-session --target %s --region %s\n  2. Configure docker-compose.staging.yml + ECR pull:\n     /etc/ecr-login.sh && docker compose -f docker-compose.staging.yml up -d\n  3. Apply Flyway migrations:\n     psql %s (use kitehub_staging user)\n  4. Seed synthetic fixtures:\n     bash scripts/seed-staging-fixtures.sh\n  5. Update Cloudflare DNS (proxied):\n     staging.kitehub.vn  A  %s\n     staging.kitehub.me A  %s\n  6. Run smoke test:\n     ./scripts/smoke-test.sh https://staging.kitehub.vn https://staging.kitehub.me",
     try(aws_instance.staging[0].id, ""),
     var.aws_region,
     try(aws_db_instance.staging[0].endpoint, ""),

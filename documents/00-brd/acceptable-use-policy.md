@@ -77,7 +77,7 @@ Vi phạm bản quyền — upload, share, distribute nội dung không được
 - Materials từ paid courses của competitors
 
 **Process khiếu nại bản quyền (DMCA-equivalent cho VN):**
-- Email: `copyright@kiteclass.vn` <!-- Phase 2: T&S to provision actual mailbox -->
+- Email: `copyright@kitehub.me` <!-- Phase 2: T&S to provision actual mailbox -->
 - Required: identification of copyrighted work + URL của infringing content + sworn statement + contact info
 - Response SLA: <!-- Phase 2: T&S to set — informed gut, GAP-154 (likely 7-14 ngày theo Luật Sở hữu trí tuệ 2005 sửa đổi 2022) -->
 - Counter-notice process: 14 ngày để user contest
@@ -131,7 +131,7 @@ Ngoài nội dung, các **hành vi** sau cũng bị nghiêm cấm trên platform
 - Decompile, disassemble platform code (frontend bundles, mobile apps, backend APIs)
 - Probe vulnerabilities mà không qua **Responsible Disclosure Program** (xem GAP-042)
 - Tạo derivative works từ KiteHub/KiteClass code base
-- Exception: **bug bounty / security research** đăng ký trước với `security@kiteclass.vn` <!-- Phase 2: T&S to set up program -->
+- Exception: **bug bounty / security research** đăng ký trước với `security@kitehub.me` <!-- Phase 2: T&S to set up program -->
 
 ### 3.4 Competitive intelligence gathering
 
@@ -232,7 +232,7 @@ User bị suspend có quyền kháng nghị:
 
 | Step | Action | SLA | Decision authority |
 |:----:|--------|-----|-------------------|
-| 1 | User submits appeal qua `appeals@kiteclass.vn` hoặc in-app form | Phải submit trong vòng <!-- Phase 2: T&S to set — informed gut, GAP-154 (likely 15 ngày) --> kể từ khi suspension effective | — |
+| 1 | User submits appeal qua `appeals@kitehub.me` hoặc in-app form | Phải submit trong vòng <!-- Phase 2: T&S to set — informed gut, GAP-154 (likely 15 ngày) --> kể từ khi suspension effective | — |
 | 2 | T&S Tier 1 review (initial triage) | 3 business days | T&S Tier 1 reviewer |
 | 3 | If escalated → T&S Tier 2 review (deeper investigation) | 7 business days | T&S Lead |
 | 4 | If unresolved → Final review board (Legal + T&S Head) | 14 business days | Legal Counsel + T&S Head |
@@ -271,7 +271,7 @@ Platform phải cung cấp công cụ để users báo cáo vi phạm AUP.
 ### 6.1 Reporting channels
 
 - **In-app report button** — trên mọi piece of content (post, message, course material, profile)
-- **Email** — `report@kiteclass.vn` <!-- Phase 2: T&S to provision actual mailbox -->
+- **Email** — `report@kitehub.me` <!-- Phase 2: T&S to provision actual mailbox -->
 - **Emergency hotline** (cho CSAM, threats) — <!-- Phase 2: T&S to set up dedicated channel + 24/7 coverage rotation, GAP-154 -->
 - **Anonymous reporting** — supported cho whistleblower scenarios (ví dụ: học sinh báo teacher misconduct)
 

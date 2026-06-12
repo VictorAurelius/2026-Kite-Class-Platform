@@ -63,7 +63,7 @@ public class OpenAPIConfig {
                 .description("REST API for KiteClass LMS - Student, Teacher, Course, Class management")
                 .contact(new Contact()
                     .name("KiteClass Team")
-                    .email("dev@kiteclass.com")
+                    .email("dev@kitehub.me")
                 )
                 .license(new License()
                     .name("Proprietary")
@@ -71,8 +71,8 @@ public class OpenAPIConfig {
             )
             .servers(List.of(
                 new Server().url("http://localhost:8080").description("Local Development"),
-                new Server().url("https://api-staging.kiteclass.com").description("Staging"),
-                new Server().url("https://api.kiteclass.com").description("Production")
+                new Server().url("https://api-staging.kitehub.me").description("Staging"),
+                new Server().url("https://api.kitehub.me").description("Production")
             ))
             .components(new Components()
                 .addSecuritySchemes("bearerAuth", new SecurityScheme()

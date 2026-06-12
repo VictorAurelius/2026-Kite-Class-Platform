@@ -433,7 +433,7 @@ services:
       # GAP-1108 #4 — env-aware deploy landing URL. Local shows a localhost preview
       # path (?tenant= fallback on kiteclass-frontend :3000 per tenant-domain-landing
       # §7) instead of production domain. Prod default (MockProvisioningService) =
-      # https://{slug}.kiteclass.vn (mock placeholder; real DNS/render GAP-811/1077).
+      # https://{slug}.kitehub.me (mock placeholder; real DNS/render GAP-811/1077).
       KITEHUB_BRANDING_FRONTEND_BASE_URL_TEMPLATE: "http://localhost:3000/?tenant={slug}"
       DATABASE_URL: jdbc:postgresql://kite-postgres:5432/${POSTGRES_DB:-kitehub}
       DATABASE_USERNAME: ${POSTGRES_USER:-kitehub}
@@ -542,7 +542,7 @@ services:
       SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER:-kitehub}
       SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:?required}
       AWS_SES_REGION: ap-southeast-1
-      AWS_SES_FROM_EMAIL: noreply@kiteclass.com
+      AWS_SES_FROM_EMAIL: noreply@kitehub.me
       AWS_SES_MOCK_MODE: "true"
       EMAIL_PROVIDER: ${EMAIL_PROVIDER:-smtp}
       SMTP_HOST: kite-mailhog
@@ -641,7 +641,7 @@ services:
       REDIS_PORT: 6379
       SERVER_PORT: 9000
       # Local access-mode parity (GAP-1207): production resolves tenant via
-      # Host suffix-match on .kiteclass.com; local walks use nip.io wildcard
+      # Host suffix-match on .kitehub.me; local walks use nip.io wildcard
       # (slug.127.0.0.1.nip.io) so the gateway must suffix-match that instead.
       BASE_DOMAIN: ${BASE_DOMAIN:-.127.0.0.1.nip.io}
       SUBSCRIPTION_SERVICE_URL: http://kitehub-subscription:8080

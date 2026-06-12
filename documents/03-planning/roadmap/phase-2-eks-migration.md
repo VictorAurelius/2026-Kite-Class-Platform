@@ -97,7 +97,7 @@ Separate from Phase 1 Terraform module (GAP-395 = EC2 stack). New module:
 **Day 0 (cutover):**
 - T-0:00 — Backup RDS snapshot (per `documents/05-guides/deploy/backup-runbook.md`)
 - T-0:05 — Notification to beta tenants ("brief maintenance ~15 min")
-- T-0:10 — DNS swap: `app.kiteclass.com` → ALB Ingress Controller (EKS) endpoint
+- T-0:10 — DNS swap: `app.kitehub.me` → ALB Ingress Controller (EKS) endpoint
 - T-0:10 — TTL waiting period 60s (Cloudflare proxy fast TTL)
 - T-0:11 — Verify traffic flow: CloudWatch ALB metrics + EKS pod logs
 - T-0:15 — Run smoke test against production endpoint
@@ -123,7 +123,7 @@ Separate from Phase 1 Terraform module (GAP-395 = EC2 stack). New module:
 - CloudWatch alarm cascade (> 3 alarms simultaneously)
 
 **Rollback execution:**
-1. DNS swap back: `app.kiteclass.com` → Phase 1 EC2 ALB endpoint
+1. DNS swap back: `app.kitehub.me` → Phase 1 EC2 ALB endpoint
 2. TTL 60s wait
 3. Verify Phase 1 traffic resumed
 4. EKS cluster idle (don't destroy — preserve for diagnosis)
@@ -155,10 +155,10 @@ Step-up ~3.4× per `sizing-matrix.md` §5.1 ($72 → $250). Verify revenue befor
 
 **Steps:**
 1. Identify Phase 1 ALB DNS name từ Terraform state: `terraform output -raw phase1_alb_dns`
-2. Open Cloudflare dashboard → Zone `kiteclass.com` → DNS records
+2. Open Cloudflare dashboard → Zone `kitehub.me` → DNS records
 3. Update CNAME `app` → Phase 1 ALB DNS (TTL 60s)
 4. Wait 90s for propagation
-5. Verify: `curl -I https://app.kiteclass.com` → response từ Phase 1 services (check `Server` header OR custom `X-Backend-Version` header)
+5. Verify: `curl -I https://app.kitehub.me` → response từ Phase 1 services (check `Server` header OR custom `X-Backend-Version` header)
 6. Notify beta tenants via status page (per GAP-373) "rolled back; investigating"
 7. Post-mortem schedule within 48h
 

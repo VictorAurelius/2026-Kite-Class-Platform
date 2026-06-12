@@ -149,10 +149,10 @@ public class OnboardingServiceImpl implements OnboardingService {
      *
      * @param tenantId current tenant
      * @param prefix   local-part prefix (e.g. {@code gv.hong})
-     * @return a sample email such as {@code gv.hong.ab12cd34@demo.kiteclass.vn}
+     * @return a sample email such as {@code gv.hong.ab12cd34@demo.kitehub.me}
      */
     private static String sampleEmail(UUID tenantId, String prefix) {
         String suffix = tenantId.toString().replace("-", "").substring(0, 8);
-        return prefix + "." + suffix + "@demo.kiteclass.vn";
+        return prefix + "." + suffix + "@demo.kitehub.me";
     }
 }

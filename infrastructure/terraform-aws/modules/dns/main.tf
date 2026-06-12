@@ -43,7 +43,7 @@ variable "kitehub_vn_enabled" {
 }
 
 variable "kiteclass_com_enabled" {
-  description = "Enable kiteclass.com zone (flip to true after Cloudflare Registrar purchase completes)."
+  description = "Enable kitehub.me zone (flip to true after Cloudflare Registrar purchase completes)."
   type        = bool
   default     = false
 }
@@ -62,7 +62,7 @@ variable "kiteclass_com_enabled" {
 # resource "cloudflare_zone" "kiteclass_com" {
 #   count   = var.kiteclass_com_enabled ? 1 : 0
 #   account = var.cloudflare_account_id
-#   zone    = "kiteclass.com"
+#   zone    = "kitehub.me"
 #   plan    = "business" # Custom Hostnames requires Business+
 # }
 #
@@ -72,7 +72,7 @@ variable "kiteclass_com_enabled" {
 # ---- Outputs ----------------------------------------------------------------
 
 output "kiteclass_com_zone_id" {
-  description = "Zone ID for kiteclass.com — consumed by runtime provisioning adapter."
+  description = "Zone ID for kitehub.me — consumed by runtime provisioning adapter."
   value       = null # replace with cloudflare_zone.kiteclass_com[0].id once enabled
 }
 
@@ -85,6 +85,6 @@ output "managed_zones" {
   description = "List of zone names actually managed by this module."
   value = compact([
     var.kitehub_vn_enabled ? "kitehub.vn" : null,
-    var.kiteclass_com_enabled ? "kiteclass.com" : null,
+    var.kiteclass_com_enabled ? "kitehub.me" : null,
   ])
 }

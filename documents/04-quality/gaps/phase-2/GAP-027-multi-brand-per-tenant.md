@@ -26,7 +26,7 @@ public class BrandVariant {
   Long id;
   String tenantId;
   String variantName;       // "Chi nhánh Hà Nội", "Chi nhánh HCM"
-  String subdomain;          // hn.abc-center.kiteclass.com
+  String subdomain;          // hn.abc-center.kitehub.me
   Boolean isPrimary;         // main brand
   ThemeConfig theme;
   Map<String, String> assetUrls;
@@ -62,8 +62,8 @@ Tenant Dashboard
 
 ### 4. Routing
 
-- Primary brand: `{tenantSlug}.kiteclass.com`
-- Variants: `{variantSlug}.{tenantSlug}.kiteclass.com` or `{tenantSlug}.kiteclass.com/{variantSlug}`
+- Primary brand: `{tenantSlug}.kitehub.me`
+- Variants: `{variantSlug}.{tenantSlug}.kitehub.me` or `{tenantSlug}.kitehub.me/{variantSlug}`
 
 ### 5. Data Scoping
 

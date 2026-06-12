@@ -228,7 +228,7 @@ public class DemoAcademicSeeder {
             // 1 teacher per tenant.
             TeacherResponse teacher = teacherService.createTeacher(new CreateTeacherRequest(
                     spec.teacherName(),
-                    "gv." + tenantSuffix + "@demo.kiteclass.vn",
+                    "gv." + tenantSuffix + "@demo.kitehub.me",
                     nextPhone(),
                     spec.specialization(),
                     spec.bio(),
@@ -394,7 +394,7 @@ public class DemoAcademicSeeder {
         for (String name : cs.studentNames()) {
             StudentResponse student = studentService.createStudent(new CreateStudentRequest(
                     name,
-                    "hs." + tenantSuffix + "." + (seq) + "@demo.kiteclass.vn",
+                    "hs." + tenantSuffix + "." + (seq) + "@demo.kitehub.me",
                     nextPhone(),
                     birthDate(spec.baseBirthYear(), idx),
                     (idx % 2 == 0) ? Gender.MALE : Gender.FEMALE,

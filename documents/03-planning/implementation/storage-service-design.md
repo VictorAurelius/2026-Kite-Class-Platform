@@ -1733,7 +1733,7 @@ storage:
   # CDN settings
   cdn:
     enabled: true
-    base-url: https://cdn.kiteclass.vn
+    base-url: https://cdn.kitehub.me
     cache-ttl: 86400 # 24 hours
 ```
 
@@ -1754,7 +1754,7 @@ http://localhost:9000/kiteclass-dev/tenant-123/videos/abc.mp4
 
 **Production** (CloudFlare CDN URL):
 ```
-https://cdn.kiteclass.vn/tenant-123/videos/abc.mp4
+https://cdn.kitehub.me/tenant-123/videos/abc.mp4
 ```
 
 **Implementation**:
@@ -1785,7 +1785,7 @@ public class CdnUrlService {
         }
 
         // Parse S3 URL: https://account.r2.cloudflarestorage.com/bucket/path/to/file.mp4
-        // Convert to CDN: https://cdn.kiteclass.vn/path/to/file.mp4
+        // Convert to CDN: https://cdn.kitehub.me/path/to/file.mp4
 
         try {
             URL url = new URL(s3Url);

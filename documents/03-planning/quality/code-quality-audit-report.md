@@ -531,7 +531,7 @@ class KiteHubKiteClassIntegrationTest {
 // ❌ NO GUIDANCE for this E2E test
 test('Guest user journey - B2B model', async ({ page }) => {
   // Visit instance landing page
-  await page.goto('https://testcenter.kiteclass.com');
+  await page.goto('https://testcenter.kitehub.me');
 
   // Should see public courses
   await expect(page.locator('h2:has-text("Khóa học")')).toBeVisible();

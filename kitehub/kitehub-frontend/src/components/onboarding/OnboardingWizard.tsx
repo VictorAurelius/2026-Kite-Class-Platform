@@ -50,7 +50,7 @@ export function OnboardingWizard({ instance, open, onClose }: OnboardingWizardPr
             </div>
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium">URL</span>
-              <span className="text-sm text-muted-foreground">{instance.subdomain}.kiteclass.com</span>
+              <span className="text-sm text-muted-foreground">{instance.subdomain}.kitehub.me</span>
             </div>
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium">Gói</span>

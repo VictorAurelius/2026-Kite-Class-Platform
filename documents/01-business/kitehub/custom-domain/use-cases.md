@@ -8,7 +8,7 @@
 ## UC-DOMAIN-001 — Owner đăng ký custom domain
 
 **Actor:** Center Owner (PREMIUM/ENTERPRISE tier)
-**Trigger:** Owner muốn dùng domain riêng `lop.skyedu.vn` thay vì `skyedu.kiteclass.com`.
+**Trigger:** Owner muốn dùng domain riêng `lop.skyedu.vn` thay vì `skyedu.kitehub.me`.
 
 **Preconditions:**
 - Instance ở tier PREMIUM hoặc ENTERPRISE (BR-DOMAIN-011)
@@ -31,7 +31,7 @@
 
 **Postconditions:**
 - Owner truy cập `https://lop.skyedu.vn` được route đúng tenant
-- Backup URL `https://skyedu.kiteclass.com` vẫn hoạt động (BR-DOMAIN-007)
+- Backup URL `https://skyedu.kitehub.me` vẫn hoạt động (BR-DOMAIN-007)
 
 **Errors:**
 - Tier không hỗ trợ → 403 + thông báo upgrade plan (BR-DOMAIN-011)
@@ -56,7 +56,7 @@
 
 **Main flow:**
 1. Owner mở Settings → Custom Domain → click "Remove"
-2. UI confirmation modal: "Bạn chắc chắn? Backup URL `{subdomain}.kiteclass.com` vẫn hoạt động."
+2. UI confirmation modal: "Bạn chắc chắn? Backup URL `{subdomain}.kitehub.me` vẫn hoạt động."
 3. Owner confirm → system gọi `DELETE /api/instances/{id}/domain`
 4. System reset: `customDomain=null`, `domainVerifyToken=null`, `domainVerifiedAt=null`, `domainStatus=NONE` (BR-DOMAIN-012)
 5. UI redirect về Custom Domain page với state NONE

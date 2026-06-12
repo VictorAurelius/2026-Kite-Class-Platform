@@ -55,7 +55,7 @@ public class TenantBranding implements Serializable {
      * to look correct even with graceful degradation.
      *
      * <p>GAP-543 (Wave 107 tone pass): {@code contactEmail} corrected from the
-     * unreachable {@code support@kiteclass.com} to {@code support@kitehub.me} —
+     * unreachable {@code support@kitehub.me} to {@code support@kitehub.me} —
      * Phase 1 BETA operates on the {@code kitehub.me} domain (dual-brand KiteClass
      * customer-facing rename deferred to Phase 1.5+ per ad-interim decision). A
      * non-existent support address in every email footer = trust loss + bounced

@@ -34,7 +34,7 @@ export interface DoneStepProps {
 /** Compose a public landing URL from the slug when the backend URL is absent. */
 function fallbackLandingUrl(slug?: string): string | null {
   if (!slug) return null;
-  // G1 walk 2026-06-12: hardcode https://{slug}.kiteclass.vn là deadlink trên local
+  // G1 walk 2026-06-12: hardcode https://{slug}.kitehub.me là deadlink trên local
   // (GAP-803 class). Template env-driven — local default trỏ KC :3000 ?tenant=.
   const template =
     process.env.NEXT_PUBLIC_TENANT_LANDING_URL_TEMPLATE ??

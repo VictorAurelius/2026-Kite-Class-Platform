@@ -18,7 +18,7 @@ GAP-812 Wave tenant-domain-1 Bucket D (2026-06-01) shipped Phần A (DNS TXT ver
 1. **SSL provisioning automation chưa wire end-to-end:**
    - Tenant verify TXT → status `VERIFIED` directly (skip CERT_PROVISIONING)
    - Khi tenant truy cập `https://lop.skyedu.vn` → browser cert error vì chưa có cert
-   - Workaround hiện tại: backup URL `{subdomain}.kiteclass.com` luôn có HTTPS hợp lệ (BR-DOMAIN-007)
+   - Workaround hiện tại: backup URL `{subdomain}.kitehub.me` luôn có HTTPS hợp lệ (BR-DOMAIN-007)
 
 2. **Scheduled polling job chưa có:**
    - `verifyCustomDomain` chỉ chạy khi tenant manual trigger qua UI "Verify ngay" button
@@ -75,7 +75,7 @@ Nếu Cloudflare for SaaS không khả thi (cost, vendor lock-in):
 ### Phase 4 — SSL-pending fallback UI
 
 1. FE check `domainStatus=CERT_PROVISIONING` → banner "Cert đang cấp..." trên custom domain pages
-2. Reverse proxy / Cloudflare Workers redirect rule: nếu cert chưa active → auto-redirect to backup `{subdomain}.kiteclass.com` với banner
+2. Reverse proxy / Cloudflare Workers redirect rule: nếu cert chưa active → auto-redirect to backup `{subdomain}.kitehub.me` với banner
 
 ## Acceptance Criteria
 
@@ -101,4 +101,4 @@ Nếu Cloudflare for SaaS không khả thi (cost, vendor lock-in):
 
 ## Log
 
-- **2026-06-01:** Gap created — Wave tenant-domain-1 Bucket D follow-up to GAP-812. Defers Phần B v2 SSL automation + Phần C scheduler per `release-deploy-standard.md` §9 (terraform apply human-only) + Cloudflare for SaaS budget approval blocker. Phase 1 BETA acceptable: backup URL `{subdomain}.kiteclass.com` always HTTPS available — custom domain HTTPS scope = Phase 1.5+ enhancement. P2 priority retained (PREMIUM/ENTERPRISE tier only; backup unblocks Phase 1 BETA).
+- **2026-06-01:** Gap created — Wave tenant-domain-1 Bucket D follow-up to GAP-812. Defers Phần B v2 SSL automation + Phần C scheduler per `release-deploy-standard.md` §9 (terraform apply human-only) + Cloudflare for SaaS budget approval blocker. Phase 1 BETA acceptable: backup URL `{subdomain}.kitehub.me` always HTTPS available — custom domain HTTPS scope = Phase 1.5+ enhancement. P2 priority retained (PREMIUM/ENTERPRISE tier only; backup unblocks Phase 1 BETA).

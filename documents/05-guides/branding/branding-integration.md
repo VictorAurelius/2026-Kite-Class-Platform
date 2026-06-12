@@ -33,7 +33,7 @@ Response:
 ```json
 {
   "displayName": "Trường ABC",
-  "logoUrl": "https://cdn.kiteclass.vn/branding/abc/logo.svg",
+  "logoUrl": "https://cdn.kitehub.me/branding/abc/logo.svg",
   "primaryColor": "#1a73e8",
   "secondaryColor": "#fbbc04",
   "accentColor": "#10B981",
@@ -110,7 +110,7 @@ Existing Shadcn UI components key off Tailwind's `--primary` / `--accent` H-S-L 
 
 `useTenantFromUrl` extracts tenant identifier from:
 
-1. Subdomain (e.g. `abc-school.kiteclass.vn` → `abc-school`)
+1. Subdomain (e.g. `abc-school.kitehub.me` → `abc-school`)
 2. Path prefix (e.g. `/t/abc-school/login`)
 3. Query param fallback (`?tenant=abc-school`)
 
@@ -146,7 +146,7 @@ Response (200):
   "instanceId": 12345,
   "tenantId": "kitehub-tenant-uuid",
   "slug": "abc-school",
-  "frontendUrl": "https://abc-school.kiteclass.vn",
+  "frontendUrl": "https://abc-school.kitehub.me",
   "brandingVersion": 3,
   "deployedAt": "2026-04-26T10:05:00Z",
   "assets": [

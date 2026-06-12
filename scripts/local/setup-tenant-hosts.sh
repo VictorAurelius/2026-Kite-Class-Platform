@@ -3,7 +3,7 @@
 # setup-tenant-hosts.sh — map each active tenant subdomain to 127.0.0.1 in
 # /etc/hosts so the local stack is reachable by REAL subdomain
 # (http://<slug>.kiteclass.local:3000/), exactly like production
-# (<slug>.kiteclass.com) — replacing the ?tenant=<slug> preview query param.
+# (<slug>.kitehub.me) — replacing the ?tenant=<slug> preview query param.
 #
 # Vì sao: FE middleware (kiteclass-frontend/src/middleware.ts) resolve tenant
 # theo Host subdomain → cần hostname >=3 phần (parts[0]=slug). `<slug>.localhost`

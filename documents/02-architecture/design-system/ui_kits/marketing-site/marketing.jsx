@@ -66,7 +66,7 @@ function AppMock() {
     <div className="app-mock" role="img" aria-label="Giao diện KiteClass: màn hình điểm danh lớp Anh ngữ 5A1 và tổng quan học phí của Trung tâm Anh ngữ Sky Education">
       <div className="app-bar">
         <div className="dots"><i style={{ background: "#FF5F57" }}></i><i style={{ background: "#FEBC2E" }}></i><i style={{ background: "#28C840" }}></i></div>
-        <span className="url">sky-education.kiteclass.vn</span>
+        <span className="url">sky-education.kitehub.me</span>
       </div>
       <div className="app-body">
         <aside className="app-rail">
@@ -368,7 +368,7 @@ function MsFooter() {
         <div>
           <div className="brand"><Kite size={30} /> KiteClass</div>
           <p className="blurb">Nền tảng quản lý trung tâm và trường học tại Việt Nam: học viên, lớp học, điểm danh, điểm số và học phí — tất cả ở một nơi.</p>
-          <p className="pub">Đơn vị phát hành: Công ty TNHH Công nghệ Giáo dục KiteClass<br />Hà Nội, Việt Nam · info@kiteclass.vn · 1900 6868</p>
+          <p className="pub">Đơn vị phát hành: Công ty TNHH Công nghệ Giáo dục KiteClass<br />Hà Nội, Việt Nam · info@kitehub.me · 1900 6868</p>
         </div>
         <div>
           <h5>Sản phẩm</h5>

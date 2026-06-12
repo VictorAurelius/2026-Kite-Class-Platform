@@ -50,7 +50,7 @@ Toàn bộ xảy ra trong 1 API call. Instance có status TRIAL, database Postgr
 
 **Vấn đề:** User sẽ không hiểu:
 - "Instance" nghĩa là gì?
-- URL `abc-center.kiteclass.com` để làm gì?
+- URL `abc-center.kitehub.me` để làm gì?
 - Bước tiếp theo là gì?
 - Tính năng AI Branding hoạt động thế nào?
 
@@ -75,9 +75,9 @@ Bước 4: "Tạo thương hiệu với AI"
 ### 2.3. URL tenant không hoạt động ở local
 
 **Hiện tại:**
-- Instance detail page có button "Truy cập KiteClass" → link `https://{subdomain}.kiteclass.com`
-- **Local:** Link này KHÔNG hoạt động vì không có DNS resolve `*.kiteclass.com` → localhost
-- **Production:** Cần wildcard DNS `*.kiteclass.com` → server IP
+- Instance detail page có button "Truy cập KiteClass" → link `https://{subdomain}.kitehub.me`
+- **Local:** Link này KHÔNG hoạt động vì không có DNS resolve `*.kitehub.me` → localhost
+- **Production:** Cần wildcard DNS `*.kitehub.me` → server IP
 
 **Vấn đề cho dev:** Không thể test full flow Register → Dashboard → Click vào instance → Thấy KiteClass frontend.
 
@@ -92,7 +92,7 @@ Bước 4: "Tạo thương hiệu với AI"
 
 **Đề xuất:** Option D cho local (đơn giản, không cần DNS). Dashboard link ở local trỏ về `localhost:3000` kèm query param `?tenant={subdomain}`, gateway đọc param này để resolve tenant.
 
-**Cho production:** Wildcard DNS `*.kiteclass.com` → Cloudflare → server. Gateway resolve subdomain như hiện tại.
+**Cho production:** Wildcard DNS `*.kitehub.me` → Cloudflare → server. Gateway resolve subdomain như hiện tại.
 
 ---
 

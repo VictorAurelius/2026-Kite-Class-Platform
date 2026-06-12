@@ -271,7 +271,7 @@ function PreviewStep({ state, dispatch, tier, regenLeft, regenLimit, lifecycle, 
       <div className="preview-grid">
         <div>
           <PreviewFrame
-            url={`https://${state.slug}.kiteclass.vn`}
+            url={`https://${state.slug}.kitehub.me`}
             theme={buildThemeFromState(state)}
             assets={state.approve}
           />

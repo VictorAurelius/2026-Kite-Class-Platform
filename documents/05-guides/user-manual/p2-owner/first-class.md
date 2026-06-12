@@ -112,7 +112,7 @@ Bước 5 cấu hình **giá + payment plan**:
 
 **Hiển thị giá**:
 - Format VND: `1.500.000đ` hoặc `1.500.000 ₫`
-- Học sinh đăng ký thấy giá này khi vào `https://sky-education.kiteclass.com/classes/anh-ngu-5a1`
+- Học sinh đăng ký thấy giá này khi vào `https://sky-education.kitehub.me/classes/anh-ngu-5a1`
 
 Click **"Lưu lớp"** → save + chuyển về `/classes`.
 
@@ -131,7 +131,7 @@ Quay lại `/classes`, lớp mới hiển thị dưới dạng card:
 - 💰 1.500.000đ / khoá
 - 🟢 Badge: **"Mở đăng ký"**
 
-Học sinh + phụ huynh truy cập `https://sky-education.kiteclass.com/classes/anh-ngu-5a1` → đăng ký + thanh toán → tự động vào danh sách lớp.
+Học sinh + phụ huynh truy cập `https://sky-education.kitehub.me/classes/anh-ngu-5a1` → đăng ký + thanh toán → tự động vào danh sách lớp.
 
 ---
 

@@ -15,7 +15,7 @@
 | 2 | Subject line | **9/10** | Title `\|Lời mời beta - ${branding?.displayName ?: 'KiteClass'}\|`. ≤50 chars (sau brand thay). Cụ thể về beta. Tự nhiên Vietnamese. |
 | 3 | Body content | **10/10** | Structure rõ: greeting → context → 3-step instruction → claim code → expiry → disclaimer. Vietnamese natural. Disclaimer color-coded (yellow `#FEF3C7`) thu hút mắt. |
 | 4 | CTA button + claim code | **10/10** | "Mở trang đăng ký" — Vietnamese. URL `${inviteUrl}`. Claim code 6-digit format chuyên nghiệp (font monospace, letter-spacing 6px). Per GAP-388 Wave 36 — replaces raw UUID leak in href (security improvement). |
-| 5 | Footer | **⚠️ 5/10** | `support@kiteclass.com` default. Thiếu `/beta-status` link (GAP-539). Cần switch default → `support@kitehub.me` (GAP-540). |
+| 5 | Footer | **⚠️ 5/10** | `support@kitehub.me` default. Thiếu `/beta-status` link (GAP-539). Cần switch default → `support@kitehub.me` (GAP-540). |
 | 6 | HTML render | **⚠️ chưa test** | CSS với CSS custom properties (`--brand-primary`). Outlook desktop KHÔNG support CSS custom properties → fallback color quan trọng. Cần test Litmus. |
 | 7 | Plain-text fallback | **❌ 0/10** | KHÔNG có `beta-invite.txt`. Đặc biệt critical vì email beta-invite cần delivery rate cao + lọc spam filter ưu tiên `.txt` paired `.html`. |
 

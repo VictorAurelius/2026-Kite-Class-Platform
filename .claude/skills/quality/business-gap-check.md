@@ -155,7 +155,7 @@ grep -rn "admin\|root\|test\|demo" kitehub/kitehub-*/src/main --include="*.java"
 
 | Check | Cách verify | Expected |
 |-------|-------------|----------|
-| BASE_DOMAIN configurable | Search `.kiteclass.com` hardcode | Từ config |
+| BASE_DOMAIN configurable | Search `.kitehub.me` hardcode | Từ config |
 | Reserved subdomain list | Search "reserved" validation | Có list blocked names |
 | Custom domain verify | Search `verifyDomain` | DNS verification flow |
 | Custom domain SSL | Search SSL/cert logic | Auto hoặc documented |

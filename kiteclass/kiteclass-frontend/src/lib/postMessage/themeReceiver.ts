@@ -27,8 +27,7 @@ export const ALLOWED_ORIGINS = [
   'http://localhost:4700', // KiteClass local (for testing)
 
   // Production
-  'https://kitehub.kiteclass.com', // KiteHub production
-  'https://kiteclass.com', // Main site
+  'https://kitehub.me', // KiteHub apex (marketing + customer portal)
 
   // Dev-only origins — the actual `next dev` server runs on :3000, so theme
   // preview / iframe embedding from a sibling dev server was being rejected

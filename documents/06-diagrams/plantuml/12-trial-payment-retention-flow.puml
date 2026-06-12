@@ -71,7 +71,7 @@ if (Customer pays within retention window?) then (yes)
         :Instance status -> **ACTIVE**;
         :Provision KiteClass DB
         (Flyway V1-V18, seed data);
-        :Subdomain active: {name}.kiteclass.com;
+        :Subdomain active: {name}.kitehub.me;
 
         while (Subscription active?) is (yes)
             :7 days before renewal:

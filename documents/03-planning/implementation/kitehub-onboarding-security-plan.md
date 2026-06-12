@@ -97,7 +97,7 @@ Frontend:
 
 - [ ] Env variable `TENANT_URL_PATTERN`:
   - Local: `http://localhost:3000?tenant={subdomain}`
-  - Production: `https://{subdomain}.kiteclass.com`
+  - Production: `https://{subdomain}.kitehub.me`
 - [ ] Dashboard + Instance detail: link "Truy cập KiteClass" dùng pattern trên
 - [ ] KiteClass Frontend: đọc `?tenant=` query param → set header `X-Tenant-Id`
 - [ ] Gateway TenantResolver: hỗ trợ query param ngoài subdomain + header (đã có)

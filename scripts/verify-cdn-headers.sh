@@ -26,7 +26,7 @@ Check that a domain is proxied through Cloudflare CDN by verifying
 the presence of required response headers.
 
 Arguments:
-  <domain>   Domain to check (e.g. kitehub.vn or kiteclass.vn)
+  <domain>   Domain to check (e.g. kitehub.vn or kitehub.me)
 
 Options:
   --help     Show this help message and exit
@@ -43,7 +43,7 @@ Exit codes:
 
 Examples:
   bash scripts/verify-cdn-headers.sh kitehub.vn
-  bash scripts/verify-cdn-headers.sh kiteclass.vn
+  bash scripts/verify-cdn-headers.sh kitehub.me
 EOF
 }
 

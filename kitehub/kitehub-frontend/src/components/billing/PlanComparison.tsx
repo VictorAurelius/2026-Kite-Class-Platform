@@ -28,7 +28,7 @@ export function PlanComparison({ currentTier }: PlanComparisonProps) {
     if (tier === currentTier) return;
     if (tier === 'ENTERPRISE') {
       // GAP-1101 cross-flow sweep: Enterprise = sales-assisted. Navigate to the
-      // lead-capture form instead of mailto:sales@kiteclass.com (wrong domain —
+      // lead-capture form instead of mailto:sales@kitehub.me (wrong domain —
       // canonical is support@kitehub.me / /contact).
       router.push('/contact?plan=enterprise');
       return;

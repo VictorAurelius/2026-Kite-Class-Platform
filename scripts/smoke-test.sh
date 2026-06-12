@@ -12,10 +12,10 @@
 #
 # Examples:
 #   ./scripts/smoke-test.sh                                                      # prod
-#   ./scripts/smoke-test.sh https://staging.kitehub.vn https://staging.kiteclass.vn
+#   ./scripts/smoke-test.sh https://staging.kitehub.vn https://staging.kitehub.me
 #   ./scripts/smoke-test.sh http://localhost:9000                                # local single gateway
 #
-# Defaults (no args): https://kitehub.vn  +  https://kiteclass.vn
+# Defaults (no args): https://kitehub.vn  +  https://kitehub.me
 #
 # Env-gated scenarios:
 #   SMOKE_LOGS_E2E=1 LOKI_URL=...      Enable Loki ingest assertion (GAP-434)
@@ -78,7 +78,7 @@ usage() {
     echo "  $0 <single-url>                        # both KH+KC use same URL (legacy)"
     echo "  $0 <kitehub-url> <kiteclass-url>       # dual-URL"
     echo ""
-    echo "Defaults: KH=https://kitehub.vn  KC=https://kiteclass.vn"
+    echo "Defaults: KH=https://kitehub.vn  KC=https://kitehub.me"
     echo "Exit codes: 0=pass  1=fail  2=warn-only"
     exit 1
 }
@@ -814,7 +814,7 @@ echo_build_info() {
 case "$#" in
     0)
         KH_URL="https://kitehub.vn"
-        KC_URL="https://kiteclass.vn"
+        KC_URL="https://kitehub.me"
         ;;
     1)
         case "${1:-}" in

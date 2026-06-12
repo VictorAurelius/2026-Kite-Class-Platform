@@ -37,7 +37,7 @@ export const TEACHER_PROFILE = {
   initials: 'TH',
   homeroomClass: 'Lớp 10A2',
   subject: 'Toán nâng cao',
-  email: 'ha.tran@kiteclass.vn',
+  email: 'ha.tran@kitehub.me',
   phone: '0912 345 678',
   schoolYear: '2026-2027',
   semester: 'Học kỳ I',

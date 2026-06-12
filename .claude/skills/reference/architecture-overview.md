@@ -141,9 +141,9 @@ Tài liệu mô tả kiến trúc hệ thống:
 │                                                             │
 │  URL Routing:                                               │
 │  ─────────────                                              │
-│  • {subdomain}.kiteclass.vn → Specific instance             │
-│  • abc.kiteclass.vn → Instance "abc"                        │
-│  • xyz.kiteclass.vn → Instance "xyz"                        │
+│  • {subdomain}.kitehub.me → Specific instance             │
+│  • abc.kitehub.me → Instance "abc"                        │
+│  • xyz.kitehub.me → Instance "xyz"                        │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -707,7 +707,7 @@ Namespace: kiteclass-{tenant}
 │   └── core-svc (ClusterIP)
 │
 ├── Ingress:
-│   └── {tenant}.kiteclass.vn → frontend-svc
+│   └── {tenant}.kitehub.me → frontend-svc
 │
 └── ConfigMaps/Secrets:
     ├── app-config

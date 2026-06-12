@@ -14,7 +14,7 @@ data:
   instance.id: "{{INSTANCE_ID}}"
   instance.name: "{{ORGANIZATION_NAME}}"
   instance.tier: "{{SUBSCRIPTION_TIER}}"
-  instance.domain: "{{SUBDOMAIN}}.kiteclass.com"
+  instance.domain: "{{SUBDOMAIN}}.kitehub.me"
 
   # Redis (shared across all instances)
   redis.host: "kitehub-redis.kitehub.svc.cluster.local"

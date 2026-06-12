@@ -55,7 +55,7 @@ const baseInstance: Instance = {
 const mockMutateFn = vi.fn();
 
 const defaultDomainStatusReturn = {
-  data: { customDomain: null, verifyToken: null, verifyRecord: null, status: 'NONE' as const, verifiedAt: null, backupUrl: 'https://test-school.kiteclass.com' },
+  data: { customDomain: null, verifyToken: null, verifyRecord: null, status: 'NONE' as const, verifiedAt: null, backupUrl: 'https://test-school.kitehub.me' },
   isLoading: false,
   refetch: vi.fn(),
 };
@@ -181,7 +181,7 @@ describe('CustomDomainTab', () => {
         verifyRecord: 'Add TXT record: @ kitehub-verify=abc-123-def',
         status: 'PENDING_VERIFY' as const,
         verifiedAt: null,
-        backupUrl: 'https://test-school.kiteclass.com',
+        backupUrl: 'https://test-school.kitehub.me',
       },
     });
 
@@ -202,7 +202,7 @@ describe('CustomDomainTab', () => {
         verifyRecord: null,
         status: 'PENDING_VERIFY' as const,
         verifiedAt: null,
-        backupUrl: 'https://test-school.kiteclass.com',
+        backupUrl: 'https://test-school.kitehub.me',
       },
     });
     (useVerifyDomain as ReturnType<typeof vi.fn>).mockReturnValue({
@@ -227,7 +227,7 @@ describe('CustomDomainTab', () => {
         verifyRecord: null,
         status: 'VERIFIED' as const,
         verifiedAt: '2026-03-23T10:00:00Z',
-        backupUrl: 'https://test-school.kiteclass.com',
+        backupUrl: 'https://test-school.kitehub.me',
       },
     });
 

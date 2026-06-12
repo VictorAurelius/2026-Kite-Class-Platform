@@ -100,7 +100,7 @@ Khi parent submit `RedeemInvitationRequest.password`:
 |-----|---------|--------------|-------------|
 | `kiteclass.parent-portal.enabled` | `true` (Wave auth-1; was `false`) | `PARENT_PORTAL_ENABLED` | Master feature flag (BR-PARENT-004). Set false per-instance nếu PDPL consent chưa ký. |
 | `kiteclass.parent-portal.invitation-ttl-hours` | `24` | — | Token lifetime giờ (BR-PARENT-003). |
-| `kiteclass.parent-portal.redeem-base-url` | `https://app.kiteclass.vn/parent-invite/` | `PARENT_PORTAL_REDEEM_BASE_URL` | URL prefix gắn vào email (token append at send time). |
+| `kiteclass.parent-portal.redeem-base-url` | `https://app.kitehub.me/parent-invite/` | `PARENT_PORTAL_REDEEM_BASE_URL` | URL prefix gắn vào email (token append at send time). |
 | `kiteclass.parent-portal.expire-sweep-ms` | `3600000` (1h) | — | Sweeper interval (BR-PARENT-INV-007). |
 
 **Bound by:** `ParentPortalProperties` (record). Defaults được apply ở compact constructor để test minimal config không phải khai báo đủ.

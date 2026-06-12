@@ -12,9 +12,9 @@ paths:
 # KiteHub vs KiteClass Boundary — canonical KH/KC distinction (FE port / service / domain / concern)
 
 **Priority:** 🟠 MANDATORY — product-boundary disambiguation governance
-**Version:** 1.0.0
+**Version:** 1.0.1
 **Created:** 2026-06-08
-**Last-Reviewed:** 2026-06-08
+**Last-Reviewed:** 2026-06-12
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new rule với built-in enforcement (canonical matrix §2 + reviewer-checklist + worked self-test on 2026-06-09 KH-3/KC-8 recipe port drift) per §6.5 Enforcement Parity Mandate; no constraint loosening — codify previously-informal KH/KC distinction (chỉ ở CLAUDE.md prose, không enforce) thành canonical mapping + hard guard; META P1 force-multiplier per `meta-gap-priority.md` §3)
 **Applies to:** Mọi artifact / quyết định cần phân biệt KiteHub (KH) vs KiteClass (KC): FE port reference, service routing, domain, flow assignment (KH-* vs KC-*), G2/G1 recipe, wave-flow plan, architecture doc, frontend code. Out-of-scope: shared infrastructure (`kite-*` prefix — postgres/redis/rabbitmq/minio/gateway dùng chung).
 
@@ -38,7 +38,7 @@ Recurrence 2026-06-09: 2 G2 recipe ghi sai FE port (KH-3 subscription ghi `:3000
 | **FE container** | `kitehub-frontend` | `kiteclass-frontend` |
 | **FE port (local)** | **`:3001`** | **`:3000`** |
 | **Backend service(s)** | `kitehub-{platform,subscription,branding,email,admin}` + `kitehub-gateway` | `kiteclass-core` |
-| **Domain (prod)** | apex `kitehub.me` (marketing + customer portal) | `{slug}` subdomain per-tenant (school app) |
+| **Domain (prod)** | apex `kitehub.me` (marketing + customer portal) | `{slug}.kitehub.me` subdomain per-tenant (school app) |
 | **API prefix chính** | `/api/platform/*`, `/api/auth/*` (kitehub-subscription auth) | `/api/v1/*`, `/api/v1/tenant-auth/*` (kiteclass-core) |
 | **Login** | `:3001/login` (`(auth)/login`, `POST /api/auth/login`) | `:3000` tenant app (`POST /api/v1/tenant-auth/login`) |
 | **Flow IDs** | KH-1 .. KH-10 | KC-1 .. KC-12 |
@@ -128,7 +128,7 @@ Pre-merge review cho PR touching frontend code / flow doc / recipe / architectur
 - [ ] API prefix khớp (KH `/api/platform`+`/api/auth`, KC `/api/v1`+`/api/v1/tenant-auth`)?
 - [ ] Từ trùng tên (billing/branding/login/payment/dashboard/settings) có prefix KH/KC rõ per §2.1?
 - [ ] Flow gán đúng FE (KC-* platform-side exception §4.1 đã state-check FE route thật)?
-- [ ] Domain reference khớp (KH apex `kitehub.me`, KC `{slug}` subdomain)?
+- [ ] Domain reference khớp (KH apex `kitehub.me`, KC `{slug}.kitehub.me` subdomain)?
 
 ### 6.2 Cross-reference enforcement (paired same-PR)
 
@@ -175,5 +175,7 @@ Trailer logged. Pattern frequency >10%/quarter triggers meta-review.
 ---
 
 ## 8. Log
+
+- **2026-06-12 (v1.0.1):** PATCH — §2 matrix "Domain (prod)" KC cell làm rõ `{slug}` → `{slug}.kitehub.me` subdomain per-tenant (paired same-PR domain canonical sweep GAP-1241). Triggered by user 2026-06-12 "kitehub.me mà? => fix toàn bộ các chỗ đang khiến claude nhận thức sai" — domain mua THẬT duy nhất = `kitehub.me`, tenant landing production = `{slug}.kitehub.me` (CSP/CORS `*.kitehub.me` đã có). KC cell trước ghi `{slug}` subdomain mơ hồ (không nêu apex) → reader có thể suy diễn stale `kiteclass.com`. §6.1 reviewer-checklist domain row sync tương ứng. No constraint loosening — factual canonical sync. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — clarification của existing matrix cell, no semantics change).
 
 - **2026-06-09 (v1.0.0):** Rule created in response to user-flagged 2026-06-09 "nhận thức meta cấp chưa đủ cứng rắn để phân biệt rõ KH và KC, nên update" — sau khi 2 G2 recipe ghi sai FE port (KH-3 subscription `:3000` thay vì `:3001`; KC-8 parent portal `:3001` thay vì `:3000`). Per `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ (user-flagged port drift + recurrence ≥2) → Classify ✓ (no existing rule codifies KH/KC canonical distinction; CLAUDE.md §Project Overview prose-only, không enforce port/FE/API mapping; `flow-verification-campaign.md` §3 mentions platform-side KC-2 nhưng không canonical-hóa) → Rule+Enforce ✓ (this file + §2 canonical matrix + §2.1 trùng-tên trap + reviewer-checklist §6.1 + cross-ref g2-handoff-md-mandate + g1-browser-walk + memory `feedback_kitehub_kiteclass_boundary.md` + rules-index.csv row + output-review-mandate §3 row per `rule-change-process.md` §6.5 Enforcement Parity Mandate) → Self-Test ✓ (§5 worked example — bắt 2 lỗi KH-3/KC-8 + không false-positive KC-2 platform-side; counterfactual 0 round-trip) → Retro Log ✓ (this entry). META P1 force-multiplier per `meta-gap-priority.md` §3 — 1 canonical matrix → mọi recipe/gap/doc/frontend reference subsequent auto-comply prospectively → eliminate KH/KC confusion class. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — new constraint codifying previously-informal KH/KC distinction; no constraint loosening; existing artifacts grandfathered (re-verify khi touch); rule applies prospectively từ this PR forward 2026-06-09). Atomic-unique-bar §5.1: ✅ atomic (single concept: KH/KC product boundary) + ✅ unique (CLAUDE.md prose-only, no rule canonical-hóa) + ✅ widely applicable (mọi reference cần phân biệt KH/KC) + ✅ body §1 ≤2 conjunction. Path-scoped per `context-budget-mandate.md` §3.2 (frontend + flow/recipe/campaign + architecture) — always-load band giữ 13 (OK <18); path-scoped band +1. Detector (§6.5) HONEST-deferred per `incident-to-rule-pipeline.md` §3.1 (recurrence 2, FP risk KC platform-side exception); reviewer-checklist + cross-ref + memory + worked self-test sufficient cho v1.0.0.

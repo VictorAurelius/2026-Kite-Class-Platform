@@ -17,7 +17,7 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'cdn.kiteclass.com',
+        hostname: 'cdn.kitehub.me',
       },
     ],
   },
@@ -69,9 +69,9 @@ const nextConfig = {
       "'self'",
       apiOrigin,
       apiWsOrigin,
-      'https://kiteclass.com',
-      'https://*.kiteclass.com',
-      'wss://*.kiteclass.com',
+      'https://kitehub.me',
+      'https://*.kitehub.me',
+      'wss://*.kitehub.me',
     ].filter(Boolean).join(' ');
     // Dev stack serves MinIO logo/branding assets over http://localhost:9100.
     // Allow that host in non-prod so logo previews don't trip CSP once it flips
@@ -83,7 +83,7 @@ const nextConfig = {
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      `img-src 'self' data: https: blob: https://cdn.kiteclass.com${devImg}`,
+      `img-src 'self' data: https: blob: https://cdn.kitehub.me${devImg}`,
       "font-src 'self' https://fonts.gstatic.com data:",
       `connect-src ${connectSrc}`,
       "frame-ancestors 'none'",

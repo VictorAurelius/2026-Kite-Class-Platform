@@ -12,7 +12,7 @@ Public, rate-limited by gateway `RateLimitingFilter`. Unauthenticated.
 {
   "reporterEmail": "legal@rightsholder.com",
   "reporterName": "Rights Holder Legal",
-  "allegedInfringingUrl": "https://tenant.kiteclass.vn/logo.svg",
+  "allegedInfringingUrl": "https://tenant.kitehub.me/logo.svg",
   "copyrightedWorkDescription": "Our registered logo, USPTO #12345"
 }
 ```

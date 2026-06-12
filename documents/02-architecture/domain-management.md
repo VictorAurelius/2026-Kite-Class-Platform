@@ -9,7 +9,7 @@ status: living
 # KiteHub Domain Management — Business & Technical Guide
 
 **Ngày tạo:** 2026-03-23
-**Domain chính:** kitehub.vn (SaaS platform), kiteclass.com (tenant instances)
+**Domain chính:** kitehub.vn (SaaS platform), kitehub.me (tenant instances)
 
 > **Cross-ref:** SSL/verify flow canonical ở [`ssl-automation.md`](ssl-automation.md) (Cloudflare for SaaS + CNAME DCV). Chuỗi domain → gateway resolve → landing render end-to-end + trạng thái implement vs gap: [`tenant-domain-landing-architecture.md`](tenant-domain-landing-architecture.md). Custom domain DNS verify + SSL hiện chưa hoàn thiện code ([GAP-812](../04-quality/gaps/phase-1-beta/GAP-812-custom-domain-dns-ssl-completion.md)).
 
@@ -23,10 +23,10 @@ kitehub.vn                    ← SaaS Platform (đăng ký, quản lý, billing
 ├── kitehub.vn/blog
 └── kitehub.vn/dashboard/*
 
-kiteclass.com                 ← Tenant Landing Pages
-├── {subdomain}.kiteclass.com ← Instance URL (auto, free)
-│   Ví dụ: anh-van-abc.kiteclass.com
-│          stem-center.kiteclass.com
+kitehub.me                 ← Tenant Landing Pages
+├── {subdomain}.kitehub.me ← Instance URL (auto, free)
+│   Ví dụ: anh-van-abc.kitehub.me
+│          stem-center.kitehub.me
 │
 └── Custom domain             ← Premium/Enterprise only
     Ví dụ: school.example.com → maps to instance
@@ -37,12 +37,12 @@ kiteclass.com                 ← Tenant Landing Pages
 | Domain | Mục đích | SEO |
 |--------|----------|-----|
 | **kitehub.vn** | Marketing, đăng ký, admin dashboard | SEO cho "phần mềm quản lý giáo dục" |
-| **kiteclass.com** | Tenant instances (trường/trung tâm) | SEO cho từng trường riêng |
+| **kitehub.me** | Tenant instances (trường/trung tâm) | SEO cho từng trường riêng |
 
 **Lý do tách biệt:**
 - kitehub.vn là B2B (bán cho chủ trung tâm)
-- kiteclass.com là B2C (học viên, giáo viên truy cập)
-- Wildcard SSL chỉ cần cho `*.kiteclass.com`
+- kitehub.me là B2C (học viên, giáo viên truy cập)
+- Wildcard SSL chỉ cần cho `*.kitehub.me`
 - CORS tách biệt rõ ràng
 
 ---
@@ -59,7 +59,7 @@ kiteclass.com                 ← Tenant Landing Pages
 4. Tạo instance → status: PENDING
 5. Gửi email xác nhận
 6. Xác nhận → status: TRIAL (14 ngày)
-7. Instance URL: https://anh-van-abc.kiteclass.com
+7. Instance URL: https://anh-van-abc.kitehub.me
 ```
 
 ### Validation rules
@@ -91,10 +91,10 @@ RESERVED_SUBDOMAINS = [
 
 | Tier | Subdomain | Custom Domain |
 |------|-----------|---------------|
-| FREE | ✅ `xxx.kiteclass.com` | ❌ |
-| BASIC | ✅ `xxx.kiteclass.com` | ❌ |
-| PREMIUM | ✅ `xxx.kiteclass.com` | ✅ 1 domain |
-| ENTERPRISE | ✅ `xxx.kiteclass.com` | ✅ unlimited |
+| FREE | ✅ `xxx.kitehub.me` | ❌ |
+| BASIC | ✅ `xxx.kitehub.me` | ❌ |
+| PREMIUM | ✅ `xxx.kitehub.me` | ✅ 1 domain |
+| ENTERPRISE | ✅ `xxx.kitehub.me` | ✅ unlimited |
 
 ### Quy trình setup Custom Domain
 
@@ -110,7 +110,7 @@ Bước 2: Hệ thống kiểm tra
 
 Bước 3: Hướng dẫn cấu hình DNS
   └── Hiển thị: "Thêm CNAME record:"
-      school.example.com CNAME kiteclass.com
+      school.example.com CNAME kitehub.me
       HOẶC
       school.example.com A {server-ip}
 
@@ -161,11 +161,11 @@ public DomainVerification verifyDomain(UUID instanceId, String domain) {
 kitehub.vn            A       {Oracle LB IP}
 www.kitehub.vn        CNAME   kitehub.vn
 
-# kiteclass.com (Tenant instances)
-kiteclass.com         A       {Oracle LB IP}
-*.kiteclass.com       A       {Oracle LB IP}      ← Wildcard cho tất cả subdomain
-api.kiteclass.com     A       {Oracle LB IP}
-cdn.kiteclass.com     CNAME   {S3/CloudFront}     ← Assets CDN
+# kitehub.me (Tenant instances)
+kitehub.me         A       {Oracle LB IP}
+*.kitehub.me       A       {Oracle LB IP}      ← Wildcard cho tất cả subdomain
+api.kitehub.me     A       {Oracle LB IP}
+cdn.kitehub.me     CNAME   {S3/CloudFront}     ← Assets CDN
 
 # MX Records (email)
 kitehub.vn            MX 10   mail.kitehub.vn
@@ -189,12 +189,12 @@ kitehub.vn            MX 10   mail.kitehub.vn
 
 ```
 LAYER 1: Cloudflare Proxy (recommend)
-├── *.kiteclass.com    → Cloudflare Universal SSL (free, auto)
+├── *.kitehub.me    → Cloudflare Universal SSL (free, auto)
 ├── kitehub.vn         → Cloudflare Universal SSL (free, auto)
 └── Custom domains     → Cloudflare for SaaS (Advanced Certificate)
 
 LAYER 2: Origin Certificate (server)
-├── Let's Encrypt wildcard: *.kiteclass.com
+├── Let's Encrypt wildcard: *.kitehub.me
 ├── Let's Encrypt: kitehub.vn
 └── Custom domains: certbot per domain
 
@@ -211,7 +211,7 @@ Cloudflare Full (Strict) mode:
 ```
 Option A: Cloudflare for SaaS (recommend)
 ├── Cloudflare tự cấp SSL cho custom domain
-├── Customer chỉ cần CNAME → kiteclass.com
+├── Customer chỉ cần CNAME → kitehub.me
 ├── Giá: Free (100 custom hostnames) hoặc $0.10/hostname/month
 └── Setup: 1 lần cho platform, auto cho mỗi customer
 
@@ -253,14 +253,14 @@ server {
 }
 
 # ============================================
-# *.kiteclass.com — Tenant Instances
+# *.kitehub.me — Tenant Instances
 # ============================================
 server {
     listen 443 ssl http2;
-    server_name *.kiteclass.com;
+    server_name *.kitehub.me;
 
-    ssl_certificate     /etc/nginx/ssl/kiteclass.com/fullchain.pem;
-    ssl_certificate_key /etc/nginx/ssl/kiteclass.com/privkey.pem;
+    ssl_certificate     /etc/nginx/ssl/kitehub.me/fullchain.pem;
+    ssl_certificate_key /etc/nginx/ssl/kitehub.me/privkey.pem;
 
     # Tenant frontend
     location / {
@@ -290,19 +290,19 @@ include /etc/nginx/conf.d/custom-domains/*.conf;
 # ============================================
 server {
     listen 80;
-    server_name kitehub.vn www.kitehub.vn *.kiteclass.com;
+    server_name kitehub.vn www.kitehub.vn *.kitehub.me;
     return 301 https://$host$request_uri;
 }
 
 # ============================================
-# api.kiteclass.com — Direct API Access
+# api.kitehub.me — Direct API Access
 # ============================================
 server {
     listen 443 ssl http2;
-    server_name api.kiteclass.com;
+    server_name api.kitehub.me;
 
-    ssl_certificate     /etc/nginx/ssl/kiteclass.com/fullchain.pem;
-    ssl_certificate_key /etc/nginx/ssl/kiteclass.com/privkey.pem;
+    ssl_certificate     /etc/nginx/ssl/kitehub.me/fullchain.pem;
+    ssl_certificate_key /etc/nginx/ssl/kitehub.me/privkey.pem;
 
     location / {
         proxy_pass http://10.0.1.10:9000;
@@ -319,8 +319,8 @@ server {
 
 ```mermaid
 flowchart TD
-    REQ["Request<br/>https://anh-van-abc.kiteclass.com/api/v1/students"]
-    DNS["Browser → DNS<br/>*.kiteclass.com → Server IP"]
+    REQ["Request<br/>https://anh-van-abc.kitehub.me/api/v1/students"]
+    DNS["Browser → DNS<br/>*.kitehub.me → Server IP"]
     NGX["Nginx<br/>SSL terminate · proxy_pass gateway:9000"]
     GW[Gateway TenantResolverFilter]
     ROUTE["Route to kiteclass-core:8080/api/v1/students"]
@@ -331,7 +331,7 @@ flowchart TD
     GW --> ROUTE --> READ --> QRY
 
     subgraph Filter [TenantResolverFilter — 5 steps]
-      F1["1. Host header — anh-van-abc.kiteclass.com"]
+      F1["1. Host header — anh-van-abc.kitehub.me"]
       F2["2. Extract subdomain — anh-van-abc"]
       F3["3. DB query — findBySubdomain anh-van-abc"]
       F4["4. Verify status IN ACTIVE,TRIAL"]
@@ -370,7 +370,7 @@ flowchart TD
 | Nginx dynamic config reload | 🟡 P2 | 0.5 day |
 | Cloudflare for SaaS integration | 🟡 P2 | 1 day |
 | Domain health monitoring | 🟡 P2 | 0.5 day |
-| BASE_DOMAIN configurable (hardcoded .kiteclass.com) | 🔴 P0 | 1 hr |
+| BASE_DOMAIN configurable (hardcoded .kitehub.me) | 🔴 P0 | 1 hr |
 
 ---
 
@@ -380,10 +380,10 @@ flowchart TD
 
 ```
 ✅ Khi bạn đăng ký, hệ thống tự động tạo:
-   https://{tên-bạn-chọn}.kiteclass.com
+   https://{tên-bạn-chọn}.kitehub.me
 
    Ví dụ: Bạn chọn "anh-van-abc"
-   → URL: https://anh-van-abc.kiteclass.com
+   → URL: https://anh-van-abc.kitehub.me
 
    Quy tắc đặt tên:
    - Chỉ dùng chữ thường (a-z), số (0-9), gạch ngang (-)
@@ -401,7 +401,7 @@ flowchart TD
 Bước 1: Vào Dashboard → Cài đặt → Tên miền tùy chỉnh
 Bước 2: Nhập tên miền: school.example.com
 Bước 3: Cấu hình DNS tại nhà cung cấp domain của bạn:
-         Thêm record: CNAME  school  kiteclass.com
+         Thêm record: CNAME  school  kitehub.me
          (Hoặc: A record  school  {IP được cung cấp})
 Bước 4: Chờ DNS cập nhật (5 phút - 48 giờ)
 Bước 5: Nhấn "Xác nhận" → Hệ thống kiểm tra DNS
@@ -416,6 +416,6 @@ Bước 7: ✅ Truy cập: https://school.example.com
 | PR | Scope | Priority | Effort |
 |----|-------|----------|--------|
 | PR-SAAS-14: Reserved subdomain list | Validate against reserved names | 🔴 P0 | 1 hr |
-| PR-SAAS-15: Configurable BASE_DOMAIN | Remove hardcoded `.kiteclass.com` | 🔴 P0 | 1 hr |
+| PR-SAAS-15: Configurable BASE_DOMAIN | Remove hardcoded `.kitehub.me` | 🔴 P0 | 1 hr |
 | PR-SAAS-16: Custom domain UI + DNS verify | Dashboard settings page + verification | 🟠 P1 | 1 day |
 | PR-SAAS-17: SSL automation (Cloudflare/certbot) | Auto SSL for custom domains | 🟡 P2 | 1 day |

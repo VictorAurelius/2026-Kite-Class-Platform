@@ -18,7 +18,7 @@ Mô tả cách kích hoạt + vận hành staging environment cho Phase 1 BETA. 
 - 1× t3.micro EC2 chạy combined KH + KC stack qua docker-compose
 - 1× db.t3.micro RDS Postgres
 - 1× S3 bucket (assets staging)
-- Cloudflare DNS proxy (`staging.kitehub.vn` + `staging.kiteclass.vn`)
+- Cloudflare DNS proxy (`staging.kitehub.vn` + `staging.kitehub.me`)
 - Synthetic-data only (per PDPL — không clone từ production)
 
 **KHÔNG có Helm/EKS Phase 1.** Phase 2 EKS migration tracked dưới [§7 Phase 2 EKS migration trigger gate](#7-phase-2-eks-migration-trigger-gate) (GAP-415).
@@ -31,7 +31,7 @@ Trước khi activate staging:
 
 - [ ] Wave 37 Bucket A Terraform foundation đã `terraform apply` cho production (VPC + IAM + ECR + Secrets Manager)
 - [ ] AWS CLI configured + có quyền assume `kitehub-deploy-role`
-- [ ] Cloudflare account với zone `kitehub.vn` + `kiteclass.vn` đã verify
+- [ ] Cloudflare account với zone `kitehub.vn` + `kitehub.me` đã verify
 - [ ] ECR images đã push (qua `docker-build-push.yml` trên `develop` branch)
 - [ ] AWS Secrets Manager chứa `kitehub/staging/db-password`, `kitehub/staging/jwt-secret` (provisioned trong Bucket khác hoặc thủ công)
 
@@ -117,19 +117,19 @@ psql -h "$STAGING_DB_HOST" -U kitehub_staging -d kitehub_staging \
 
 ### 3.6 Configure Cloudflare DNS
 
-Trong Cloudflare dashboard (`kitehub.vn` zone + `kiteclass.vn` zone):
+Trong Cloudflare dashboard (`kitehub.vn` zone + `kitehub.me` zone):
 
 | Record | Type | Target | Proxy |
 |---|---|---|---|
 | `staging.kitehub.vn` | A | `<staging_public_ip>` | ✅ Proxied (orange cloud) |
-| `staging.kiteclass.vn` | A | `<staging_public_ip>` | ✅ Proxied (orange cloud) |
+| `staging.kitehub.me` | A | `<staging_public_ip>` | ✅ Proxied (orange cloud) |
 
 **Page Rule** (recommended): `staging.*` → "Browser cache TTL: respect existing headers" + "Always Use HTTPS: on".
 
 ### 3.7 Smoke test
 
 ```bash
-./scripts/smoke-test.sh https://staging.kitehub.vn https://staging.kiteclass.vn
+./scripts/smoke-test.sh https://staging.kitehub.vn https://staging.kitehub.me
 ```
 
 Expected: ≥16 assertions PASS (per GAP-377 Wave 26 Bucket C). Báo `Staging deployment healthy`.
@@ -303,7 +303,7 @@ Pre-Wave-38 EKS-based workflow lưu lại trong git history (commit hash trướ
 
 Status flip → 🟢 DONE chỉ khi:
 - [ ] Staging EC2 verified live (SSM session works)
-- [ ] DNS staging.kitehub.vn + staging.kiteclass.vn resolve
+- [ ] DNS staging.kitehub.vn + staging.kitehub.me resolve
 - [ ] docker-compose stack healthy (`docker compose ps` all Up)
 - [ ] Flyway migrations applied
 - [ ] Smoke test passes

@@ -13,7 +13,7 @@
   "customDomain": "school.edu.vn",
   "verifyToken": "kitehub-verify=550e8400-e29b-41d4-a716-446655440000",
   "domainStatus": "PENDING_VERIFY",
-  "backupUrl": "https://thptabc.kiteclass.com",
+  "backupUrl": "https://thptabc.kitehub.me",
   "dnsInstructions": "Add TXT record: @ kitehub-verify=550e8400..."
 }
 ```
@@ -32,7 +32,7 @@
   "customDomain": "school.edu.vn",
   "domainStatus": "VERIFIED",
   "verifiedAt": "2026-03-24T10:00:00Z",
-  "backupUrl": "https://thptabc.kiteclass.com"
+  "backupUrl": "https://thptabc.kitehub.me"
 }
 ```
 hoặc nếu chưa xác minh được:

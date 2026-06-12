@@ -189,7 +189,7 @@ kitehub-frontend/
 - Login (`/login`): Email + password form
 - Register (`/register`): Đăng ký trial
   - Fields: Organization name, subdomain (auto-suggest), owner email, password
-  - Subdomain preview: `{subdomain}.kiteclass.com`
+  - Subdomain preview: `{subdomain}.kitehub.me`
   - Validation: Subdomain availability check (realtime)
   - Submit → POST `/api/platform/instances` (tạo trial instance)
   - Success → Redirect to `/dashboard`
@@ -218,7 +218,7 @@ kitehub-frontend/
   - Status badge (TRIAL / ACTIVE / SUSPENDED)
   - Trial countdown: "Còn {n} ngày trial" (progress bar)
   - Current tier + upgrade CTA
-  - Quick link: "Truy cập KiteClass →" (`{subdomain}.kiteclass.com`)
+  - Quick link: "Truy cập KiteClass →" (`{subdomain}.kitehub.me`)
 - Quick stats: Students, Teachers, Courses (từ instance)
 
 **Instance Detail (`/instances/{id}`):**
@@ -368,7 +368,7 @@ kitehub-frontend/
 - Subdomain display (read-only after creation)
 - Custom domain config (PREMIUM only):
   - Input custom domain
-  - DNS instructions: "Tạo CNAME record trỏ đến `{subdomain}.kiteclass.com`"
+  - DNS instructions: "Tạo CNAME record trỏ đến `{subdomain}.kitehub.me`"
   - Verification status
 - Notification preferences:
   - Email notifications on/off

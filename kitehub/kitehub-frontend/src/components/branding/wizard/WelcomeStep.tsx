@@ -182,7 +182,7 @@ export function WelcomeStep({
                 className="flex-1 px-3 py-2 text-sm bg-background text-foreground focus:outline-none"
               />
               <span className="px-3 py-2 text-sm bg-muted text-muted-foreground border-l border-input">
-                .kiteclass.vn
+                .kitehub.me
               </span>
             </div>
 
@@ -214,7 +214,7 @@ export function WelcomeStep({
               >
                 <CheckCircle2 className="w-3 h-3" />
                 <span>
-                  <strong>{slug}.kiteclass.vn</strong> còn trống — bạn dùng được.
+                  <strong>{slug}.kitehub.me</strong> còn trống — bạn dùng được.
                 </span>
               </p>
             )}
@@ -227,7 +227,7 @@ export function WelcomeStep({
                 >
                   <AlertCircle className="w-3 h-3" />
                   <span>
-                    <strong>{slug}.kiteclass.vn</strong> đã được trung tâm khác sử
+                    <strong>{slug}.kitehub.me</strong> đã được trung tâm khác sử
                     dụng.
                   </span>
                 </p>

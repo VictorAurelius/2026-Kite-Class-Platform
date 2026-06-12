@@ -43,7 +43,7 @@ Then open:
 - Infra Pools: http://localhost:3000/d/kitehub-infra-pools
 - Logs Overview: http://localhost:3000/d/kitehub-logs-overview
 
-For production (when ingress + OIDC SSO enabled per GAP-143 follow-up): `https://grafana.kiteclass.com/d/<uid>`.
+For production (when ingress + OIDC SSO enabled per GAP-143 follow-up): `https://grafana.kitehub.me/d/<uid>`.
 
 ---
 

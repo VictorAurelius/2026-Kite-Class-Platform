@@ -633,4 +633,4 @@ Phase 4 — Content Marketing (2 ngày):
 | 3 | Backup retention | 90 ngày hay 180 ngày? | **90 ngày** |
 | 4 | AI approach | AI-first hay Template-first? | **Template-first** (instant UX) |
 | 5 | Blog platform | MDX (in-repo) hay CMS (Strapi)? | **MDX** (simple, free) |
-| 6 | Domain | kitehub.vn hay kiteclass.com? | Cần confirm cho SEO |
+| 6 | Domain | kitehub.vn hay kitehub.me? | Cần confirm cho SEO |

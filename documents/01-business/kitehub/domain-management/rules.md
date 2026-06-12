@@ -15,7 +15,7 @@
 | DOM-04 | Mock mode default | true (DNS không check) | `kitehub.domain.verification.mock-mode` |
 | DOM-05 | Domain uniqueness | 1 custom domain per instance toàn platform | findByCustomDomainAndDeletedFalse() |
 | DOM-06 | Re-initiation allowed | Cùng instance có thể re-initiate domain | ownership check |
-| DOM-07 | Backup URL | https://{subdomain}.kiteclass.com | buildResponse() |
+| DOM-07 | Backup URL | https://{subdomain}.kitehub.me | buildResponse() |
 | DOM-08 | DNS record instruction | TXT: @ {token} hoặc _kitehub-verify.{domain} | buildResponse() |
 | DOM-09 | Mock mode behavior | DNS not resolvable → PENDING (không FAILED) | verifyCustomDomain() |
 | DOM-10 | Production mode | DNS not found → stays PENDING_VERIFY | verifyCustomDomain() |
@@ -70,11 +70,11 @@ NONE → PENDING_VERIFY → VERIFIED
 - Cloudflare API call happens once on VERIFIED transition; idempotent by design
 - SSL cert renewal is Cloudflare's responsibility — we only track hostname status via their webhook
 
-## Subdomain Policy (kiteclass.com)
+## Subdomain Policy (kitehub.me)
 
 ### Reserved prefixes (cannot be assigned as tenant slug)
 
-The following first-level labels are **reserved** on `*.kiteclass.com` and MUST reject tenant slug requests:
+The following first-level labels are **reserved** on `*.kitehub.me` and MUST reject tenant slug requests:
 
 | Category | Reserved labels |
 |----------|----------------|
@@ -100,7 +100,7 @@ The following first-level labels are **reserved** on `*.kiteclass.com` and MUST 
 | SLG-06 | Regex: `^[a-z][a-z0-9]*(-[a-z0-9]+)*$` |
 | SLG-07 | Not in reserved list (case-insensitive match) |
 | SLG-08 | Not homoglyph of reserved (e.g., `adm1n` — normalize zero/one swaps before compare) |
-| SLG-09 | Uniqueness scoped globally per TLD (no two tenants share a slug on `.kiteclass.com`) |
+| SLG-09 | Uniqueness scoped globally per TLD (no two tenants share a slug on `.kitehub.me`) |
 | SLG-10 | Immutable once provisioned — tenants wanting different slug use custom-domain flow |
 
 ## Config

@@ -69,11 +69,11 @@ curl -sS "$GW/api/instances/$IID/domain" \
   -H "Authorization: Bearer $TOKEN" -w "\nHTTP=%{http_code}\n" | jq
 ```
 
-**✅ Kỳ vọng (PASS):** HTTP **200**. Payload `status="NONE"` (chưa gắn domain) + `backupUrl` dạng `https://<subdomain>.kiteclass.com`.
+**✅ Kỳ vọng (PASS):** HTTP **200**. Payload `status="NONE"` (chưa gắn domain) + `backupUrl` dạng `https://<subdomain>.kitehub.me`.
 
 **⚠️ Sad path:**
 - HTTP 401 → thiếu/sai `Authorization` header (gateway default-deny `/api/instances/**`).
-- `backupUrl` = `https://null.kiteclass.com` → instance thiếu `subdomain` (cosmetic, pre-walk mục 8). Chọn instance khác có subdomain.
+- `backupUrl` = `https://null.kitehub.me` → instance thiếu `subdomain` (cosmetic, pre-walk mục 8). Chọn instance khác có subdomain.
 
 **🔍 Verify:** `status` = `NONE` xác nhận chưa có domain pending — baseline sạch để walk.
 
@@ -161,7 +161,7 @@ curl -sS -X POST "$GW/api/instances/$IID/domain" \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{"customDomain":"kitehub.me"}' -w "\nHTTP=%{http_code}\n"
 ```
-→ kỳ vọng **400** (chặn claim domain hệ thống). Thử thêm `app.kiteclass.com` → cũng **400**.
+→ kỳ vọng **400** (chặn claim domain hệ thống). Thử thêm `app.kitehub.me` → cũng **400**.
 
 ## 4. Sad path quét nhanh
 
@@ -199,7 +199,7 @@ Khi nhận báo cáo, tôi flip campaign §4 dòng KH-7: `🔄 walk-pass-pending
 | Gateway 503 / timeout | `docker restart kite-gateway` + đợi 30-60 giây, retry |
 | Login trả token rỗng (`${#TOKEN}` = 0) | Kiểm tra `owner.test@test.vn` / `Test@1234` còn đúng; gọi `/api/auth/login` xem raw response |
 | POST domain trả 400 tier | Instance chưa PREMIUM/ENTERPRISE — `UPDATE instances SET tier='PREMIUM' WHERE id='$IID';` |
-| `backupUrl=https://null.kiteclass.com` | Instance thiếu `subdomain` — chọn instance khác (cosmetic, pre-walk mục 8) |
+| `backupUrl=https://null.kitehub.me` | Instance thiếu `subdomain` — chọn instance khác (cosmetic, pre-walk mục 8) |
 | Verify trả 500 (không phải 200) | Regression DNS lookup — báo lại ngay, đây là blocker thật |
 | Domain hợp lệ bị 400 | So regex `DomainSetupRequest` (FM-2 multi-label) — báo lại nếu reject domain hợp lệ |
 

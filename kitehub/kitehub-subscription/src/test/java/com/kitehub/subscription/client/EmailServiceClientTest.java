@@ -199,7 +199,7 @@ class EmailServiceClientTest {
             assertThat(event.getSubject()).contains("sẵn sàng");
             assertThat(event.getVariables()).containsEntry("organizationName", "Acme School");
             assertThat(event.getVariables())
-                .containsEntry("dashboardUrl", "https://acme.kiteclass.vn/dashboard");
+                .containsEntry("dashboardUrl", "https://acme.kitehub.me/dashboard");
 
             // Should still record in sent log (dedup tracking)
             verify(emailSentLogRepository).save(any(EmailSentLog.class));

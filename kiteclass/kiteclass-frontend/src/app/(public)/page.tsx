@@ -38,7 +38,7 @@ const getLandingPageData = async (tenantOverride?: string) => {
   } catch (error) {
     console.error('Failed to fetch landing page data:', error);
     // Degraded fallback (backend unreachable). Anti-fabrication (GAP-958): NO fake
-    // contact placeholders (`1900 xxxx` / `support@kiteclass.com`). Contact is left
+    // contact placeholders (`1900 xxxx` / `support@kitehub.me`). Contact is left
     // null so contact surfaces hide rather than show a placeholder that misleads.
     return {
       heroTitle: 'Trung tâm giáo dục',
@@ -65,7 +65,7 @@ function resolveCenterName(ld: Record<string, unknown>): string {
   return centerName || heroTitle || 'Trung tâm giáo dục';
 }
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://kiteclass.com';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://kitehub.me';
 
 /**
  * Per-tenant SEO metadata (Bucket E / GAP-958). Title + description + OpenGraph

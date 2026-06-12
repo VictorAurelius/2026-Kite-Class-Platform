@@ -64,7 +64,7 @@ Giúp trung tâm giáo dục thu hút học viên tiềm năng thông qua một 
 Các instance KiteClass là **ứng dụng web nội bộ** yêu cầu xác thực:
 
 ```
-User truy cập: https://abc-academy.kiteclass.com
+User truy cập: https://abc-academy.kitehub.me
 → Chuyển hướng đến /login
 → Phải có tài khoản mới xem được gì
 → ❌ Học viên tiềm năng không thể khám phá khóa học
@@ -241,11 +241,11 @@ const landingPageContent = {
 
 **Cấu Trúc URL:**
 ```
-https://abc-academy.kiteclass.com          → Landing page (công khai)
-https://abc-academy.kiteclass.com/courses  → Danh mục khóa học (công khai)
-https://abc-academy.kiteclass.com/courses/101 → Chi tiết khóa (công khai)
-https://abc-academy.kiteclass.com/login    → Đăng nhập học viên (auth)
-https://abc-academy.kiteclass.com/dashboard → Dashboard học viên (auth)
+https://abc-academy.kitehub.me          → Landing page (công khai)
+https://abc-academy.kitehub.me/courses  → Danh mục khóa học (công khai)
+https://abc-academy.kitehub.me/courses/101 → Chi tiết khóa (công khai)
+https://abc-academy.kitehub.me/login    → Đăng nhập học viên (auth)
+https://abc-academy.kitehub.me/dashboard → Dashboard học viên (auth)
 
 Tier PREMIUM:
 https://abc-academy.com                    → Custom domain (công khai)
@@ -699,7 +699,7 @@ Thành công → Chuyển đến /dashboard/courses/101
 async function fetchPublicCourses(instanceId: string) {
   // Gọi main instance API
   const response = await fetch(
-    `https://api.kiteclass.com/v1/public/instance/${instanceId}/courses`
+    `https://api.kitehub.me/v1/public/instance/${instanceId}/courses`
   )
 
   // Response được Next.js cache trong 30 phút
@@ -886,7 +886,7 @@ Công việc:
 **Mô tả:** Một demo instance duy nhất cho tất cả prospects
 
 ```
-URL: https://demo.kiteclass.com
+URL: https://demo.kitehub.me
 Nội dung: Khóa học mẫu, học viên fake, dữ liệu demo
 Mục đích: Cho thấy tính năng sản phẩm với prospects
 ```
@@ -909,7 +909,7 @@ Mục đích: Cho thấy tính năng sản phẩm với prospects
 **Mô tả:** Xem trước thay đổi branding trước khi publish
 
 ```
-URL: https://preview-abc-academy.kiteclass.com
+URL: https://preview-abc-academy.kitehub.me
 Mục đích: Test branding/settings trước khi apply
 Đối tượng: Chỉ CENTER_ADMIN
 ```
@@ -1081,7 +1081,7 @@ Tone: Truyền cảm hứng, tập trung vào lợi ích, trò chuyện
 Customer thêm CNAME record:
   Type: CNAME
   Name: www
-  Value: proxy.kiteclass.com
+  Value: proxy.kitehub.me
   TTL: 3600
 
 KiteClass backend:
@@ -1099,7 +1099,7 @@ server {
     ssl_certificate_key /etc/letsencrypt/live/abc-academy.com/privkey.pem;
 
     location / {
-        proxy_pass https://abc-academy.kiteclass.com;
+        proxy_pass https://abc-academy.kitehub.me;
         proxy_set_header Host $host;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;

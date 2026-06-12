@@ -13,14 +13,14 @@
 KiteHub is a Vietnam-first SaaS that ships two public-facing surfaces:
 
 1. **KiteHub marketing site** — `kitehub.vn` (primary), managed by founding team.
-2. **KiteClass tenant instances** — `{slug}.kiteclass.com` (platform subdomain) and optional custom domains for PREMIUM/ENTERPRISE tenants (per `documents/01-business/kitehub/domain-management/rules.md` DOM-01).
+2. **KiteClass tenant instances** — `{slug}.kitehub.me` (platform subdomain) and optional custom domains for PREMIUM/ENTERPRISE tenants (per `documents/01-business/kitehub/domain-management/rules.md` DOM-01).
 
 Until now, DNS was ad-hoc: `kitehub.vn` was assumed available but not yet verified as registered; no formal choice of registrar, DNS provider, or TLD policy; subdomain reserved-list undocumented; custom-domain (CNAME) verification flow had a mock-mode backend but no production operational spec (SSL issuance, renewal, failover).
 
 Stakeholder decision points raised (GAP-191 §Proposed Fix):
 - Registrar for `.vn`: Vietnamese TLD requires a local registrar accredited by VNNIC
 - DNS provider: Cloudflare vs AWS Route 53 vs NS1
-- Subdomain pattern: `{slug}.kiteclass.com` vs `{slug}.kitehub.app` vs regional `.vn`
+- Subdomain pattern: `{slug}.kitehub.me` vs `{slug}.kitehub.app` vs regional `.vn`
 - Custom-domain SSL: wildcard DNS-01 vs per-domain HTTP-01
 - Automation: Terraform? Manual? Hybrid?
 
@@ -33,7 +33,7 @@ Stakeholder decision points raised (GAP-191 §Proposed Fix):
 | Domain | Registrar | Rationale |
 |--------|-----------|-----------|
 | `kitehub.vn` | **Matbao** (VNNIC-accredited) or **PA Vietnam** | `.vn` mandatory local registrar. Matbao has best VietQR/portal UX; PA Vietnam is fallback. Evaluate during procurement. |
-| `kiteclass.com` | **Cloudflare Registrar** (at-cost, USD ~$9/yr) | Already our DNS provider; no markup; native DNSSEC; no renewal markups. |
+| `kitehub.me` | **Cloudflare Registrar** (at-cost, USD ~$9/yr) | Already our DNS provider; no markup; native DNSSEC; no renewal markups. |
 | `kitehub.app` (defensive) | Cloudflare Registrar | Same reasoning. Held as backup brand / dev environment. |
 
 **TLD policy:**
@@ -61,7 +61,7 @@ All DNS (both TLDs) served by **Cloudflare** for:
 
 ### 3. Subdomain pattern
 
-**Canonical tenant URL:** `{slug}.kiteclass.com`
+**Canonical tenant URL:** `{slug}.kitehub.me`
 
 Reasons over alternatives:
 - `.com` on the platform layer is well-understood globally — tenants who scale internationally don't hit VN-specific friction
@@ -83,7 +83,7 @@ Slug generation rules: see `domain-management/rules.md` §Subdomain Policy.
 
 - Module `infrastructure/terraform-aws/modules/dns/` owns all Cloudflare zone + record primitives
 - Module consumed by:
-  - Bootstrap (one-time `kitehub.vn` + `kiteclass.com` root records)
+  - Bootstrap (one-time `kitehub.vn` + `kitehub.me` root records)
   - Instance provisioning Saga (per-tenant subdomain record on tenant creation)
 - Custom-hostname additions happen via **runtime Cloudflare API** (not Terraform) because they're tenant-driven, not infrastructure — Terraform would create drift
 
@@ -132,11 +132,11 @@ Single-origin for MVP (AWS ALB in ap-southeast-1). Multi-region deferred to post
 ## Implementation Checklist
 
 - [ ] Procurement: confirm `kitehub.vn` available; register via Matbao (2-year term)
-- [ ] Procurement: register `kiteclass.com` + `kitehub.app` via Cloudflare Registrar
+- [ ] Procurement: register `kitehub.me` + `kitehub.app` via Cloudflare Registrar
 - [ ] DNS: import zones into Cloudflare; set up team accounts with least-privilege API tokens
 - [ ] Terraform: complete `modules/dns/` (this PR ships skeleton)
 - [ ] Cloudflare: enable **Custom Hostnames** feature (Business plan required — revisit when tenant count justifies ~$200/mo)
-- [ ] SSL: Universal SSL on for `kiteclass.com` wildcard
+- [ ] SSL: Universal SSL on for `kitehub.me` wildcard
 - [ ] Subdomain rules: sync with backend `DomainService` to match rules.md slug regex
 - [ ] Runbook: drill failover scenario once before GA
 - [ ] Monitoring: Cloudflare Analytics + synthetic check from external region (per GAP-115)

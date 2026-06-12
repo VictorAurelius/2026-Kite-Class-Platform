@@ -12,7 +12,7 @@
 ### Trigger event
 
 Wave 102.8 Bucket B (PR #1692) merged 2026-05-21 touching `infrastructure/terraform-aws/variables.tf` — 3-line change:
-- `var.domain_name` default `"kiteclass.com"` → `"kitehub.me"` (STALE mismatch fix per GAP-692)
+- `var.domain_name` default `"kitehub.me"` → `"kitehub.me"` (STALE mismatch fix per GAP-692)
 - Add `var.aws_account_id` (no default — force explicit)
 - Add `var.secrets_prefix` default `"kitehub/production"`
 

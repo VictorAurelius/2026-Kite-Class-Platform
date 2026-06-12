@@ -59,7 +59,7 @@ class ContactMessageServiceTest {
         tenantId = UUID.randomUUID();
         TenantContext.setCurrentTenant(tenantId);
 
-        ReflectionTestUtils.setField(contactMessageService, "adminEmail", "admin@kiteclass.com");
+        ReflectionTestUtils.setField(contactMessageService, "adminEmail", "admin@kitehub.me");
 
         contactMessage = ContactMessageTestDataBuilder.createDefaultContactMessage();
         contactMessage.setInstanceId(tenantId);

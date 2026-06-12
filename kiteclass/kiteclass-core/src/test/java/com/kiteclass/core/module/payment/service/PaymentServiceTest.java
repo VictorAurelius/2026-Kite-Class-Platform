@@ -171,7 +171,7 @@ class PaymentServiceTest {
     void shouldInitSuccessfullyWithConfiguredNotifyUrl() {
         // Arrange
         ReflectionTestUtils.setField(paymentService, "notifyUrl",
-            "https://api.myschool.kiteclass.com/api/v1/payments/webhook");
+            "https://api.myschool.kitehub.me/api/v1/payments/webhook");
         when(applicationContext.getBean("vnpayGatewayClient", PaymentGatewayClient.class))
                 .thenReturn(vnpayGatewayClient);
         when(applicationContext.getBean("momoGatewayClient", PaymentGatewayClient.class))

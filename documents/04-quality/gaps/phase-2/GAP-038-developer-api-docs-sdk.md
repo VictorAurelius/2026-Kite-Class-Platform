@@ -41,7 +41,7 @@ Generated từ OpenAPI spec (openapi-generator).
 import { BrandingClient } from '@kiteclass/branding-sdk-typescript';
 
 const client = new BrandingClient({
-  baseUrl: 'https://api.kiteclass.com',
+  baseUrl: 'https://api.kitehub.me',
   apiKey: process.env.KITECLASS_API_KEY,
   tenantId: 'abc-123'
 });
@@ -85,7 +85,7 @@ Export: `kiteclass-branding.postman_collection.json`
 ### 5. Sandbox Environment
 
 ```
-sandbox.kiteclass.com
+sandbox.kitehub.me
 - Test API key provided
 - Pre-populated test tenant
 - No rate limit

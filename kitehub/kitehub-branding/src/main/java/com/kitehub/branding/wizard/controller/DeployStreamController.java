@@ -291,7 +291,7 @@ public class DeployStreamController {
             body.put("finalStatus", "DEPLOYED");
             body.put("ts", Instant.now().toString());
             // G1 walk 2026-06-12: FE DoneStep cần frontendUrl từ complete event — thiếu nó
-            // FE fallback tự build https://{slug}.kiteclass.vn (sai domain local + sai slug).
+            // FE fallback tự build https://{slug}.kitehub.me (sai domain local + sai slug).
             String frontendUrl = resolveFrontendUrl(job);
             if (frontendUrl != null) {
                 body.put("frontendUrl", frontendUrl);

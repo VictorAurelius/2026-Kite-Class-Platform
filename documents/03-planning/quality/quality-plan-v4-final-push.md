@@ -60,7 +60,7 @@
 **Score:** Security +1 → 10/10
 **Estimate:** 30 phút
 **Scope:**
-- [ ] Đổi default `payment.notify-url` từ `https://api.kiteclass.vn` sang configurable
+- [ ] Đổi default `payment.notify-url` từ `https://api.kitehub.me` sang configurable
 - [ ] Fail-safe: log warning nếu URL chưa configured
 
 ### PR-V4-KC-3: KiteClass Monitoring Basics

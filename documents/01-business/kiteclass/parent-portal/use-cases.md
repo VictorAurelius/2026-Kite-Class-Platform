@@ -48,7 +48,7 @@
 
 **Actor:** Phụ huynh (chưa có tài khoản)
 **Precondition:**
-- Phụ huynh nhận email với link `https://{tenant}.kiteclass.vn/parent-invite/{token}`
+- Phụ huynh nhận email với link `https://{tenant}.kitehub.me/parent-invite/{token}`
 - Token còn hạn (status PENDING, `expiresAt > now`)
 
 **Steps:**

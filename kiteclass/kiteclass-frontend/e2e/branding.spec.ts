@@ -158,7 +158,7 @@ test.describe('Branding Settings', () => {
 
       if (hasEmailInput) {
         // Update email
-        await emailInput.fill('contact@kiteclass.com');
+        await emailInput.fill('contact@kitehub.me');
 
         // Look for phone input
         const phoneInput = page.locator('input[type="tel"]').first();
@@ -226,7 +226,7 @@ test.describe('Branding Settings', () => {
           .catch(() => false);
 
         if (hasWebsiteInput) {
-          await websiteInput.first().fill('https://kiteclass.com');
+          await websiteInput.first().fill('https://kitehub.me');
         }
       }
     }

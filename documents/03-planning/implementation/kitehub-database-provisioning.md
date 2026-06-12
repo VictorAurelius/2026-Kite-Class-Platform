@@ -170,7 +170,7 @@ Step 7: Instance Activation
 ────────────────────────────
 - Update instance.status = TRIAL (already set in Step 2)
 - Return instance details to frontend
-- User can now access: https://customer1.kiteclass.com
+- User can now access: https://customer1.kitehub.me
 
 Response:
 {

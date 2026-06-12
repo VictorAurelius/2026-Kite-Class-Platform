@@ -38,7 +38,7 @@ class DmcaServiceTest {
         return DmcaTakedownRequest.builder()
                 .reporterEmail("claimant@example.com")
                 .reporterName("Claimant Co")
-                .allegedInfringingUrl("https://tenant.kiteclass.vn/logo.svg")
+                .allegedInfringingUrl("https://tenant.kitehub.me/logo.svg")
                 .copyrightedWorkDescription("Our registered logo")
                 .build();
     }

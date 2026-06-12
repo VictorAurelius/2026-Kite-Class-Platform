@@ -149,7 +149,7 @@ class DomainServiceTest {
         assertThatThrownBy(() -> domainService.initiateCustomDomain(instanceId, "kitehub.me"))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("reserved");
-        assertThatThrownBy(() -> domainService.initiateCustomDomain(instanceId, "app.kiteclass.com"))
+        assertThatThrownBy(() -> domainService.initiateCustomDomain(instanceId, "app.kiteclass.com")) // stale-domain-ok: user-supplied custom-domain rejected because kiteclass.com is reserved (denylist test)
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("reserved");
         verify(instanceRepository, never()).save(any(Instance.class));

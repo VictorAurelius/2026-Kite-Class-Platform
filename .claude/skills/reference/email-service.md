@@ -296,7 +296,7 @@ variables.put("loginUrl", baseUrl + "/login");
 ```java
 variables.put("userName", userName);
 variables.put("lockDurationMinutes", duration);
-variables.put("supportEmail", "support@kiteclass.com");
+variables.put("supportEmail", "support@kitehub.me");
 ```
 
 ### Template Features
@@ -329,7 +329,7 @@ spring:
             required: true
 
 email:
-  from: ${EMAIL_FROM:KiteClass <noreply@kiteclass.com>}
+  from: ${EMAIL_FROM:KiteClass <noreply@kitehub.me>}
   base-url: ${APP_BASE_URL:http://localhost:4700}
   reset-token-expiration: ${EMAIL_RESET_TOKEN_EXPIRATION:3600000}
 ```

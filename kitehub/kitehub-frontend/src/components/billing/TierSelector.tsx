@@ -21,7 +21,7 @@ export function TierSelector({ currentTier, selectedTier, onSelect }: TierSelect
     if (tier === 'ENTERPRISE') {
       // GAP-1101: Enterprise = sales-assisted. Navigate to the lead-capture form
       // instead of the old alert() (which referenced the wrong domain
-      // sales@kiteclass.com — canonical is support@kitehub.me / /contact).
+      // sales@kitehub.me — canonical is support@kitehub.me / /contact).
       router.push('/contact?plan=enterprise');
       return;
     }

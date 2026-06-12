@@ -134,7 +134,7 @@ note right of OWNER
   Registers on kitehub.vn
   Manages subscription & billing
   Gets KiteClass instance:
-  {subdomain}.kiteclass.com
+  {subdomain}.kitehub.me
 end note
 
 note right of ADMIN

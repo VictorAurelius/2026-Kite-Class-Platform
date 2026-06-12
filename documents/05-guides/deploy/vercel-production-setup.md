@@ -1,6 +1,6 @@
 # Vercel Production Setup — Hướng Dẫn Cài Đặt Env Vars + Custom Domain
 
-**Đối tượng:** Solo dev cài đặt FE production trên Vercel cho `kiteclass.vn` + `kitehub.vn` lần đầu.
+**Đối tượng:** Solo dev cài đặt FE production trên Vercel cho `kitehub.me` + `kitehub.vn` lần đầu.
 **Closes (PARTIAL):** GAP-457 — covers user-executable actions §5 (env vars) + §6 (custom domain) per session audit 2026-05-09.
 **Tham chiếu:** `release-1-deploy-plan.md` §2.1 pre-deploy checklist · `dns-setup-runbook.md` (DNS phải xong trước) · `cloudflare-setup.md` (Cloudflare proxy phải active)
 **Last reviewed:** 2026-05-09
@@ -30,7 +30,7 @@ Wire Vercel FE production deployments tới AWS BE qua 2 cài đặt:
 | Action | Mục đích | Effort |
 |---|---|---|
 | §5 Environment Variables | FE biết URL backend ở runtime (`NEXT_PUBLIC_API_URL`) | ~10 phút |
-| §6 Custom Domain bindings | `kitehub.vn` / `kiteclass.vn` trỏ về Vercel project, không phải `*.vercel.app` URL | ~15 phút (mỗi project) |
+| §6 Custom Domain bindings | `kitehub.vn` / `kitehub.me` trỏ về Vercel project, không phải `*.vercel.app` URL | ~15 phút (mỗi project) |
 
 **Kết quả:** truy cập `https://kitehub.vn` → Vercel serve FE bundle → FE call `https://api.kitehub.vn/api/v1/...` → Cloudflare proxy → AWS ALB → backend services.
 
@@ -56,7 +56,7 @@ Wire Vercel FE production deployments tới AWS BE qua 2 cài đặt:
 |---|---|
 | Key | `NEXT_PUBLIC_API_URL` |
 | Value (kitehub project) | `https://api.kitehub.vn` |
-| Value (kiteclass project) | `https://api.kiteclass.vn` |
+| Value (kiteclass project) | `https://api.kitehub.me` |
 | Environments | ✅ Production (CHỈ check Production; KHÔNG check Preview/Development) |
 
 Click **Save**.
@@ -99,7 +99,7 @@ Preview environment có thể dùng cùng giá trị Production HOẶC trỏ v�
 
 **Khuyến nghị Release 1 (Free path):** Plan **A** với `kitehub.me` apex — domain mới claim, không có legacy → dùng apex luôn rõ ràng. KiteClass tenants access qua subdomain pattern `tenant1.kitehub.me`, `tenant2.kitehub.me` (wildcard DNS A record `*.kitehub.me` → ALB; FE Next.js parse subdomain → tenantId per `kiteclass-frontend/src/lib/tenant.ts`).
 
-**Khuyến nghị Phase 1 BETA invite-only (paid path nếu user prefer `.vn`):** Plan **C** (`beta.kitehub.vn` + `beta.kiteclass.vn`) — apex domain còn `Coming soon` placeholder.
+**Khuyến nghị Phase 1 BETA invite-only (paid path nếu user prefer `.vn`):** Plan **C** (`beta.kitehub.vn` + `beta.kitehub.me`) — apex domain còn `Coming soon` placeholder.
 
 ### 3.2 Vào Settings → Domains
 
@@ -149,7 +149,7 @@ Sau khi domain `Valid`:
 
 ### 3.7 Lặp lại cho project kiteclass
 
-Cùng quy trình §3.2-3.6 cho project **kiteclass** với domain `beta.kiteclass.vn` (hoặc plan đã chọn).
+Cùng quy trình §3.2-3.6 cho project **kiteclass** với domain `beta.kitehub.me` (hoặc plan đã chọn).
 
 ---
 
@@ -167,7 +167,7 @@ Cùng quy trình §3.2-3.6 cho project **kiteclass** với domain `beta.kiteclas
    - ✅ FE load không có error trong console
    - ✅ FE call `https://api.kitehub.vn/api/v1/...` thành công (không CORS error, không 502/503)
 
-Lặp cho `https://beta.kiteclass.vn`.
+Lặp cho `https://beta.kitehub.me`.
 
 ### 4.2 CLI — automated check
 

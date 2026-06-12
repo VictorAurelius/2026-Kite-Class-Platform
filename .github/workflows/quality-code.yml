@@ -22,6 +22,7 @@ on:
       - 'scripts/tests/**'
       - 'scripts/check-cross-layer-contract-drift.sh'
       - 'scripts/check-be-fe-url-contract.sh'
+      - 'scripts/check-stale-domain-references.sh'
       - 'scripts/check-mermaid-sequence-state-br.sh'
       - 'scripts/check-entity-mapper-consistency.sh'
       - 'scripts/check-test-skip-ratio.sh'
@@ -183,6 +184,27 @@ jobs:
           # Self-test runs locally only (subshell scoping fragile in CI); CI scans real repo.
           bash scripts/check-mermaid-sequence-state-br.sh --warn
 
+
+  stale-domain-references:
+    name: Stale domain references (kiteclass.vn/.com → kitehub.me — GAP-1241)  # stale-domain-ok: detector self-naming
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Run self-test (FAIL + keep-marker + canonical + archived fixtures)
+        run: bash scripts/check-stale-domain-references.sh --self-test
+
+      - name: Detect stale tenant-platform domain (WARN mode — GAP-1241)
+        run: |
+          # Canonical platform domain = kitehub.me ; tenant landing = {slug}.kitehub.me.
+          # Any literal kiteclass.vn / kiteclass.com in active code/docs makes Claude (stale-domain-ok)
+          # + readers believe the wrong domain is the product surface. Intentional
+          # historical keeps carry an inline `# stale-domain-ok` marker.
+          bash scripts/check-stale-domain-references.sh --warn
 
   cross-layer-contract-drift:
     name: Cross-layer contract drift (controller vs api-contract.md)

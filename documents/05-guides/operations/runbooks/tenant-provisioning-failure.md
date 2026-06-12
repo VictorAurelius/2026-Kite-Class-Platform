@@ -39,7 +39,7 @@ The tenant provisioning Saga (driven from `kitehub-admin:8085`, orchestrating `k
 
 - **Branding pipeline failing** → kitehub-branding's AI inference is degraded, initial branding step times out. **Fix:** see [`ai-provider-high-failure-rate.md`](./ai-provider-high-failure-rate.md). Saga should fall back to template-default and continue (per `ai-branding-guidelines.md` §3 — TEMPLATE-first).
 - **Subscription create idempotency violation** → retry of a failed step hits unique-constraint on customer email. **Fix:** make Saga step idempotent — check existing subscription first, treat duplicate as success.
-- **DNS/route registration timeout** → gateway needs to register `<slug>.kiteclass.com`; DNS provider API slow or rate-limited. **Fix:** raise step timeout or batch DNS calls.
+- **DNS/route registration timeout** → gateway needs to register `<slug>.kitehub.me`; DNS provider API slow or rate-limited. **Fix:** raise step timeout or batch DNS calls.
 - **Database seed migration regression** → kiteclass-core's per-tenant schema bootstrap fails on a Flyway migration. See [`flyway-migration-failure.md`](./flyway-migration-failure.md) — same class of issue, scoped per-tenant.
 - **Compensation step itself failing** → e.g. Saga rolled back, but DELETE from `subscription` table fails because of FK from `invoice` (created in a parallel branch). Tenant left half-provisioned. **Fix:** investigate FK constraint; re-run cleanup tool with admin override.
 - **Internal API auth missing** — `INTERNAL_API_SECRET` rotated but not updated in kitehub-admin's outbound config; downstream services 401. **Fix:** sync secret across all services that call each other internally.

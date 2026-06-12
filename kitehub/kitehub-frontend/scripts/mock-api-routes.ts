@@ -506,7 +506,7 @@ export async function setupMockApi(page: Page) {
           verifyRecord: null,
           status: 'NONE',
           verifiedAt: null,
-          backupUrl: 'https://huongduong.kiteclass.com',
+          backupUrl: 'https://huongduong.kitehub.me',
         },
       });
     }
