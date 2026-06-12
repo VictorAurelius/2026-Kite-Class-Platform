@@ -99,11 +99,18 @@ const nextConfig = {
     // `/preview` route in a cross-origin iframe so the owner sees the REAL render
     // path themed by their draft brand. Only `/preview` is framable, and only by
     // the KiteHub wizard origin (NOT wildcard); `/` keeps `X-Frame-Options: DENY`.
+    // GAP-1238 (pre-walk sim #1, P0): local Docker chạy PRODUCTION build
+    // (NODE_ENV=production → isDev=false) nhưng wizard vẫn ở http://localhost:3001
+    // → gate bằng isDev làm iframe /preview bị CSP chặn trong walk local.
+    // Origin wizard phải env-driven: default localhost:3001 (local Docker + dev);
+    // production AWS set KITEHUB_WIZARD_ORIGIN='' để tắt (frame-ancestors chỉ còn
+    // kitehub.me). Dùng ?? để empty-string disable được default.
+    const wizardOrigin = process.env.KITEHUB_WIZARD_ORIGIN ?? 'http://localhost:3001';
     const khFrameAncestors = [
       "'self'",
       'https://kitehub.me',
       'https://*.kitehub.me',
-      ...(isDev ? ['http://localhost:3001'] : []),
+      ...(wizardOrigin ? [wizardOrigin] : []),
     ].join(' ');
     const previewCsp = cspDirectives.replace(
       "frame-ancestors 'none'",
