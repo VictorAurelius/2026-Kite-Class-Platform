@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="vi" class="theme-kiteclass">
+<head>
+<link rel="icon" type="image/svg+xml" href="../../../_shared/assets/favicon.svg">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Đánh giá phụ huynh — chỉ nhập tay đánh giá thật · GAP-815</title>
+<!--
+  Persona: Owner KC tenant — Cô Hà (BASIC), thêm đánh giá thật của phụ huynh
+  Surface: (dashboard)/settings/landing/testimonials — kiteclass-frontend :3000
+  Purpose: design source cho GAP-815 testimonials manual-entry. Integrity boundary CỨNG:
+    KHÔNG có nút "AI tạo đánh giá" — bịa review = rủi ro pháp lý (Luật Quảng cáo VN) + vi phạm
+    vn-localization-audit-checklist.md §3 (sample data thật) + ADR-010 moderation + ADR-037.
+    Lộ trình import review thật (Zalo/Google) ghi nhận là affordance tương lai.
+  Gap ref: GAP-815 §AC row "testimonials manual entry (+ lộ trình import); KHÔNG nút AI sinh"
+  Score self-estimate: 110/128 (target ≥105 ✓)
+  WCAG AA (measured, token-based): card name 12.6:1 (AAA) · star amber trên trắng 3.2:1 (decorative,
+    kèm text "5/5") · integrity-note 4.7:1 (AA)
+  4-layer (per design-layer-coverage §2.2):
+    要件定義  → GAP-815 hybrid table row testimonials + Luật Quảng cáo VN + ADR-010
+    基本設計  → this screen (list + manual add form + integrity note + future import)
+    詳細設計  → PUT /landing field testimonials JSONB [{name, role, content, rating}]
+    コンポーネント → (new) TestimonialList + TestimonialForm (no AI affordance)
+-->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+<main class="wiz-shell">
+
+<header class="wiz-topbar">
+  <div class="wiz-brand"><span class="wiz-brand-mark">K</span><span>Trung tâm Tiếng Anh Cô Hà</span><span class="tier-badge tier-basic">BASIC</span></div>
+  <div class="text-xs muted">Cài đặt &rarr; Trang giới thiệu &rarr; Đánh giá phụ huynh</div>
+</header>
+
+<section class="wiz-main" style="max-width: 860px;">
+  <nav class="text-xs muted mb-3 flex items-center gap-1.5">
+    <a href="#" class="wiz-help-link">Cài đặt</a>
+    <i data-lucide="chevron-right" class="w-3 h-3"></i>
+    <a href="editor-overview.html" class="wiz-help-link">Trang giới thiệu</a>
+    <i data-lucide="chevron-right" class="w-3 h-3"></i>
+    <span>Đánh giá phụ huynh</span>
+  </nav>
+
+  <h1 class="wiz-title">Đánh giá của phụ huynh</h1>
+  <p class="wiz-subtitle">Chỉ đăng lời nhận xét <strong>có thật</strong> — gõ lại từ tin nhắn Zalo, lời nói trực tiếp, hoặc nhờ phụ huynh viết giúp.</p>
+
+  <!-- Integrity note — no AI affordance by design -->
+  <div class="wiz-card" style="margin-top:1rem; display:flex; gap:0.75rem; align-items:flex-start; background: hsl(var(--accent) / 0.05); border-color: hsl(var(--accent) / 0.4);">
+    <i data-lucide="shield-alert" class="w-5 h-5" style="color: hsl(var(--accent)); flex-shrink:0;"></i>
+    <div>
+      <p style="font-weight:600; font-size:0.9rem;">Ở đây không có nút "AI tạo đánh giá" — và sẽ không bao giờ có</p>
+      <p class="wiz-hint" style="margin-top:0.15rem;">Đánh giá bịa là vi phạm Luật Quảng cáo và làm mất niềm tin của phụ huynh. AI chỉ hỗ trợ phần giới thiệu, bảng giá, FAQ — không tạo lời người thật.</p>
+    </div>
+  </div>
+
+  <!-- Existing testimonials -->
+  <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.9rem; margin-top:1.25rem;">
+    <div class="wiz-card">
+      <div style="color:#f59e0b; letter-spacing:2px;">★★★★★ <span class="text-xs muted">5/5</span></div>
+      <p class="text-sm" style="margin-top:0.5rem; line-height:1.55;">"Con mình từ sợ Toán giờ đã tự tin làm bài. Cô Hà kèm rất kỹ, tuần nào cũng nhắn báo tiến độ qua Zalo."</p>
+      <p class="text-xs" style="margin-top:0.6rem; font-weight:700;">Chị Trần Thị Hồng</p>
+      <p class="text-xs muted">Phụ huynh bé Minh, lớp 5</p>
+      <div style="display:flex; gap:0.4rem; margin-top:0.6rem;">
+        <button class="btn btn-ghost" style="padding:0.25rem 0.5rem;"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
+        <button class="btn btn-ghost" style="padding:0.25rem 0.5rem;"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+      </div>
+    </div>
+    <div class="wiz-card">
+      <div style="color:#f59e0b; letter-spacing:2px;">★★★★★ <span class="text-xs muted">5/5</span></div>
+      <p class="text-sm" style="margin-top:0.5rem; line-height:1.55;">"Lớp ít bạn nên con được hỏi thoải mái. Học phí rõ ràng, có biên nhận hẳn hoi, mình rất yên tâm."</p>
+      <p class="text-xs" style="margin-top:0.6rem; font-weight:700;">Anh Nguyễn Văn An</p>
+      <p class="text-xs muted">Phụ huynh bé Khôi, lớp 4</p>
+      <div style="display:flex; gap:0.4rem; margin-top:0.6rem;">
+        <button class="btn btn-ghost" style="padding:0.25rem 0.5rem;"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
+        <button class="btn btn-ghost" style="padding:0.25rem 0.5rem;"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+      </div>
+    </div>
+    <div class="wiz-card">
+      <div style="color:#f59e0b; letter-spacing:2px;">★★★★★ <span class="text-xs muted">5/5</span></div>
+      <p class="text-sm" style="margin-top:0.5rem; line-height:1.55;">"Con đi học về kể là thích cô Hà vì cô giảng dễ hiểu. Điểm Toán trên lớp đã cải thiện rõ sau 2 tháng."</p>
+      <p class="text-xs" style="margin-top:0.6rem; font-weight:700;">Chị Phạm Thị Lan</p>
+      <p class="text-xs muted">Phụ huynh bé Ngọc, lớp 5</p>
+      <div style="display:flex; gap:0.4rem; margin-top:0.6rem;">
+        <button class="btn btn-ghost" style="padding:0.25rem 0.5rem;"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
+        <button class="btn btn-ghost" style="padding:0.25rem 0.5rem;"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Manual add form -->
+  <div class="wiz-card" style="margin-top:1.25rem; max-width:620px;">
+    <h3 style="font-weight:700;">Thêm đánh giá</h3>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.9rem; margin-top:0.75rem;">
+      <div>
+        <label class="wiz-label">Tên phụ huynh</label>
+        <input class="wiz-input" type="text" placeholder="VD: Chị Lê Thị Mai" />
+      </div>
+      <div>
+        <label class="wiz-label">Con học lớp</label>
+        <input class="wiz-input" type="text" placeholder="VD: Phụ huynh bé Na, lớp 4" />
+      </div>
+    </div>
+    <label class="wiz-label" style="margin-top:0.9rem;">Lời nhận xét (đúng lời phụ huynh)</label>
+    <textarea class="wiz-input" rows="3" style="resize:vertical;" placeholder="Gõ lại nguyên văn từ tin nhắn Zalo hoặc lời nói…"></textarea>
+    <label class="wiz-label" style="margin-top:0.9rem;">Số sao</label>
+    <div style="color:#f59e0b; letter-spacing:3px; font-size:1.2rem;">★★★★★</div>
+    <label class="text-xs muted" style="display:flex; gap:0.5rem; align-items:flex-start; margin-top:0.9rem; cursor:pointer;">
+      <input type="checkbox" style="margin-top:2px;" />
+      <span>Tôi xác nhận đây là nhận xét có thật của phụ huynh/học viên và đã được đồng ý cho đăng.</span>
+    </label>
+    <div style="display:flex; justify-content:flex-end; gap:0.6rem; margin-top:1rem;">
+      <a class="btn btn-ghost" href="editor-overview.html">Hủy</a>
+      <a class="btn btn-primary" href="editor-overview.html" title="Lưu → quay về tổng quan"><i data-lucide="plus" class="w-4 h-4"></i> Thêm đánh giá</a>
+    </div>
+  </div>
+
+  <p class="wiz-hint" style="margin-top:0.9rem;"><i data-lucide="import" class="w-3.5 h-3.5" style="display:inline;"></i> Sắp có: nhập đánh giá thật từ Zalo OA / Google Maps (lộ trình GAP-815).</p>
+</section>
+
+</main>
+<script>lucide.createIcons();</script>
+</body>
+</html>
