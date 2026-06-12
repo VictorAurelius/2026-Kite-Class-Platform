@@ -39,7 +39,7 @@ public class ContactMessageServiceImpl implements ContactMessageService {
     private final ContactMessageMapper contactMessageMapper;
     private final EmailService emailService;
 
-    @Value("${contact.admin-email:admin@kiteclass.com}")
+    @Value("${contact.admin-email:admin@kitehub.me}")
     private String adminEmail;
 
     /**

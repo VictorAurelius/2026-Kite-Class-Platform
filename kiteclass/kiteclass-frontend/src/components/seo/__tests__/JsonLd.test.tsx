@@ -35,8 +35,8 @@ describe('OrganizationJsonLd', () => {
       <OrganizationJsonLd
         name="KiteClass"
         description="Education platform"
-        url="https://kiteclass.com"
-        email="test@kiteclass.com"
+        url="https://kitehub.me"
+        email="test@kitehub.me"
         telephone="1900xxxx"
         address="Ha Noi"
       />
@@ -46,7 +46,7 @@ describe('OrganizationJsonLd', () => {
 
     expect(parsed['@type']).toBe('EducationalOrganization');
     expect(parsed.name).toBe('KiteClass');
-    expect(parsed.email).toBe('test@kiteclass.com');
+    expect(parsed.email).toBe('test@kitehub.me');
     expect(parsed.address['@type']).toBe('PostalAddress');
     expect(parsed.address.addressCountry).toBe('VN');
   });
@@ -56,7 +56,7 @@ describe('OrganizationJsonLd', () => {
       <OrganizationJsonLd
         name="KiteClass"
         description="Test"
-        url="https://kiteclass.com"
+        url="https://kitehub.me"
       />
     );
     const parsed = JSON.parse(
@@ -76,7 +76,7 @@ describe('CourseJsonLd', () => {
         name="English Advanced"
         description="Advanced English course"
         provider="KiteClass"
-        url="https://kiteclass.com/courses/1"
+        url="https://kitehub.me/courses/1"
         price={5000000}
         priceCurrency="VND"
         duration="PT12W"
@@ -103,7 +103,7 @@ describe('CourseJsonLd', () => {
         name="Basic Course"
         description="Test"
         provider="KiteClass"
-        url="https://kiteclass.com/courses/2"
+        url="https://kitehub.me/courses/2"
       />
     );
     const parsed = JSON.parse(

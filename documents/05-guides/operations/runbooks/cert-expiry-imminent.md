@@ -6,7 +6,7 @@
 
 ## What does this alert mean?
 
-A TLS certificate in the platform ingress chain will expire in **<14 days** (warning) or **<3 days** (critical-bump). Once a cert expires, every browser hits a TLS warning page and most API clients refuse the handshake — effectively a platform-wide outage. The metric source is the Prometheus `blackbox_exporter` `probe_ssl_earliest_cert_expiry` minus current time, scoped to monitored ingresses (`*.kiteclass.com`, `*.kitehub.com`, `app.kiteclass.com`, etc.). The `{{ $labels.target }}` tells you which hostname is at risk.
+A TLS certificate in the platform ingress chain will expire in **<14 days** (warning) or **<3 days** (critical-bump). Once a cert expires, every browser hits a TLS warning page and most API clients refuse the handshake — effectively a platform-wide outage. The metric source is the Prometheus `blackbox_exporter` `probe_ssl_earliest_cert_expiry` minus current time, scoped to monitored ingresses (`*.kitehub.me`, `*.kitehub.com`, `app.kitehub.me`, etc.). The `{{ $labels.target }}` tells you which hostname is at risk.
 
 ## Note
 
@@ -30,7 +30,7 @@ A TLS certificate in the platform ingress chain will expire in **<14 days** (war
    kubectl describe issuer letsencrypt-prod -n kitehub
    kubectl logs -n cert-manager deploy/cert-manager --tail=200 | grep -E 'ERROR|failed|<hostname>'
    ```
-4. **Wildcard vs SAN** — note whether the failing cert is a wildcard (`*.kiteclass.com`) or a hostname-specific SAN; renewal path differs.
+4. **Wildcard vs SAN** — note whether the failing cert is a wildcard (`*.kitehub.me`) or a hostname-specific SAN; renewal path differs.
 
 ## Likely causes
 

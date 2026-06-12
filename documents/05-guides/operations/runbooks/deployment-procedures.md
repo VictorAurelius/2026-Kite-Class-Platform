@@ -164,7 +164,7 @@ gh workflow run deploy-production.yml -f version=v1.2.3
 
 set -e
 
-BASE_URL="https://api.kiteclass.com"
+BASE_URL="https://api.kitehub.me"
 
 echo "🔍 Running smoke tests..."
 
@@ -240,7 +240,7 @@ curl -s 'http://prometheus:9090/api/v1/query?query=histogram_quantile(0.95, rate
 kubectl logs -f deployment/kiteclass-gateway -n kiteclass --tail=50 | grep ERROR
 
 # 4. Check Grafana dashboard
-# Open: http://grafana.kiteclass.com/d/service-overview
+# Open: http://grafana.kitehub.me/d/service-overview
 ```
 
 **Watch for 15 minutes** after deployment to ensure stability.
@@ -368,13 +368,13 @@ aws s3 cp s3://kiteclass-backups/production/2026-03-09-23-00.sql.gz .
 
 # 3. Restore database
 gunzip 2026-03-09-23-00.sql.gz
-psql -h postgres.kiteclass.com -U kiteclass -d kiteclass < 2026-03-09-23-00.sql
+psql -h postgres.kitehub.me -U kiteclass -d kiteclass < 2026-03-09-23-00.sql
 
 # 4. Restart services
 kubectl scale deployment/kiteclass-core --replicas=3 -n kiteclass
 
 # 5. Verify data integrity
-psql -h postgres.kiteclass.com -U kiteclass -d kiteclass -c "SELECT COUNT(*) FROM students;"
+psql -h postgres.kitehub.me -U kiteclass -d kiteclass -c "SELECT COUNT(*) FROM students;"
 ```
 
 **Option B: Revert Migration**
@@ -573,7 +573,7 @@ curl 'http://prometheus:9090/api/v1/query?query=rate(http_server_requests_second
 kubectl logs --tail=100 deployment/kiteclass-core -n kiteclass | grep ERROR
 
 # 3. Check Jaeger for failed traces
-# Open: http://jaeger.kiteclass.com/search
+# Open: http://jaeger.kitehub.me/search
 # Filter: service=kiteclass-core, status=error
 
 # 4. Check database connections
@@ -619,7 +619,7 @@ curl http://kiteclass-core:8080/actuator/metrics/hikaricp.connections.active
 **Diagnosis:**
 ```bash
 # 1. Check Grafana latency dashboard
-# Open: http://grafana.kiteclass.com/d/service-latency
+# Open: http://grafana.kitehub.me/d/service-latency
 
 # 2. Find slowest endpoints
 curl 'http://prometheus:9090/api/v1/query?query=topk(10, histogram_quantile(0.95, rate(http_server_requests_seconds_bucket[5m])))'
@@ -754,7 +754,7 @@ kubectl set env deployment/kiteclass-core \
 # "10:45 - Mitigation: Increased pool size from 10 to 50"
 # "11:00 - Resolution: Error rate back to normal. Monitoring."
 
-# Update status page: https://status.kiteclass.com
+# Update status page: https://status.kitehub.me
 ```
 
 **5. Resolve (30-60 minutes)**
@@ -809,21 +809,21 @@ watch kubectl get pods -n kiteclass
 kubectl scale deployment --all --replicas=0 -n kiteclass
 
 # 2. Assess damage
-psql -h postgres.kiteclass.com -U postgres -c "SELECT pg_database_size('kiteclass');"
+psql -h postgres.kitehub.me -U postgres -c "SELECT pg_database_size('kiteclass');"
 
 # 3. Restore from latest backup
 aws s3 cp s3://kiteclass-backups/production/latest.sql.gz .
 gunzip latest.sql.gz
 
 # Drop and recreate database
-psql -h postgres.kiteclass.com -U postgres -c "DROP DATABASE kiteclass;"
-psql -h postgres.kiteclass.com -U postgres -c "CREATE DATABASE kiteclass;"
+psql -h postgres.kitehub.me -U postgres -c "DROP DATABASE kiteclass;"
+psql -h postgres.kitehub.me -U postgres -c "CREATE DATABASE kiteclass;"
 
 # Restore
-psql -h postgres.kiteclass.com -U kiteclass -d kiteclass < latest.sql
+psql -h postgres.kitehub.me -U kiteclass -d kiteclass < latest.sql
 
 # 4. Verify data integrity
-psql -h postgres.kiteclass.com -U kiteclass -d kiteclass -c "
+psql -h postgres.kitehub.me -U kiteclass -d kiteclass -c "
   SELECT COUNT(*) FROM students;
   SELECT COUNT(*) FROM courses;
   SELECT COUNT(*) FROM invoices;
@@ -873,7 +873,7 @@ kubectl logs deployment/kiteclass-gateway -n kiteclass --tail=10000 > incident-l
 aws s3 cp incident-logs.txt s3://kiteclass-security-incidents/$(date +%Y%m%d-%H%M%S)/
 
 # 3. Notify
-# Email: security@kiteclass.com
+# Email: security@kitehub.me
 # Slack: #security-incidents
 # PagerDuty: Escalate to security team
 

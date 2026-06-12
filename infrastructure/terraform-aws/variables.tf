@@ -26,7 +26,7 @@ variable "project_name" {
 }
 
 variable "domain_name" {
-  description = "Primary platform domain (used for ALB cert hint + Route53 if managed here). Per GAP-458 (Path C Free GitHub Student Pack 2026-05-09) + GAP-692 Phase 1 STALE mismatch fix (2026-05-21): default flipped from kiteclass.com to kitehub.me to match real apex domain. Multi-env override via terraform.tfvars OR -var flag."
+  description = "Primary platform domain (used for ALB cert hint + Route53 if managed here). Per GAP-458 (Path C Free GitHub Student Pack 2026-05-09) + GAP-692 Phase 1 STALE mismatch fix (2026-05-21): default flipped from kiteclass.com to kitehub.me to match real apex domain. Multi-env override via terraform.tfvars OR -var flag."  # stale-domain-ok: historical note documenting kiteclass.com→kitehub.me flip
   type        = string
   default     = "kitehub.me"
 }

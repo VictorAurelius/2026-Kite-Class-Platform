@@ -156,7 +156,7 @@ curl -X DELETE https://beta.kitehub.vn/api/v1/admin/instances/<id> \
 # Expect: 204 No Content
 ```
 
-Run `bash scripts/smoke-test.sh https://beta.kitehub.vn https://beta.kiteclass.vn` (Wave 26 GAP-377) — expect 18/18 assertions pass.
+Run `bash scripts/smoke-test.sh https://beta.kitehub.vn https://beta.kitehub.me` (Wave 26 GAP-377) — expect 18/18 assertions pass.
 
 ---
 

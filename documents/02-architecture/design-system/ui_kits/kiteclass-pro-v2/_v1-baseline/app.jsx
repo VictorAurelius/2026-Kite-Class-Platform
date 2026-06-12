@@ -352,7 +352,7 @@ function ProApp() {
           <div className="pro-brand-mark"><Icon name="graduation-cap" className="h-4 w-4"/></div>
           <div>
             <div className="pro-brand-name">SkyLight</div>
-            <div className="pro-brand-sub">skylight.kiteclass.com</div>
+            <div className="pro-brand-sub">skylight.kitehub.me</div>
           </div>
         </div>
         <div className="pro-cmd" onClick={() => setCmdOpen(true)}>

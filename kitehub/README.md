@@ -265,7 +265,7 @@ AWS_REGION=ap-southeast-1
 **Email Service:**
 ```properties
 AWS_SES_REGION=ap-southeast-1
-AWS_SES_FROM_EMAIL=noreply@kiteclass.com
+AWS_SES_FROM_EMAIL=noreply@kitehub.me
 ```
 
 ---

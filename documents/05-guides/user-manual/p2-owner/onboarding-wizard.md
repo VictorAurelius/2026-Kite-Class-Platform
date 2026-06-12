@@ -30,7 +30,7 @@ Wizard mở tự động sau khi vào `/dashboard` lần đầu. Bước 1 hiể
 - 🎉 Tiêu đề: **"Chúc mừng! Trung tâm 'Trung tâm Anh ngữ Sky Education' đã sẵn sàng"**
 - 📋 Card thông tin:
   - Tên trung tâm: Trung tâm Anh ngữ Sky Education
-  - URL: `sky-education.kiteclass.com`
+  - URL: `sky-education.kitehub.me`
   - Gói: **Beta FREE** (6 tháng đầu)
   - Dùng thử: Còn **180 ngày** (đến `Thứ Sáu, 14/11/2026`)
 - 📝 Mô tả: "Trang quản lý này cho phép chị tuỳ chỉnh branding, thanh toán, và cài đặt. Học viên + giáo viên truy cập trang web riêng để học."
@@ -62,7 +62,7 @@ Click **"Tiếp theo"** chuyển sang Bước 3.
 
 Bước 3 hiển thị link đến **website công khai** mà học sinh + phụ huynh sẽ thấy:
 
-- 🌐 **URL public**: `https://sky-education.kiteclass.com` (mở tab mới)
+- 🌐 **URL public**: `https://sky-education.kitehub.me` (mở tab mới)
 - ✨ Mẹo: Sử dụng tính năng **AI Branding** để tạo logo + thiết kế website chuyên nghiệp trong 5 phút (xem [Branding](branding.md))
 
 Click **"Mở website trung tâm"** → tab mới mở trang tenant. Quay lại tab gốc click **"Tiếp theo"**.

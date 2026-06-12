@@ -2,13 +2,13 @@
  * Build tenant URL based on environment.
  *
  * Local:      http://localhost:4700?tenant={subdomain}
- * Production: https://{subdomain}.kiteclass.com
+ * Production: https://{subdomain}.kitehub.me
  *
  * Configured via NEXT_PUBLIC_KITECLASS_URL_PATTERN env var.
  * Pattern uses {subdomain} as placeholder.
  */
 
-const DEFAULT_PATTERN = 'https://{subdomain}.kiteclass.com';
+const DEFAULT_PATTERN = 'https://{subdomain}.kitehub.me';
 
 export function getTenantUrl(subdomain: string): string {
   const pattern = process.env.NEXT_PUBLIC_KITECLASS_URL_PATTERN || DEFAULT_PATTERN;
@@ -20,5 +20,5 @@ export function getTenantDisplayUrl(subdomain: string): string {
   if (isLocal) {
     return `${subdomain} (local)`;
   }
-  return `${subdomain}.kiteclass.com`;
+  return `${subdomain}.kitehub.me`;
 }

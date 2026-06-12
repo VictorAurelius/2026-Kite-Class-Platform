@@ -2,14 +2,14 @@
 
 **Last verified:** 2026-06-01
 **Created:** Wave tenant-domain-1 Bucket D (GAP-812)
-**Sister doc:** `domain-management/` covers subdomain (kiteclass.com) lifecycle; doc này focus on Custom Domain DNS verify + SSL provisioning (Premium/Enterprise tier).
+**Sister doc:** `domain-management/` covers subdomain (kitehub.me) lifecycle; doc này focus on Custom Domain DNS verify + SSL provisioning (Premium/Enterprise tier).
 **Config prefix:** `kitehub.domain.verification`
 **Architecture:** [ADR-018 Domain Registrar / DNS / TLD](../../../02-architecture/adr/ADR-018-domain-registrar-dns.md)
 **Runbook:** [Custom Domain Verify Runbook](../../../05-guides/operations/custom-domain-verify-runbook.md)
 
 ## 1. Scope
 
-Custom Domain feature cho phép tenant (Center Owner) gắn domain riêng (vd `lop.skyedu.vn`) vào instance KiteClass — thay vì chỉ dùng subdomain `{subdomain}.kiteclass.com`. Backup URL subdomain LUÔN hoạt động song song.
+Custom Domain feature cho phép tenant (Center Owner) gắn domain riêng (vd `lop.skyedu.vn`) vào instance KiteClass — thay vì chỉ dùng subdomain `{subdomain}.kitehub.me`. Backup URL subdomain LUÔN hoạt động song song.
 
 **Tier restriction:** PREMIUM + ENTERPRISE only (per `Instance.canUseCustomDomain()`).
 
@@ -23,7 +23,7 @@ Custom Domain feature cho phép tenant (Center Owner) gắn domain riêng (vd `l
 | **BR-DOMAIN-004** | Re-verify allowed | FAILED → PENDING_VERIFY khi tenant trigger re-verify (regenerate token) | `DomainService.initiateCustomDomain()` (same instance ownership) |
 | **BR-DOMAIN-005** | TXT record convention | Preferred: `_kitehub-verify.{domain}` TXT = `kitehub-verify={token}`. Fallback apex: `{domain}` TXT chứa token | `DnsTxtLookupService.verifyTxtRecord()` |
 | **BR-DOMAIN-006** | Domain uniqueness | 1 custom domain per platform; cùng instance được re-initiate | `InstanceRepository.findByCustomDomainAndDeletedFalse()` |
-| **BR-DOMAIN-007** | Backup URL always available | `https://{subdomain}.kiteclass.com` hoạt động trong lúc cert provision + sau khi VERIFIED (parallel routing) | `DomainService.buildResponse()` |
+| **BR-DOMAIN-007** | Backup URL always available | `https://{subdomain}.kitehub.me` hoạt động trong lúc cert provision + sau khi VERIFIED (parallel routing) | `DomainService.buildResponse()` |
 | **BR-DOMAIN-008** | SSL provider | v1 deferred: Cloudflare for SaaS preferred; AWS ACM fallback (terraform scaffold) | ADR-018 + `acm-tenant-domains.tf` |
 | **BR-DOMAIN-009** | Mock mode (dev) | `mockMode=true` (default dev/test profile) — DNS không resolvable → giữ PENDING (không FAILED) | `DomainVerificationConfig.mockMode` |
 | **BR-DOMAIN-010** | Mock mode (prod) | `mockMode=false` ở `application-production.yml` — DNS lookup real qua JNDI; record vắng → vẫn PENDING (chờ timeout job) | Same |

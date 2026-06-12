@@ -126,7 +126,7 @@ KiteHub publishes this onto RabbitMQ (`provisioning.tenant.created`); kiteclass-
 
 Total wall-clock: typically 30–90 seconds for FREE/PRO tier (template path), up to 2–3 minutes if FULL_AI fallback engaged.
 
-End state: user lands on their tenant subdomain `https://abc-school.kiteclass.vn` with full branding applied.
+End state: user lands on their tenant subdomain `https://abc-school.kitehub.me` with full branding applied.
 
 ---
 

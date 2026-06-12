@@ -42,7 +42,7 @@ variables:
     dev: "ap-southeast-1"
 
   domain_root:
-    description: Apex domain (Path C GitHub Student Pack per GAP-458; supersedes kiteclass.com STALE)
+    description: Apex domain (Path C GitHub Student Pack per GAP-458; supersedes kiteclass.com STALE) # stale-domain-ok: documents the superseded value
     production: "kitehub.me"
     test: "test.kitehub.me"         # future test-env subdomain
     dev: "localhost"

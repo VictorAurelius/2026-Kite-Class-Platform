@@ -69,7 +69,7 @@ class S3StorageServiceTest {
     @DisplayName("Should use HTTPS protocol for production CDN domain")
     void shouldUseHttpsForProduction() {
         // Given
-        when(s3Config.getCdnDomain()).thenReturn("cdn.kiteclass.com");
+        when(s3Config.getCdnDomain()).thenReturn("cdn.kitehub.me");
         when(s3Config.isMockMode()).thenReturn(false);
 
         String path = "instances/" + UUID.randomUUID() + "/branding/LOGO/test.png";
@@ -79,7 +79,7 @@ class S3StorageServiceTest {
 
         // Then
         assertThat(url).startsWith("https://");
-        assertThat(url).contains("cdn.kiteclass.com");
+        assertThat(url).contains("cdn.kitehub.me");
         assertThat(url).contains(path);
     }
 
@@ -129,7 +129,7 @@ class S3StorageServiceTest {
         String url = storageService.getAssetUrl(path);
 
         // Then
-        assertThat(url).startsWith("https://mock-cdn.kiteclass.com/");
+        assertThat(url).startsWith("https://mock-cdn.kitehub.me/");
         assertThat(url).contains(path);
     }
 
@@ -164,7 +164,7 @@ class S3StorageServiceTest {
         String url = storageService.getPresignedAssetUrl(path);
 
         // Then
-        assertThat(url).startsWith("https://mock-cdn.kiteclass.com/");
+        assertThat(url).startsWith("https://mock-cdn.kitehub.me/");
         assertThat(url).contains(path);
     }
 
@@ -210,7 +210,7 @@ class S3StorageServiceTest {
     void presignedFallbackOnPresignerError() {
         // Given
         when(s3Config.isMockMode()).thenReturn(false);
-        when(s3Config.getCdnDomain()).thenReturn("cdn.kiteclass.com");
+        when(s3Config.getCdnDomain()).thenReturn("cdn.kitehub.me");
         when(s3Presigner.presignGetObject(any(GetObjectPresignRequest.class)))
             .thenThrow(new RuntimeException("presign boom"));
 
@@ -218,7 +218,7 @@ class S3StorageServiceTest {
         String url = storageService.getPresignedAssetUrl("instances/abc/branding/LOGO/logo_1.png");
 
         // Then — exception swallowed, raw URL returned
-        assertThat(url).startsWith("https://cdn.kiteclass.com/");
+        assertThat(url).startsWith("https://cdn.kitehub.me/");
     }
 
     @Test

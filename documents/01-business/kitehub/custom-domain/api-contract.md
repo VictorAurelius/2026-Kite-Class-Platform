@@ -34,7 +34,7 @@ Validation:
   "verifyRecord": "Add TXT record to your DNS: @ kitehub-verify=abc12345-... (or _kitehub-verify.lop.skyedu.vn)",
   "status": "PENDING_VERIFY",
   "verifiedAt": null,
-  "backupUrl": "https://skyedu.kiteclass.com"
+  "backupUrl": "https://skyedu.kitehub.me"
 }
 ```
 
@@ -65,7 +65,7 @@ Validation:
   "verifyRecord": "Add TXT record to your DNS: @ kitehub-verify=...",
   "status": "VERIFIED",
   "verifiedAt": "2026-06-01T14:23:45",
-  "backupUrl": "https://skyedu.kiteclass.com"
+  "backupUrl": "https://skyedu.kitehub.me"
 }
 ```
 
@@ -92,7 +92,7 @@ Validation:
 
 **Side effects:**
 - `customDomain=null`, `domainVerifyToken=null`, `domainVerifiedAt=null`, `domainStatus=NONE`
-- Backup URL `{subdomain}.kiteclass.com` vẫn hoạt động (không cần thêm gì)
+- Backup URL `{subdomain}.kitehub.me` vẫn hoạt động (không cần thêm gì)
 - (Future v1.1) Background cleanup: revoke ACM cert / delete Cloudflare Custom Hostname
 
 **Error responses:**

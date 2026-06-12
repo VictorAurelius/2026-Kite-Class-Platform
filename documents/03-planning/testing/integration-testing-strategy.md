@@ -766,7 +766,7 @@ class KiteHubInstanceRegistrationTest {
 
         // When
         InstanceRegistrationResponse response = kiteHubClient.registerInstance(
-            "test-instance.kiteclass.com",
+            "test-instance.kitehub.me",
             "Test School",
             "owner@test.com"
         );
@@ -810,7 +810,7 @@ class KiteHubInstanceRegistrationTest {
 
         // When
         InstanceRegistrationResponse response = kiteHubClient.registerInstance(
-            "test-instance.kiteclass.com",
+            "test-instance.kitehub.me",
             "Test School",
             "owner@test.com"
         );

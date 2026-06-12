@@ -114,10 +114,10 @@ class InstanceLifecycleServiceTest {
         when(repository.findById(9L)).thenReturn(Optional.of(i));
         when(repository.save(any(FrontendInstance.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        FrontendInstance result = service.markBrandingCompleted(9L, "https://acme.kiteclass.com");
+        FrontendInstance result = service.markBrandingCompleted(9L, "https://acme.kitehub.me");
 
         assertThat(result.getStatus()).isEqualTo(FrontendInstanceStatus.DEPLOYED);
-        assertThat(result.getFrontendUrl()).isEqualTo("https://acme.kiteclass.com");
+        assertThat(result.getFrontendUrl()).isEqualTo("https://acme.kitehub.me");
         assertThat(result.getBrandingVersion()).isEqualTo(1);
     }
 
@@ -196,7 +196,7 @@ class InstanceLifecycleServiceTest {
     void markBrandingCompleted_without_url_keeps_existing() {
         FrontendInstance i = FrontendInstance.builder()
                 .tenantSlug("t-1").slug("acme")
-                .frontendUrl("https://existing.kiteclass.com")
+                .frontendUrl("https://existing.kitehub.me")
                 .status(FrontendInstanceStatus.NOT_STARTED)
                 .retryCount(0).brandingVersion(0).build();
         i.transitionTo(FrontendInstanceStatus.INITIALIZING);
@@ -207,7 +207,7 @@ class InstanceLifecycleServiceTest {
 
         FrontendInstance result = service.markBrandingCompleted(17L, null);
 
-        assertThat(result.getFrontendUrl()).isEqualTo("https://existing.kiteclass.com");
+        assertThat(result.getFrontendUrl()).isEqualTo("https://existing.kitehub.me");
     }
 
     @Test
@@ -237,7 +237,7 @@ class InstanceLifecycleServiceTest {
         when(repository.findById(9L)).thenReturn(Optional.of(i));
         when(repository.save(any(FrontendInstance.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        service.markBrandingCompleted(9L, "https://acme.kiteclass.com");
+        service.markBrandingCompleted(9L, "https://acme.kitehub.me");
 
         ArgumentCaptor<String> payloadCaptor = ArgumentCaptor.forClass(String.class);
         verify(outbox).enqueue(eq("instance.deployed"), eq("FrontendInstance"),

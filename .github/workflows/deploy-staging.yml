@@ -38,7 +38,7 @@ permissions:
 env:
   AWS_REGION: ap-southeast-1
   STAGING_KH_URL: https://staging.kitehub.vn
-  STAGING_KC_URL: https://staging.kiteclass.vn
+  STAGING_KC_URL: https://staging.kitehub.me
 
 jobs:
   deploy:

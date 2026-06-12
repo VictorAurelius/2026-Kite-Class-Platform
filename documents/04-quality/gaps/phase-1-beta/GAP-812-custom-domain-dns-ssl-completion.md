@@ -39,7 +39,7 @@ không bao giờ verify được + không có HTTPS cho domain custom:
 
 **Phạm vi ảnh hưởng**: chỉ tier PREMIUM/ENTERPRISE (`Instance.canUseCustomDomain()` →
 `PricingTier.allowsCustomDomain()`). KHÔNG chặn Phase 1 BETA (BETA chủ yếu dùng subdomain
-`{tenant}.kiteclass.com` qua gateway `findByCustomDomain` — backup URL luôn hoạt động). Vì
+`{tenant}.kitehub.me` qua gateway `findByCustomDomain` — backup URL luôn hoạt động). Vì
 vậy priority P2: là tính năng tier cao, không phải blocker.
 
 ## Root Cause
@@ -121,7 +121,7 @@ state machine phải tự lo cert; (3) không vướng giới hạn cert của A
   `VERIFIED` và domain thật sự live.
 - API key Cloudflare lưu AWS Secrets Manager + terraform IaC declaration (per
   `local-fix-production-parity-check.md` — env var mới phải có prod surface parity).
-- Backup URL `{subdomain}.kiteclass.com` luôn hoạt động song song khi cert đang provision.
+- Backup URL `{subdomain}.kitehub.me` luôn hoạt động song song khi cert đang provision.
 
 ### Phần C — State machine hoàn thiện
 
@@ -154,7 +154,7 @@ state machine phải tự lo cert; (3) không vướng giới hạn cert của A
 - [ ] RST walk (per `feature-ship-runtime-walk-mandate`): tenant PREMIUM gắn domain → thêm
       TXT record → verify → cert provision → browse `https://{domain}` có HTTPS hợp lệ +
       route đúng tenant. Verify 3 lớp (DB status + curl HTTPS cert + browser) trước DONE.
-- [ ] Backup URL `{subdomain}.kiteclass.com` vẫn hoạt động khi cert đang provision.
+- [ ] Backup URL `{subdomain}.kitehub.me` vẫn hoạt động khi cert đang provision.
 - [ ] BE `mvn test` PASS; sweep callers `checkDnsTxtRecord` / `DomainStatus` enum (prod +
       test) per `api-contract-change-caller-sweep` khi đổi enum.
 

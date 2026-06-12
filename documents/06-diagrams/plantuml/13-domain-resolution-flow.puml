@@ -21,12 +21,12 @@ participant "KiteClass\nGateway" as KC_GW #C8E6C9
 participant "KiteClass\nFrontend" as KC_FE #A5D6A7
 
 ' ==================== SUBDOMAIN FLOW ====================
-== Flow A: Subdomain Access (abc.kiteclass.com) ==
+== Flow A: Subdomain Access (abc.kitehub.me) ==
 
-BROWSER -> DNS : Resolve abc.kiteclass.com
-DNS --> BROWSER : *.kiteclass.com -> Server IP\n(wildcard DNS A record)
+BROWSER -> DNS : Resolve abc.kitehub.me
+DNS --> BROWSER : *.kitehub.me -> Server IP\n(wildcard DNS A record)
 
-BROWSER -> NGINX : GET https://abc.kiteclass.com
+BROWSER -> NGINX : GET https://abc.kitehub.me
 activate NGINX #FFE0B2
 NGINX -> NGINX : Extract subdomain: "abc"\nfrom Host header
 
@@ -54,13 +54,13 @@ deactivate NGINX
 note over BROWSER, DNS
   **Prerequisites (one-time setup):**
   1. Customer adds custom domain in KiteHub Portal
-  2. Customer creates CNAME: learn.example.com -> proxy.kiteclass.com
+  2. Customer creates CNAME: learn.example.com -> proxy.kitehub.me
   3. KiteHub verifies DNS via TXT record: _kiteclass-verify.learn.example.com
   4. SSL certificate provisioned (Let's Encrypt)
 end note
 
 BROWSER -> DNS : Resolve learn.example.com
-DNS --> BROWSER : CNAME -> proxy.kiteclass.com\n-> Server IP
+DNS --> BROWSER : CNAME -> proxy.kitehub.me\n-> Server IP
 
 BROWSER -> NGINX : GET https://learn.example.com
 activate NGINX #FFE0B2
@@ -97,7 +97,7 @@ SUB -> DB : Generate TXT verification token\nSave domain_status = PENDING
 
 SUB --> KH_GW : {verificationToken, cnameTarget}
 deactivate SUB
-KH_GW --> CUST : "Add DNS records:\nCNAME -> proxy.kiteclass.com\nTXT -> {token}"
+KH_GW --> CUST : "Add DNS records:\nCNAME -> proxy.kitehub.me\nTXT -> {token}"
 deactivate KH_GW
 
 ... Customer configures DNS records ...
@@ -109,7 +109,7 @@ activate SUB
 SUB -> DNS : Query TXT record\n_kiteclass-verify.learn.example.com
 DNS --> SUB : TXT value matches token
 SUB -> DNS : Query CNAME record
-DNS --> SUB : CNAME -> proxy.kiteclass.com
+DNS --> SUB : CNAME -> proxy.kitehub.me
 
 SUB -> DB : UPDATE instances\nSET domain_verified = true,\ndomain_status = VERIFIED
 SUB --> KH_GW : {verified: true, sslStatus: "provisioning"}
@@ -120,10 +120,10 @@ deactivate KH_GW
 ' ==================== LEGEND ====================
 legend bottom
 |= Domain Type |= Format |= Tier Required |
-| Subdomain | {name}.kiteclass.com | All tiers |
+| Subdomain | {name}.kitehub.me | All tiers |
 | Custom Domain | customer-domain.com | PREMIUM+ |
 |= DNS Records for Custom Domain |
-| CNAME | learn.example.com -> proxy.kiteclass.com |
+| CNAME | learn.example.com -> proxy.kitehub.me |
 | TXT | _kiteclass-verify.learn.example.com -> {token} |
 endlegend
 

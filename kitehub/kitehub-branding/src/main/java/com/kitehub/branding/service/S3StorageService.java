@@ -289,7 +289,7 @@ public class S3StorageService {
      * @return Mock URL
      */
     private String mockUrl(String path) {
-        return String.format("https://mock-cdn.kiteclass.com/%s", path);
+        return String.format("https://mock-cdn.kitehub.me/%s", path);
     }
 
     /**

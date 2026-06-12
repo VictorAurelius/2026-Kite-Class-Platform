@@ -248,7 +248,7 @@ erDiagram
 | `instance_id` | UUID | NO | — | UNIQUE thành phần | Tenant ID (chính chủ của FE) |
 | `tenant_id` | VARCHAR(100) | NO | — | `idx_frontend_instance_tenant` | Tenant slug/string ID (cross-service human-readable, không phải UUID). ⚠️ Đặt tên trùng với cột tenant chuẩn nhưng kiểu khác — confusing (xem A6) |
 | `slug` | VARCHAR(80) | NO | — | UNIQUE `idx_frontend_instance_slug ON (instance_id, slug) WHERE deleted=false` | Slug subdomain/path (vd "thcs-tran-hung-dao") |
-| `frontend_url` | VARCHAR(300) | YES | — | — | URL FE sau deploy (vd `https://thcs-tran-hung-dao.kiteclass.vn`) |
+| `frontend_url` | VARCHAR(300) | YES | — | — | URL FE sau deploy (vd `https://thcs-tran-hung-dao.kitehub.me`) |
 | `status` | VARCHAR(20) | NO | `'NOT_STARTED'` | `idx_frontend_instance_status`; CHECK | State machine 6 trạng thái |
 | `initializing_at` | TIMESTAMP | YES | — | — | Timestamp enter INITIALIZING |
 | `generating_at` | TIMESTAMP | YES | — | — | Timestamp enter GENERATING |

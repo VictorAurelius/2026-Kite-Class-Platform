@@ -210,7 +210,7 @@ All write endpoints delegate to `InstanceLifecycleService` (BR-LIFE-003); state-
 **Transition:** GENERATING|REGENERATING → DEPLOYED; `brandingVersion++`
 **Request (optional):**
 ```json
-{ "frontendUrl": "https://abc-school.kiteclass.vn" }
+{ "frontendUrl": "https://abc-school.kitehub.me" }
 ```
 **Response 200:** `InstanceResponse`
 
@@ -252,7 +252,7 @@ All write endpoints delegate to `InstanceLifecycleService` (BR-LIFE-003); state-
   "instanceId": "550e8400-e29b-41d4-a716-446655440000",
   "tenantId": "kitehub-tenant-uuid",
   "slug": "abc-school",
-  "frontendUrl": "https://abc-school.kiteclass.vn",
+  "frontendUrl": "https://abc-school.kitehub.me",
   "brandingVersion": 3,
   "deployedAt": "2026-04-26T10:05:00Z",
   "assets": [
@@ -455,7 +455,7 @@ Stream closes after `complete` or `error`. FE reconnect via `Last-Event-ID` head
 **Content-Type:** `text/html; charset=utf-8`
 **Response Headers:**
 - `X-Frame-Options: SAMEORIGIN`
-- `Content-Security-Policy: default-src 'self'; img-src 'self' https://cdn.kiteclass.vn data:; style-src 'self' 'unsafe-inline'; frame-ancestors 'self'`
+- `Content-Security-Policy: default-src 'self'; img-src 'self' https://cdn.kitehub.me data:; style-src 'self' 'unsafe-inline'; frame-ancestors 'self'`
 - `Cache-Control: private, max-age=60`
 **Response 200:** Standalone HTML document — fully rendered with brand colors, logo, sample copy. Safe to embed via `<iframe sandbox="allow-same-origin">`.
 **Errors:**
@@ -514,7 +514,7 @@ Stream closes after `complete` or `error`. FE reconnect via `Last-Event-ID` head
   "instanceId": "550e8400-e29b-41d4-a716-446655440000",
   "state": "DEPLOYED",
   "deployed": true,
-  "frontendUrl": "https://toan-master.kiteclass.vn",
+  "frontendUrl": "https://toan-master.kitehub.me",
   "templateId": "sky-wave",
   "slug": "toan-master",
   "brandingVersion": 1,
@@ -525,7 +525,7 @@ Stream closes after `complete` or `error`. FE reconnect via `Last-Event-ID` head
 - `deployed` = `state == DEPLOYED`
 - `frontendUrl` / `templateId` / `slug` / `deployedAt` — lấy từ marker `deploy-completed` mới nhất; `null` khi instance chưa từng deploy
 - `brandingVersion` — counter từ `branding_instance_state`; `null` khi chưa có state row
-- MOCK boundary (Phase 1, GAP-1055): `frontendUrl` là placeholder `https://{slug}.kiteclass.vn`, chưa serve subdomain thật (GAP-811/1077)
+- MOCK boundary (Phase 1, GAP-1055): `frontendUrl` là placeholder `https://{slug}.kitehub.me`, chưa serve subdomain thật (GAP-811/1077)
 **Errors:**
 - 401: unauthenticated
 - 403: tenant scope mismatch
@@ -635,7 +635,7 @@ Core wizard flow served by `BrandingJobV1Controller` tại `/api/v1/branding/job
 **Request body** (`ApproveDeployRequest`): `{ "slug": "sky-education", "templateId": "tpl-...", "approvedResources": ["logo","colors","banner"] }`
 **Response 202:**
 ```json
-{ "jobId": "...", "status": "INITIALIZING", "frontendUrl": "https://sky-education.kiteclass.vn", "qualityScore": 88, "message": "Đang triển khai (mock provisioning)" }
+{ "jobId": "...", "status": "INITIALIZING", "frontendUrl": "https://sky-education.kitehub.me", "qualityScore": 88, "message": "Đang triển khai (mock provisioning)" }
 ```
 **Errors:**
 - 404: `{ "error": "JOB_NOT_FOUND", "jobId": "..." }`

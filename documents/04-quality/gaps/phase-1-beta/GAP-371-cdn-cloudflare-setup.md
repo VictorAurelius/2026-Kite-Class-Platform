@@ -32,7 +32,7 @@ Cons:
 
 **Setup steps:**
 1. Cloudflare account creation
-2. Add domain kitehub.vn + kiteclass.vn (per GAP-369)
+2. Add domain kitehub.vn + kitehub.me (per GAP-369)
 3. Update domain registrar nameservers → Cloudflare
 4. Configure DNS records via Cloudflare (proxy enabled = orange cloud)
 5. SSL/TLS: Full (strict) mode với origin cert

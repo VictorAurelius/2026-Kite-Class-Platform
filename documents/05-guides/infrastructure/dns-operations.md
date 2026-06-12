@@ -13,7 +13,7 @@
 | Concern | First action |
 |---------|--------------|
 | `kitehub.vn` down | Check Cloudflare dashboard → Zone status → contact Matbao registrar |
-| `*.kiteclass.com` tenant subdomain not resolving | Check Cloudflare `kiteclass.com` zone → Terraform drift |
+| `*.kitehub.me` tenant subdomain not resolving | Check Cloudflare `kitehub.me` zone → Terraform drift |
 | Tenant custom domain SSL expired | Check Cloudflare Custom Hostnames → Let's Encrypt renewal status |
 | DDoS surge | Cloudflare → Under Attack mode (1-click) |
 | DNS propagation slow | Lower TTL → 60s → wait → re-check resolver cache |
@@ -25,7 +25,7 @@
 | Zone | Registrar | DNS Provider | Terraform managed? |
 |------|-----------|--------------|-------------------|
 | `kitehub.vn` | Matbao (or PA Vietnam) | Cloudflare | Yes (`modules/dns/` — root records only) |
-| `kiteclass.com` | Cloudflare Registrar | Cloudflare | Yes (root + per-tenant subdomain records) |
+| `kitehub.me` | Cloudflare Registrar | Cloudflare | Yes (root + per-tenant subdomain records) |
 | `kitehub.app` (defensive) | Cloudflare Registrar | Cloudflare | Yes (redirect to `.vn`) |
 | `{customer-domain}` (tenant custom) | Tenant's registrar | Tenant's DNS → CNAME to us | No — Cloudflare Custom Hostnames manages SSL |
 
@@ -37,14 +37,14 @@
 
 **Automation:**
 1. Provisioning service calls Cloudflare DNS API (via Terraform at bootstrap; per-tenant via runtime adapter)
-2. Creates `{slug}.kiteclass.com` A record pointing to ALB (or AAAA for IPv6)
-3. Universal SSL auto-issues cert for `*.kiteclass.com` — no per-tenant cert work
+2. Creates `{slug}.kitehub.me` A record pointing to ALB (or AAAA for IPv6)
+3. Universal SSL auto-issues cert for `*.kitehub.me` — no per-tenant cert work
 4. Propagation: Cloudflare edge within 60s; global DNS resolvers within 5 min
 
 **Manual fallback (if API fails):**
-1. Cloudflare dashboard → `kiteclass.com` zone → Add record
+1. Cloudflare dashboard → `kitehub.me` zone → Add record
 2. Type: A, Name: `{slug}`, Value: `<ALB IP>`, TTL: Auto (300s), Proxied: ON
-3. Verify: `dig {slug}.kiteclass.com +short` (should return Cloudflare IPs, not ALB direct)
+3. Verify: `dig {slug}.kitehub.me +short` (should return Cloudflare IPs, not ALB direct)
 
 ---
 
@@ -55,7 +55,7 @@
 **Flow:**
 1. Tenant enters their domain `classes.example.edu.vn` → backend calls `initiateCustomDomain()` → receives verification token (DOM-02)
 2. Tenant adds TXT record: `_kitehub-verify.classes.example.edu.vn` = `kitehub-verify={uuid}`
-3. Tenant adds CNAME: `classes.example.edu.vn` → `{slug}.kiteclass.com`
+3. Tenant adds CNAME: `classes.example.edu.vn` → `{slug}.kitehub.me`
 4. Backend scheduled job polls DNS every 5 min for first hour, then every 30 min up to 48h
 5. On TXT match → status becomes VERIFIED → backend calls Cloudflare Custom Hostnames API
 6. Cloudflare issues Let's Encrypt cert via HTTP-01 validation (~5–15 min)
@@ -120,7 +120,7 @@
 ### 5.2 Retiring a tenant (off-boarding)
 
 1. Backend marks instance `OFF_BOARDING` (per `tenant-off-boarding-runbook.md`)
-2. DNS record retained for 30-day grace period (`{slug}.kiteclass.com` 404s or redirects to off-boarding page)
+2. DNS record retained for 30-day grace period (`{slug}.kitehub.me` 404s or redirects to off-boarding page)
 3. Day 31: DNS record removed via Terraform
 4. Custom hostname (if any) removed from Cloudflare Custom Hostnames → cert revoked
 
@@ -141,7 +141,7 @@ Per GAP-115 log aggregation + monitoring:
 | Alert | Threshold | Paging |
 |-------|-----------|--------|
 | `kitehub.vn` DNS query failures | >5% error rate over 5 min | on-call page |
-| `*.kiteclass.com` SSL cert expiry | <14 days to expiry | ticket (Cloudflare usually renews silently) |
+| `*.kitehub.me` SSL cert expiry | <14 days to expiry | ticket (Cloudflare usually renews silently) |
 | Cloudflare API 5xx (Terraform/Saga) | >3 consecutive failures | ops channel |
 | Custom Hostnames verification stuck >48h | per hostname | tenant email (auto) + CS channel |
 

@@ -15,7 +15,7 @@ grep `https://kitehub\.(vn|com)`:
 - `kitehub.com` (9): trial-warning/expired `upgradeUrl`, renewal `paymentUrl`, suspension/retention `renewUrl`, trial-midpoint `upgradeUrl`, data-deleted `contactUrl`.
 - `kitehub.vn` (1 nhóm): welcome `loginUrl`, DSAR `dpoQueueUrl` + `statusCheckUrl`.
 
-Canonical Phase 1 BETA = `kitehub.me`. Cần chốt: domain dashboard/login/help/support/legal đồng nhất `kitehub.me`; `kiteclass.vn` chỉ cho subdomain tenant app (`{subdomain}.kiteclass.vn`). Footer `support@kiteclass.com` trong subscription templates cũng cần soát.
+Canonical Phase 1 BETA = `kitehub.me`. Cần chốt: domain dashboard/login/help/support/legal đồng nhất `kitehub.me`; `kitehub.me` chỉ cho subdomain tenant app (`{subdomain}.kitehub.me`). Footer `support@kitehub.me` trong subscription templates cũng cần soát.
 
 ### B. 16 template html-only thiếu `.txt` (= GAP-657/659 "final 20%")
 `admin-new-login-alert, beta-request-confirmation, class-rescheduled, data-deleted, data-retention-final-warning, data-retention-warning, dsar-acknowledgement-requester, dsar-new-ticket-dpo, invoice, onboarding-tips, subscription-expired, subscription-renewal-reminder, subscription-suspended, trial-expiration-warning, trial-expired, trial-midpoint`.

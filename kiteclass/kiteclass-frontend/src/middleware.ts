@@ -11,12 +11,12 @@
  *
  * | Host shape                       | Action                                                      |
  * |----------------------------------|-------------------------------------------------------------|
- * | `sky.kiteclass.com`              | Resolve `sky` → inject `x-tenant-id`                        |
- * | `kiteclass.com` (apex)           | Pass through — marketing site, no tenant context            |
- * | `www.kiteclass.com`              | Pass through — reserved subdomain                            |
+ * | `sky.kitehub.me`              | Resolve `sky` → inject `x-tenant-id`                        |
+ * | `kitehub.me` (apex)           | Pass through — marketing site, no tenant context            |
+ * | `www.kitehub.me`              | Pass through — reserved subdomain                            |
  * | `localhost` / `127.0.0.1` / IP   | Pass through (dev). `?tenant=sky` query param overrides.    |
- * | `unknown.kiteclass.com`          | Inject `x-tenant-not-found: <slug>` → friendly not-found page (GAP-1200) |
- * | `suspended.kiteclass.com`        | 307 redirect → `/suspended?slug=suspended`                  |
+ * | `unknown.kitehub.me`          | Inject `x-tenant-not-found: <slug>` → friendly not-found page (GAP-1200) |
+ * | `suspended.kitehub.me`        | 307 redirect → `/suspended?slug=suspended`                  |
  * | BE down / 5xx                    | Pass through with `x-tenant-resolve-error` warning header   |
  *
  * Per `documents/04-quality/gaps/phase-1-beta/GAP-811-*.md` Proposed Fix
@@ -66,10 +66,10 @@ const RESERVED_SUBDOMAINS = new Set([
  * Extract a subdomain slug from a `Host` header value.
  *
  * Examples:
- * - `sky.kiteclass.com`       → `'sky'`
- * - `sky.kiteclass.com:3000`  → `'sky'`
- * - `www.kiteclass.com`       → `null` (reserved)
- * - `kiteclass.com`           → `null` (apex, only 2 parts)
+ * - `sky.kitehub.me`       → `'sky'`
+ * - `sky.kitehub.me:3000`  → `'sky'`
+ * - `www.kitehub.me`       → `null` (reserved)
+ * - `kitehub.me`           → `null` (apex, only 2 parts)
  * - `localhost:4700`          → `null`
  * - `127.0.0.1`               → `null`
  *

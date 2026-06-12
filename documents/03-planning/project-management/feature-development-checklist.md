@@ -1803,7 +1803,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../common/utils.sh"
 
 API_BASE_URL="${API_BASE_URL:-http://localhost:8080}"
-TEST_USER_EMAIL="test-admin@kiteclass.com"
+TEST_USER_EMAIL="test-admin@kitehub.me"
 TEST_USER_PASSWORD="Test@123"
 
 # Test counters

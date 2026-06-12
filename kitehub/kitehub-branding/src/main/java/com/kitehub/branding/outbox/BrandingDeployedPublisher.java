@@ -44,7 +44,7 @@ public class BrandingDeployedPublisher {
      *
      * @param instanceId  tenant instance UUID (the RLS tenant in kiteclass-core)
      * @param slug        tenant slug (observability + landing link)
-     * @param frontendUrl resolved landing URL ({@code https://{slug}.kiteclass.vn} mock default)
+     * @param frontendUrl resolved landing URL ({@code https://{slug}.kitehub.me} mock default)
      * @param colours     derived brand colours (primary/secondary/accent map onto landing theme)
      * @param logoUrl     uploaded/generated logo URL (nullable)
      */

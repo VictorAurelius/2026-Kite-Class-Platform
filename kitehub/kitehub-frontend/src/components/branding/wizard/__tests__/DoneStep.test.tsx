@@ -11,14 +11,14 @@ describe('DoneStep', () => {
     render(
       <DoneStep
         tenantName="Trung tâm Anh ngữ Sky"
-        frontendUrl="https://sky.kiteclass.vn"
+        frontendUrl="https://sky.kitehub.me"
         slug="sky"
         onManage={() => {}}
       />,
     );
     const link = screen.getByTestId('done-step-open-landing') as HTMLAnchorElement;
     expect(link).toBeInTheDocument();
-    expect(link.getAttribute('href')).toBe('https://sky.kiteclass.vn');
+    expect(link.getAttribute('href')).toBe('https://sky.kitehub.me');
     expect(link.getAttribute('target')).toBe('_blank');
     expect(screen.getByText('Trung tâm Anh ngữ Sky')).toBeInTheDocument();
   });
@@ -41,7 +41,7 @@ describe('DoneStep', () => {
   it('invokes onManage when the manage button is clicked', () => {
     const onManage = vi.fn();
     render(
-      <DoneStep tenantName="TT" frontendUrl="https://x.kiteclass.vn" onManage={onManage} />,
+      <DoneStep tenantName="TT" frontendUrl="https://x.kitehub.me" onManage={onManage} />,
     );
     fireEvent.click(screen.getByTestId('done-step-manage'));
     expect(onManage).toHaveBeenCalledTimes(1);

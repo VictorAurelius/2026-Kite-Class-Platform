@@ -49,14 +49,14 @@ package "KiteHub — SaaS Management Platform" as KITEHUB #E8EAF6 {
 ' ==================== TENANT LAYER ====================
 package "KiteClass — Tenant Instances (Provisioned by KiteHub)" as KITECLASS #E8F5E9 {
 
-    package "Tenant A: abc.kiteclass.com" as T_A #C8E6C9 {
+    package "Tenant A: abc.kitehub.me" as T_A #C8E6C9 {
         component "KC Frontend\n[Next.js]" as KC_FE_A
         component "KC Gateway\n[Spring Cloud]" as KC_GW_A
         component "KC Core Service\n[Spring Boot]" as KC_CORE_A
         database "kiteclass_abc\n[Isolated DB]" as KC_DB_A #66BB6A
     }
 
-    package "Tenant B: xyz.kiteclass.com" as T_B #C8E6C9 {
+    package "Tenant B: xyz.kitehub.me" as T_B #C8E6C9 {
         component "KC Frontend" as KC_FE_B
         component "KC Gateway" as KC_GW_B
         component "KC Core" as KC_CORE_B
@@ -109,7 +109,7 @@ legend right
 | KiteHub | SaaS management, billing, branding |
 | KiteClass | Per-tenant LMS application |
 | Provisioning | Isolated DB per tenant (Flyway) |
-| Domain | *.kiteclass.com (subdomain) |
+| Domain | *.kitehub.me (subdomain) |
 | Custom Domain | PREMIUM+ (CNAME verification) |
 endlegend
 

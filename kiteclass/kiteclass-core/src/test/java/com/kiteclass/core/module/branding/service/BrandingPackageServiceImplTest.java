@@ -57,7 +57,7 @@ class BrandingPackageServiceImplTest {
         tenantA = FrontendInstance.builder()
                 .tenantSlug("tenant-a")
                 .slug("tenant-a")
-                .frontendUrl("https://tenant-a.kiteclass.com")
+                .frontendUrl("https://tenant-a.kitehub.me")
                 .brandingVersion(2)
                 .deployedAt(Instant.now())
                 .build();

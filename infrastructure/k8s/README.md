@@ -212,7 +212,7 @@ kubectl describe ingress -n kiteclass-{instance-id} kiteclass-ingress
 kubectl get certificate -n kiteclass-{instance-id}
 
 # Test DNS
-nslookup {subdomain}.kiteclass.com
+nslookup {subdomain}.kitehub.me
 ```
 
 ## Upgrade Strategy
@@ -261,4 +261,4 @@ kubectl rollout undo deployment/kiteclass-core -n kiteclass-{instance-id}
 For issues with K8s deployments:
 1. Check pod logs: `kubectl logs -n kiteclass-{instance-id} <pod-name>`
 2. Check events: `kubectl get events -n kiteclass-{instance-id}`
-3. Contact DevOps team: devops@kiteclass.com
+3. Contact DevOps team: devops@kitehub.me

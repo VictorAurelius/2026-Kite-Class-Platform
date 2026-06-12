@@ -193,7 +193,7 @@ title Provisioning KiteClass Instance
 
 |Customer|
 start
-:Access kiteclass.com;
+:Access kitehub.me;
 :Select package;
 :Upload organization logo;
 :Complete payment;

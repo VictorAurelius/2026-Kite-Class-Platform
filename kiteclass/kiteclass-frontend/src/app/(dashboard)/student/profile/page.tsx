@@ -33,7 +33,7 @@ export default function StudentProfilePage() {
   const clearAuth = useAuthStore((state) => state.clearAuth);
 
   const fullName = user?.name ?? 'Nguyễn Minh An';
-  const email = user?.email ?? 'an.nguyen@kiteclass.vn';
+  const email = user?.email ?? 'an.nguyen@kitehub.me';
   const initials = fullName
     .split(' ')
     .map((s) => s.charAt(0))

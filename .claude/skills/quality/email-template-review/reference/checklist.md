@@ -52,7 +52,7 @@ Full 40-point checklist. Tick every item per template. Any FAIL in a MUST row bl
 | 4.3 | Null-safe on optional fields | MUST | Every `${branding.X}` has `?:` default; every `${user.phone}` guarded by `th:if` |
 | 4.4 | XSS protection on user-supplied values | MUST | Use `th:text` (escaped); AVOID `th:utext` unless value is trusted system-generated HTML |
 | 4.5 | URLs are absolute + HTTPS | MUST | `${loginUrl}`, `${unsubscribeUrl}`, `${branding.logoUrl}` all resolve to `https://...` — relative URLs break in Gmail/Outlook |
-| 4.6 | Tenant-scoped URLs (no cross-tenant leak) | MUST | `${loginUrl}` = `https://{tenant-subdomain}.kiteclass.com/login`, not a generic URL — or it exposes admin panel to wrong tenant |
+| 4.6 | Tenant-scoped URLs (no cross-tenant leak) | MUST | `${loginUrl}` = `https://{tenant-subdomain}.kitehub.me/login`, not a generic URL — or it exposes admin panel to wrong tenant |
 
 ## 5. Mobile & Responsive (5 items)
 
@@ -79,7 +79,7 @@ Full 40-point checklist. Tick every item per template. Any FAIL in a MUST row bl
 |---|------|-------|--------------|
 | 7.1 | Template renders with branding=null (system email) | MUST | Defaults kick in, no `${branding.X}` raw text in HTML |
 | 7.2 | Template renders with full tenant branding | MUST | All brand colors, logo, display name, contact email apply |
-| 7.3 | `contactEmail` is per-tenant (not hardcoded) | MUST | `${branding?.contactEmail ?: 'support@kiteclass.com'}` pattern — tenant's own support email used when set |
+| 7.3 | `contactEmail` is per-tenant (not hardcoded) | MUST | `${branding?.contactEmail ?: 'support@kitehub.me'}` pattern — tenant's own support email used when set |
 
 ---
 

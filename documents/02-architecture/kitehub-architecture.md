@@ -18,7 +18,7 @@ Báo cáo kiến trúc đầy đủ cho **KiteHub** — SaaS platform quản lý
 
 ## 1. Overview
 
-**KiteHub** = SaaS quản lý lifecycle education tenant (trial → subscription → billing → domain → off-boarding). Mỗi tenant đăng ký từ KiteHub sẽ được provision một KiteClass instance riêng (subdomain `{tenant}.kiteclass.com`) để vận hành nghiệp vụ giáo dục thực tế.
+**KiteHub** = SaaS quản lý lifecycle education tenant (trial → subscription → billing → domain → off-boarding). Mỗi tenant đăng ký từ KiteHub sẽ được provision một KiteClass instance riêng (subdomain `{tenant}.kitehub.me`) để vận hành nghiệp vụ giáo dục thực tế.
 
 **Tách concern chính:**
 - **KiteHub** xử lý: tenant signup, trial management, subscription billing, AI branding generation, transactional email, platform admin dashboard, **authn JWT issuance** (centralized cho toàn platform).
@@ -33,7 +33,7 @@ flowchart TB
     User[👤 Tenant Owner / Solo Teacher / Platform Admin / Anonymous Prospect]
 
     subgraph Edge[Edge layer]
-        CF[Cloudflare DNS + CDN<br/>kitehub.me + tenant.kiteclass.com]
+        CF[Cloudflare DNS + CDN<br/>kitehub.me + tenant.kitehub.me]
         Vercel[Vercel<br/>FE legacy<br/>migrating EC2 ADR-031]
     end
 
@@ -351,7 +351,7 @@ Per `email-architecture.md`:
 
 ### 5.2 DNS + CDN (Cloudflare)
 
-- DNS zone `kitehub.me` + `kiteclass.com` quản lý tại Cloudflare
+- DNS zone `kitehub.me` + `kitehub.me` quản lý tại Cloudflare
 - Cloudflare CDN proxy cho cả Vercel (legacy FE) + AWS EC2 (FE migration target per ADR-031)
 - Cloudflare Email Routing cho catch-all + alias forwarding
 - DDoS protection + WAF baseline
@@ -391,7 +391,7 @@ flowchart TB
     Internet[🌐 Internet]
 
     subgraph CFEdge[Cloudflare edge]
-        CFDNS[Cloudflare DNS<br/>kitehub.me + kiteclass.com]
+        CFDNS[Cloudflare DNS<br/>kitehub.me + kitehub.me]
         CFCDN[Cloudflare CDN + WAF]
     end
 

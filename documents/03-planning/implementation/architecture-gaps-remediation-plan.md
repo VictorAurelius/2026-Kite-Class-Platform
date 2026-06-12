@@ -360,7 +360,7 @@ spring:
         - id: instance-core
           uri: http://kiteclass-core-{instance-id}:8080
           predicates:
-            - Host={subdomain}.kiteclass.com
+            - Host={subdomain}.kitehub.me
             - Path=/api/v1/**
           filters:
             - ResolveInstanceId

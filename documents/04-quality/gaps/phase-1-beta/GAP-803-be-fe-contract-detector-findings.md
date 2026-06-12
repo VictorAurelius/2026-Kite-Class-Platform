@@ -27,7 +27,7 @@ Detector #2 + rule #4 ban đầu trỏ `kitehub/kiteclass-frontend` (KHÔNG tồ
 |---|---|---|
 | `KITEHUB_STAFF_INVITATION_BASE_URL` | `https://kitehub.me` | `StaffInvitationController.java:102` |
 | `RESEND_FROM_EMAIL` | `no-reply@kitehub.me` | `ResendEmailService.java:67` |
-| `PARENT_PORTAL_REDEEM_BASE_URL` | `https://app.kiteclass.vn/parent-invite/` | `kiteclass-core application.yml:292` |
+| `PARENT_PORTAL_REDEEM_BASE_URL` | `https://app.kitehub.me/parent-invite/` | `kiteclass-core application.yml:292` |
 
 → Thêm local override vào `docker-compose.kitehub.yml` env block (vd `http://localhost:3000`), HOẶC thêm vào `ACCEPTABLE_PROD_DOMAINS` nếu cố ý (vd `RESEND_FROM_EMAIL` có thể luôn dùng prod sender — cần rationale + `production-env-config-registry.md` row).
 

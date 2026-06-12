@@ -50,7 +50,7 @@ async function fakeAuth(page: any) {
         refreshToken: 'fake-refresh-token',
         user: {
           id: 1,
-          email: 'admin@kiteclass.com',
+          email: 'admin@kitehub.me',
           firstName: 'Admin',
           lastName: 'User',
           role: 'ADMIN',

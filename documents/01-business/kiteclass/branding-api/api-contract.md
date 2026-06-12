@@ -23,7 +23,7 @@
 ### POST /api/v1/instances/{id}/branding-completed
 **Request (optional):**
 ```json
-{ "frontendUrl": "https://acme.kiteclass.com" }
+{ "frontendUrl": "https://acme.kitehub.me" }
 ```
 **Response 200:** `ApiResponse<InstanceResponse>` (status=DEPLOYED, brandingVersion++)
 
@@ -53,7 +53,7 @@
   "instanceId": 10,
   "tenantId": "t-abc",
   "slug": "acme",
-  "frontendUrl": "https://acme.kiteclass.com",
+  "frontendUrl": "https://acme.kitehub.me",
   "brandingVersion": 7,
   "deployedAt": "2026-04-14T00:00:00Z",
   "assets": [

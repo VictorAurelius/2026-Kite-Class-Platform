@@ -69,7 +69,7 @@ Initial signup → tenant provisioning → first usable state.
   - **Linked gap:** GAP-054 (multi-subject per student)
 
 - [ ] **AC-ONBOARD-005:** Branding wizard generates center identity (logo, theme, parent portal hostname) ≤15 phút
-  - **Test:** Upload logo → AI Branding wizard chọn audience "Trung tâm Anh ngữ" + tone "Professional" → preview deployed tại `<center-slug>.kiteclass.vn` → giám đốc approve per resource (logo/banner/hero)
+  - **Test:** Upload logo → AI Branding wizard chọn audience "Trung tâm Anh ngữ" + tone "Professional" → preview deployed tại `<center-slug>.kitehub.me` → giám đốc approve per resource (logo/banner/hero)
   - **Fail signal:** Không có branding wizard; subdomain không deploy; preview không show actual content
   - **Status:** PASS / PARTIAL / FAIL
   - **Linked gap:** —

@@ -322,7 +322,7 @@ public class EmailServiceClient {
                     "subdomain", subdomain,
                     "instanceName", subdomain,
                     "upgradeUrl", "https://kitehub.com/pricing",
-                    "dashboardUrl", String.format("https://%s.kiteclass.vn/dashboard", subdomain)
+                    "dashboardUrl", String.format("https://%s.kitehub.me/dashboard", subdomain)
                 ))
                 .build();
 
@@ -356,7 +356,7 @@ public class EmailServiceClient {
                 .variables(Map.of(
                     "subdomain", subdomain,
                     "instanceName", subdomain,
-                    "dashboardUrl", String.format("https://%s.kiteclass.vn/dashboard", subdomain)
+                    "dashboardUrl", String.format("https://%s.kitehub.me/dashboard", subdomain)
                 ))
                 .build();
 
@@ -549,7 +549,7 @@ public class EmailServiceClient {
                     "recipientName", organizationName == null ? "bạn" : organizationName,
                     "organizationName", organizationName == null ? "" : organizationName,
                     "subdomain", safeSubdomain,
-                    "dashboardUrl", String.format("https://%s.kiteclass.vn/dashboard", safeSubdomain),
+                    "dashboardUrl", String.format("https://%s.kitehub.me/dashboard", safeSubdomain),
                     "onboardingChecklistUrl", "https://kitehub.me/help/onboarding",
                     "supportUrl", "https://kitehub.me/support",
                     "unsubscribeUrl", "https://kitehub.me/unsubscribe"

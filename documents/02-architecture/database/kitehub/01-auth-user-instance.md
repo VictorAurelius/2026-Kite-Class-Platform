@@ -255,7 +255,7 @@ erDiagram
 | Cột | Kiểu | Null | Default | Khóa/Index | Ý nghĩa |
 |---|---|---|---|---|---|
 | `id` | UUID | NO | — | PK | Khóa chính (tenant ID). App-managed |
-| `subdomain` | VARCHAR(50) | NO | — | UNIQUE; `idx_instances_subdomain` | Subdomain `<sub>.kiteclass.com` (legacy V1, regex `^[a-z0-9-]+$` ở entity) |
+| `subdomain` | VARCHAR(50) | NO | — | UNIQUE; `idx_instances_subdomain` | Subdomain `<sub>.kitehub.me` (legacy V1, regex `^[a-z0-9-]+$` ở entity) |
 | `custom_domain` | VARCHAR(255) | YES | — | partial `idx_instances_custom_domain WHERE custom_domain IS NOT NULL AND deleted=false` | Custom domain (PREMIUM/ENTERPRISE only) |
 | `organization_name` | VARCHAR(200) | NO | — | — | Tên hiển thị (giữ diacritic + smart quotes nguyên gốc) |
 | `owner_id` | UUID | NO | — | `idx_instances_owner` | CENTER_OWNER user UUID. ⚠️ **NO FK** tới `users(id)` (loose coupling cross-product) |

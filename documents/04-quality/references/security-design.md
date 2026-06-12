@@ -303,7 +303,7 @@ metadata:
 spec:
   tls:
     - hosts:
-        - "*.kiteclass.com"
+        - "*.kitehub.me"
       secretName: kiteclass-tls
 ```
 
@@ -445,7 +445,7 @@ kubeseal --format=yaml < secret.yaml > sealed-secret.yaml
   "role": "TEACHER",
   "exp": 1709971200,
   "iat": 1709967600,
-  "iss": "https://api.kiteclass.com"
+  "iss": "https://api.kitehub.me"
 }
 ```
 

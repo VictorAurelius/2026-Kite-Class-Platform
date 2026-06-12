@@ -29,7 +29,7 @@ Phase 1 BETA mirror production architecture nhỏ hơn (NO EKS — EC2 + docker-
 - 1× RDS db.t3.micro (staging Postgres)
 - 1× S3 bucket (assets staging)
 - Redis + RabbitMQ self-host trên EC2 (containerized)
-- Staging domain: `staging.kitehub.vn` + `staging.kiteclass.vn`
+- Staging domain: `staging.kitehub.vn` + `staging.kitehub.me`
 - Cloudflare proxy enabled (DNS primary per ADR-018)
 - Same Spring profiles + configs as prod, except secrets + DB
 
@@ -70,7 +70,7 @@ Phase 2 EKS migration trigger gate documented in
 ### USER-ACTION (post-merge — per GAP-381 Phase 2 BANNED for agent)
 
 - [ ] Run `terraform apply -var="enable_staging=true"` → provision staging EC2 + RDS + S3
-- [ ] DNS staging.kitehub.vn + staging.kiteclass.vn configured trên Cloudflare (proxy enabled)
+- [ ] DNS staging.kitehub.vn + staging.kitehub.me configured trên Cloudflare (proxy enabled)
 - [ ] docker-compose stack deployed via SSM (first run)
 - [ ] Flyway migrations applied
 - [ ] Smoke test passes on staging URL (`./scripts/smoke-test.sh`)

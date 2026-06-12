@@ -14,7 +14,7 @@ Browser-walk wizard AI Branding Step 6 (approve → deploy) lộ 2 bug FE mà cu
 
 2. **SSE deploy-stream STREAM_DISCONNECTED + UNKNOWN** — `useDeployStream` EventSource fire `error` lúc connect (17:22:03, TRƯỚC provision 17:22:04) → emit `{errorCode:'STREAM_DISCONNECTED'}`. Nghi: token-in-query `?token=` auth qua gateway SSE route fail HOẶC EventSource immediate error. Cần browser Network tab inspect (status SSE request) để xác định root cause.
 
-Backend provision THÀNH CÔNG (lifecycle → DEPLOYED `toan-master.kiteclass.vn` 17:22:08) — chỉ FE display kẹt. Bug 1 (42P18 500) đã fix riêng + verified (commit branding repo).
+Backend provision THÀNH CÔNG (lifecycle → DEPLOYED `toan-master.kitehub.me` 17:22:08) — chỉ FE display kẹt. Bug 1 (42P18 500) đã fix riêng + verified (commit branding repo).
 
 ## Proposed Fix
 

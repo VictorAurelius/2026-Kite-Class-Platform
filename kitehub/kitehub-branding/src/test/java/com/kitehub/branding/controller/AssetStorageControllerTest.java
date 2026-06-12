@@ -81,7 +81,7 @@ class AssetStorageControllerTest {
         );
 
         String expectedPath = "instances/" + instanceId + "/branding/profile/cutout_123456.png";
-        String expectedUrl = "https://cdn.kiteclass.com/" + expectedPath;
+        String expectedUrl = "https://cdn.kitehub.me/" + expectedPath;
         // GAP-1112 #1: response carries the presigned (browser-loadable) preview URL.
         String presignedUrl = "https://minio.local/" + expectedPath + "?X-Amz-Signature=abc";
 
@@ -115,7 +115,7 @@ class AssetStorageControllerTest {
         expectedAssets.add(BrandingAsset.builder()
             .type("profile")
             .variant("cutout")
-            .url("https://cdn.kiteclass.com/instances/" + instanceId + "/profile.png")
+            .url("https://cdn.kitehub.me/instances/" + instanceId + "/profile.png")
             .sizeBytes(125000L)
             .contentType("image/png")
             .uploadedAt(System.currentTimeMillis() / 1000)
@@ -187,12 +187,12 @@ class AssetStorageControllerTest {
         assets.add(BrandingAsset.builder()
             .type("profile")
             .variant("cutout")
-            .url("https://cdn.kiteclass.com/instances/" + instanceId + "/branding/profile/cutout.png")
+            .url("https://cdn.kitehub.me/instances/" + instanceId + "/branding/profile/cutout.png")
             .build());
         assets.add(BrandingAsset.builder()
             .type("hero")
             .variant("variant1")
-            .url("https://cdn.kiteclass.com/instances/" + instanceId + "/branding/hero/variant1.jpg")
+            .url("https://cdn.kitehub.me/instances/" + instanceId + "/branding/hero/variant1.jpg")
             .build());
 
         String assetsJson = "[{\"type\":\"profile\"},{\"type\":\"hero\"}]";
@@ -239,7 +239,7 @@ class AssetStorageControllerTest {
         List<BrandingAsset> assets = new ArrayList<>();
         assets.add(BrandingAsset.builder()
             .type("profile")
-            .url("https://cdn.kiteclass.com/instances/" + instanceId + "/branding/profile/cutout.png")
+            .url("https://cdn.kitehub.me/instances/" + instanceId + "/branding/profile/cutout.png")
             .build());
 
         String assetsJson = "[{\"type\":\"profile\"}]";

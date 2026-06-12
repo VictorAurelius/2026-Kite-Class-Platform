@@ -12,7 +12,7 @@
 No documented domain / DNS strategy:
 - kitehub.vn (or equivalent) — not yet registered / confirmed registrar
 - Per-instance subdomain policy undefined — user ask (action-1 line 61): "domain của kitehub và các instance kiteclass sẽ được đăng ký và cấu hình như thế nào"
-  - Candidate patterns: `{school}.kiteclass.com`, `{school}.kiteclass.vn`, `{school}.kitehub.app`
+  - Candidate patterns: `{school}.kitehub.me`, `{school}.kitehub.me`, `{school}.kitehub.app`
 - No custom-domain (CNAME) support spec — required for P3/P5 tier schools that want branded domains
 - No DNS automation — provisioning a tenant currently assumes DNS pre-exists
 - No SSL/TLS automation (Let's Encrypt? ACM? Wildcard?) — impacts branding + auth flows
@@ -37,7 +37,7 @@ User asked explicitly during session (action-1 §6). Related gaps:
    - Tenant pattern: `{tenant-slug}.{core-domain}`
    - Slug generation: lowercase, hyphen-only, 3–32 chars, collision-check against reserved list
 4. **Custom domain (CNAME) support** — DNS verification token, SSL issuance flow, renewal automation
-5. **SSL strategy** — wildcard cert for `*.kiteclass.com` via DNS-01 + per-custom-domain via HTTP-01
+5. **SSL strategy** — wildcard cert for `*.kitehub.me` via DNS-01 + per-custom-domain via HTTP-01
 6. **DNS automation** — Terraform modules (`infrastructure/terraform-*/dns/`) + CI pipeline step during instance provisioning
 7. **Failover** — health checks + secondary IP + TTL tuning for cutover
 8. **Runbook** — `documents/05-guides/infrastructure/dns-operations.md`

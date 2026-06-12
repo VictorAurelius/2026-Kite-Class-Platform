@@ -156,10 +156,10 @@ curl http://localhost:11434/api/tags # Ollama AI
 ### Option A: Cloudflare (Khuyến nghị - miễn phí)
 
 1. Đăng ký Cloudflare: https://www.cloudflare.com
-2. Thêm domain `kiteclass.com`
+2. Thêm domain `kitehub.me`
 3. Tạo DNS records:
-   - `A` record: `kiteclass.com` → `<FRONTEND_PUBLIC_IP>` (Proxy ON)
-   - `A` record: `api.kiteclass.com` → `<FRONTEND_PUBLIC_IP>` (Proxy ON)
+   - `A` record: `kitehub.me` → `<FRONTEND_PUBLIC_IP>` (Proxy ON)
+   - `A` record: `api.kitehub.me` → `<FRONTEND_PUBLIC_IP>` (Proxy ON)
 4. SSL mode: Full (Strict)
 5. Cloudflare tự cấp SSL + CDN miễn phí
 
@@ -168,7 +168,7 @@ curl http://localhost:11434/api/tags # Ollama AI
 ```bash
 # Trên VM 2
 sudo dnf install certbot
-sudo certbot certonly --standalone -d kiteclass.com -d api.kiteclass.com
+sudo certbot certonly --standalone -d kitehub.me -d api.kitehub.me
 # Copy cert vào nginx/ssl/
 ```
 
@@ -189,11 +189,11 @@ docker compose -f docker-compose.oracle-frontend.yml restart nginx
 
 ```bash
 # Từ máy local
-curl https://kiteclass.com                      # ✅ Frontend
-curl https://api.kiteclass.com/actuator/health   # ✅ Gateway
+curl https://kitehub.me                      # ✅ Frontend
+curl https://api.kitehub.me/actuator/health   # ✅ Gateway
 
 # Test đăng nhập
-curl -X POST https://api.kiteclass.com/api/auth/login \
+curl -X POST https://api.kitehub.me/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@kitehub.com","password":"Admin@KiteHub123"}'
 # ✅ Trả về token

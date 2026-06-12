@@ -21,7 +21,7 @@ Code-level fix SHIPPED:
 - `Step6Preview.tsx` iframe đổi `srcDoc={previewHtml}` → `src={previewSrc}` (main + fullscreen). `previewSrc` = `useLandingPreviewUrl(...)` → `${NEXT_PUBLIC_KITECLASS_URL}/preview?primary=&secondary=&accent=&template=&orgName=&logo=&heroImage=&tenant=`.
 - Kiteclass `(public)/preview/page.tsx` re-export `(public)/page.tsx` default → **CÙNG component** (TemplateRenderer + sections) ⇒ 1 render path, section/theme mới tự xuất hiện.
 - `(public)/page.tsx` nhận thêm preview params `orgName`/`logo`/`heroImage` (additive, guarded) trên nền `tenant`/`template`/`primary`/`secondary`/`accent` đã có.
-- CSP/iframe: kiteclass `/preview` được `frame-ancestors` cho KH origin (`:3001` dev + `kitehub.me`) + bỏ `X-Frame-Options: DENY` riêng route `/preview` (broad rule negative-lookahead exclude); `/` giữ DENY. KH thêm `frame-src` cho KC origin (`:3000` dev + `kiteclass.com`). KHÔNG wildcard.
+- CSP/iframe: kiteclass `/preview` được `frame-ancestors` cho KH origin (`:3001` dev + `kitehub.me`) + bỏ `X-Frame-Options: DENY` riêng route `/preview` (broad rule negative-lookahead exclude); `/` giữ DENY. KH thêm `frame-src` cho KC origin (`:3000` dev + `kitehub.me`). KHÔNG wildcard.
 - FE build local PASS cả 2 (kitehub-frontend + kiteclass-frontend `next build`); `/preview` route generated trong KC build.
 
 ## Acceptance Criteria

@@ -14,7 +14,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  *                             self-service endpoints return {@code 503}.
  * @param invitationTtlHours   token lifetime — default 24 h per BR-PARENT-003.
  * @param redeemBaseUrl        absolute URL prefix for the email link (e.g.
- *                             {@code https://{tenant}.kiteclass.vn/parent-invite/}).
+ *                             {@code https://{tenant}.kitehub.me/parent-invite/}).
  *                             The token is appended at send time.
  * @since 2.14.0
  */
@@ -35,7 +35,7 @@ public record ParentPortalProperties(
             invitationTtlHours = 24;
         }
         if (redeemBaseUrl == null || redeemBaseUrl.isBlank()) {
-            redeemBaseUrl = "https://app.kiteclass.vn/parent-invite/";
+            redeemBaseUrl = "https://app.kitehub.me/parent-invite/";
         }
     }
 }

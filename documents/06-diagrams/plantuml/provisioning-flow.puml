@@ -38,7 +38,7 @@ activate instance
 instance -> instance: Build & khởi động\nÁp dụng AI branding
 instance --> maintain: Triển khai hoàn tất
 deactivate instance
-maintain --> customer: Gửi URL truy cập\nhttps://[tên].kiteclass.com
+maintain --> customer: Gửi URL truy cập\nhttps://[tên].kitehub.me
 deactivate maintain
 
 == 5. Sử dụng ==

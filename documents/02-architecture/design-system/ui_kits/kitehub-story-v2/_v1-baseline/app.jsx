@@ -175,7 +175,7 @@ function SceneOnboard({ active }) {
       </div>
       <div className="s-onb-form">
         <div className="s-fld"><label>Tên trung tâm</label><input className="typed" defaultValue="Trung tâm SkyLight English" /></div>
-        <div className="s-fld"><label>Subdomain</label><input className="typed" defaultValue="skylight.kiteclass.com" /></div>
+        <div className="s-fld"><label>Subdomain</label><input className="typed" defaultValue="skylight.kitehub.me" /></div>
         <div className="s-fld"><label>Email quản lý</label><input className="typed" defaultValue="hoang@skylight.vn" /></div>
         <div className="s-fld"><label>Số học viên hiện tại</label><input defaultValue="" placeholder="Đang nhập..." /></div>
       </div>

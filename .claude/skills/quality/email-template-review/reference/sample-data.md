@@ -17,8 +17,8 @@ Every template MUST render successfully with both **branded** (full tenant) and 
     "primaryColor": "#FF6B9D",
     "secondaryColor": "#FFC6D9",
     "accentColor": "#F9A826",
-    "logoUrl": "https://cdn.kiteclass.com/tenants/hoa-mai/logo.png",
-    "contactEmail": "lienhe@hoamai.kiteclass.com"
+    "logoUrl": "https://cdn.kitehub.me/tenants/hoa-mai/logo.png",
+    "contactEmail": "lienhe@hoamai.kitehub.me"
   },
   "tenantContext": {
     "id": "tenant-hoa-mai-01",
@@ -63,8 +63,8 @@ Every template MUST render successfully with both **branded** (full tenant) and 
   "organizationName": "Trường Mầm Non Hoa Mai",
   "trialDays": 14,
   "expiryDate": "04/05/2026",
-  "loginUrl": "https://hoa-mai.kiteclass.com/login",
-  "unsubscribeUrl": "https://hoa-mai.kiteclass.com/unsubscribe?token=abc123"
+  "loginUrl": "https://hoa-mai.kitehub.me/login",
+  "unsubscribeUrl": "https://hoa-mai.kitehub.me/unsubscribe?token=abc123"
 }
 ```
 
@@ -72,7 +72,7 @@ Every template MUST render successfully with both **branded** (full tenant) and 
 
 ```json
 {
-  "verificationUrl": "https://hoa-mai.kiteclass.com/verify?token=xyz789",
+  "verificationUrl": "https://hoa-mai.kitehub.me/verify?token=xyz789",
   "verificationCode": "482917",
   "expiryMinutes": 15,
   "userEmail": "admin@hoamai.vn"
@@ -88,8 +88,8 @@ Every template MUST render successfully with both **branded** (full tenant) and 
   "amount": 12000000,
   "currency": "VND",
   "nextBillingDate": "20/04/2027",
-  "invoiceUrl": "https://hoa-mai.kiteclass.com/invoices/INV-2026-0042.pdf",
-  "unsubscribeUrl": "https://hoa-mai.kiteclass.com/unsubscribe?token=..."
+  "invoiceUrl": "https://hoa-mai.kitehub.me/invoices/INV-2026-0042.pdf",
+  "unsubscribeUrl": "https://hoa-mai.kitehub.me/unsubscribe?token=..."
 }
 ```
 
@@ -99,7 +99,7 @@ Every template MUST render successfully with both **branded** (full tenant) and 
 {
   "planName": "Professional",
   "expiredOn": "20/04/2026",
-  "renewUrl": "https://hoa-mai.kiteclass.com/billing/renew",
+  "renewUrl": "https://hoa-mai.kitehub.me/billing/renew",
   "gracePeriodDays": 7,
   "dataRetentionUntil": "27/04/2026"
 }
@@ -114,7 +114,7 @@ Every template MUST render successfully with both **branded** (full tenant) and 
   "amount": 12000000,
   "currency": "VND",
   "daysUntilRenewal": 7,
-  "manageUrl": "https://hoa-mai.kiteclass.com/billing"
+  "manageUrl": "https://hoa-mai.kitehub.me/billing"
 }
 ```
 
@@ -124,9 +124,9 @@ Every template MUST render successfully with both **branded** (full tenant) and 
 {
   "planName": "Professional",
   "suspensionReason": "Thanh toán thất bại",
-  "resolveUrl": "https://hoa-mai.kiteclass.com/billing/update-payment",
+  "resolveUrl": "https://hoa-mai.kitehub.me/billing/update-payment",
   "suspendedOn": "20/04/2026",
-  "supportEmail": "lienhe@hoamai.kiteclass.com"
+  "supportEmail": "lienhe@hoamai.kitehub.me"
 }
 ```
 
@@ -136,7 +136,7 @@ Every template MUST render successfully with both **branded** (full tenant) and 
 {
   "daysRemaining": 7,
   "trialEndDate": "27/04/2026",
-  "upgradeUrl": "https://hoa-mai.kiteclass.com/billing/upgrade",
+  "upgradeUrl": "https://hoa-mai.kitehub.me/billing/upgrade",
   "usageStats": {
     "studentsCreated": 42,
     "classesCreated": 6,
@@ -151,8 +151,8 @@ Every template MUST render successfully with both **branded** (full tenant) and 
 {
   "daysRemaining": 3,
   "trialEndDate": "23/04/2026",
-  "upgradeUrl": "https://hoa-mai.kiteclass.com/billing/upgrade",
-  "dataExportUrl": "https://hoa-mai.kiteclass.com/settings/export"
+  "upgradeUrl": "https://hoa-mai.kitehub.me/billing/upgrade",
+  "dataExportUrl": "https://hoa-mai.kitehub.me/settings/export"
 }
 ```
 
@@ -161,8 +161,8 @@ Every template MUST render successfully with both **branded** (full tenant) and 
 ```json
 {
   "trialEndedOn": "20/04/2026",
-  "upgradeUrl": "https://hoa-mai.kiteclass.com/billing/upgrade",
-  "dataExportUrl": "https://hoa-mai.kiteclass.com/settings/export",
+  "upgradeUrl": "https://hoa-mai.kitehub.me/billing/upgrade",
+  "dataExportUrl": "https://hoa-mai.kitehub.me/settings/export",
   "dataRetentionDays": 30,
   "deleteOn": "20/05/2026"
 }
@@ -176,8 +176,8 @@ Every template MUST render successfully with both **branded** (full tenant) and 
   "inactiveSince": "20/01/2026",
   "deletionDate": "20/05/2026",
   "daysUntilDeletion": 30,
-  "dataExportUrl": "https://hoa-mai.kiteclass.com/settings/export",
-  "reactivateUrl": "https://hoa-mai.kiteclass.com/reactivate"
+  "dataExportUrl": "https://hoa-mai.kitehub.me/settings/export",
+  "reactivateUrl": "https://hoa-mai.kitehub.me/reactivate"
 }
 ```
 
@@ -188,7 +188,7 @@ Every template MUST render successfully with both **branded** (full tenant) and 
   "tenantDisplayName": "Trường Mầm Non Hoa Mai",
   "deletionDate": "20/05/2026",
   "daysUntilDeletion": 7,
-  "dataExportUrl": "https://hoa-mai.kiteclass.com/settings/export"
+  "dataExportUrl": "https://hoa-mai.kitehub.me/settings/export"
 }
 ```
 
@@ -209,10 +209,10 @@ Every template MUST render successfully with both **branded** (full tenant) and 
   "userName": "Nguyễn Thị Lan",
   "dayOfOnboarding": 3,
   "nextSteps": [
-    {"title": "Thêm học sinh", "url": "https://hoa-mai.kiteclass.com/students/new"},
-    {"title": "Tạo lớp học", "url": "https://hoa-mai.kiteclass.com/classes/new"}
+    {"title": "Thêm học sinh", "url": "https://hoa-mai.kitehub.me/students/new"},
+    {"title": "Tạo lớp học", "url": "https://hoa-mai.kitehub.me/classes/new"}
   ],
-  "helpCenterUrl": "https://kiteclass.com/help"
+  "helpCenterUrl": "https://kitehub.me/help"
 }
 ```
 
@@ -221,7 +221,7 @@ Every template MUST render successfully with both **branded** (full tenant) and 
 ```json
 {
   "userName": "Nguyễn Thị Lan",
-  "resetUrl": "https://hoa-mai.kiteclass.com/auth/reset?token=reset-abc-123",
+  "resetUrl": "https://hoa-mai.kitehub.me/auth/reset?token=reset-abc-123",
   "expiryMinutes": 30,
   "requestIpAddress": "113.161.45.22",
   "requestedAt": "2026-04-20 14:32 ICT"
@@ -236,7 +236,7 @@ Every template MUST render successfully with both **branded** (full tenant) and 
   "lockReason": "Quá nhiều lần đăng nhập sai",
   "lockDurationMinutes": 30,
   "unlockAt": "15:02 ICT, 20/04/2026",
-  "supportEmail": "lienhe@hoamai.kiteclass.com"
+  "supportEmail": "lienhe@hoamai.kitehub.me"
 }
 ```
 

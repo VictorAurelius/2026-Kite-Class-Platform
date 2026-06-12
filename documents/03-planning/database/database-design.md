@@ -440,7 +440,7 @@ CREATE TABLE sales.subscriptions (
 
     -- Subdomain
     subdomain VARCHAR(50) NOT NULL UNIQUE,
-    -- abc.kiteclass.com
+    -- abc.kitehub.me
 
     -- Billing cycle
     billing_cycle VARCHAR(20) DEFAULT 'monthly' NOT NULL,

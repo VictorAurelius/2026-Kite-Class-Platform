@@ -27,8 +27,8 @@
 
 | Item | Value |
 |------|-------|
-| Production domain | `kitehub.vn` + `kiteclass.vn` (cutover Phase 1.5 PAID) |
-| Beta domain | `beta.kitehub.vn` + `beta.kiteclass.vn` |
+| Production domain | `kitehub.vn` + `kitehub.me` (cutover Phase 1.5 PAID) |
+| Beta domain | `beta.kitehub.vn` + `beta.kitehub.me` |
 | Origin host | AWS ALB DNS |
 | TTL | **300s** trong cutover window; revert 3600s post-stable |
 | Proxy | Cloudflare orange-cloud (DDoS + cache + WAF free tier) — GAP-371 |
@@ -45,7 +45,7 @@
 
 ```
 [USER_INPUT_REQUIRED]
-1. Mua domain `kitehub.vn` + `kiteclass.vn` qua Nhân Hòa hoặc registrar tương đương
+1. Mua domain `kitehub.vn` + `kitehub.me` qua Nhân Hòa hoặc registrar tương đương
 2. Verify ownership: chuẩn bị giấy tờ doanh nghiệp / CMND theo yêu cầu VNNIC
 3. Lock domain transfer (registrar dashboard → Lock domain)
 4. Enable WHOIS privacy (nếu registrar hỗ trợ)
@@ -59,11 +59,11 @@
 4. Cloudflare cấp 2 nameservers (vd: `aria.ns.cloudflare.com`, `bob.ns.cloudflare.com`).
 5. Quay về registrar → DNS / Nameserver settings → đổi sang 2 nameserver Cloudflare.
 6. Đợi NS propagation 5-30 phút. Verify: `dig NS kitehub.vn @8.8.8.8` → trả về `*.ns.cloudflare.com`.
-7. Lặp lại cho `kiteclass.vn`.
+7. Lặp lại cho `kitehub.me`.
 
 ### 2.3 DNS records — Phase 1 BETA
 
-Cloudflare Dashboard → DNS → Records → Add. Apply for both `kitehub.vn` + `kiteclass.vn`.
+Cloudflare Dashboard → DNS → Records → Add. Apply for both `kitehub.vn` + `kitehub.me`.
 
 ```
 [USER_INPUT_REQUIRED: VM_PUBLIC_IP]   # Oracle Cloud VM A1 free tier IP
@@ -113,7 +113,7 @@ Run on Oracle Cloud VM as `root` or `sudo`:
 
 ```bash
 sudo bash scripts/ssl-cert-setup.sh beta.kitehub.vn admin@kitehub.vn
-sudo bash scripts/ssl-cert-setup.sh beta.kiteclass.vn admin@kitehub.vn
+sudo bash scripts/ssl-cert-setup.sh beta.kitehub.me admin@kitehub.vn
 ```
 
 The script (see `scripts/ssl-cert-setup.sh`):
@@ -128,7 +128,7 @@ After cert issued, re-enable Cloudflare proxy (orange cloud).
 
 ```bash
 bash scripts/check-dns-propagation.sh beta.kitehub.vn
-bash scripts/check-dns-propagation.sh beta.kiteclass.vn
+bash scripts/check-dns-propagation.sh beta.kitehub.me
 ```
 
 Script checks A, AAAA, MX, SPF (TXT), DKIM (CNAME), DMARC (TXT) against multiple DNS resolvers (Google `8.8.8.8`, Cloudflare `1.1.1.1`). Exit 0 = all pass.

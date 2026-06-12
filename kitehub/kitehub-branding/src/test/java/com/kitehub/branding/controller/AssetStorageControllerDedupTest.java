@@ -78,14 +78,14 @@ class AssetStorageControllerDedupTest {
     @DisplayName("Re-upload same assetType -> exactly 1 asset row remains (old deleted)")
     void reUploadSameAssetTypeReplacesPrevious() throws Exception {
         // Given: job already holds ONE LOGO asset
-        String oldUrl = "https://cdn.kiteclass.com/instances/" + instanceId + "/branding/LOGO/logo_old.png";
+        String oldUrl = "https://cdn.kitehub.me/instances/" + instanceId + "/branding/LOGO/logo_old.png";
         BrandingAsset existing = BrandingAsset.builder()
             .type("LOGO").variant("logo_old").url(oldUrl)
             .sizeBytes(111L).contentType("image/png").uploadedAt(1L).build();
         job.setAssetsGenerated(objectMapper.writeValueAsString(List.of(existing)));
 
         String newPath = "instances/" + instanceId + "/branding/LOGO/logo_new.png";
-        String newUrl = "https://cdn.kiteclass.com/" + newPath;
+        String newUrl = "https://cdn.kitehub.me/" + newPath;
 
         when(brandingJobService.getJobsByInstance(instanceId)).thenReturn(List.of(job));
         when(s3StorageService.generateAssetPath(eq(instanceId), eq("LOGO"), anyString())).thenReturn(newPath);
@@ -113,14 +113,14 @@ class AssetStorageControllerDedupTest {
     @DisplayName("Upload different assetType -> both kept (no replacement)")
     void uploadDifferentAssetTypeKeepsBoth() throws Exception {
         // Given: job already holds ONE LOGO asset
-        String logoUrl = "https://cdn.kiteclass.com/instances/" + instanceId + "/branding/LOGO/logo_1.png";
+        String logoUrl = "https://cdn.kitehub.me/instances/" + instanceId + "/branding/LOGO/logo_1.png";
         BrandingAsset existingLogo = BrandingAsset.builder()
             .type("LOGO").variant("logo_1").url(logoUrl)
             .sizeBytes(111L).contentType("image/png").uploadedAt(1L).build();
         job.setAssetsGenerated(objectMapper.writeValueAsString(List.of(existingLogo)));
 
         String heroPath = "instances/" + instanceId + "/branding/HERO/hero_1.png";
-        String heroUrl = "https://cdn.kiteclass.com/" + heroPath;
+        String heroUrl = "https://cdn.kitehub.me/" + heroPath;
 
         when(brandingJobService.getJobsByInstance(instanceId)).thenReturn(List.of(job));
         when(s3StorageService.generateAssetPath(eq(instanceId), eq("HERO"), anyString())).thenReturn(heroPath);
@@ -153,7 +153,7 @@ class AssetStorageControllerDedupTest {
         when(s3StorageService.generateAssetPath(eq(instanceId), eq("LOGO"), anyString()))
             .thenAnswer(inv -> "instances/" + instanceId + "/branding/LOGO/logo_" + System.nanoTime() + ".png");
         when(s3StorageService.uploadAsset(any(), anyString(), eq("image/png"), anyLong()))
-            .thenAnswer(inv -> "https://cdn.kiteclass.com/" + inv.getArgument(1));
+            .thenAnswer(inv -> "https://cdn.kitehub.me/" + inv.getArgument(1));
         when(s3StorageService.getPresignedAssetUrl(anyString())).thenReturn("https://signed");
         // Mirror persistence back onto the job so each subsequent upload sees prior state
         org.mockito.Mockito.doAnswer(inv -> {

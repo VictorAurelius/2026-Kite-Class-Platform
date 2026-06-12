@@ -46,7 +46,7 @@ Deployment instructions for the Kite Class Platform on Oracle Cloud Infrastructu
 
 - Oracle Cloud account with Always-Free tier ARM instance
 - Docker 24.x and Docker Compose 2.x installed
-- Domain names configured: `kitehub.vn`, `*.kiteclass.com`
+- Domain names configured: `kitehub.vn`, `*.kitehub.me`
 - SSL certificates (auto-managed via Let's Encrypt)
 
 ## Environment Setup
@@ -84,7 +84,7 @@ MAIL_PASSWORD=<app-password>
 
 # Domain
 DOMAIN_KITEHUB=kitehub.vn
-DOMAIN_KITECLASS=kiteclass.com
+DOMAIN_KITECLASS=kitehub.me
 ```
 
 ### 3. Start the Stack

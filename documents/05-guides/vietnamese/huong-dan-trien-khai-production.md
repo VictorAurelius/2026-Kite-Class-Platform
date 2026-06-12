@@ -47,15 +47,15 @@ KiteClass Platform triển khai theo mô hình **multi-tenant** với 2 layers c
 ┌─────────────────────────────────────────────────────────┐
 │              KITECLASS INSTANCES (Tenant Layer)          │
 │                                                          │
-│  Instance 1 (customer1.kiteclass.com)                    │
+│  Instance 1 (customer1.kitehub.me)                    │
 │    - Gateway, Core, Frontend                             │
 │    - Isolated database                                   │
 │                                                          │
-│  Instance 2 (customer2.kiteclass.com)                    │
+│  Instance 2 (customer2.kitehub.me)                    │
 │    - Gateway, Core, Frontend                             │
 │    - Isolated database                                   │
 │                                                          │
-│  Instance N (customerN.kiteclass.com)                    │
+│  Instance N (customerN.kitehub.me)                    │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -68,8 +68,8 @@ KiteClass Platform triển khai theo mô hình **multi-tenant** với 2 layers c
 | Environment | Purpose | URL |
 |------------|---------|-----|
 | **Local** | Development | http://localhost:3000 |
-| **Staging** | Pre-production testing | https://staging.kiteclass.com |
-| **Production** | Live production | https://kiteclass.com |
+| **Staging** | Pre-production testing | https://staging.kitehub.me |
+| **Production** | Live production | https://kitehub.me |
 
 **Deployment Methods:**
 
@@ -85,7 +85,7 @@ KiteClass Platform triển khai theo mô hình **multi-tenant** với 2 layers c
 
 - ✅ **Kubernetes Cluster:** AWS EKS, GKE, hoặc AKS
 - ✅ **Container Registry:** Docker Hub, AWS ECR, hoặc Google Container Registry
-- ✅ **Domain Name:** `kiteclass.com` và `*.kiteclass.com`
+- ✅ **Domain Name:** `kitehub.me` và `*.kitehub.me`
 - ✅ **SSL Certificates:** Let's Encrypt hoặc AWS Certificate Manager
 - ✅ **Database:** Managed PostgreSQL (AWS RDS, Cloud SQL)
 - ✅ **Redis:** Managed Redis (AWS ElastiCache, Google Memorystore)
@@ -633,12 +633,12 @@ metadata:
 spec:
   tls:
   - hosts:
-    - "*.kiteclass.com"
-    - "kiteclass.com"
+    - "*.kitehub.me"
+    - "kitehub.me"
     secretName: kiteclass-tls-cert
   rules:
   # Main domain → KiteHub Gateway
-  - host: kiteclass.com
+  - host: kitehub.me
     http:
       paths:
       - path: /
@@ -650,7 +650,7 @@ spec:
               number: 9000
 
   # Wildcard subdomain → KiteClass instances
-  - host: "*.kiteclass.com"
+  - host: "*.kitehub.me"
     http:
       paths:
       # API endpoints → KiteClass Gateway
@@ -681,7 +681,7 @@ kubectl get ingress -n kiteclass
 
 # Output:
 # NAME                 CLASS    HOSTS               ADDRESS          PORTS     AGE
-# kiteclass-ingress    nginx    *.kiteclass.com     54.123.45.67     80, 443   1m
+# kiteclass-ingress    nginx    *.kitehub.me     54.123.45.67     80, 443   1m
 ```
 
 ---
@@ -714,7 +714,7 @@ metadata:
 spec:
   acme:
     server: https://acme-v02.api.letsencrypt.org/directory
-    email: admin@kiteclass.com
+    email: admin@kitehub.me
     privateKeySecretRef:
       name: letsencrypt-prod-key
     solvers:
@@ -792,7 +792,7 @@ kubectl get hpa -n kiteclass
 **1. Health Check:**
 
 ```bash
-curl https://api.kiteclass.com/actuator/health
+curl https://api.kitehub.me/actuator/health
 
 # Expected:
 {
@@ -803,7 +803,7 @@ curl https://api.kiteclass.com/actuator/health
 **2. Login Test:**
 
 ```bash
-curl -X POST https://api.kiteclass.com/api/v1/auth/login \
+curl -X POST https://api.kitehub.me/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "test@example.com",
@@ -825,7 +825,7 @@ curl -X POST https://api.kiteclass.com/api/v1/auth/login \
 ```bash
 TOKEN="<access-token-from-login>"
 
-curl https://api.kiteclass.com/api/v1/students \
+curl https://api.kitehub.me/api/v1/students \
   -H "Authorization: Bearer $TOKEN"
 
 # Expected:
@@ -850,7 +850,7 @@ curl https://api.kiteclass.com/api/v1/students \
 
 set -e
 
-BASE_URL="${BASE_URL:-https://api.kiteclass.com}"
+BASE_URL="${BASE_URL:-https://api.kitehub.me}"
 
 echo "🔍 Running smoke tests..."
 echo "Base URL: $BASE_URL"
@@ -1272,7 +1272,7 @@ curl 'http://prometheus:9090/api/v1/query?query=rate(http_server_requests_second
 kubectl logs --tail=100 deployment/kiteclass-core -n kiteclass | grep ERROR
 
 # 2. Check Jaeger for failed traces
-# Open: http://jaeger.kiteclass.com/search
+# Open: http://jaeger.kitehub.me/search
 # Filter: service=kiteclass-core, status=error
 
 # 3. Check database connections
@@ -1330,7 +1330,7 @@ kubectl set env deployment/kiteclass-branding OPENAI_ENABLED=false -n kiteclass
 
 ```bash
 # Check Grafana latency dashboard
-# Open: http://grafana.kiteclass.com/d/service-latency
+# Open: http://grafana.kitehub.me/d/service-latency
 
 # Find slowest endpoints
 curl 'http://prometheus:9090/api/v1/query?query=topk(10, histogram_quantile(0.95, rate(http_server_requests_seconds_bucket[5m])))'
@@ -1501,7 +1501,7 @@ kubectl set env deployment/kiteclass-core \
 11:00 - Resolution: Error rate back to normal. Monitoring.
 ```
 
-**Update status page:** https://status.kiteclass.com
+**Update status page:** https://status.kitehub.me
 
 ---
 
@@ -1678,7 +1678,7 @@ aws rds restore-db-instance-from-db-snapshot \
 kubectl apply -f infrastructure/k8s/kiteclass/ --context=dr-cluster
 
 # 5. Update DNS to point to DR region
-# Route53: kiteclass.com → DR Load Balancer
+# Route53: kitehub.me → DR Load Balancer
 
 # 6. Verify services
 ./scripts/smoke-tests.sh
@@ -1701,7 +1701,7 @@ kubectl apply -f infrastructure/k8s/kiteclass/ --context=dr-cluster
 - [ ] ✅ Namespaces created (`kiteclass`, `monitoring`, `cert-manager`)
 - [ ] ✅ Container registry configured (ECR/GCR/Docker Hub)
 - [ ] ✅ Load balancer provisioned (ALB/NLB)
-- [ ] ✅ DNS configured (`*.kiteclass.com`)
+- [ ] ✅ DNS configured (`*.kitehub.me`)
 
 **Security:**
 

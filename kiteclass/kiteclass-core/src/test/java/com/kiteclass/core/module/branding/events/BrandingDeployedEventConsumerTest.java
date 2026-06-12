@@ -52,7 +52,7 @@ class BrandingDeployedEventConsumerTest {
         when(landingPageService.applyDeployedBranding(eq(tenant), eq("#112233"), eq("#445566"),
                 eq("https://cdn/logo.svg"), eq(2))).thenReturn(true);
         String json = "{\"tenantId\":\"" + tenant + "\",\"slug\":\"acme\","
-                + "\"frontendUrl\":\"https://acme.kiteclass.vn\",\"primaryColor\":\"#112233\","
+                + "\"frontendUrl\":\"https://acme.kitehub.me\",\"primaryColor\":\"#112233\","
                 + "\"secondaryColor\":\"#445566\",\"accentColor\":\"#778899\","
                 + "\"logoUrl\":\"https://cdn/logo.svg\",\"brandingVersion\":2,"
                 + "\"deployedAt\":\"2026-06-12T00:00:00Z\"}";

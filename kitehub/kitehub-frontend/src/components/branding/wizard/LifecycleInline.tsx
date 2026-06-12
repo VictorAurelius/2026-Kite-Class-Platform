@@ -57,7 +57,7 @@ export interface LifecycleInlineProps {
    */
   instanceName?: string;
   /**
-   * Live URL once DEPLOYED (e.g. `edison.kiteclass.vn`). Forwarded as-is to
+   * Live URL once DEPLOYED (e.g. `edison.kitehub.me`). Forwarded as-is to
    * G9 — the underlying component only renders it in DEPLOYED state.
    */
   liveUrl?: string;

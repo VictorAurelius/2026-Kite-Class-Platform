@@ -36,9 +36,9 @@ const STUDENTS = [
 ];
 
 const TEACHERS = [
-  { id: 1, name: 'Nguyễn Thị Mai Lan', email: 'lan.nguyen@kiteclass.com', phoneNumber: '0901111222', specialization: 'Tiếng Anh', status: 'ACTIVE', createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' },
-  { id: 2, name: 'Trần Văn Minh', email: 'minh.tran@kiteclass.com', phoneNumber: '0902222333', specialization: 'Toán học', status: 'ACTIVE', createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' },
-  { id: 3, name: 'Lê Thị Hồng', email: 'hong.le@kiteclass.com', phoneNumber: '0903333444', specialization: 'Vật lý', status: 'ACTIVE', createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' },
+  { id: 1, name: 'Nguyễn Thị Mai Lan', email: 'lan.nguyen@kitehub.me', phoneNumber: '0901111222', specialization: 'Tiếng Anh', status: 'ACTIVE', createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' },
+  { id: 2, name: 'Trần Văn Minh', email: 'minh.tran@kitehub.me', phoneNumber: '0902222333', specialization: 'Toán học', status: 'ACTIVE', createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' },
+  { id: 3, name: 'Lê Thị Hồng', email: 'hong.le@kitehub.me', phoneNumber: '0903333444', specialization: 'Vật lý', status: 'ACTIVE', createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' },
 ];
 
 const COURSES = [
@@ -71,12 +71,12 @@ const BRANDING = {
   primaryColor: '#2563eb',
   secondaryColor: '#1e40af',
   accentColor: '#f59e0b',
-  contactEmail: 'info@kiteclass.com',
+  contactEmail: 'info@kitehub.me',
   contactPhone: '028 1234 5678',
   address: '123 Nguyễn Văn Linh, Q.7, TP. Hồ Chí Minh',
   facebookUrl: 'https://facebook.com/kiteclass',
   zaloUrl: 'kiteclass',
-  websiteUrl: 'https://kiteclass.com',
+  websiteUrl: 'https://kitehub.me',
 };
 
 const PREFERENCES = {

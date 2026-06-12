@@ -201,7 +201,7 @@ public class Course extends BaseEntity {
     /**
      * URL to course cover image.
      * Max 500 characters.
-     * Example: "https://cdn.kiteclass.com/courses/eng-b1-001.jpg"
+     * Example: "https://cdn.kitehub.me/courses/eng-b1-001.jpg"
      */
     @Column(name = "cover_image_url", length = 500)
     private String coverImageUrl;

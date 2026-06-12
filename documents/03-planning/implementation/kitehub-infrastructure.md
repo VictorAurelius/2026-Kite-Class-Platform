@@ -366,7 +366,7 @@ public class TenantResolverFilter extends AbstractGatewayFilterFactory<Config> {
         return (exchange, chain) -> {
             // 1. Extract subdomain from Host header
             String host = exchange.getRequest().getURI().getHost();
-            String subdomain = extractSubdomain(host);  // "customer1" from "customer1.kiteclass.com"
+            String subdomain = extractSubdomain(host);  // "customer1" from "customer1.kitehub.me"
 
             // 2. Lookup instance in database
             Optional<Instance> instance = instanceRepository.findBySubdomain(subdomain);
@@ -395,21 +395,21 @@ public class TenantResolverFilter extends AbstractGatewayFilterFactory<Config> {
     }
 
     private String extractSubdomain(String host) {
-        // "customer1.kiteclass.com" → "customer1"
-        if (!host.endsWith(".kiteclass.com")) {
+        // "customer1.kitehub.me" → "customer1"
+        if (!host.endsWith(".kitehub.me")) {
             return host;  // Custom domain or localhost
         }
-        return host.substring(0, host.indexOf(".kiteclass.com"));
+        return host.substring(0, host.indexOf(".kitehub.me"));
     }
 }
 ```
 
 **Request Flow:**
 ```
-1. Browser → https://customer1.kiteclass.com/api/v1/students
+1. Browser → https://customer1.kitehub.me/api/v1/students
 
 2. KiteHub Gateway (port 9000) receives request
-   - Host: customer1.kiteclass.com
+   - Host: customer1.kitehub.me
    - Path: /api/v1/students
 
 3. TenantResolverFilter executes:
@@ -436,15 +436,15 @@ public class TenantResolverFilter extends AbstractGatewayFilterFactory<Config> {
 
 ### 3.3. Custom Domain Support
 
-**Feature:** Customers can use their own domain (e.g., `school.edu.vn` instead of `school.kiteclass.com`)
+**Feature:** Customers can use their own domain (e.g., `school.edu.vn` instead of `school.kitehub.me`)
 
 **Configuration:**
-1. Customer configures DNS CNAME: `school.edu.vn` → `kiteclass.com`
+1. Customer configures DNS CNAME: `school.edu.vn` → `kitehub.me`
 2. Admin updates instance record: `UPDATE instances SET custom_domain = 'school.edu.vn' WHERE id = ...`
 3. TenantResolverFilter checks both `findBySubdomain()` and `findByCustomDomain()`
 
 **SSL/TLS:**
-- Let's Encrypt wildcard certificate for `*.kiteclass.com`
+- Let's Encrypt wildcard certificate for `*.kitehub.me`
 - Customer domains require separate certificates (manual or AWS Certificate Manager)
 
 ---
@@ -647,7 +647,7 @@ resources:
 **Result:**
 - New Kubernetes namespace: `kiteclass-a1b2c3d4`
 - 3 services running (gateway, core, frontend)
-- Subdomain accessible: `https://customer1.kiteclass.com`
+- Subdomain accessible: `https://customer1.kitehub.me`
 
 ---
 

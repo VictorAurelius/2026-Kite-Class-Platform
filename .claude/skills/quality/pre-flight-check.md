@@ -80,7 +80,7 @@ Layer 4 — Persona:  "Persona nào dùng feature này? Có degrade ai không?"
 ### Code Quality
 - [ ] Nếu @RequestBody → có @Valid + typed DTO? (KHÔNG dùng Map<String, Object>)
 - [ ] Nếu tạo constant → @ConfigurationProperties hoặc @Value? (KHÔNG static final hardcode)
-- [ ] Nếu có domain/URL → configurable? (KHÔNG hardcode .kiteclass.com)
+- [ ] Nếu có domain/URL → configurable? (KHÔNG hardcode .kitehub.me)
 - [ ] FUTURE/TODO/placeholder → KHÔNG được merge (implement hoặc tạo tracking issue)
 
 ### Design Patterns (reference `.claude/rules/design-patterns.md`)

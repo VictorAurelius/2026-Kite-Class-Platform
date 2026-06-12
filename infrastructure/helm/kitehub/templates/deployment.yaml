@@ -89,7 +89,7 @@ spec:
             - name: S3_ENDPOINT
               value: ""  # Empty for real AWS S3 (not MinIO)
             - name: CDN_DOMAIN
-              value: "cdn.kiteclass.com"  # Production CDN domain
+              value: "cdn.kitehub.me"  # Production CDN domain
             - name: S3_MOCK_MODE
               value: "false"  # Use real S3 in production
             - name: AI_PROVIDER
@@ -111,7 +111,7 @@ spec:
             - name: AWS_SES_REGION
               value: "{{ $.Values.global.aws.region }}"
             - name: AWS_SES_FROM_EMAIL
-              value: "noreply@kiteclass.com"
+              value: "noreply@kitehub.me"
             - name: AWS_SES_FROM_NAME
               value: "KiteClass Platform"
             - name: AWS_SES_MOCK_MODE

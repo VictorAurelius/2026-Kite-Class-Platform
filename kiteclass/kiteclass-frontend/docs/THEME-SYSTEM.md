@@ -288,7 +288,7 @@ The theme receiver validates message origins against a whitelist:
 ```typescript
 const ALLOWED_ORIGINS = [
   'http://localhost:4701',           // KiteHub local
-  'https://kitehub.kiteclass.com',   // KiteHub production
+  'https://kitehub.me',   // KiteHub production
   // ... other trusted origins
 ];
 ```

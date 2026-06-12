@@ -44,7 +44,7 @@ Transitions go ONLY through `InstanceLifecycleService`; each transition publishe
   - FAILED: `Có lỗi xảy ra. Đội ngũ kỹ thuật đã được thông báo.`
 - Time format: `Còn khoảng 25 giây` / `1 phút 20 giây` (NOT `~30s`)
 - Date: `29/04/2026 14:18:42` (dd/MM/yyyy HH:mm:ss)
-- Domain: `edison.kiteclass.vn` shown verbatim with copy CTA
+- Domain: `edison.kitehub.me` shown verbatim with copy CTA
 - Quality-gate copy: `Quality gate điểm 62/100 — chưa đạt ngưỡng tối thiểu 70/100`
 
 ---

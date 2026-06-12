@@ -143,7 +143,7 @@ describe('BrandingDashboardPage (Wave 31 Bucket C)', () => {
         instanceId: mockInstances[0]!.id,
         state: 'DEPLOYED',
         deployed: true,
-        frontendUrl: 'https://toan-master.kiteclass.vn',
+        frontendUrl: 'https://toan-master.kitehub.me',
         templateId: 'sky-wave',
         slug: 'toan-master',
         brandingVersion: 1,
@@ -157,7 +157,7 @@ describe('BrandingDashboardPage (Wave 31 Bucket C)', () => {
 
     expect(screen.getByText(/Trang web của bạn đã sẵn sàng/i)).toBeInTheDocument();
     const landingLink = screen.getByRole('link', { name: /Xem.*landing|landing.*triển khai/i });
-    expect(landingLink.getAttribute('href')).toBe('https://toan-master.kiteclass.vn');
+    expect(landingLink.getAttribute('href')).toBe('https://toan-master.kitehub.me');
     expect(landingLink.getAttribute('target')).toBe('_blank');
   });
 });

@@ -45,7 +45,7 @@ public class DomainVerifyResponse {
 
     /**
      * Backup subdomain URL (always available).
-     * Format: {subdomain}.kiteclass.com
+     * Format: {subdomain}.kitehub.me
      */
     private String backupUrl;
 }

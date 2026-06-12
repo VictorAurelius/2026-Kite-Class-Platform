@@ -19,7 +19,7 @@ import { ThemeSync } from '@/components/theme/ThemeSync';
 // Bucket B (GAP-958): nav/footer use the dedicated `centerName` field (the center's
 // own name) in preference to the marketing `heroTitle` slogan. Contact is surfaced
 // only when the tenant actually configured it — anti-fabrication: never show a
-// `1900 xxxx` / `support@kiteclass.com` placeholder.
+// `1900 xxxx` / `support@kitehub.me` placeholder.
 interface TenantIdentity {
   name: string;
   logoUrl: string | null;

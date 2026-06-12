@@ -97,4 +97,4 @@ Bạn (human) walk landing page per-tenant qua **đúng access-mode production**
 
 ## 7. G3-infra preview (sau G2★)
 
-G2★ PASS → flow `🟢 THÔNG (local)`. Phần còn lại **G3-infra** (AWS-gated GAP-612): wildcard cert `*.kiteclass.com` + real DNS + TLS + ALB routing — checkpoint riêng khi AWS stack restore, không block local-verifiable layer.
+G2★ PASS → flow `🟢 THÔNG (local)`. Phần còn lại **G3-infra** (AWS-gated GAP-612): wildcard cert `*.kitehub.me` + real DNS + TLS + ALB routing — checkpoint riêng khi AWS stack restore, không block local-verifiable layer.

@@ -111,7 +111,7 @@ Create KiteHub platform with multi-tenant instance management
 
 2. **Instance Entity** (`Instance.java`)
    ```java
-   - subdomain (unique): customer1.kiteclass.com
+   - subdomain (unique): customer1.kitehub.me
    - customDomain: mydomain.com (PREMIUM only)
    - organizationName
    - ownerId (UUID - CENTER_OWNER)
@@ -970,7 +970,7 @@ Store generated assets in S3 with CDN
 
 3. **CloudFront CDN**
    ```
-   Domain: cdn.kiteclass.com
+   Domain: cdn.kitehub.me
    Cache: 1 year for assets
    Invalidation: On new branding job
    ```

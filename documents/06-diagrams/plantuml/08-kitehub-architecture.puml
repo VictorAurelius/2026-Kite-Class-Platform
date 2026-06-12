@@ -79,13 +79,13 @@ package "External Services" as EXT #CFD8DC {
     component "VietQR API\n(Payment QR)" as EXT_QR
     component "OpenAI API\n(GPT-4V + DALL-E 3)" as EXT_AI
     component "AWS SES\n(Email Delivery)" as EXT_SES
-    component "CloudFront CDN\n(cdn.kiteclass.com)" as EXT_CDN
+    component "CloudFront CDN\n(cdn.kitehub.me)" as EXT_CDN
 }
 
 ' ==================== PROVISIONED INSTANCES ====================
 package "KiteClass Instances\n(Provisioned by KiteHub)" as INSTANCES #E8F5E9 {
-    component "Instance #1\nabc.kiteclass.com\n[Gateway + Core + FE]" as KC1
-    component "Instance #2\nxyz.kiteclass.com\n[Gateway + Core + FE]" as KC2
+    component "Instance #1\nabc.kitehub.me\n[Gateway + Core + FE]" as KC1
+    component "Instance #2\nxyz.kitehub.me\n[Gateway + Core + FE]" as KC2
     component "Instance #N\n..." as KCN
 }
 

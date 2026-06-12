@@ -6,7 +6,7 @@
  * server-rendered from the tenant landing payload.
  *
  * Anti-fabrication (GAP-958): phone / email / address surface ONLY when the tenant
- * configured them — no `1900 xxxx` / `support@kiteclass.com` placeholders. The Zalo
+ * configured them — no `1900 xxxx` / `support@kitehub.me` placeholders. The Zalo
  * button renders only when landing.zaloUrl is present (kit spec). PDPL consent kept.
  *
  * @author KiteClass Team

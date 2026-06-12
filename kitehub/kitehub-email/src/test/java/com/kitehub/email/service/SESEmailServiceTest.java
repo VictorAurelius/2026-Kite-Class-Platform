@@ -48,7 +48,7 @@ class SESEmailServiceTest {
     void setUp() {
         sesProperties = new SESConfig.SESProperties();
         sesProperties.setRegion("ap-southeast-1");
-        sesProperties.setFromEmail("noreply@kiteclass.com");
+        sesProperties.setFromEmail("noreply@kitehub.me");
         sesProperties.setFromName("KiteClass Platform");
         sesProperties.setMockMode(true); // Mock mode for testing
 

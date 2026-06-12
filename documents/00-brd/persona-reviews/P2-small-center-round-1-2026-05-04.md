@@ -36,7 +36,7 @@
 **Acting role:** Chủ lớp học thêm Toán-Anh tại Hà Nội. 60 học sinh chia 8 lớp (Toán cấp 2 ×3 lớp, Toán cấp 3 ×2 lớp, Anh cấp 2 ×2 lớp, Anh cấp 3 ×1 lớp). Tự dạy 3 lớp Toán; thuê **2 giáo viên hợp đồng** (1 GV Toán cấp 2 dạy 3 lớp, 1 GV Anh dạy 3 lớp) commission 60% revenue. 4 năm vận hành, hiện tại quản lý bằng Excel + Zalo personal.
 
 ### 1.1 Discovery & Signup
-- Discovery thông qua Facebook Ads / Google Search → landing page kiteclass.vn → click "Đăng ký dùng thử" → SignUp wizard.
+- Discovery thông qua Facebook Ads / Google Search → landing page kitehub.me → click "Đăng ký dùng thử" → SignUp wizard.
 - **Pain ngay step 1**: Owner mở từ smartphone (vì đang giữa buổi dạy), wizard yêu cầu chọn tier + nhập 5 môn + địa chỉ trung tâm. Mobile UX không tối ưu (fields stack chật; Tier comparison cần scroll horizontal). Vẫn xong được trong 12 phút → AC-ONBOARD-001 PARTIAL.
 
 ### 1.2 Provisioning & Bootstrap
