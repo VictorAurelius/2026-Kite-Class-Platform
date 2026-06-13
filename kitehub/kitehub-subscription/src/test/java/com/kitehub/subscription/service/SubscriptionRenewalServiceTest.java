@@ -8,6 +8,7 @@ import com.kitehub.platform.domain.enums.InstanceStatus;
 import com.kitehub.platform.domain.enums.PaymentStatus;
 import com.kitehub.platform.domain.enums.PricingTier;
 import com.kitehub.platform.domain.enums.SubscriptionStatus;
+import com.kitehub.subscription.client.EmailServiceClient;
 import com.kitehub.subscription.config.SubscriptionConfig;
 import com.kitehub.subscription.repository.InstanceRepository;
 import com.kitehub.subscription.repository.PaymentRepository;
@@ -19,6 +20,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
@@ -54,6 +56,13 @@ class SubscriptionRenewalServiceTest {
 
     @Mock
     private VietQRService vietQRService;
+
+    @Mock
+    private EmailServiceClient emailServiceClient;
+
+    // GAP-1256: real stateless helper (not a mock) so instances.tier sync actually runs.
+    @Spy
+    private InstanceTierSyncService instanceTierSyncService = new InstanceTierSyncService();
 
     @InjectMocks
     private SubscriptionRenewalService renewalService;
@@ -281,5 +290,67 @@ class SubscriptionRenewalServiceTest {
         // Then
         // ChronoUnit.DAYS.between truncates partial days, so allow 9 or 10
         assertThat(days).isIn(9L, 10L);
+    }
+
+    @Test
+    @DisplayName("GAP-1018 bug 1: ANNUALLY renewal extends +1 year, not the hardcoded +1 month")
+    void shouldExtendAnnuallyRenewalByOneYear() {
+        // Given — an annual subscription due for auto-renewal
+        subscription.setBillingCycle(BillingCycle.ANNUALLY);
+        LocalDateTime expiry = LocalDateTime.now().plusDays(1);
+        subscription.setExpiresAt(expiry);
+
+        Payment savedPayment = new Payment();
+        savedPayment.setId(UUID.randomUUID());
+        savedPayment.setStatus(PaymentStatus.PENDING);
+
+        when(subscriptionRepository.findById(subscriptionId)).thenReturn(Optional.of(subscription));
+        when(paymentRepository.save(any(Payment.class))).thenReturn(savedPayment);
+        when(subscriptionRepository.save(any(Subscription.class))).thenReturn(subscription);
+
+        // When
+        renewalService.processRenewal(subscriptionId);
+
+        // Then — extended by exactly one year (BillingCycle honored)
+        assertThat(subscription.getExpiresAt()).isEqualTo(expiry.plusYears(1));
+    }
+
+    @Test
+    @DisplayName("GAP-1260: EXPIRED subscription past grace -> suspend instance (involuntary churn) + notify")
+    void shouldSuspendInstanceOnInvoluntaryChurn() {
+        // Given — a PAID subscription that lapsed: EXPIRED + 5 days past expiry (> 3-day grace)
+        subscription.setStatus(SubscriptionStatus.EXPIRED);
+        subscription.setExpiresAt(LocalDateTime.now().minusDays(5));
+        instance.setStatus(InstanceStatus.ACTIVE);
+        instance.setContactEmail("owner@example.com");
+        instance.setOrganizationName("Trung tâm A");
+
+        when(subscriptionRepository.findById(subscriptionId)).thenReturn(Optional.of(subscription));
+        when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
+
+        // When
+        renewalService.suspendExpiredSubscription(subscriptionId);
+
+        // Then — instance suspended + involuntary-churn notification sent
+        assertThat(instance.getStatus()).isEqualTo(InstanceStatus.SUSPENDED);
+        verify(instanceRepository).save(instance);
+        verify(emailServiceClient).sendSuspensionNotification("owner@example.com", "Trung tâm A");
+    }
+
+    @Test
+    @DisplayName("GAP-1260: subscription still in grace period -> instance NOT suspended yet")
+    void shouldNotSuspendDuringGracePeriod() {
+        // Given — EXPIRED only 1 day ago (within 3-day grace)
+        subscription.setStatus(SubscriptionStatus.EXPIRED);
+        subscription.setExpiresAt(LocalDateTime.now().minusDays(1));
+
+        when(subscriptionRepository.findById(subscriptionId)).thenReturn(Optional.of(subscription));
+
+        // When
+        renewalService.suspendExpiredSubscription(subscriptionId);
+
+        // Then — still in grace, no suspension
+        verify(instanceRepository, never()).findById(any());
+        verify(instanceRepository, never()).save(any(Instance.class));
     }
 }
