@@ -2,9 +2,10 @@
 -- Durable fallback channel for the NotificationChannel seam — written for every dispatched owner
 -- notification so the owner always has a record even when email delivery is disabled/fails.
 --
--- NOTE (multi-session coordination): version V73 reserved by the BE-4 notification bucket of
--- wave-kitehub-biz-100. If a sibling bucket also claimed V73, renumber to the next free version
--- at wave merge (Flyway orders by version; gaps are allowed).
+-- NOTE (multi-session coordination): version V74 (kitehub-subscription Flyway sequence; prior max
+-- was V72) reserved by the BE-4 notification bucket of wave-kitehub-biz-100. If a sibling bucket
+-- also claimed V74, renumber to the next free version at wave merge (Flyway orders by version;
+-- gaps such as the unused V73 slot are allowed).
 --
 -- Tenant isolation is enforced at the app layer (TenantOwnershipGuard + instanceId filter); RLS
 -- is intentionally NOT enabled here because the dispatch path runs in admin context where the
