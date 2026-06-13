@@ -1,5 +1,5 @@
 ---
-title: Chương 1 §1.4 — Công nghệ và công cụ sử dụng
+title: Chương 1 §1.4: Công nghệ và công cụ sử dụng
 chapter: 1
 section: technology
 audience: mixed
@@ -7,13 +7,13 @@ last-updated: 2026-05-30
 status: draft
 ---
 
-# Chương 1 — Công nghệ và công cụ sử dụng
+# Chương 1: Công nghệ và công cụ sử dụng
 
 ## 1.4 Công nghệ và công cụ sử dụng
 
 ### 1.4.1 Ngôn ngữ lập trình
 
-Nền tảng KiteHub sử dụng hai ngôn ngữ lập trình chính. Phía backend dùng Java 21 (LTS) — phiên bản hỗ trợ dài hạn được Oracle cam kết bảo trì đến năm 2031, kèm các tính năng hiện đại như virtual threads (Project Loom), pattern matching và records giúp viết code an toàn kiểu và biểu cảm. Phía frontend dùng TypeScript 5.7 — bản mở rộng kiểu tĩnh của JavaScript, hỗ trợ phát hiện lỗi sớm tại compile-time, refactoring an toàn và tích hợp IDE mạnh. Ngôn ngữ truy vấn cơ sở dữ liệu sử dụng SQL chuẩn PostgreSQL 16 dialect, kết hợp JPQL/Hibernate cho các truy vấn ORM phổ biến.
+Nền tảng KiteHub sử dụng hai ngôn ngữ lập trình chính. Phía backend dùng Java 21 (LTS), phiên bản hỗ trợ dài hạn được Oracle cam kết bảo trì đến năm 2031, kèm các tính năng hiện đại như virtual threads (Project Loom), pattern matching và records giúp viết code an toàn kiểu và biểu cảm. Phía frontend dùng TypeScript 5.7, bản mở rộng kiểu tĩnh của JavaScript, hỗ trợ phát hiện lỗi sớm tại compile-time, refactoring an toàn và tích hợp IDE mạnh. Ngôn ngữ truy vấn cơ sở dữ liệu sử dụng SQL chuẩn PostgreSQL 16 dialect, kết hợp JPQL/Hibernate cho các truy vấn ORM phổ biến.
 
 ### 1.4.2 Framework phát triển
 

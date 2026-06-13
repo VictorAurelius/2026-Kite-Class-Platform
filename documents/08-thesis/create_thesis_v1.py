@@ -51,7 +51,7 @@ from docx.shared import Cm, Pt, RGBColor
 STUDENT_INFO = {
     "name": "Nguyễn Văn Kiệt",
     "student_id": "221230890",
-    "class": "CNTT1-K63",
+    "class": "Cử nhân Công nghệ thông tin 1",  # user direction: hiển thị "Cử nhân Công nghệ thông tin 1" (thay "Công nghệ thông tin 1"); Khóa 63 ở field "Khóa" riêng
     "course": "63",
     "major": "Công nghệ thông tin",
     "specialization": "Công nghệ phần mềm",
@@ -65,7 +65,7 @@ STUDENT_INFO = {
 # ============== THÔNG TIN ĐỀ TÀI (từ thesis-info.md §4) ==============
 THESIS_INFO = {
     "title": "XÂY DỰNG HỆ THỐNG SAAS CUNG CẤP DỊCH VỤ ĐÀO TẠO",
-    "title_en": "KiteHub — A Multi-Tenant SaaS Platform for Education Service Providers",
+    "title_en": "KiteHub: A Multi-Tenant SaaS Platform for Education Service Providers",
     "type": "Đồ án tốt nghiệp cử nhân",
     "year": "2026",
     "defense_window_open": "2026-08-15",
@@ -93,8 +93,8 @@ CHAPTER_FILES = {
 CHAPTER_TITLES = {
     1: "TỔNG QUAN VỀ BÀI TOÁN",  # Wave thesis-4: §1.4 Công nghệ moved into Ch.1, nhưng GIỮ tên chương per user direction (không sửa tên chương)
     2: "PHÂN TÍCH VÀ THIẾT KẾ HỆ THỐNG",
-    3: "TRIỂN KHAI SẢN PHẨM VÀ KIỂM THỬ HỆ THỐNG",  # Wave thesis-4: content = §3.1 Kết quả triển khai UI + §3.2 Kiểm thử (§3.1 Công nghệ cũ moved to Ch.1 §1.4)
-    4: "TRIỂN KHAI HẠ TẦNG VÀ KẾT QUẢ VẬN HÀNH",  # Wave thesis-3 Option A: title-honest — content = §4.1 Cloud AWS + §4.2 Kết quả user (không có §4.3 So sánh + §4.4 Kết luận — KẾT LUẬN là chapter riêng add_conclusion())
+    3: "XÂY DỰNG SẢN PHẨM VÀ KIỂM THỬ HỆ THỐNG",  # Wave thesis-4: "triển khai"→"xây dựng" per user direction; content = §3.1 Kết quả xây dựng UI + §3.2 Kiểm thử
+    4: "TRIỂN KHAI HẠ TẦNG VÀ\nKẾT QUẢ VẬN HÀNH",  # Wave thesis-4: '\n' → line break trong tiêu đề (xuống dòng ở "KẾT QUẢ VẬN HÀNH") per user direction
 }
 BIBLIOGRAPHY_FILE = THESIS_DIR / "references" / "bibliography.md"
 # PROJECT_ROOT = THESIS_DIR.parent.parent (documents/08-thesis → documents → project root)
@@ -200,8 +200,10 @@ def add_horizontal_line(doc, width_pt=2, color='000000', space_after=Pt(6),
     return p
 
 
-# Chiều cao spacer đẩy "Hà Nội – Năm" xuống dòng cuối trang bìa (tune qua render).
-COVER_BOTTOM_SPACER_PT = 90
+# Khoảng cách từ bảng thông tin xuống "Hà Nội – Năm". Wave thesis-4 (#1): giảm
+# 90→36pt để bìa top-weighted khớp bìa mẫu BAO_CAO_THUC_TAP (không đẩy "Hà Nội"
+# sát đáy trang gây lề dưới quá rộng). Tune thêm qua render nếu cần.
+COVER_BOTTOM_SPACER_PT = 54
 
 
 def add_bottom_spacer(doc, height_pt):
@@ -393,13 +395,19 @@ def add_chapter_title(doc, number, text, add_page_break=True):
         doc.add_page_break()
     p = doc.add_paragraph(style='Heading 1')
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    run = p.add_run(f"CHƯƠNG {number}. {text.upper()}")
-    run.font.name = FONT_NAME
-    if run._element.rPr is not None:
-        run._element.rPr.rFonts.set(qn('w:eastAsia'), FONT_NAME)
-    run.font.size = FONT_SIZE_CHAPTER
-    run.font.bold = True
-    run.font.color.rgb = RGBColor(0, 0, 0)
+    # '\n' trong text → line break trong cùng paragraph (giữ heading 1 lines).
+    full = f"CHƯƠNG {number}. {text.upper()}"
+    for idx, line in enumerate(full.split('\n')):
+        run = p.add_run()
+        if idx > 0:
+            run.add_break()  # line break TRƯỚC text của line này (WD_BREAK.LINE default)
+        run.add_text(line)
+        run.font.name = FONT_NAME
+        if run._element.rPr is not None:
+            run._element.rPr.rFonts.set(qn('w:eastAsia'), FONT_NAME)
+        run.font.size = FONT_SIZE_CHAPTER
+        run.font.bold = True
+        run.font.color.rgb = RGBColor(0, 0, 0)
     return p
 
 
@@ -492,11 +500,16 @@ def add_paragraph_text(doc, text, first_line_indent=True):
 
 
 def add_bullet_list_item(doc, text):
-    p = doc.add_paragraph(style='List Bullet')
-    p.paragraph_format.left_indent = Cm(1.5)
+    # Wave thesis-4 (#6): gạch đầu dòng "–" (en-dash) thay bullet tròn '•' của style
+    # 'List Bullet' — theo quy ước trình bày tiếng Việt. Hanging indent giữ nguyên để
+    # dòng wrap canh dưới chữ (không canh dưới dấu gạch).
+    p = doc.add_paragraph()
+    p.paragraph_format.left_indent = Cm(1.0)
     p.paragraph_format.first_line_indent = Cm(-0.5)
     p.paragraph_format.line_spacing = LINE_SPACING
-    add_inline_runs(p, text)
+    p.paragraph_format.space_after = Pt(0)
+    p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+    add_inline_runs(p, f"– {text}")
     return p
 
 
@@ -534,21 +547,32 @@ def add_seq_caption(doc, label_word, label_number, caption_text):
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_before = Pt(6)
     p.paragraph_format.space_after = Pt(12)
+    # Wave thesis-4: caption dài xuống dòng cân đối "như tiêu đề chương" — thu hẹp khối
+    # caption (indent 2 bên) để text wrap thành nhiều dòng căn giữa thay vì 1 dòng dài tràn
+    # rồi đuôi ngắn lệch. Khối ~12cm (16cm body − 2×2cm indent).
+    p.paragraph_format.left_indent = Cm(2.0)
+    p.paragraph_format.right_indent = Cm(2.0)
+    p.paragraph_format.line_spacing = LINE_SPACING
 
-    # Visible label + number from MD source (e.g., "Hình 1.1") with bold
-    run = p.add_run(f"{label_word} {label_number}")
+    # Visible label + number + dấu chấm DÍNH trong cùng run bold (e.g., "Hình 1.1.").
+    # Wave thesis-4 (#5): trước đây dấu chấm nằm ở run thường → ranh giới bold/thường
+    # tạo khe hở nhìn như "Bảng 2.8 . Schema". Gắn "." vào run bold để liền khối.
+    run = p.add_run(f"{label_word} {label_number}.")
     run.font.name = FONT_NAME
     if run._element.rPr is not None:
         run._element.rPr.rFonts.set(qn('w:eastAsia'), FONT_NAME)
     run.font.size = FONT_SIZE_NORMAL
     run.font.bold = True
 
-    # Caption text after period (NOT bold)
-    caption_run = p.add_run(f". {caption_text}")
-    caption_run.font.name = FONT_NAME
-    if caption_run._element.rPr is not None:
-        caption_run._element.rPr.rFonts.set(qn('w:eastAsia'), FONT_NAME)
-    caption_run.font.size = FONT_SIZE_NORMAL
+    # Caption text (NOT bold) — Wave thesis-4: parse inline markdown để `code`→italic
+    # (bỏ backtick literal), đồng bộ cách thân báo cáo render inline code. Trước đây dùng
+    # plain run nên backtick `subscriptions` hiện literal → nhìn rối như "thừa cách".
+    sp = p.add_run(" ")
+    sp.font.name = FONT_NAME
+    if sp._element.rPr is not None:
+        sp._element.rPr.rFonts.set(qn('w:eastAsia'), FONT_NAME)
+    sp.font.size = FONT_SIZE_NORMAL
+    add_inline_runs(p, caption_text)
 
     return p
 
@@ -568,7 +592,7 @@ def add_blockquote(doc, text):
 # (Mermaid). Override aspect-fit để pipeline render đúng kích thước user chỉnh tay.
 FIG_SIZE_OVERRIDES = {
     '2.3': (14.91, 20.58), '2.4c': (8.07, 15.6), '2.6b': (8.18, 6.87),
-    '2.8': (12.01, 14.33), '3.2': (14.66, 9.16), '3.4': (4.66, 8.33),
+    '2.8': (12.01, 14.33), '3.4': (14.66, 9.16), '3.6': (4.66, 8.33),
     '4.2a': (15.19, 7.41), '4.2b': (15.03, 7.7),
 }
 
@@ -652,7 +676,7 @@ def add_image_inline(doc, image_path, caption=None, width_cm=14.0, fig_num=None)
         else:
             run.add_picture(str(image_path), width=Cm(target_width_cm))
     else:
-        run = p.add_run(f"[Hình minh hoạ: {image_path.name} — chưa có file]")
+        run = p.add_run(f"[Hình minh hoạ: {image_path.name}, chưa có file]")
         set_font(run, FONT_SIZE_NORMAL, italic=True, color=RGBColor(128, 128, 128))
 
     if caption:
@@ -1185,7 +1209,7 @@ def add_cover_page(doc):
     p.paragraph_format.space_before = Pt(0)
     p.paragraph_format.space_after = Pt(0)
     run = p.add_run("TRƯỜNG ĐẠI HỌC GIAO THÔNG VẬN TẢI")
-    set_font(run, Pt(14), bold=True)
+    set_font(run, Pt(13))  # dòng 1 để thường (không đậm) khớp bìa mẫu; dòng 2 KHOA mới đậm
 
     # KHOA CÔNG NGHỆ THÔNG TIN — đường kẻ NGẮN canh giữa khớp bìa mẫu
     # BAO_CAO_THUC_TAP.pdf: separate rule rộng ≈ dòng chữ, có khoảng hở dưới chữ.
@@ -1257,6 +1281,7 @@ def add_cover_page(doc):
         ("Hệ đào tạo", STUDENT_INFO["training_mode"]),
         ("Giảng viên hướng dẫn", THESIS_INFO["advisor"]),
     ]
+    add_bottom_spacer(doc, 54)  # gap đẩy bảng info xuống lower-third khớp bìa mẫu BAO_CAO_THUC_TAP
     table = doc.add_table(rows=len(info_rows), cols=2)
     table.alignment = WD_TABLE_ALIGNMENT.CENTER
     table.style = 'Table Grid'
@@ -1302,7 +1327,7 @@ def add_secondary_cover_page(doc):
     p.paragraph_format.space_before = Pt(0)
     p.paragraph_format.space_after = Pt(0)
     run = p.add_run("TRƯỜNG ĐẠI HỌC GIAO THÔNG VẬN TẢI")
-    set_font(run, Pt(14), bold=True)
+    set_font(run, Pt(13))  # dòng 1 để thường (không đậm) khớp bìa mẫu; dòng 2 KHOA mới đậm
 
     # KHOA CÔNG NGHỆ THÔNG TIN — Wave 102.7.1 Bucket P Fix 1 (bìa phụ tương tự bìa chính)
     p = doc.add_paragraph()
@@ -1371,6 +1396,7 @@ def add_secondary_cover_page(doc):
         ("Hệ đào tạo", STUDENT_INFO["training_mode"]),
         ("Giảng viên hướng dẫn", THESIS_INFO["advisor"]),
     ]
+    add_bottom_spacer(doc, 54)  # gap đẩy bảng info xuống lower-third khớp bìa mẫu BAO_CAO_THUC_TAP
     table = doc.add_table(rows=len(info_rows), cols=2)
     table.alignment = WD_TABLE_ALIGNMENT.CENTER
     table.style = 'Table Grid'
@@ -1440,8 +1466,8 @@ def add_acknowledgment_page(doc):
 
     # Phần 4 — Cảm ơn giáo viên đã dùng thực tế sản phẩm + góp ý (beta user thực tế)
     add_paragraph_text(doc,
-        "Em xin gửi lời cảm ơn chân thành đến cô Nguyễn Thị Hà — giáo viên môn Tin học tại "
-        "Trường Tiểu học Hòa Chính, và thầy Nguyễn Đình Nhì — giáo viên môn Hóa học tại "
+        "Em xin gửi lời cảm ơn chân thành đến cô Nguyễn Thị Hà, giáo viên môn Tin học tại "
+        "Trường Tiểu học Hòa Chính, và thầy Nguyễn Đình Nhì, giáo viên môn Hóa học tại "
         "Trường THCS Phú Nam An, đã trực tiếp sử dụng thử sản phẩm của đồ án trong thực tế "
         "giảng dạy và đóng góp nhiều ý kiến quý báu giúp em hoàn thiện hệ thống.")
 
@@ -1458,7 +1484,7 @@ def add_acknowledgment_page(doc):
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
     p.paragraph_format.space_after = Pt(0)
-    run = p.add_run(f"Hà Nội, ngày … tháng … năm {THESIS_INFO['year']}")
+    run = p.add_run(f"Hà Nội, ngày 01 tháng 6 năm {THESIS_INFO['year']}")
     set_font(run, Pt(13), italic=True)
 
     p = doc.add_paragraph()
@@ -1602,14 +1628,14 @@ def add_abbreviations(doc):
     terms = [
         ("Continuous Deployment", "Quy trình triển khai tự động từ code lên môi trường production sau khi pass CI"),
         ("Continuous Integration", "Quy trình tích hợp code thường xuyên vào nhánh chung kèm automated build + test"),
-        ("Defense-in-depth", "Chiến lược bảo mật nhiều lớp — mỗi lớp độc lập kiểm tra tránh single-point failure"),
-        ("Domain-Driven Design", "Phương pháp thiết kế phần mềm hướng theo miền nghiệp vụ — chia hệ thống theo bounded contexts"),
+        ("Defense-in-depth", "Chiến lược bảo mật nhiều lớp, mỗi lớp độc lập kiểm tra tránh single-point failure"),
+        ("Domain-Driven Design", "Phương pháp thiết kế phần mềm hướng theo miền nghiệp vụ, chia hệ thống theo bounded contexts"),
         ("Multi-tenant", "Kiến trúc phần mềm cho phép nhiều tổ chức (tenant) dùng chung một hệ thống với dữ liệu cách ly"),
         ("Outbox Pattern", "Mẫu thiết kế đảm bảo tính nhất quán giữa lưu DB + phát message qua message broker"),
         ("Pool model", "Mô hình multi-tenant chia sẻ tài nguyên hạ tầng dùng RLS để cách ly dữ liệu"),
-        ("Row-Level Security", "Cơ chế cách ly dữ liệu cấp dòng trên PostgreSQL — DB enforces filtering theo tenant context"),
+        ("Row-Level Security", "Cơ chế cách ly dữ liệu cấp dòng trên PostgreSQL, DB enforces filtering theo tenant context"),
         ("Software as a Service", "Mô hình triển khai phần mềm dạng dịch vụ điện toán đám mây, người dùng truy cập qua web"),
-        ("Test-Driven Development", "Phương pháp phát triển dựa trên kiểm thử — viết test trước khi viết code (Red-Green-Refactor)"),
+        ("Test-Driven Development", "Phương pháp phát triển dựa trên kiểm thử, viết test trước khi viết code (Red-Green-Refactor)"),
     ]
     _add_table_2col(doc, terms, col0_width_cm=4.5, col1_width_cm=11.5,
                     header_row=("Thuật ngữ", "Giải thích"))
@@ -1623,56 +1649,56 @@ def add_abbreviations(doc):
     run = p.add_run("DANH MỤC TỪ VIẾT TẮT")
     set_font(run, Pt(16), bold=True)
 
-    # Wave 102.7.5 Bucket B Item 10 — sorted ABC (VN-aware: Đ sau D)
+    # Wave 102.7.5 Bucket B Item 10, sorted ABC (VN-aware: Đ sau D)
     abbrevs = [
-        ("AI", "Artificial Intelligence — trí tuệ nhân tạo"),
-        ("ALB", "Application Load Balancer — bộ cân bằng tải ứng dụng AWS"),
-        ("API", "Application Programming Interface — giao diện lập trình ứng dụng"),
+        ("AI", "Artificial Intelligence, trí tuệ nhân tạo"),
+        ("ALB", "Application Load Balancer, bộ cân bằng tải ứng dụng AWS"),
+        ("API", "Application Programming Interface, giao diện lập trình ứng dụng"),
         ("C4", "Mô hình mô tả kiến trúc phần mềm 4 cấp: Context, Container, Component, Code"),
-        ("CDN", "Content Delivery Network — mạng phân phối nội dung"),
-        ("CI/CD", "Continuous Integration / Continuous Deployment — tích hợp / triển khai liên tục"),
-        ("CRM", "Customer Relationship Management — quản lý quan hệ khách hàng"),
-        ("DCV", "Domain Control Validation — xác thực quyền kiểm soát tên miền"),
-        ("DDD", "Domain-Driven Design — thiết kế hướng miền"),
-        ("DDoS", "Distributed Denial of Service — tấn công từ chối dịch vụ phân tán"),
-        ("DKIM", "DomainKeys Identified Mail — chữ ký số xác thực email theo tên miền"),
-        ("DMARC", "Domain-based Message Authentication, Reporting and Conformance — chính sách chống giả mạo email"),
-        ("DPIA", "Data Protection Impact Assessment — Đánh giá Tác động Bảo vệ Dữ liệu"),
-        ("DPO", "Data Protection Officer — Cán bộ Bảo vệ Dữ liệu theo PDPL"),
-        ("DSAR", "Data Subject Access Request — yêu cầu truy cập dữ liệu của chủ thể dữ liệu"),
-        ("ECR", "Elastic Container Registry — kho chứa Docker images trên AWS"),
-        ("ECS", "Elastic Container Service — dịch vụ điều phối container AWS"),
-        ("ERD", "Entity-Relationship Diagram — sơ đồ thực thể-quan hệ"),
+        ("CDN", "Content Delivery Network, mạng phân phối nội dung"),
+        ("CI/CD", "Continuous Integration / Continuous Deployment, tích hợp / triển khai liên tục"),
+        ("CRM", "Customer Relationship Management, quản lý quan hệ khách hàng"),
+        ("DCV", "Domain Control Validation, xác thực quyền kiểm soát tên miền"),
+        ("DDD", "Domain-Driven Design, thiết kế hướng miền"),
+        ("DDoS", "Distributed Denial of Service, tấn công từ chối dịch vụ phân tán"),
+        ("DKIM", "DomainKeys Identified Mail, chữ ký số xác thực email theo tên miền"),
+        ("DMARC", "Domain-based Message Authentication, Reporting and Conformance, chính sách chống giả mạo email"),
+        ("DPIA", "Data Protection Impact Assessment, Đánh giá Tác động Bảo vệ Dữ liệu"),
+        ("DPO", "Data Protection Officer, Cán bộ Bảo vệ Dữ liệu theo PDPL"),
+        ("DSAR", "Data Subject Access Request, yêu cầu truy cập dữ liệu của chủ thể dữ liệu"),
+        ("ECR", "Elastic Container Registry, kho chứa Docker images trên AWS"),
+        ("ECS", "Elastic Container Service, dịch vụ điều phối container AWS"),
+        ("ERD", "Entity-Relationship Diagram, sơ đồ thực thể-quan hệ"),
         ("IEEE", "Institute of Electrical and Electronics Engineers"),
-        ("ISO", "International Organization for Standardization — Tổ chức Tiêu chuẩn hóa Quốc tế"),
+        ("ISO", "International Organization for Standardization, Tổ chức Tiêu chuẩn hóa Quốc tế"),
         ("JWT", "JSON Web Token"),
-        ("K-12", "Kindergarten to Grade 12 — bậc giáo dục phổ thông từ mẫu giáo đến lớp 12"),
-        ("KMS", "Key Management Service — dịch vụ quản lý khóa mã hóa"),
-        ("KPI", "Key Performance Indicator — chỉ số hiệu suất chính"),
-        ("LMS", "Learning Management System — hệ quản lý học tập"),
-        ("MVP", "Minimum Viable Product — sản phẩm tối thiểu khả dụng"),
-        ("NFR", "Non-Functional Requirement — yêu cầu phi chức năng"),
-        ("OIDC", "OpenID Connect — chuẩn xác thực OAuth 2.0 mở rộng"),
+        ("K-12", "Kindergarten to Grade 12, bậc giáo dục phổ thông từ mẫu giáo đến lớp 12"),
+        ("KMS", "Key Management Service, dịch vụ quản lý khóa mã hóa"),
+        ("KPI", "Key Performance Indicator, chỉ số hiệu suất chính"),
+        ("LMS", "Learning Management System, hệ quản lý học tập"),
+        ("MVP", "Minimum Viable Product, sản phẩm tối thiểu khả dụng"),
+        ("NFR", "Non-Functional Requirement, yêu cầu phi chức năng"),
+        ("OIDC", "OpenID Connect, chuẩn xác thực OAuth 2.0 mở rộng"),
         ("OWASP", "Open Worldwide Application Security Project"),
-        ("PDCA", "Plan-Do-Check-Act — chu trình cải tiến chất lượng (Deming)"),
-        ("PDPL", "Personal Data Protection Law — Luật Bảo vệ Dữ liệu Cá nhân 2023 (Số 49/2023/QH15)"),
-        ("RDS", "Relational Database Service — dịch vụ cơ sở dữ liệu quan hệ AWS"),
+        ("PDCA", "Plan-Do-Check-Act, chu trình cải tiến chất lượng (Deming)"),
+        ("PDPL", "Personal Data Protection Law, Luật Bảo vệ Dữ liệu Cá nhân 2023 (Số 49/2023/QH15)"),
+        ("RDS", "Relational Database Service, dịch vụ cơ sở dữ liệu quan hệ AWS"),
         ("REST", "Representational State Transfer"),
-        ("RLS", "Row-Level Security — bảo mật mức hàng"),
-        ("SaaS", "Software as a Service — phần mềm dạng dịch vụ"),
-        ("SES", "Simple Email Service — dịch vụ gửi email AWS"),
-        ("SLA", "Service Level Agreement — cam kết mức dịch vụ"),
-        ("SPF", "Sender Policy Framework — bản ghi xác thực nguồn gửi email"),
-        ("SSG", "Static Site Generation — sinh trang tĩnh"),
-        ("SSR", "Server-Side Rendering — kết xuất phía máy chủ"),
-        ("TDD", "Test-Driven Development — phát triển hướng kiểm thử"),
-        ("TLS", "Transport Layer Security — bảo mật tầng truyền tải"),
-        ("UTC GTVT", "Trường Đại học Giao thông Vận tải — University of Transport and Communications"),
-        ("UUID", "Universally Unique Identifier — định danh duy nhất toàn cục"),
-        ("VPC", "Virtual Private Cloud — mạng riêng ảo trên cloud"),
-        ("WAF", "Web Application Firewall — tường lửa ứng dụng web"),
-        ("WCAG", "Web Content Accessibility Guidelines — hướng dẫn truy cập nội dung web"),
-        ("ZNS", "Zalo Notification Service — dịch vụ thông báo qua Zalo"),
+        ("RLS", "Row-Level Security, bảo mật mức hàng"),
+        ("SaaS", "Software as a Service, phần mềm dạng dịch vụ"),
+        ("SES", "Simple Email Service, dịch vụ gửi email AWS"),
+        ("SLA", "Service Level Agreement, cam kết mức dịch vụ"),
+        ("SPF", "Sender Policy Framework, bản ghi xác thực nguồn gửi email"),
+        ("SSG", "Static Site Generation, sinh trang tĩnh"),
+        ("SSR", "Server-Side Rendering, kết xuất phía máy chủ"),
+        ("TDD", "Test-Driven Development, phát triển hướng kiểm thử"),
+        ("TLS", "Transport Layer Security, bảo mật tầng truyền tải"),
+        ("UTC GTVT", "Trường Đại học Giao thông Vận tải, University of Transport and Communications"),
+        ("UUID", "Universally Unique Identifier, định danh duy nhất toàn cục"),
+        ("VPC", "Virtual Private Cloud, mạng riêng ảo trên cloud"),
+        ("WAF", "Web Application Firewall, tường lửa ứng dụng web"),
+        ("WCAG", "Web Content Accessibility Guidelines, hướng dẫn truy cập nội dung web"),
+        ("ZNS", "Zalo Notification Service, dịch vụ thông báo qua Zalo"),
     ]
     _add_table_2col(doc, abbrevs, col0_width_cm=3.5, col1_width_cm=12.5,
                     header_row=("Từ viết tắt", "Nghĩa đầy đủ"))
@@ -1711,16 +1737,22 @@ def add_introduction(doc):
         "Thông tư 29/2024/TT-BGDĐT chính thức hóa hoạt động dạy thêm có thu phí. Tuy nhiên, đa "
         "số trung tâm nhỏ và vừa (1-10 chi nhánh, 100-2000 học viên) vẫn dùng Excel hoặc các "
         "phần mềm enterprise không phù hợp về giá và độ phức tạp. Khoảng trống này tạo cơ hội "
-        "cho một giải pháp SaaS (Software as a Service — phần mềm dạng dịch vụ) đa-tenant gốc, "
+        "cho một giải pháp SaaS (Software as a Service, phần mềm dạng dịch vụ) multi-tenant gốc, "
         "ưu tiên trải nghiệm người dùng tiếng Việt, và tự động hóa các tác vụ nhận diện thương "
-        "hiệu bằng trí tuệ nhân tạo (AI — Artificial Intelligence) — đây chính là động lực để em "
+        "hiệu bằng trí tuệ nhân tạo (AI, Artificial Intelligence), đây chính là động lực để em "
         "chọn đề tài \"" + THESIS_INFO["title"] + "\".")
 
     add_section_title(doc, "2. Mục tiêu nghiên cứu")
-    add_bullet_list_item(doc, "Xây dựng nền tảng SaaS multi-tenant cho trung tâm giáo dục Việt Nam, hỗ trợ scale từ 1 chi nhánh lên 100+ chi nhánh không cần re-architect.")
-    add_bullet_list_item(doc, "Tích hợp AI Branding tự động sinh logo + banner + hero image, giảm thời gian go-live của trung tâm từ tuần xuống ngày.")
-    add_bullet_list_item(doc, "Đảm bảo tuân thủ pháp luật Việt Nam: Luật Bảo vệ Dữ liệu Cá nhân 2023 (PDPL — Personal Data Protection Law), Luật An ninh mạng 2018, Thông tư 78/2021/TT-BTC về hóa đơn điện tử.")
-    add_bullet_list_item(doc, "Áp dụng các phương pháp luận phát triển phần mềm hướng chất lượng để duy trì chất lượng mã nguồn và tài liệu trong suốt quá trình phát triển.")
+    add_paragraph_text(doc,
+        "Đồ án hướng tới bốn mục tiêu chính. Thứ nhất là xây dựng một nền tảng SaaS multi-tenant "
+        "cho trung tâm giáo dục Việt Nam, hỗ trợ mở rộng từ một chi nhánh lên hàng trăm chi nhánh "
+        "mà không cần thiết kế lại kiến trúc. Thứ hai là tích hợp tính năng AI Branding tự động "
+        "sinh logo, banner và hình ảnh chủ đạo nhằm rút ngắn thời gian đưa trung tâm vào vận hành "
+        "từ vài tuần xuống vài ngày. Thứ ba là bảo đảm tuân thủ pháp luật Việt Nam, gồm Luật Bảo "
+        "vệ Dữ liệu Cá nhân 2023 (PDPL, Personal Data Protection Law), Luật An ninh mạng 2018 và "
+        "Thông tư 78/2021/TT-BTC về hóa đơn điện tử. Thứ tư là áp dụng các phương pháp luận phát "
+        "triển phần mềm hướng chất lượng để duy trì chất lượng mã nguồn và tài liệu trong suốt "
+        "quá trình phát triển.")
 
     add_section_title(doc, "3. Phạm vi nghiên cứu")
     add_paragraph_text(doc,
@@ -1730,13 +1762,13 @@ def add_introduction(doc):
         "tỉnh lân cận), với hai giáo viên độc lập (một dùng gói miễn phí, một dùng gói trả phí) "
         "trực tiếp sử dụng sản phẩm trong thực tế giảng dạy để thu thập phản hồi.")
     add_paragraph_text(doc,
-        "Về đối tượng, đồ án phục vụ ba nhóm người dùng chính: giáo viên độc lập (Solo Teacher, "
+        "Về đối tượng, sản phẩm phục vụ ba nhóm người dùng chính: giáo viên độc lập (Solo Teacher, "
         "1-50 học viên), chủ sở hữu trung tâm (Center Owner, 1-10 chi nhánh, 100-2.000 học viên), "
         "và quản lý trung tâm (Center Manager). Nhóm phụ huynh (Parent) và học viên (Student) "
         "thuộc phân khúc K-12 "
-        "(Kindergarten to Grade 12 — bậc giáo dục phổ thông từ mẫu giáo đến lớp 12) thuộc lộ "
-        "trình phát triển sau do yêu cầu bổ sung DPO (Data Protection Officer — cán bộ "
-        "bảo vệ dữ liệu) và DPIA (Data Protection Impact Assessment — đánh giá tác động bảo vệ "
+        "(Kindergarten to Grade 12, bậc giáo dục phổ thông từ mẫu giáo đến lớp 12) thuộc lộ "
+        "trình phát triển sau do yêu cầu bổ sung DPO (Data Protection Officer, cán bộ "
+        "bảo vệ dữ liệu) và DPIA (Data Protection Impact Assessment, đánh giá tác động bảo vệ "
         "dữ liệu) theo Điều 26 Luật Bảo vệ Dữ liệu Cá nhân 2023. Kiến trúc hệ thống cấu thành từ ba lớp dịch vụ. Lớp nền tảng KiteHub gồm "
         "sáu dịch vụ độc lập đảm nhận các trách nhiệm khác nhau: quản trị (kitehub-admin), "
         "nhận diện thương hiệu (kitehub-branding), thư điện tử (kitehub-email), điều phối yêu "
@@ -1748,28 +1780,27 @@ def add_introduction(doc):
     add_section_title(doc, "4. Phương pháp nghiên cứu")
     add_paragraph_text(doc,
         "Đồ án kết hợp phương pháp nghiên cứu lý thuyết (literature review) với phương pháp thực "
-        "nghiệm (experimental design + implementation):")
-    add_bullet_list_item(doc,
-        "Phân tích thị trường VN edu SaaS qua so sánh có hệ thống 4 hệ thống tương tự "
-        "(MISA AMIS Trường Học, Mona eLMS, Easy Edu, DotB) trên các tiêu chí giá, tính năng "
-        "multi-tenant, mức tích hợp AI và mức tuân thủ pháp luật Việt Nam.")
-    add_bullet_list_item(doc,
-        "Thiết kế kiến trúc multi-tenant theo các pattern industry-standard (single-bucket "
-        "Row-Level Security, defense-in-depth 5 lớp) đối chiếu với AWS SaaS Lens và Azure "
-        "multi-tenant whitepaper.")
-    add_bullet_list_item(doc,
-        "Áp dụng các phương pháp luận phát triển phần mềm hướng chất lượng: phát triển hướng "
-        "kiểm thử (TDD — Test-Driven Development, theo Beck 2002), thiết kế hướng miền (DDD — "
-        "Domain-Driven Design, theo Evans 2003) và chu trình cải tiến liên tục Plan-Do-Check-Act "
-        "(PDCA, theo Deming 1986) — tích hợp trong toàn bộ quy trình phát triển nhằm duy trì "
-        "chất lượng mã nguồn và tài liệu.")
+        "nghiệm (thiết kế và hiện thực hệ thống). Về mặt lý thuyết, đồ án phân tích thị trường "
+        "phần mềm giáo dục SaaS tại Việt Nam qua việc so sánh có hệ thống bốn hệ thống tương tự "
+        ", MISA AMIS Trường Học, Mona eLMS, Easy Edu và DotB, trên các tiêu chí giá, tính năng "
+        "multi-tenant, mức tích hợp AI và mức tuân thủ pháp luật Việt Nam. Về mặt thực nghiệm, "
+        "đồ án thiết kế kiến trúc multi-tenant theo các pattern phổ biến trong ngành (single-bucket "
+        "Row-Level Security, phòng thủ chiều sâu năm lớp) đối chiếu với AWS SaaS Lens và "
+        "whitepaper multi-tenant của Azure, đồng thời áp dụng các phương pháp luận phát triển "
+        "phần mềm hướng chất lượng gồm phát triển hướng kiểm thử (TDD, Test-Driven Development, "
+        "Beck 2002), thiết kế hướng miền (DDD, Domain-Driven Design, Evans 2003) và chu trình "
+        "cải tiến liên tục Plan-Do-Check-Act (PDCA, Deming 1986) xuyên suốt quá trình phát triển "
+        "nhằm duy trì chất lượng mã nguồn và tài liệu.")
 
     add_section_title(doc, "5. Cấu trúc đồ án")
-    add_paragraph_text(doc, "Đồ án gồm bốn chương nội dung chính:")
-    add_bullet_list_item(doc, "Chương 1 — Tổng quan về bài toán: phân tích hiện trạng thị trường, khảo sát các hệ thống tham khảo, kỹ thuật AI tích hợp và khung pháp lý Việt Nam tác động đến nền tảng.")
-    add_bullet_list_item(doc, "Chương 2 — Phân tích và thiết kế hệ thống: yêu cầu chức năng và phi chức năng; thiết kế kiến trúc tổng thể với mô hình C4 (sơ đồ ngữ cảnh và sơ đồ container), kiến trúc đa tenant single-bucket kết hợp Row-Level Security và phòng thủ chiều sâu năm lớp; thiết kế chi tiết gồm sơ đồ lớp, sơ đồ quan hệ thực thể (ERD), sơ đồ tuần tự, máy trạng thái vòng đời tenant, thiết kế cơ sở dữ liệu và mô hình gói dịch vụ.")
-    add_bullet_list_item(doc, "Chương 3 — Triển khai sản phẩm và kiểm thử hệ thống: công nghệ và công cụ sử dụng, kết quả triển khai giao diện sản phẩm theo ba luồng nghiệp vụ, bộ kiểm thử ba lớp (unit / integration / E2E) với các trường hợp kiểm thử mẫu cụ thể.")
-    add_bullet_list_item(doc, "Chương 4 — Triển khai hạ tầng và kết quả vận hành: triển khai cloud AWS với CI/CD, cấu hình Cloudflare biên, ước tính chi phí, trạng thái triển khai hiện tại và kết quả tương tác người dùng cuối kèm minh chứng sản phẩm.")
+    add_paragraph_text(doc,
+        "Ngoài phần mở đầu, mục lục, danh mục các từ viết tắt và thuật ngữ, danh mục bảng, "
+        "danh mục hình, phần kết luận và tài liệu tham khảo, nội dung chính của đồ án được "
+        "trình bày trong bốn chương:")
+    add_bullet_list_item(doc, "Chương 1: Tổng quan về bài toán: phân tích hiện trạng thị trường, khảo sát các hệ thống tham khảo, kỹ thuật AI tích hợp và khung pháp lý Việt Nam tác động đến nền tảng.")
+    add_bullet_list_item(doc, "Chương 2: Phân tích và thiết kế hệ thống: yêu cầu chức năng và phi chức năng; thiết kế kiến trúc tổng thể với mô hình C4 (sơ đồ ngữ cảnh và sơ đồ container), kiến trúc multi-tenant single-bucket kết hợp Row-Level Security và phòng thủ chiều sâu năm lớp; thiết kế chi tiết gồm sơ đồ lớp, sơ đồ quan hệ thực thể (ERD), sơ đồ tuần tự, máy trạng thái vòng đời tenant, thiết kế cơ sở dữ liệu và mô hình gói dịch vụ.")
+    add_bullet_list_item(doc, "Chương 3: Xây dựng sản phẩm và kiểm thử hệ thống: công nghệ và công cụ sử dụng, kết quả xây dựng giao diện sản phẩm theo ba luồng nghiệp vụ, bộ kiểm thử ba lớp (unit / integration / E2E) với các trường hợp kiểm thử mẫu cụ thể.")
+    add_bullet_list_item(doc, "Chương 4: Triển khai hạ tầng và kết quả vận hành: triển khai cloud AWS với CI/CD, cấu hình Cloudflare biên, ước tính chi phí, trạng thái triển khai hiện tại và kết quả tương tác người dùng cuối kèm minh chứng sản phẩm.")
 
 
 # ============== CHAPTER LOADER (MD parser) ==============
@@ -1807,51 +1838,60 @@ def add_conclusion(doc):
     run.font.bold = True
     run.font.color.rgb = RGBColor(0, 0, 0)
 
-    add_section_title(doc, "1. Tổng kết kết quả đạt được")
+    # Wave thesis-4: viết liền thành các đoạn văn, KHÔNG chia 3 mục đánh số (per user direction #14).
+    # Đoạn đầu trình bày kiến thức/kỹ năng/thái độ sinh viên đạt được (per user direction #13).
     add_paragraph_text(doc,
-        "Đồ án đã hoàn thành các mục tiêu đặt ra ban đầu trong phạm vi triển khai hiện tại của "
-        "nền tảng KiteHub. Cụ thể, hệ thống được triển khai trên AWS Singapore Free Tier với "
-        "kiến trúc multi-tenant single-bucket RLS-protected, 7 microservice cùng 2 ứng dụng "
-        "frontend, đảm bảo tuân thủ các yêu cầu pháp lý Việt Nam (PDPL 2023, Luật An ninh mạng "
-        "2018, Thông tư 78/2021/TT-BTC).")
+        "Quá trình thực hiện đồ án đã giúp em củng cố và mở rộng đáng kể cả về kiến thức, kỹ năng "
+        "lẫn thái độ làm việc. Về kiến thức, em nắm vững hơn cách thiết kế kiến trúc phần mềm đa "
+        "tenant, mô hình hóa và thiết kế cơ sở dữ liệu quan hệ, các nguyên tắc bảo mật ứng dụng "
+        "web cũng như khung pháp lý về bảo vệ dữ liệu cá nhân và hóa đơn điện tử tại Việt Nam. Về "
+        "kỹ năng, em rèn luyện được khả năng lập trình full-stack (Java Spring Boot phía máy chủ "
+        "và Next.js phía giao diện), triển khai hạ tầng đám mây trên AWS kèm quy trình tích hợp "
+        "và triển khai liên tục, viết kiểm thử tự động nhiều tầng, cùng kỹ năng phân tích, thiết "
+        "kế hệ thống và trình bày tài liệu kỹ thuật. Về thái độ, em hình thành tinh thần làm việc "
+        "nghiêm túc, tư duy hướng chất lượng, ý thức tự học để tiếp cận công nghệ mới và khả năng "
+        "chủ động giải quyết vấn đề một cách độc lập.")
 
     add_paragraph_text(doc,
-        "Các pattern kiến trúc cốt lõi đã được hiện thực hóa qua 5 đoạn code đại diện (JWT "
-        "authentication tại Gateway, Row-Level Security cho multi-tenant query, Outbox "
-        "Pattern cho email dispatch, REST API 3-tier cho beta access, Next.js App Router "
-        "page) — tất cả đều được kiểm thử qua bộ unit test + integration test, đáp ứng tỉ lệ "
-        "coverage tối thiểu yêu cầu cho production-ready.")
+        "Trong phạm vi triển khai hiện tại, đồ án đã hoàn thành các mục tiêu đặt ra ban đầu. Hệ "
+        "thống KiteHub được triển khai trên AWS Singapore Free Tier với kiến trúc multi-tenant "
+        "single-bucket bảo vệ bằng Row-Level Security, gồm bảy microservice cùng hai ứng dụng "
+        "giao diện, đáp ứng các yêu cầu pháp lý Việt Nam gồm Luật Bảo vệ Dữ liệu Cá nhân 2023, "
+        "Luật An ninh mạng 2018 và Thông tư 78/2021/TT-BTC. Các pattern kiến trúc cốt lõi đã được "
+        "hiện thực hóa và kiểm chứng qua bộ kiểm thử nhiều tầng đạt tỉ lệ phủ tối thiểu yêu cầu, "
+        "bao gồm xác thực JWT tại gateway, Row-Level Security cho truy vấn multi-tenant, Outbox "
+        "Pattern cho gửi email, API REST ba tầng cho luồng truy cập và trang giao diện theo App "
+        "Router của Next.js.")
 
-    # Wave 102.7.5 Bucket B Item 8 — Phụ lục B reframed as inline GitHub link
     add_paragraph_text(doc,
-        "Toàn bộ mã nguồn dự án được công bố tại kho lưu trữ công khai trên GitHub: "
-        "https://github.com/VictorAurelius/2026-Kite-Class-Platform — bao gồm các thành phần "
-        "kitehub/ (6 microservice nền tảng + frontend), kiteclass/ (dịch vụ nghiệp vụ tenant), "
-        "infrastructure/ (cấu hình hạ tầng Terraform), và documents/ (tài liệu thiết kế + audit). "
-        "Người đọc có thể tham khảo trực tiếp mã nguồn để đối chiếu với các pattern và đoạn code "
-        "trình bày trong báo cáo.")
+        "Toàn bộ mã nguồn dự án được công bố tại kho lưu trữ công khai trên GitHub "
+        "(https://github.com/VictorAurelius/2026-Kite-Class-Platform), bao gồm các thành phần "
+        "kitehub (sáu microservice nền tảng và frontend), kiteclass (dịch vụ nghiệp vụ tenant), "
+        "infrastructure (cấu hình hạ tầng Terraform) và documents (tài liệu thiết kế và đánh giá "
+        "chất lượng), giúp người đọc có thể đối chiếu trực tiếp với các pattern và đoạn mã trình "
+        "bày trong báo cáo.")
 
-    add_section_title(doc, "2. Hạn chế")
-    add_bullet_list_item(doc, "Phạm vi triển khai hiện tại chỉ phục vụ ba nhóm người dùng (giáo viên độc lập, chủ sở hữu trung tâm, quản lý trung tâm); nhóm phụ huynh và học viên thuộc phân khúc K-12 thuộc lộ trình phát triển sau do yêu cầu DPO + DPIA bổ sung theo PDPL.")
-    add_bullet_list_item(doc, "Một số KPI thực tế (Time to First Value, Daily Active Users, Monthly Recurring Revenue) chưa có số liệu đầy đủ do phạm vi triển khai hiện tại mới có hai giáo viên độc lập (một gói miễn phí, một gói trả phí) trực tiếp sử dụng để thu thập phản hồi.")
-    add_bullet_list_item(doc, "AI Branding mới được tích hợp ở mức cơ bản với nhà cung cấp OpenAI (GPT-4 Vision sinh mô tả + DALL-E 3 sinh ảnh) cho môi trường vận hành và Ollama tự host cho môi trường phát triển; các phương án multi-vendor failover và bộ phân loại nội dung an toàn (NSFW) thuộc lộ trình phát triển sau.")
+    add_paragraph_text(doc,
+        "Bên cạnh các kết quả đạt được, đồ án vẫn còn một số hạn chế. Phạm vi triển khai hiện tại "
+        "mới phục vụ ba nhóm người dùng là giáo viên độc lập, chủ sở hữu trung tâm và quản lý "
+        "trung tâm; nhóm phụ huynh và học viên thuộc phân khúc K-12 được để lại cho hướng phát "
+        "triển sau do cần bổ sung cán bộ bảo vệ dữ liệu và đánh giá tác động bảo vệ dữ liệu theo "
+        "quy định. Một số chỉ số vận hành thực tế chưa được thu thập đầy đủ do hệ thống mới có "
+        "hai giáo viên độc lập trực tiếp sử dụng. Tính năng AI Branding cũng mới được tích hợp ở "
+        "mức cơ bản, trong khi các phương án dự phòng đa nhà cung cấp và bộ phân loại nội dung an "
+        "toàn còn nằm trong kế hoạch hoàn thiện.")
 
-    add_section_title(doc, "3. Hướng phát triển tiếp theo")
-    add_bullet_list_item(doc,
-        "Hoàn thiện thanh toán trực tuyến (mở rộng VNPay sang MoMo/ZaloPay), hợp tác MISA MeInvoice cho "
-        "hóa đơn điện tử theo Thông tư 78/2021/TT-BTC, mở rộng quy mô người dùng khi sản phẩm trưởng thành.")
-    add_bullet_list_item(doc,
-        "Về hạ tầng và bảo mật: kiến trúc đa vùng (Singapore kết hợp Hà Nội để bản địa hóa dữ liệu "
-        "theo Nghị định 53/2022), nâng cấp AI Quality Gate với cơ chế dự phòng đa nhà cung cấp "
-        "(multi-vendor failover), và ứng dụng di động native trên iOS và Android.")
-    add_bullet_list_item(doc,
-        "Về mở rộng thị trường: hướng tới khối trường công lập K-12, kèm theo việc bổ nhiệm cán bộ "
-        "bảo vệ dữ liệu (DPO) chính thức và thực hiện đánh giá tác động bảo vệ dữ liệu (DPIA) cho dữ "
-        "liệu trẻ em theo Điều 26 Luật Bảo vệ Dữ liệu Cá nhân.")
-
-    # Wave thesis-2 Bucket Issue 7 fix — Remove "4. Đóng góp khoa học" + "5. Kiến nghị" separate sections per khung primary §1 Ch.4 §4.4
-    # (khung mandate "Kết luận, kiến nghị + Phương hướng phát triển" gộp 1 mục §4.4; KHÔNG separate "Đóng góp khoa học" section).
-    # Audit map item 7: "Bỏ Đóng góp khoa học + Kiến nghị" — confirmed.
+    add_paragraph_text(doc,
+        "Trên cơ sở đó, đồ án xác định một số hướng phát triển tiếp theo. Trước hết là hoàn thiện "
+        "thanh toán trực tuyến, mở rộng từ VietQR sang các cổng MoMo và ZaloPay, đồng thời hợp "
+        "tác với MISA MeInvoice để phát hành hóa đơn điện tử theo Thông tư 78/2021/TT-BTC và mở "
+        "rộng quy mô người dùng khi sản phẩm trưởng thành. Về hạ tầng và bảo mật, hệ thống hướng "
+        "tới kiến trúc đa vùng kết hợp Singapore và Hà Nội nhằm bản địa hóa dữ liệu theo Nghị "
+        "định 53/2022, nâng cấp cơ chế kiểm soát chất lượng AI với phương án dự phòng đa nhà cung "
+        "cấp và phát triển ứng dụng di động native trên iOS và Android. Về thị trường, đồ án định "
+        "hướng mở rộng sang khối trường công lập K-12 kèm việc bổ nhiệm cán bộ bảo vệ dữ liệu "
+        "chính thức và thực hiện đánh giá tác động bảo vệ dữ liệu cho dữ liệu trẻ em theo Điều 26 "
+        "Luật Bảo vệ Dữ liệu Cá nhân.")
 
 
 # ============== TÀI LIỆU THAM KHẢO ==============
@@ -2016,6 +2056,78 @@ update_fields_now()
 
 
 # ============== MAIN ENTRY POINT ==============
+# ============== TABLE COLUMN WIDTHS (per [DRAFT]K63 bản sửa tay — user desired #16) ==============
+# Độ rộng cột (cm) trích từ <w:tblGrid> của bản sửa tay [DRAFT]K63. Key = chỉ số bảng theo
+# thứ tự xuất hiện trong document (doc.tables order — khớp 1:1 với DRAFT). Pipeline trước đây
+# KHÔNG set tblGrid cố định → Word/render chia đều cột; dict này ép đúng width user mong muốn.
+# Bảng [15] (Bảng 2.10 so sánh gói dịch vụ): đã bỏ cột "Email DKIM-verified" trong MD chapter-2
+# để khớp DRAFT (8 cột) per user direction → áp width DRAFT bình thường.
+TABLE_COL_WIDTHS_CM = {
+    0:  [5.5, 9.0],          # Bìa chính — info table
+    1:  [5.5, 9.0],          # Bìa phụ — info table
+    2:  [4.48, 11.4],        # Danh mục thuật ngữ
+    3:  [3.48, 12.4],        # Danh mục từ viết tắt
+    4:  [2.54, 2.8, 2.54, 2.54, 2.54, 2.54],   # Bảng 1.1 so sánh hệ thống
+    5:  [5.37, 9.87],        # Bảng 2.1 NFR ↔ ISO 25010
+    6:  [6.87, 3.29, 5.08],
+    7:  [3.32, 12.56],
+    8:  [2.31, 5.95, 7.61],
+    9:  [4.62, 10.62],
+    10: [2.87, 7.29, 5.08],
+    11: [0.95, 4.45, 3.37, 7.12],   # schema table
+    12: [0.95, 4.24, 3.5, 6.69],
+    13: [0.95, 4.21, 3.5, 6.66],
+    14: [2.48, 1.36, 8.33, 3.71],   # Service / Cổng / Trách nhiệm / CSDL
+    15: [2.19, 1.64, 2.62, 2.38, 1.5, 1.0, 2.0, 2.32],   # Bảng 2.10 gói dịch vụ (8 cột — đã bỏ cột Email DKIM khớp DRAFT)
+    16: [3.81, 3.81, 3.81, 3.81],
+    17: [3.05, 3.05, 3.05, 3.05, 3.38],
+    18: [5.08, 5.08, 5.08],
+}
+
+
+def _apply_col_widths(table, widths_cm):
+    """Ép độ rộng cột: fixed layout + tblGrid gridCol + tcW mỗi cell (Word + render đều honor)."""
+    table.allow_autofit = False
+    tbl = table._tbl
+    tblPr = tbl.tblPr
+    for el in tblPr.findall(qn('w:tblLayout')):
+        tblPr.remove(el)
+    layout = OxmlElement('w:tblLayout')
+    layout.set(qn('w:type'), 'fixed')
+    tblPr.append(layout)
+    twips = [int(round(w / 2.54 * 1440)) for w in widths_cm]
+    grid = tbl.find(qn('w:tblGrid'))
+    if grid is not None:
+        for gc in grid.findall(qn('w:gridCol')):
+            grid.remove(gc)
+        for tw in twips:
+            gc = OxmlElement('w:gridCol')
+            gc.set(qn('w:w'), str(tw))
+            grid.append(gc)
+    for row in table.rows:
+        cells = row.cells
+        if len(cells) != len(twips):
+            continue  # hàng có merge/span — skip tránh double-apply
+        for i, cell in enumerate(cells):
+            cell.width = Cm(widths_cm[i])
+
+
+def apply_table_col_widths(doc):
+    """Post-process: áp TABLE_COL_WIDTHS_CM cho mọi bảng theo thứ tự document (per #16)."""
+    applied = 0
+    for idx, table in enumerate(doc.tables):
+        widths = TABLE_COL_WIDTHS_CM.get(idx)
+        if not widths:
+            continue
+        ncols = len(table.columns)
+        if ncols != len(widths):
+            print(f"  WARN: bảng [{idx}] có {ncols} cột ≠ {len(widths)} width DRAFT — skip")
+            continue
+        _apply_col_widths(table, widths)
+        applied += 1
+    print(f"  ✅ Áp độ rộng cột từ [DRAFT]K63 cho {applied} bảng (per #16)")
+
+
 def create_thesis():
     print("=" * 60)
     print(f"Đang tạo đồ án tốt nghiệp: {THESIS_INFO['title'][:60]}")
@@ -2082,6 +2194,9 @@ def create_thesis():
 
     # Add page numbers (skip 2 covers)
     add_page_number_header(doc)
+
+    # #16 — ép độ rộng cột theo bản sửa tay [DRAFT]K63 (post-process toàn bộ bảng)
+    apply_table_col_widths(doc)
 
     # Save
     doc.save(str(OUTPUT_FILE))

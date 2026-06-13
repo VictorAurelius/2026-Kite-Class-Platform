@@ -1,6 +1,6 @@
-# Citation Style — IEEE (chuẩn VN CS thesis 2026)
+# Citation Style: IEEE (chuẩn VN CS thesis 2026)
 
-**Quyết định:** IEEE per GAP-647 — phù hợp VN CS convention (UIT/HUST/UET) + computer science international norm.
+**Quyết định:** IEEE per GAP-647, phù hợp VN CS convention (UIT/HUST/UET) + computer science international norm.
 
 ## In-text citation patterns
 
@@ -21,7 +21,7 @@
 
 Example:
 ```
-[1] AWS, "Well-Architected Framework — 6 Pillars," 2024. [Online]. Available: https://aws.amazon.com/architecture/well-architected. [Accessed 2026-05-18].
+[1] AWS, "Well-Architected Framework, 6 Pillars," 2024. [Online]. Available: https://aws.amazon.com/architecture/well-architected. [Accessed 2026-05-18].
 ```
 
 ### Academic papers (IEEE journal/conference)
@@ -84,15 +84,15 @@ Missing metadata → mark `[N/A: <reason>]` để reviewer biết.
 `documents/08-thesis/references/bibliography.md` organized by Chapter target:
 
 ```markdown
-## Chapter 1 — Introduction
+## Chapter 1: Introduction
 [1] ...
 [2] ...
 
-## Chapter 2 — Theoretical Background
+## Chapter 2: Theoretical Background
 [3] ...
 ```
 
-Số `[N]` chạy global (không reset per chapter) — IEEE convention.
+Số `[N]` chạy global (không reset per chapter), IEEE convention.
 
 ## Anti-patterns
 
@@ -100,7 +100,7 @@ Số `[N]` chạy global (không reset per chapter) — IEEE convention.
 |---|---|
 | Mix citation styles (APA + IEEE) | Stick IEEE only |
 | Cite mà không có entry trong bibliography.md | Mỗi `[N]` in-text MUST có entry |
-| Dùng "ibid." hoặc "op. cit." | IEEE không dùng — re-cite `[N]` |
+| Dùng "ibid." hoặc "op. cit." | IEEE không dùng, re-cite `[N]` |
 | Bỏ qua URL accessed date cho web sources | Mandatory `[Accessed YYYY-MM-DD]` cho online refs |
 | Cite blog post chưa peer-reviewed như academic source | Mark là "Industry blog" / "Vendor docs" rõ ràng |
 | Cite Wikipedia trực tiếp | Cite primary source Wikipedia references đến |
@@ -123,8 +123,8 @@ Pre-commit / pre-merge check (deferred Phase 2 per `incident-to-rule-pipeline.md
 
 ## Related
 
-- GAP-647 thesis-bibliography-ieee — parent gap defining this style
-- GAP-646 thesis-docx-pipeline — bibliography section trong DOCX template injection
-- GAP-650 thesis-chapter-1-literature — Ch1 literature review must cite per this style
-- `documents/08-thesis/chapter-mapping.md` — chapter-to-source map
-- `.claude/rules/dev-readable-doc-language.md` — Vietnamese narrative + English identifiers (citation labels English [N], titles trong quote per source)
+- GAP-647 thesis-bibliography-ieee, parent gap defining this style
+- GAP-646 thesis-docx-pipeline, bibliography section trong DOCX template injection
+- GAP-650 thesis-chapter-1-literature, Ch1 literature review must cite per this style
+- `documents/08-thesis/chapter-mapping.md`, chapter-to-source map
+- `.claude/rules/dev-readable-doc-language.md`, Vietnamese narrative + English identifiers (citation labels English [N], titles trong quote per source)

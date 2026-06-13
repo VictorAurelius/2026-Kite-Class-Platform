@@ -12,7 +12,7 @@ Aggregated test results across all services in the Kite Class Platform.
 
 ## Test Distribution by Type
 
-### Backend (Java) — 146 Tests
+### Backend (Java): 146 Tests
 
 | Category | KiteHub | KiteClass | Description |
 |----------|---------|-----------|-------------|
@@ -20,7 +20,7 @@ Aggregated test results across all services in the Kite Class Platform.
 | Integration Tests | ~12 | ~25 | Repository, controller (Testcontainers) |
 | Security Tests | ~6 | ~13 | Authentication, authorization, CSRF |
 
-### Frontend (TypeScript) — 1,152 Tests
+### Frontend (TypeScript): 1,152 Tests
 
 | Category | KiteHub | KiteClass | Description |
 |----------|---------|-----------|-------------|
@@ -45,7 +45,7 @@ Aggregated test results across all services in the Kite Class Platform.
 | Wave 3 | ~220 | ~750 | Custom domains, advanced billing |
 | Wave 4 | ~300 | ~1,050 | Template gallery, config API, E2E |
 | Wave 5 | ~248 | ~1,298 | AI rate limit, blog, Docker, validation |
-| Wave 6 | ~80 | ~1,378 | Quality v4 — monitoring, FUTURE cleanup, payment URL |
+| Wave 6 | ~80 | ~1,378 | Quality v4, monitoring, FUTURE cleanup, payment URL |
 | Wave 7 | ~60 | ~1,438 | Business docs (7→16), service README + QUICK-START |
 | Wave 8 | ~40 | ~1,478 | Alert rules, documentation polish, infra hardening |
 
@@ -97,6 +97,6 @@ Aggregated test results across all services in the Kite Class Platform.
 - All 9 services have README.md + QUICK-START.md
 
 ### Wave 6-8 Key Results
-- **Wave 6:** Quality v4 push — Prometheus alerting, FUTURE placeholder cleanup, KiteClass monitoring
+- **Wave 6:** Quality v4 push, Prometheus alerting, FUTURE placeholder cleanup, KiteClass monitoring
 - **Wave 7:** Business doc gap identified (7 docs → 16 docs), service documentation standardized
 - **Wave 8:** Alert rules expanded (3→7 rules), infrastructure hardening, documentation polish
