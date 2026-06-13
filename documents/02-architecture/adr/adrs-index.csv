@@ -43,3 +43,8 @@ ADR-036,ACCEPTED,2026-05-26,Multi-branch defer Phase 2 — Phase 1 BETA filter i
 ADR-038,PROPOSED,2026-06-02,AI External Provider Strategy — Gemini Free Tier primary + OpenAI fallback + AIClient interface,ADR-038-ai-external-provider-strategy.md
 ADR-039,ACCEPTED,2026-06-09,Cross-Service Subscription Tier Propagation — JWT tier claim + gateway trusted-header inject (anti-spoof),ADR-039-cross-service-subscription-tier-propagation.md
 ADR-040,PROPOSED,2026-06-10,Cross-Product SSO KiteHub to KiteClass — gateway shared-JWT validation + one-time-code redirect handoff,ADR-040-cross-product-sso-kh-kc.md
+ADR-041,ACCEPTED,2026-06-13,Instance Tier-Sync Centralization (SUB-21) — InstanceTierSyncService single point + setStatus suspended_at stamping,ADR-041-instance-tier-sync-centralization.md
+ADR-042,ACCEPTED,2026-06-13,Trial→Paid Migration Atomicity — pessimistic lock + Component ObjectProvider self-ref + REQUIRES_NEW DLQ + idempotency,ADR-042-trial-to-paid-migration-atomicity.md
+ADR-043,ACCEPTED,2026-06-13,Manual-VietQR Dunning + Involuntary-Churn Lifecycle (SUB-23/24/25) — pending-TTL + grace dunning + suspended_at retention clock,ADR-043-manual-vietqr-dunning-involuntary-churn-lifecycle.md
+ADR-044,ACCEPTED,2026-06-13,Owner Notification Channel Abstraction — NotificationChannel port + dispatcher fan-out + in-app fallback + REQUIRES_NEW isolation,ADR-044-owner-notification-channel-abstraction.md
+ADR-045,ACCEPTED,2026-06-13,Custom-Domain Verification State Machine + Cert-Provisioning Seam — CERT_PROVISIONING + idempotent re-verify + stub-then-ACM/Cloudflare,ADR-045-custom-domain-verification-state-machine-cert-seam.md

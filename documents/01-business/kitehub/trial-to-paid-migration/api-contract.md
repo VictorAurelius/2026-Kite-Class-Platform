@@ -2,6 +2,8 @@
 
 All endpoints assume Bearer JWT (Owner or Admin role) unless noted. Error envelope follows project standard (`{error: {code, message, details}}`).
 
+**Atomicity guarantees (BE-2 hardening — [ADR-042](../../../02-architecture/adr/ADR-042-trial-to-paid-migration-atomicity.md)):** HTTP contract shape KHÔNG đổi, nhưng internal migration đã hardened atomicity (wave kitehub-biz-100): (1) pessimistic write lock `findByIdForUpdate` (T2P-08, GAP-1253) serialize concurrent worker → zero double-convert; (2) `MigrationRetryRunner` là Spring `@Component` + self-reference qua `ObjectProvider` → `@Transactional` per-attempt thật-sự áp dụng (GAP-1254 — trước đây inert do self-invocation); (3) `markMigrationFailed` chạy `REQUIRES_NEW` → DLQ event + phase `MIGRATION_FAILED` survive khi attempt txn rollback (T2P-10); (4) tier requested carry qua flip → `instances.tier` sync (GAP-1095, SUB-21); (5) `idempotencyKey` persist trong cùng txn `initiateUpgrade` (catch `DataIntegrityViolation` concurrent-create race → cached replay), TTL `kitehub.trial-to-paid.idempotency.ttl-minutes: 10`.
+
 ## POST /api/platform/instances/{id}/upgrade
 **Use case:** UC-T2P-01
 **Auth:** Bearer token (Owner of instance)

@@ -69,14 +69,16 @@ Validation:
 }
 ```
 
-**Status transitions:**
-- TXT match (BR-DOMAIN-005) → `status=VERIFIED` + `verifiedAt` set
-- TXT not match / not found → `status=PENDING_VERIFY` (giữ nguyên — chờ tenant fix DNS hoặc timeout job)
+**Status transitions (state machine completion — GAP-1024, [ADR-045](../../../02-architecture/adr/ADR-045-custom-domain-verification-state-machine-cert-seam.md)):**
+- `PENDING_VERIFY` + TXT match (BR-DOMAIN-005) → `CERT_PROVISIONING` → request cert (`CertProvisioningService`); Phase 1 stub auto-issue đồng bộ → `VERIFIED` + `verifiedAt`. Phase 1.5+ real ACM/Cloudflare trả PENDING → giữ `CERT_PROVISIONING` (poll/webhook flip VERIFIED out-of-band).
+- `PENDING_VERIFY` + TXT not match/not found → giữ `PENDING_VERIFY` (chờ tenant fix DNS hoặc `DomainVerificationTimeoutScheduler` flip FAILED sau 48h)
+- **Idempotent (GAP-1024):** re-verify `VERIFIED` → no-op HTTP 200 (trả state hiện tại, KHÔNG throw 400); re-verify `CERT_PROVISIONING` → re-poll cert issuance (no DNS re-check)
+- Cert provisioning FAILED → `status=FAILED` (re-initiate để regenerate token, BR-DOMAIN-004)
 
 **Error responses:**
 | Status | Reason | Code |
 |--------|--------|------|
-| 400 | Không có verify pending (instance chưa initiate) | `NO_VERIFY_PENDING` |
+| 400 | Không có verify pending — status `NONE`/`FAILED` hoặc chưa initiate (re-initiate để regenerate token) | `NO_VERIFY_PENDING` |
 | 404 | Instance không tồn tại | `INSTANCE_NOT_FOUND` |
 
 ---
