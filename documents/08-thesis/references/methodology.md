@@ -16,7 +16,7 @@ A structured development workflow enforced for every pull request:
 - Estimate effort for each task (S/M/L)
 - Identify parallelizable vs sequential tasks
 
-### 3. TDD — Test-Driven Development
+### 3. TDD: Test-Driven Development
 - **Red**: Write failing tests first
 - **Green**: Write minimum code to pass tests
 - **Refactor**: Improve code quality while keeping tests green

@@ -1,5 +1,5 @@
 ---
-title: Thesis V1 — canonical metadata (sinh viên + đề tài + GVHD)
+title: Thesis V1: canonical metadata (sinh viên + đề tài + GVHD)
 status: active
 created: 2026-05-19
 updated: 2026-05-19
@@ -7,7 +7,7 @@ audience: dev
 related-gap: GAP-688
 ---
 
-# Thesis V1 — Canonical Metadata
+# Thesis V1: Canonical Metadata
 
 Nguồn truth duy nhất cho metadata khóa luận tốt nghiệp. Mọi script sinh DOCX (`create_thesis_v1.py` per GAP-688) PHẢI đọc các giá trị từ file này hoặc giữ inline `THESIS_INFO` constant đồng bộ với file này.
 
@@ -38,7 +38,7 @@ Nguồn truth duy nhất cho metadata khóa luận tốt nghiệp. Mọi script 
 | Thông tin | Giá trị |
 |-----------|---------|
 | **Tiêu đề** (in trên bìa chính) | **XÂY DỰNG HỆ THỐNG SAAS CUNG CẤP DỊCH VỤ ĐÀO TẠO** |
-| Tiêu đề tiếng Anh (tùy chọn cho bìa phụ) | KiteHub — A Multi-Tenant SaaS Platform for Education Service Providers |
+| Tiêu đề tiếng Anh (tùy chọn cho bìa phụ) | KiteHub, A Multi-Tenant SaaS Platform for Education Service Providers |
 | Loại đồ án | Đồ án tốt nghiệp cử nhân |
 | Năm bảo vệ | 2026 |
 | Defense window | 15/08/2026 → 15/10/2026 (`release-1.5-thesis-scope.md` §4) |
@@ -48,8 +48,8 @@ Nguồn truth duy nhất cho metadata khóa luận tốt nghiệp. Mọi script 
 | Vai trò | Giá trị |
 |---------|---------|
 | **GVHD tại trường** | TS. Nguyễn Đức Dư |
-| Đơn vị công tác GVHD | Khoa Công nghệ thông tin — Đại học Giao thông Vận tải |
-| **GV phản biện** | TBD — khoa chưa phân công (cập nhật khi có quyết định) |
+| Đơn vị công tác GVHD | Khoa Công nghệ thông tin, Đại học Giao thông Vận tải |
+| **GV phản biện** | TBD, khoa chưa phân công (cập nhật khi có quyết định) |
 | CBHD đơn vị (nếu có) | N/A (đồ án nội bộ KiteHub, không có đơn vị ngoài) |
 
 ## 4. Inline THESIS_INFO Python constant
@@ -75,7 +75,7 @@ STUDENT_INFO = {
 # ============== THÔNG TIN ĐỀ TÀI ==============
 THESIS_INFO = {
     "title": "XÂY DỰNG HỆ THỐNG SAAS CUNG CẤP DỊCH VỤ ĐÀO TẠO",
-    "title_en": "KiteHub — A Multi-Tenant SaaS Platform for Education Service Providers",
+    "title_en": "KiteHub, A Multi-Tenant SaaS Platform for Education Service Providers",
     "type": "Đồ án tốt nghiệp cử nhân",
     "year": "2026",
     "defense_window_open": "2026-08-15",
@@ -83,7 +83,7 @@ THESIS_INFO = {
     "advisor": "TS. Nguyễn Đức Dư",
     "advisor_dept": "Khoa Công nghệ thông tin",
     "advisor_university": "Đại học Giao thông Vận tải",
-    "reviewer": None,    # TBD — khoa chưa phân công; cập nhật khi có
+    "reviewer": None,    # TBD, khoa chưa phân công; cập nhật khi có
     "external_mentor": None,    # N/A đồ án nội bộ KiteHub
 }
 ```

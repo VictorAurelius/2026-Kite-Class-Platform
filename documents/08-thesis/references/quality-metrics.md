@@ -8,16 +8,16 @@ Quality audit score progression for the Kite Class Platform.
 
 | Date | Score | Grade | Key Changes |
 |------|-------|-------|-------------|
-| 2026-03-22 | 77/100 | B | Initial audit — identified gaps in testing, docs |
-| 2026-03-23 | 91/100 | A | +14 — Added tests, improved error handling, docs |
-| 2026-03-24 | 96/100 | A+ | +5 — E2E tests, CI/CD, final quality polish |
+| 2026-03-22 | 77/100 | B | Initial audit, identified gaps in testing, docs |
+| 2026-03-23 | 91/100 | A | +14, Added tests, improved error handling, docs |
+| 2026-03-24 | 96/100 | A+ | +5, E2E tests, CI/CD, final quality polish |
 
 ### KiteClass Quality Scores
 
 | Date | Score | Grade | Key Changes |
 |------|-------|-------|-------------|
-| 2026-03-23 | 78/100 | C | Initial audit — significant gaps in all areas |
-| 2026-03-24 | 93/100 | A | +15 — Major quality improvements across all dimensions |
+| 2026-03-23 | 78/100 | C | Initial audit, significant gaps in all areas |
+| 2026-03-24 | 93/100 | A | +15, Major quality improvements across all dimensions |
 
 ## Scoring Breakdown (100 Points)
 
