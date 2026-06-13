@@ -13,6 +13,7 @@ import com.kitehub.subscription.idempotency.MigrationIdempotencyKeyService;
 import com.kitehub.subscription.outbox.MigrationEventType;
 import com.kitehub.subscription.outbox.SubscriptionOutboxEvent;
 import com.kitehub.subscription.outbox.SubscriptionOutboxRepository;
+import com.kitehub.subscription.service.migration.MigrationRetryRunner;
 import com.kitehub.subscription.service.migration.SubscriptionEventEmitter;
 import com.kitehub.subscription.repository.InstanceRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,9 +22,9 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.ObjectProvider;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -33,6 +34,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 /**
@@ -55,10 +57,12 @@ class TrialToPaidServiceTest {
     @Mock
     private MigrationIdempotencyKeyService idempotencyService;
 
+    @Mock
+    private ObjectProvider<MigrationRetryRunner> retryRunnerSelfProvider;
+
     private TrialToPaidConfig config;
     private SubscriptionEventEmitter eventEmitter;
 
-    @InjectMocks
     private TrialToPaidService service;
 
     private UUID instanceId;
@@ -68,8 +72,14 @@ class TrialToPaidServiceTest {
     void setUp() {
         config = new TrialToPaidConfig();
         eventEmitter = new SubscriptionEventEmitter(outboxRepository);
-        // Inject the config manually because @InjectMocks cannot resolve non-mock.
-        service = new TrialToPaidService(instanceRepository, eventEmitter, config, trialService, idempotencyService);
+        // Real tier-sync helper (no I/O — sets instance.tier) so GAP-1095/1256 tier behavior
+        // is observable; retry runner is a real instance (executeMigrationWithRetry not
+        // exercised here — only its markMigrationFailed via executeMigration's failure path).
+        InstanceTierSyncService tierSyncService = new InstanceTierSyncService();
+        MigrationRetryRunner retryRunner = new MigrationRetryRunner(
+            instanceRepository, trialService, config, eventEmitter, retryRunnerSelfProvider);
+        service = new TrialToPaidService(instanceRepository, eventEmitter, config, trialService,
+            idempotencyService, tierSyncService, retryRunner);
 
         instanceId = UUID.randomUUID();
         instance = new Instance();
@@ -100,7 +110,7 @@ class TrialToPaidServiceTest {
         @Test
         @DisplayName("moves phase from NONE through INITIATED to PAYMENT_PENDING")
         void happyPath() {
-            when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
+            when(instanceRepository.findByIdForUpdate(instanceId)).thenReturn(Optional.of(instance));
             when(instanceRepository.save(any(Instance.class))).thenAnswer(i -> i.getArgument(0));
 
             UpgradeResponse resp = service.initiateUpgrade(instanceId, upgradeRequest());
@@ -109,6 +119,8 @@ class TrialToPaidServiceTest {
             assertThat(resp.getMigrationPhase()).isEqualTo(MigrationPhase.PAYMENT_PENDING);
             assertThat(resp.getPollUrl()).contains(instanceId.toString());
             assertThat(instance.getMigrationStartedAt()).isNotNull();
+            // GAP-1095 — requested paid tier persisted at initiate so it's carried to completion.
+            assertThat(instance.getTier()).isEqualTo(PricingTier.PREMIUM);
             // INITIATED event emitted
             ArgumentCaptor<SubscriptionOutboxEvent> cap = ArgumentCaptor.forClass(SubscriptionOutboxEvent.class);
             verify(outboxRepository, atLeastOnce()).save(cap.capture());
@@ -121,7 +133,7 @@ class TrialToPaidServiceTest {
         @DisplayName("rejects with MIGRATION_IN_FLIGHT when another phase is active")
         void rejectsInFlight() {
             instance.setMigrationPhase(MigrationPhase.MIGRATING);
-            when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
+            when(instanceRepository.findByIdForUpdate(instanceId)).thenReturn(Optional.of(instance));
 
             assertThatThrownBy(() -> service.initiateUpgrade(instanceId, upgradeRequest()))
                 .isInstanceOf(MigrationException.class)
@@ -133,7 +145,7 @@ class TrialToPaidServiceTest {
         @DisplayName("rejects with MIGRATION_FAILED_LOCKED when phase is MIGRATION_FAILED")
         void rejectsFailedLocked() {
             instance.setMigrationPhase(MigrationPhase.MIGRATION_FAILED);
-            when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
+            when(instanceRepository.findByIdForUpdate(instanceId)).thenReturn(Optional.of(instance));
 
             assertThatThrownBy(() -> service.initiateUpgrade(instanceId, upgradeRequest()))
                 .isInstanceOf(MigrationException.class)
@@ -146,7 +158,7 @@ class TrialToPaidServiceTest {
         void rejectsBeyondRescueWindow() {
             // Trial expired 48h ago — past 24h rescue window.
             instance.setTrialExpiresAt(LocalDateTime.now().minusHours(48));
-            when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
+            when(instanceRepository.findByIdForUpdate(instanceId)).thenReturn(Optional.of(instance));
 
             assertThatThrownBy(() -> service.initiateUpgrade(instanceId, upgradeRequest()))
                 .isInstanceOf(MigrationException.class)
@@ -159,7 +171,7 @@ class TrialToPaidServiceTest {
         void acceptsWithinRescueWindow() {
             // Trial expired 5h ago — still within 24h rescue window.
             instance.setTrialExpiresAt(LocalDateTime.now().minusHours(5));
-            when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
+            when(instanceRepository.findByIdForUpdate(instanceId)).thenReturn(Optional.of(instance));
             when(instanceRepository.save(any(Instance.class))).thenAnswer(i -> i.getArgument(0));
 
             UpgradeResponse resp = service.initiateUpgrade(instanceId, upgradeRequest());
@@ -171,7 +183,7 @@ class TrialToPaidServiceTest {
         @DisplayName("rejects when instance status is not TRIAL")
         void rejectsNonTrialStatus() {
             instance.setStatus(InstanceStatus.ACTIVE);
-            when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
+            when(instanceRepository.findByIdForUpdate(instanceId)).thenReturn(Optional.of(instance));
 
             assertThatThrownBy(() -> service.initiateUpgrade(instanceId, upgradeRequest()))
                 .isInstanceOf(MigrationException.class)
@@ -188,7 +200,7 @@ class TrialToPaidServiceTest {
         @DisplayName("advances PAYMENT_PENDING → PAYMENT_CAPTURED and emits event")
         void happyPath() {
             instance.setMigrationPhase(MigrationPhase.PAYMENT_PENDING);
-            when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
+            when(instanceRepository.findByIdForUpdate(instanceId)).thenReturn(Optional.of(instance));
             when(instanceRepository.save(any(Instance.class))).thenAnswer(i -> i.getArgument(0));
 
             service.handlePaymentCaptured(instanceId, "txn_1234");
@@ -205,7 +217,7 @@ class TrialToPaidServiceTest {
         @DisplayName("is idempotent when called on already-captured phase")
         void idempotent() {
             instance.setMigrationPhase(MigrationPhase.PAYMENT_CAPTURED);
-            when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
+            when(instanceRepository.findByIdForUpdate(instanceId)).thenReturn(Optional.of(instance));
 
             service.handlePaymentCaptured(instanceId, "txn_dup");
 
@@ -218,7 +230,7 @@ class TrialToPaidServiceTest {
         @DisplayName("rejects when phase is not PAYMENT_PENDING (illegal transition)")
         void rejectsBadPhase() {
             instance.setMigrationPhase(MigrationPhase.NONE);
-            when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
+            when(instanceRepository.findByIdForUpdate(instanceId)).thenReturn(Optional.of(instance));
 
             assertThatThrownBy(() -> service.handlePaymentCaptured(instanceId, "t"))
                 .isInstanceOf(MigrationException.class)
@@ -235,13 +247,13 @@ class TrialToPaidServiceTest {
         @DisplayName("happy path: PAYMENT_CAPTURED → MIGRATING → COMPLETED with events")
         void happyPath() {
             instance.setMigrationPhase(MigrationPhase.PAYMENT_CAPTURED);
-            when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
+            when(instanceRepository.findByIdForUpdate(instanceId)).thenReturn(Optional.of(instance));
             when(instanceRepository.save(any(Instance.class))).thenAnswer(i -> i.getArgument(0));
             // Simulate the delegate performing the status flip.
             doAnswer(i -> {
                 instance.setStatus(InstanceStatus.ACTIVE);
                 return null;
-            }).when(trialService).convertTrialToSubscription(instanceId);
+            }).when(trialService).convertTrialToSubscription(eq(instanceId), any());
 
             service.executeMigration(instanceId);
 
@@ -263,10 +275,10 @@ class TrialToPaidServiceTest {
         @DisplayName("on exception: marks MIGRATION_FAILED + emits DLQ event + rethrows")
         void retryExhausted() {
             instance.setMigrationPhase(MigrationPhase.PAYMENT_CAPTURED);
-            when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
+            when(instanceRepository.findByIdForUpdate(instanceId)).thenReturn(Optional.of(instance));
             when(instanceRepository.save(any(Instance.class))).thenAnswer(i -> i.getArgument(0));
             doThrow(new RuntimeException("DB down"))
-                .when(trialService).convertTrialToSubscription(instanceId);
+                .when(trialService).convertTrialToSubscription(eq(instanceId), any());
 
             assertThatThrownBy(() -> service.executeMigration(instanceId))
                 .isInstanceOf(MigrationException.class);
@@ -286,7 +298,7 @@ class TrialToPaidServiceTest {
         @DisplayName("rejects when phase is not PAYMENT_CAPTURED")
         void rejectsBadPhase() {
             instance.setMigrationPhase(MigrationPhase.INITIATED);
-            when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
+            when(instanceRepository.findByIdForUpdate(instanceId)).thenReturn(Optional.of(instance));
 
             assertThatThrownBy(() -> service.executeMigration(instanceId))
                 .isInstanceOf(MigrationException.class)
@@ -305,7 +317,7 @@ class TrialToPaidServiceTest {
             instance.setStatus(InstanceStatus.ACTIVE);
             instance.setMigrationPhase(MigrationPhase.COMPLETED);
             instance.setMigrationCompletedAt(LocalDateTime.now().minusHours(2));
-            when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
+            when(instanceRepository.findByIdForUpdate(instanceId)).thenReturn(Optional.of(instance));
             when(instanceRepository.save(any(Instance.class))).thenAnswer(i -> i.getArgument(0));
 
             RollbackResponse resp = service.rollback(instanceId, "Gateway chargeback");
@@ -314,6 +326,8 @@ class TrialToPaidServiceTest {
             assertThat(instance.getMigrationPhase()).isEqualTo(MigrationPhase.REVERSED);
             assertThat(resp.getNewStatus()).isEqualTo(InstanceStatus.TRIAL);
             assertThat(resp.getTrialExpiresAt()).isEqualTo(instance.getTrialExpiresAt());
+            // GAP-1256 — denormalized tier reset to FREE on rollback (was BASIC in setUp).
+            assertThat(instance.getTier()).isEqualTo(PricingTier.FREE);
 
             ArgumentCaptor<SubscriptionOutboxEvent> cap = ArgumentCaptor.forClass(SubscriptionOutboxEvent.class);
             verify(outboxRepository, times(3)).save(cap.capture());
@@ -331,7 +345,7 @@ class TrialToPaidServiceTest {
             instance.setStatus(InstanceStatus.ACTIVE);
             instance.setMigrationPhase(MigrationPhase.COMPLETED);
             instance.setMigrationCompletedAt(LocalDateTime.now().minusHours(30));
-            when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
+            when(instanceRepository.findByIdForUpdate(instanceId)).thenReturn(Optional.of(instance));
 
             assertThatThrownBy(() -> service.rollback(instanceId, "too late"))
                 .isInstanceOf(MigrationException.class)
@@ -343,7 +357,7 @@ class TrialToPaidServiceTest {
         @DisplayName("rejects when instance is not ACTIVE")
         void rejectsNonActive() {
             instance.setStatus(InstanceStatus.TRIAL);
-            when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
+            when(instanceRepository.findByIdForUpdate(instanceId)).thenReturn(Optional.of(instance));
 
             assertThatThrownBy(() -> service.rollback(instanceId, "nope"))
                 .isInstanceOf(MigrationException.class)

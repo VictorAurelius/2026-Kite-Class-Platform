@@ -3,6 +3,7 @@ package com.kitehub.subscription.service;
 import com.kitehub.platform.domain.entity.Instance;
 import com.kitehub.platform.domain.enums.InstanceStatus;
 import com.kitehub.platform.domain.enums.MigrationPhase;
+import com.kitehub.platform.domain.enums.PricingTier;
 import com.kitehub.subscription.config.TrialToPaidConfig;
 import com.kitehub.subscription.dto.RollbackResponse;
 import com.kitehub.subscription.dto.UpgradeRequest;
@@ -42,7 +43,7 @@ import java.util.UUID;
  *   <li><b>Outbox pattern:</b> every state transition writes an outbox row inside the same
  *       JPA transaction as the {@code Instance} mutation — broker coupling deferred to Phase 4b.</li>
  *   <li><b>Facade:</b> delegates the final status flip to
- *       {@link TrialService#convertTrialToSubscription(UUID)} to keep existing behavior wiring.</li>
+ *       {@link TrialService#convertTrialToSubscription(UUID, PricingTier)} to keep existing behavior wiring.</li>
  * </ul>
  *
  * <p>Phase 4a scope: sync MVP. Async worker (Phase 4b) will pull PAYMENT_CAPTURED rows from
@@ -64,21 +65,26 @@ public class TrialToPaidService {
     private final MigrationStateMachine stateMachine;
     private final SubscriptionEventEmitter eventEmitter;
     private final MigrationRetryRunner retryRunner;
+    private final InstanceTierSyncService tierSyncService;
 
     public TrialToPaidService(InstanceRepository instanceRepository,
                               SubscriptionEventEmitter eventEmitter,
                               TrialToPaidConfig config,
                               TrialService trialService,
-                              MigrationIdempotencyKeyService idempotencyService) {
+                              MigrationIdempotencyKeyService idempotencyService,
+                              InstanceTierSyncService tierSyncService,
+                              MigrationRetryRunner retryRunner) {
         this.instanceRepository = instanceRepository;
         this.config = config;
         this.trialService = trialService;
         this.idempotencyService = idempotencyService;
         this.stateMachine = new MigrationStateMachine(config);
         this.eventEmitter = eventEmitter;
-        this.retryRunner = new MigrationRetryRunner(
-            instanceRepository, trialService, config, stateMachine, eventEmitter,
-            this::markMigrationFailed);
+        this.tierSyncService = tierSyncService;
+        // GAP-1254 — MigrationRetryRunner is now a Spring bean (injected) so its
+        // @Transactional per-attempt methods run through the proxy instead of inert
+        // self-invocation on a hand-built instance.
+        this.retryRunner = retryRunner;
     }
 
     /**
@@ -105,7 +111,9 @@ public class TrialToPaidService {
             }
         }
 
-        Instance instance = loadInstance(instanceId);
+        // GAP-1253 (T2P-08) — pessimistic-write lock so two concurrent upgrade initiations
+        // can't both pass the can-start guard and both start a migration.
+        Instance instance = loadInstanceForUpdate(instanceId);
 
         stateMachine.assertCanStartMigration(instance);
         stateMachine.assertWithinRescueWindowOrStillTrial(instance);
@@ -114,6 +122,14 @@ public class TrialToPaidService {
         stateMachine.transitionPhase(instance, MigrationPhase.INITIATED, now);
         instance.setMigrationStartedAt(now);
         instance.setMigrationFailureReason(null);
+
+        // GAP-1095 — persist the requested paid tier through the canonical SUB-21 sync point
+        // now so it is carried to the (async, request-less) completion step. The trial
+        // registered as FREE; without this carry the completion flip would leave the paid
+        // instance on FREE. Rollback (GAP-1256) resets it to FREE if the migration reverses.
+        if (request.getTier() != null) {
+            tierSyncService.syncInstanceTier(instance, request.getTier());
+        }
 
         eventEmitter.emit(instance, MigrationEventType.TRIAL_UPGRADE_INITIATED,
             MigrationEventType.TOPIC_MIGRATION,
@@ -152,7 +168,7 @@ public class TrialToPaidService {
     public void handlePaymentCaptured(UUID instanceId, String txnId) {
         log.info("Payment captured for instance {} (txn={})", instanceId, txnId);
 
-        Instance instance = loadInstance(instanceId);
+        Instance instance = loadInstanceForUpdate(instanceId);
 
         // Idempotent — already captured: log + skip. Webhook duplicates are common.
         if (instance.getMigrationPhase() == MigrationPhase.PAYMENT_CAPTURED) {
@@ -173,7 +189,7 @@ public class TrialToPaidService {
     /**
      * UC-T2P-01 step 7-9: execute the actual migration — flip TRIAL → ACTIVE atomically
      * and mark the phase COMPLETED. Delegates the status flip to the existing
-     * {@link TrialService#convertTrialToSubscription(UUID)} so the current billing handoff
+     * {@link TrialService#convertTrialToSubscription(UUID, PricingTier)} so the current billing handoff
      * wiring stays unchanged.
      *
      * @param instanceId target instance
@@ -183,7 +199,7 @@ public class TrialToPaidService {
     public void executeMigration(UUID instanceId) {
         log.info("Executing migration for instance {}", instanceId);
 
-        Instance instance = loadInstance(instanceId);
+        Instance instance = loadInstanceForUpdate(instanceId);
 
         // Can only migrate from PAYMENT_CAPTURED
         if (instance.getMigrationPhase() != MigrationPhase.PAYMENT_CAPTURED) {
@@ -195,11 +211,12 @@ public class TrialToPaidService {
         instanceRepository.save(instance);
 
         try {
-            // Delegate the actual TRIAL → ACTIVE flip.
-            trialService.convertTrialToSubscription(instanceId);
+            // Delegate the actual TRIAL → ACTIVE flip, carrying the requested paid tier
+            // (persisted at initiateUpgrade) so instances.tier is synced, not left FREE (GAP-1095).
+            trialService.convertTrialToSubscription(instanceId, instance.getTier());
 
-            // Re-load to observe the post-flip state.
-            Instance refreshed = loadInstance(instanceId);
+            // Re-load to observe the post-flip state (lock already held within this txn).
+            Instance refreshed = loadInstanceForUpdate(instanceId);
             LocalDateTime completedAt = LocalDateTime.now();
             stateMachine.transitionPhase(refreshed, MigrationPhase.COMPLETED, completedAt);
             refreshed.setMigrationCompletedAt(completedAt);
@@ -217,10 +234,11 @@ public class TrialToPaidService {
             instanceRepository.save(refreshed);
             log.info("Migration COMPLETED for instance {}", instanceId);
         } catch (Exception ex) {
-            // UC-T2P-03: dead-letter on failure. Phase 4b will add retry/backoff — for MVP
-            // a single failure goes straight to MIGRATION_FAILED.
+            // UC-T2P-03: dead-letter on failure. The retry runner owns the canonical
+            // markMigrationFailed (REQUIRES_NEW) so the MIGRATION_FAILED marking survives
+            // this method's rollback (GAP-1254).
             log.error("Migration failed for instance {}", instanceId, ex);
-            markMigrationFailed(instanceId, ex.getMessage());
+            retryRunner.markMigrationFailed(instanceId, ex.getMessage());
             throw new MigrationException(MigrationException.Code.INVALID_PHASE_TRANSITION,
                 "Migration failed: " + ex.getMessage(), ex);
         }
@@ -237,7 +255,7 @@ public class TrialToPaidService {
     public RollbackResponse rollback(UUID instanceId, String reason) {
         log.info("Rollback requested for instance {}: {}", instanceId, reason);
 
-        Instance instance = loadInstance(instanceId);
+        Instance instance = loadInstanceForUpdate(instanceId);
 
         if (instance.getStatus() != InstanceStatus.ACTIVE) {
             throw new MigrationException(MigrationException.Code.INVALID_PHASE_TRANSITION,
@@ -257,6 +275,12 @@ public class TrialToPaidService {
         instance.setStatus(InstanceStatus.TRIAL);
         instance.setSubscriptionExpiresAt(null);
         instance.setMigrationFailureReason(reason);
+
+        // GAP-1256 — reset the denormalized tier to the pre-migration FREE trial tier through
+        // the canonical SUB-21 sync point. Without this a reverted non-payer kept the paid
+        // tier (PREMIUM/BASIC) that GAP-1095 set at initiate — connection-pool size,
+        // custom-domain eligibility, and data-retention all read instances.tier.
+        tierSyncService.syncInstanceTier(instance, PricingTier.FREE);
 
         eventEmitter.emit(instance, MigrationEventType.PAYMENT_REVERSED,
             MigrationEventType.TOPIC_MIGRATION,
@@ -305,7 +329,7 @@ public class TrialToPaidService {
         UpgradeResponse response = initiateUpgrade(instanceId, request);
 
         // Immediately short-circuit PAYMENT_PENDING → PAYMENT_CAPTURED with a manual tag.
-        Instance instance = loadInstance(instanceId);
+        Instance instance = loadInstanceForUpdate(instanceId);
         stateMachine.transitionPhase(instance, MigrationPhase.PAYMENT_CAPTURED, LocalDateTime.now());
         eventEmitter.emit(instance, MigrationEventType.PAYMENT_CAPTURED,
             MigrationEventType.TOPIC_MIGRATION,
@@ -349,7 +373,7 @@ public class TrialToPaidService {
      */
     @Transactional
     public Optional<RollbackResponse> handlePaymentReversed(UUID instanceId, String reason) {
-        Instance instance = loadInstance(instanceId);
+        Instance instance = loadInstanceForUpdate(instanceId);
         if (instance.getMigrationPhase() == MigrationPhase.REVERSED) {
             log.info("Instance {} already REVERSED — ignoring duplicate webhook", instanceId);
             return Optional.empty();
@@ -359,26 +383,14 @@ public class TrialToPaidService {
 
     // --- helpers ---------------------------------------------------------
 
-    private Instance loadInstance(UUID instanceId) {
-        return instanceRepository.findById(instanceId)
+    /**
+     * Pessimistic-write load for every mutating path (GAP-1253, T2P-08). Serializes
+     * concurrent migrations on the same instance so two threads can't both pass a
+     * guard then race the state transition. Read-only scans use repository finders directly.
+     */
+    private Instance loadInstanceForUpdate(UUID instanceId) {
+        return instanceRepository.findByIdForUpdate(instanceId)
             .orElseThrow(() -> new IllegalArgumentException("Instance not found: " + instanceId));
-    }
-
-    private void markMigrationFailed(UUID instanceId, String reason) {
-        Instance instance = loadInstance(instanceId);
-        instance.setMigrationPhase(MigrationPhase.MIGRATION_FAILED);
-        instance.setMigrationFailureReason(reason);
-        // Keep status TRIAL — do NOT flip despite earlier attempt.
-        if (instance.getStatus() == InstanceStatus.ACTIVE) {
-            instance.setStatus(InstanceStatus.TRIAL);
-        }
-
-        eventEmitter.emit(instance, MigrationEventType.MIGRATION_FAILED,
-            MigrationEventType.TOPIC_MIGRATION_DLQ,
-            String.format("{\"instanceId\":\"%s\",\"failureReason\":\"%s\",\"attempts\":1}",
-                instance.getId(), SubscriptionEventEmitter.escape(reason)));
-
-        instanceRepository.save(instance);
     }
 
 }

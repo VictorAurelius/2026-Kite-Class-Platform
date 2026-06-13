@@ -25,7 +25,7 @@ Rules governing the transition of an instance from TRIAL status to ACTIVE (paid)
 | T2P-01 | Migration strategy default | Flip-in-place (same instance, same DB, status flip only) | `kitehub.trial-to-paid.strategy: flip-in-place` | TrialToPaidService (new) |
 | T2P-02 | User-visible downtime SLA | 0 seconds (read/write remain available) | `kitehub.trial-to-paid.sla.downtime-seconds: 0` | — (assertion, not a knob) |
 | T2P-03 | Backend processing SLA (p95) | ≤ 5 seconds | `kitehub.trial-to-paid.sla.backend-p95-seconds: 5` | Migration p95 timer |
-| T2P-04 | Payment-reversal rollback window | 24 hours after PAYMENT_CAPTURED | `kitehub.trial-to-paid.reversal-window-hours: 24` | RollbackService |
+| T2P-04 | Payment-reversal rollback window | 24 hours after migration COMPLETED (measured from `migrationCompletedAt`) | `kitehub.trial-to-paid.reversal-window-hours: 24` | MigrationStateMachine.isWithinReversalWindow |
 | T2P-05 | Rescue window after trial expiry | 24 hours — trial expired but grace allows upgrade without data re-provision | `kitehub.trial-to-paid.rescue-window-hours: 24` | TrialExpirationChecker guard |
 | T2P-06 | Cross-tier shadow provisioning | Disabled by default (FREE→ENTERPRISE still flip-in-place) | `kitehub.trial-to-paid.shadow-cross-tier: false` | TrialToPaidService branch |
 | T2P-07 | Outbox required | Yes — all state transitions publish events via outbox pattern (per `ai-branding-design-patterns.md`) | — | OutboxPublisher |
@@ -79,6 +79,19 @@ NONE ──(user upgrade)──► INITIATED ──(submit payment)──► PAY
 - `status` transitions from TRIAL to ACTIVE **only** when `migration_phase = MIGRATING` and all validations pass, atomically with phase set to COMPLETED.
 - While `migration_phase ≠ NONE` and `≠ COMPLETED`, user reads are unaffected (SLA T2P-02).
 - REVERSED → NONE is only allowed within 24h (T2P-04); beyond that, refunds are handled via billing dispute flow, not automatic rollback.
+- **Reversal-window anchor (GAP-1272 reconciliation):** the 24h window in T2P-04 is measured from `migrationCompletedAt` (the moment `status` flipped TRIAL → ACTIVE), NOT from PAYMENT_CAPTURED. Rationale: PAYMENT_CAPTURED has no persisted timestamp, while COMPLETED does (`migrationCompletedAt`); UC-T2P-02 already states "completed within last 24h". Since PAYMENT_CAPTURED → MIGRATING → COMPLETED happens within the backend p95 of ≤5s (T2P-03), the practical difference is negligible (<5s out of 24h). Code is the single source: `MigrationStateMachine.isWithinReversalWindow` (rule, use-case, and code now agree).
+
+### 3.1 Atomicity & concurrency guarantees (GAP-192)
+
+The zero-downtime flip-in-place (T2P-01/T2P-02) plus the state-machine invariants above are now concretely backed by:
+
+- **Single in-flight migration per instance (T2P-08):** every mutating path loads the instance with a pessimistic write lock (`InstanceRepository.findByIdForUpdate`, GAP-1253) so two concurrent upgrade initiations / webhooks cannot both pass the can-start guard and double-migrate or double-convert.
+- **Effective transaction boundaries (GAP-1254):** the retry worker (`MigrationRetryRunner`) is a Spring bean and invokes its per-attempt methods through the proxy, so each MIGRATING → COMPLETED attempt is a real transaction that rolls back atomically on failure; terminal `MIGRATION_FAILED` marking runs in its own `REQUIRES_NEW` transaction so the dead-letter record survives the failed attempt's rollback (T2P-10).
+- **Retry idempotency (FM-5):** a retry never re-runs the trial→paid flip on an instance whose prior attempt already reached ACTIVE — `resetToPaymentCapturedForRetry` skips reset when `status = ACTIVE`.
+- **Tier never drifts from status (T2P-11 readers):** the denormalized `instances.tier` is set to the requested paid tier through the single SUB-21 sync point (`InstanceTierSyncService`) at upgrade and reset to the FREE trial tier on rollback (GAP-1095 / GAP-1256), keeping connection-pool size / custom-domain eligibility / data-retention consistent with the ACTIVE/TRIAL status.
+- **Idempotent upgrade requests:** duplicate `initiateUpgrade` calls with the same idempotency key return the original 202 envelope; a concurrent idempotency-row insert race is absorbed (`REQUIRES_NEW` + `DataIntegrityViolationException` catch, GAP-1271) so the loser still gets a 202, never a 500.
+
+**Known tradeoff:** the requested paid tier is persisted on `instances.tier` at `initiateUpgrade` (so it can be carried to the async, request-less completion step). During the brief PAYMENT_PENDING → MIGRATING window (status still TRIAL, p95 ≤5s) the instance carries the paid tier; rollback resets it to FREE. A future enhancement could add a dedicated `pending_tier` column to defer the effective-tier grant until COMPLETED (would require an `Instance` schema change, out of this scope).
 
 ## 4. Config
 
@@ -134,6 +147,7 @@ All emitted via `@Transactional` outbox pattern (same txn as DB write) — no di
 
 ## 8. Log
 
+- 2026-06-13 — Wave kitehub-biz-100 Bucket BE-2 (migration atomicity). T2P-04 reversal-window anchor reconciled to `migrationCompletedAt` (GAP-1272) — code is source-of-truth; rule/use-case/code now agree. Added §3.1 atomicity & concurrency guarantees (GAP-192) backing T2P-01/T2P-02/T2P-08 with the shipped fixes: pessimistic-lock mutating loads (GAP-1253), effective retry-worker transactions + REQUIRES_NEW dead-letter marking (GAP-1254), FM-5 retry-after-ACTIVE guard, SUB-21 tier sync at upgrade + FREE reset on rollback (GAP-1095 / GAP-1256), idempotency-row race absorption (GAP-1271). No business-value (constraint/threshold/price) changed — config keys + 24h/5s SLAs unchanged; this entry records the atomicity-implementation reconciliation only.
 - 2026-04-20 — Drafted under GAP-192 (BL-P0). State-check confirmed `TrialService.convertTrialToSubscription()` exists as simple flip (UC-TR-03); this doc formalizes the full state machine + outbox + rollback around it, not replaces it.
 
 ## Five-attribute review per `business-logic-review.md`

@@ -9,6 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
@@ -16,6 +17,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -153,6 +155,22 @@ class MigrationIdempotencyKeyServiceTest {
         service.persist(key, sampleResponse());
 
         verify(repository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("persist swallows DataIntegrityViolationException from a concurrent insert (GAP-1271)")
+    void persistConcurrentInsertSwallowed() {
+        // Existence check passes (no row yet) but a concurrent winner inserts the same
+        // (key, instanceId) before our save → UNIQUE violation. persist must NOT propagate
+        // it (REQUIRES_NEW isolates the rollback; caller still returns its 202 envelope).
+        when(repository.findByIdempotencyKeyAndInstanceId(key, instanceId))
+            .thenReturn(Optional.empty());
+        when(repository.save(any(MigrationIdempotencyKey.class)))
+            .thenThrow(new DataIntegrityViolationException("duplicate key (idempotency_key, instance_id)"));
+
+        assertThatCode(() -> service.persist(key, sampleResponse())).doesNotThrowAnyException();
+
+        verify(repository).save(any(MigrationIdempotencyKey.class));
     }
 
     @Test

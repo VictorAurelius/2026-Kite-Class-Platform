@@ -2,6 +2,7 @@ package com.kitehub.subscription.service;
 
 import com.kitehub.platform.domain.entity.Instance;
 import com.kitehub.platform.domain.enums.InstanceStatus;
+import com.kitehub.platform.domain.enums.PricingTier;
 import com.kitehub.subscription.config.TrialConfig;
 import com.kitehub.subscription.dto.TrialStatusResponse;
 import com.kitehub.subscription.repository.InstanceRepository;
@@ -26,6 +27,7 @@ public class TrialService {
 
     private final InstanceRepository instanceRepository;
     private final TrialConfig trialConfig;
+    private final InstanceTierSyncService instanceTierSyncService;
 
     /**
      * Start trial period for instance.
@@ -180,6 +182,12 @@ public class TrialService {
      * correctly (GAP-192 Phase 4a + 4b-i).</p>
      *
      * @param instanceId UUID of the instance
+     * @param targetTier the paid tier the upgrade selected — the denormalized
+     *     {@code instances.tier} is synced to this through the canonical SUB-21
+     *     sync point so it never drifts from the new ACTIVE state (GAP-1095). A
+     *     trial registers as {@link PricingTier#FREE} ({@code InstanceService} trial
+     *     path), so flipping to ACTIVE without setting the tier left a paid instance
+     *     stuck on FREE — the desync this param closes.
      * @throws IllegalArgumentException if instance not found or not on trial
      * @deprecated Prefer {@link TrialToPaidService#initiateUpgrade} for new call
      *     sites. Retained because the migration orchestrator delegates the final
@@ -187,8 +195,8 @@ public class TrialService {
      */
     @Deprecated(since = "1.0.0 (GAP-192 Phase 4b-i)")
     @Transactional
-    public void convertTrialToSubscription(UUID instanceId) {
-        log.info("Converting trial to subscription for instance: {}", instanceId);
+    public void convertTrialToSubscription(UUID instanceId, PricingTier targetTier) {
+        log.info("Converting trial to subscription for instance: {} (tier={})", instanceId, targetTier);
 
         Instance instance = instanceRepository.findById(instanceId)
             .orElseThrow(() -> new IllegalArgumentException("Instance not found: " + instanceId));
@@ -198,9 +206,15 @@ public class TrialService {
         }
 
         instance.setStatus(InstanceStatus.ACTIVE);
+        // GAP-1095 — route the effective-tier set through the single SUB-21 sync point so
+        // connection-pool size / custom-domain eligibility / data-retention readers (all of
+        // which read instances.tier) see the paid tier, not the FREE trial tier.
+        if (targetTier != null) {
+            instanceTierSyncService.syncInstanceTier(instance, targetTier);
+        }
         instanceRepository.save(instance);
 
-        log.info("Trial converted to subscription for instance: {}", instanceId);
+        log.info("Trial converted to subscription for instance: {} (tier={})", instanceId, instance.getTier());
     }
 
     /**

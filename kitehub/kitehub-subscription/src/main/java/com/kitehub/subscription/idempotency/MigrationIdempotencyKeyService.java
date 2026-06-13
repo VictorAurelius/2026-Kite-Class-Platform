@@ -4,7 +4,9 @@ import com.kitehub.subscription.dto.UpgradeResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -72,8 +74,20 @@ public class MigrationIdempotencyKeyService {
      * Persist the response envelope keyed by {@code idempotencyKey}. Silently skips
      * when the key is null/blank (callers not using the feature) or when the row
      * already exists (concurrent-creation race — we accept whichever row wins).
+     *
+     * <p>GAP-1271 — the idempotency-cache write is a best-effort side-effect: the
+     * caller's {@code initiateUpgrade} migration must NOT fail just because a concurrent
+     * request inserted the same {@code (idempotencyKey, instanceId)} row first. It runs in
+     * its OWN transaction ({@link Propagation#REQUIRES_NEW}) so that a UNIQUE-constraint
+     * violation poisons only this sub-transaction — never the parent migration txn (a
+     * Postgres constraint violation aborts the whole txn; catching the exception inside the
+     * parent txn would still leave it rollback-only and the parent would 500). Because
+     * {@code persist} is the terminal step of {@code initiateUpgrade} (nothing mutates after
+     * it), the REQUIRES_NEW boundary carries effectively zero orphan-row risk. The race
+     * loser thus returns its own freshly-built 202 envelope (same shape) and the winner's
+     * row serves future replays — idempotent replay, never a 500.</p>
      */
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void persist(String idempotencyKey, UpgradeResponse response) {
         if (idempotencyKey == null || idempotencyKey.isBlank()) {
             return;
@@ -94,7 +108,15 @@ public class MigrationIdempotencyKeyService {
             .createdAt(now)
             .expiresAt(now.plusMinutes(ttlMinutes))
             .build();
-        repository.save(record);
+        try {
+            repository.save(record);
+        } catch (DataIntegrityViolationException ex) {
+            // Concurrent winner inserted the same (key, instanceId) between the existence
+            // check above and this save. The winner's row already covers the cache — treat
+            // as a successful idempotent replay rather than letting the violation 500 the
+            // caller. REQUIRES_NEW keeps this rollback isolated from the parent migration txn.
+            log.info("Concurrent idempotency-row insert for key {} — treating as idempotent replay", idempotencyKey);
+        }
     }
 
     /**
