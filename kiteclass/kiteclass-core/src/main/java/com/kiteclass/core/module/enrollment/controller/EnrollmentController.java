@@ -5,10 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kiteclass.core.common.constant.EnrollmentStatus;
 import com.kiteclass.core.common.context.TenantContext;
 import com.kiteclass.core.common.dto.ApiResponse;
+import com.kiteclass.core.common.exception.BusinessException;
 import com.kiteclass.core.common.idempotency.IdempotencyScope;
 import com.kiteclass.core.common.idempotency.IdempotencyService;
 import com.kiteclass.core.module.enrollment.dto.CreateEnrollmentRequest;
 import com.kiteclass.core.module.enrollment.dto.EnrollmentResponse;
+import com.kiteclass.core.module.enrollment.dto.MyEnrollmentResponse;
 import com.kiteclass.core.module.enrollment.dto.UpdateEnrollmentStatusRequest;
 import com.kiteclass.core.module.enrollment.service.EnrollmentService;
 import io.micrometer.core.annotation.Timed;
@@ -235,6 +237,51 @@ public class EnrollmentController {
         Page<EnrollmentResponse> response = enrollmentService.getEnrollmentsByStudent(
                 studentId, pageable
         );
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    /**
+     * List the calling student's OWN enrollments, enriched with class + course names (GAP-1285).
+     *
+     * <p><strong>Self-scoped — no studentId path variable.</strong> The calling
+     * STUDENT actor is resolved from the {@code X-User-Reference-Id} header
+     * (= {@code students.id}, populated by the Gateway from {@code users.reference_id}
+     * when {@code userType=STUDENT}). The actor can therefore only ever read their
+     * OWN enrollments — there is no IDOR surface. Unlike
+     * {@code GET /api/v1/enrollments/student/{studentId}} (teacher/admin-guarded via
+     * {@code @authz.hasAccessToStudent}, which blocks a student reading themselves),
+     * this endpoint is the STUDENT-accessible path.
+     *
+     * <p>Defense-in-depth: {@code @PreAuthorize("hasRole('STUDENT')")} ensures only a
+     * STUDENT-role actor reaches here, so the reference id is always a
+     * {@code students.id} (never a teacher/parent reference id misinterpreted as a
+     * student id).
+     *
+     * <p>Each enrollment is enriched with {@code classId} + {@code className} +
+     * {@code courseId} + {@code courseName} so the kc-student frontend builds
+     * "Khóa học của tôi" + "Lớp của tôi" enrollment-scoped without N+1 round-trips.
+     *
+     * @param studentId calling actor's {@code students.id} (from X-User-Reference-Id)
+     * @param pageable pagination parameters
+     * @return page of enriched enrollments for the calling student
+     */
+    @GetMapping("/me")
+    @Operation(summary = "List my (the calling student's) enrollments",
+               description = "Self-scoped — resolves the calling STUDENT actor from X-User-Reference-Id "
+                       + "and returns ONLY that student's enrollments, enriched with courseId + courseName "
+                       + "+ className (GAP-1285).")
+    @PreAuthorize("hasRole('STUDENT')")
+    public ResponseEntity<ApiResponse<Page<MyEnrollmentResponse>>> getMyEnrollments(
+            @RequestHeader(value = "X-User-Reference-Id", required = false) Long studentId,
+            @PageableDefault(sort = "enrollmentDate", direction = Sort.Direction.DESC)
+            Pageable pageable) {
+        if (studentId == null) {
+            // Gateway did not forward the student reference id — treat as unauthenticated.
+            throw new BusinessException("AUTH_REQUIRED", HttpStatus.UNAUTHORIZED);
+        }
+        log.debug("GET /api/v1/enrollments/me (studentId={})", studentId);
+
+        Page<MyEnrollmentResponse> response = enrollmentService.getMyEnrollments(studentId, pageable);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

@@ -46,6 +46,31 @@ export interface EnrollmentSearchParams {
 }
 
 /**
+ * Student-self enrollment row, enriched with class + course names.
+ *
+ * Mirrors BE {@code MyEnrollmentResponse} (GAP-1285), returned by
+ * {@code GET /api/v1/enrollments/me}. {@code className} / {@code courseId} /
+ * {@code courseName} are nullable: they degrade to null if the referenced class
+ * or course was soft-deleted (display-only — never a cross-tenant leak).
+ */
+export interface MyEnrollment {
+  id: number;
+  studentId: number;
+  classId: number;
+  className: string | null;
+  courseId: number | null;
+  courseName: string | null;
+  enrollmentDate: string;
+  status: EnrollmentStatus;
+  tuitionAmount: number;
+  discountPercent: number;
+  finalAmount: number;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
  * Request body for creating a single enrollment.
  *
  * Mirrors BE {@code CreateEnrollmentRequest}

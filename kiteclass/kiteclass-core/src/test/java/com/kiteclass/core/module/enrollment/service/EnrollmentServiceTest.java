@@ -6,8 +6,11 @@ import com.kiteclass.core.common.exception.EntityNotFoundException;
 import com.kiteclass.core.common.exception.ValidationException;
 import com.kiteclass.core.module.clazz.entity.Class;
 import com.kiteclass.core.module.clazz.repository.ClassRepository;
+import com.kiteclass.core.module.course.entity.Course;
+import com.kiteclass.core.module.course.repository.CourseRepository;
 import com.kiteclass.core.module.enrollment.dto.CreateEnrollmentRequest;
 import com.kiteclass.core.module.enrollment.dto.EnrollmentResponse;
+import com.kiteclass.core.module.enrollment.dto.MyEnrollmentResponse;
 import com.kiteclass.core.module.enrollment.dto.UpdateEnrollmentStatusRequest;
 import com.kiteclass.core.module.enrollment.entity.Enrollment;
 import com.kiteclass.core.module.enrollment.mapper.EnrollmentMapper;
@@ -22,8 +25,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -31,6 +39,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -52,6 +61,9 @@ class EnrollmentServiceTest {
 
     @Mock
     private ClassRepository classRepository;
+
+    @Mock
+    private CourseRepository courseRepository;
 
     @Mock
     private EnrollmentMapper enrollmentMapper;
@@ -335,6 +347,79 @@ class EnrollmentServiceTest {
         ));
         // Verify counter was decremented
         verify(classRepository).save(argThat(clazz -> clazz.getCurrentEnrolled() == 0));
+    }
+
+    @Test
+    @DisplayName("getMyEnrollments — enriches with class + course names, scoped to caller (GAP-1285)")
+    void shouldReturnMyEnrollmentsEnrichedWithClassAndCourse() {
+        // Arrange — caller is student id=1; one enrollment in class id=1 (course id=1).
+        Long studentId = 1L;
+        Pageable pageable = PageRequest.of(0, 20);
+
+        Course testCourse = Course.builder().name("Anh ngữ B1").code("ENG-B1").build();
+        testCourse.setId(1L);
+        // testClass (from setUp) has id=1, courseId=1, name="Test Class".
+
+        Page<Enrollment> page = new PageImpl<>(List.of(testEnrollment), pageable, 1);
+        when(enrollmentRepository.findByStudentIdAndDeletedFalse(eq(studentId), eq(pageable)))
+                .thenReturn(page);
+        when(classRepository.findAllById(any())).thenReturn(List.of(testClass));
+        when(courseRepository.findAllById(any())).thenReturn(List.of(testCourse));
+
+        // Act
+        Page<MyEnrollmentResponse> result = enrollmentService.getMyEnrollments(studentId, pageable);
+
+        // Assert — single enrollment enriched with class + course names.
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        MyEnrollmentResponse dto = result.getContent().get(0);
+        assertThat(dto.getStudentId()).isEqualTo(1L);
+        assertThat(dto.getClassId()).isEqualTo(1L);
+        assertThat(dto.getClassName()).isEqualTo("Test Class");
+        assertThat(dto.getCourseId()).isEqualTo(1L);
+        assertThat(dto.getCourseName()).isEqualTo("Anh ngữ B1");
+        assertThat(dto.getFinalAmount()).isEqualByComparingTo(new BigDecimal("900.00"));
+
+        // Scoped to the caller: repository queried by the caller's own studentId only.
+        verify(enrollmentRepository).findByStudentIdAndDeletedFalse(eq(studentId), eq(pageable));
+    }
+
+    @Test
+    @DisplayName("getMyEnrollments — empty page when caller has no enrollments (no enrichment queries)")
+    void shouldReturnEmptyMyEnrollmentsWhenNone() {
+        // Arrange
+        Long studentId = 1L;
+        Pageable pageable = PageRequest.of(0, 20);
+        when(enrollmentRepository.findByStudentIdAndDeletedFalse(eq(studentId), eq(pageable)))
+                .thenReturn(new PageImpl<>(List.of(), pageable, 0));
+
+        // Act
+        Page<MyEnrollmentResponse> result = enrollmentService.getMyEnrollments(studentId, pageable);
+
+        // Assert — empty page; no class/course resolution attempted (no N+1 on empty).
+        assertThat(result.getTotalElements()).isZero();
+        assertThat(result.getContent()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("getMyEnrollments — class soft-deleted → className/courseName degrade to null (no crash)")
+    void shouldDegradeMyEnrollmentsWhenClassMissing() {
+        // Arrange — enrollment references a class no longer resolvable (soft-deleted).
+        Long studentId = 1L;
+        Pageable pageable = PageRequest.of(0, 20);
+        when(enrollmentRepository.findByStudentIdAndDeletedFalse(eq(studentId), eq(pageable)))
+                .thenReturn(new PageImpl<>(List.of(testEnrollment), pageable, 1));
+        when(classRepository.findAllById(any())).thenReturn(List.of()); // class gone
+        // courseRepository.findAllById is never called when no classes resolve.
+
+        // Act
+        Page<MyEnrollmentResponse> result = enrollmentService.getMyEnrollments(studentId, pageable);
+
+        // Assert — enrollment still returned; enrichment fields null, no NPE.
+        MyEnrollmentResponse dto = result.getContent().get(0);
+        assertThat(dto.getClassId()).isEqualTo(1L);
+        assertThat(dto.getClassName()).isNull();
+        assertThat(dto.getCourseId()).isNull();
+        assertThat(dto.getCourseName()).isNull();
     }
 
     @Test

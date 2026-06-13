@@ -26,9 +26,9 @@ export const classesApi = {
    * List all classes in the current tenant (paginated, SHARED READ).
    *
    * Tenant-scoped (Hibernate tenantFilter) + readable by any authenticated member
-   * including students (per ClassController OWASP A01 note). Used by the student
-   * shell to enumerate classes the student can see assignments for — pending a
-   * dedicated student-self enrolled-class endpoint (GAP-1285).
+   * (per ClassController OWASP A01 note). Tenant-wide scope — for the student's
+   * OWN enrolled classes use `enrollmentsApi.getMine()` (`/api/v1/enrollments/me`,
+   * GAP-1285) instead; the student shell no longer relies on this SHARED READ.
    */
   list: async (
     params: { page?: number; size?: number; sort?: string } = {}

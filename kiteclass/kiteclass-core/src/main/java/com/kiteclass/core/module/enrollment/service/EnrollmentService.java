@@ -3,6 +3,7 @@ package com.kiteclass.core.module.enrollment.service;
 import com.kiteclass.core.common.constant.EnrollmentStatus;
 import com.kiteclass.core.module.enrollment.dto.CreateEnrollmentRequest;
 import com.kiteclass.core.module.enrollment.dto.EnrollmentResponse;
+import com.kiteclass.core.module.enrollment.dto.MyEnrollmentResponse;
 import com.kiteclass.core.module.enrollment.dto.UpdateEnrollmentStatusRequest;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -61,6 +62,26 @@ public interface EnrollmentService {
      * @return page of enrollments
      */
     Page<EnrollmentResponse> getEnrollmentsByStudent(Long studentId, Pageable pageable);
+
+    /**
+     * Get the calling student's OWN enrollments, enriched with class + course
+     * names (GAP-1285).
+     *
+     * <p>Self-scoped: {@code studentId} is the authenticated STUDENT actor's
+     * {@code students.id} (resolved by the controller from
+     * {@code X-User-Reference-Id}), so this never exposes another student's
+     * enrollments. Each enrollment is enriched with {@code classId} +
+     * {@code className} + {@code courseId} + {@code courseName} so the kc-student
+     * frontend can render "Khóa học của tôi" + "Lớp của tôi" without N+1 lookups.
+     *
+     * <p>Tenant isolation (Hibernate {@code tenantFilter}) applies to every query
+     * — the student, classes, and courses all resolve within the current tenant.
+     *
+     * @param studentId calling student's {@code students.id}
+     * @param pageable pagination info
+     * @return page of enriched enrollment responses (empty when no enrollments)
+     */
+    Page<MyEnrollmentResponse> getMyEnrollments(Long studentId, Pageable pageable);
 
     /**
      * Get all enrollments for a class.
