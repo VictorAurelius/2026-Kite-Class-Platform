@@ -16,6 +16,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   Bell,
+  BookOpen,
   CalendarDays,
   GraduationCap,
   Home,
@@ -31,6 +32,7 @@ interface Tab {
 
 const TABS: readonly Tab[] = [
   { href: '/student/today', label: 'Hôm nay', Icon: Home },
+  { href: '/student/learning', label: 'Học tập', Icon: BookOpen },
   { href: '/student/my-classes', label: 'Lớp học', Icon: CalendarDays },
   { href: '/student/grades', label: 'Điểm', Icon: GraduationCap },
   { href: '/student/notifications', label: 'Thông báo', Icon: Bell },

@@ -122,7 +122,7 @@ export const assignmentsApi = {
     return res.data.data!;
   },
 
-  // ---- Student submit (X-User-Id) — thin stub, full surface gated KC-9 ----
+  // ---- Student submit + reads (KC-9 unblocked, Increment B) ----
 
   submit: async (data: SubmitAssignmentRequest, studentId: number): Promise<Submission> => {
     const res = await apiClient.post<ApiResponse<Submission>>(
@@ -131,5 +131,24 @@ export const assignmentsApi = {
       { headers: { 'X-User-Id': String(studentId) } },
     );
     return res.data.data!;
+  },
+
+  /** The current student's submission for one assignment (null when not submitted). */
+  getMySubmission: async (
+    assignmentId: number,
+    studentId: number,
+  ): Promise<Submission | null> => {
+    const res = await apiClient.get<ApiResponse<Submission | null>>(
+      `/api/v1/assignments/${assignmentId}/submissions/student/${studentId}`,
+    );
+    return res.data.data ?? null;
+  },
+
+  /** All submissions by the current student (across assignments). */
+  getMySubmissions: async (studentId: number): Promise<Submission[]> => {
+    const res = await apiClient.get<ApiResponse<Submission[]>>(
+      `/api/v1/assignments/submissions/student/${studentId}`,
+    );
+    return res.data.data ?? [];
   },
 };

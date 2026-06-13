@@ -23,6 +23,24 @@ import type { ApiResponse, PaginatedResponse } from '@/types/api';
 
 export const classesApi = {
   /**
+   * List all classes in the current tenant (paginated, SHARED READ).
+   *
+   * Tenant-scoped (Hibernate tenantFilter) + readable by any authenticated member
+   * including students (per ClassController OWASP A01 note). Used by the student
+   * shell to enumerate classes the student can see assignments for — pending a
+   * dedicated student-self enrolled-class endpoint (GAP-1285).
+   */
+  list: async (
+    params: { page?: number; size?: number; sort?: string } = {}
+  ): Promise<PaginatedResponse<Class>> => {
+    const response = await apiClient.get<ApiResponse<PaginatedResponse<Class>>>(
+      '/api/v1/classes',
+      { params: { page: 0, size: 100, ...params } }
+    );
+    return response.data.data!;
+  },
+
+  /**
    * Get classes for a course (paginated)
    */
   getByCourse: async (

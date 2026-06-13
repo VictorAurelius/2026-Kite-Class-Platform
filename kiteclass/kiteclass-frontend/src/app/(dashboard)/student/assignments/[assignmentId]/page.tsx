@@ -1,202 +1,207 @@
 /**
- * Student PWA — Chi tiết bài tập + nộp bài (offline-aware).
+ * Student PWA — Chi tiết bài tập + nộp bài (real-data).
  *
- * Wave 49 Bucket C (GAP-269). Mirrors
- * `kiteclass-student/screens/assignment-detail.html` and adds the
- * offline-submit pattern: when the network is down, the response is
- * persisted via {@link enqueue} and replayed on the next `online` event.
+ * Wave rbac-lms-student-fe (GAP-1113 Increment B / PART 3): rewired from the mock
+ * + fake-endpoint offline queue to the real KiteClass assignment API:
+ *   - `useAssignment`       → assignment detail (title / instructions / due / score)
+ *   - `useMySubmission`     → the student's existing submission (status + grade + feedback)
+ *   - `useSubmitAssignment` → `POST /api/v1/assignments/submit` (X-User-Id)
+ *
+ * Submit is gated by `isAcceptingSubmissions`; a graded/returned submission is
+ * read-only and shows the score + teacher feedback.
+ *
+ * @author KiteClass Team
+ * @since Wave 49 Bucket C (GAP-269) mock; Wave rbac-lms-student-fe real-data
  */
 'use client';
 
-import { use, useEffect, useState } from 'react';
-import { Cloud, CloudOff, FileText, Send } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { use, useState } from 'react';
+import Link from 'next/link';
+import { ArrowLeft, CheckCircle2, FileText, Send } from 'lucide-react';
+import { useAuthStore } from '@/stores/auth-store';
+import { useAssignment, useMySubmission, useSubmitAssignment } from '@/hooks/use-assignments';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
+import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { StudentMobileShell } from '@/components/student/mobile-shell';
-import {
-  enqueue,
-  flush,
-  readQueue,
-  type QueuedSubmit,
-} from '@/lib/offline/student-assignment-queue';
 
 interface PageProps {
   params: Promise<{ assignmentId: string }>;
 }
 
-async function submitToServer(item: QueuedSubmit): Promise<{ ok: boolean; error?: string }> {
-  // Real endpoint wiring is deferred to a follow-up gap (kc-core controller
-  // not yet shipped). The shape is: POST /api/student/assignments/:id/submit
-  // with idempotency-key header set to `item.id`.
-  try {
-    const res = await fetch(
-      `/api/student/assignments/${encodeURIComponent(item.assignmentId)}/submit`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Idempotency-Key': item.id,
-        },
-        body: JSON.stringify({ body: item.body }),
-      },
-    );
-    if (!res.ok) return { ok: false, error: `http ${res.status}` };
-    return { ok: true };
-  } catch (err) {
-    return { ok: false, error: err instanceof Error ? err.message : String(err) };
-  }
+function formatDue(iso?: string | null): string {
+  if (!iso) return 'Không có hạn';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
 export default function StudentAssignmentDetailPage({ params }: PageProps) {
-  const { assignmentId } = use(params);
-  const { toast } = useToast();
+  const { assignmentId: idStr } = use(params);
+  const assignmentId = Number(idStr);
+  const userId = useAuthStore((s) => s.user?.id);
 
-  const [body, setBody] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [online, setOnline] = useState(true);
-  const [pendingCount, setPendingCount] = useState(0);
+  const { data: assignment, isLoading } = useAssignment(assignmentId);
+  const { data: submission } = useMySubmission(assignmentId, userId);
+  const submit = useSubmitAssignment(userId);
 
-  // Track network state — students lose signal frequently on mobile.
-  useEffect(() => {
-    function refresh() {
-      setOnline(typeof navigator !== 'undefined' ? navigator.onLine : true);
-      setPendingCount(readQueue().length);
-    }
-    refresh();
-    window.addEventListener('online', refresh);
-    window.addEventListener('offline', refresh);
-    return () => {
-      window.removeEventListener('online', refresh);
-      window.removeEventListener('offline', refresh);
-    };
-  }, []);
+  const [notes, setNotes] = useState('');
+  const [contentUrl, setContentUrl] = useState('');
 
-  // Auto-flush queued submits when the device comes back online.
-  useEffect(() => {
-    if (!online) return;
-    if (pendingCount === 0) return;
-    let cancelled = false;
-    flush(submitToServer).then((result) => {
-      if (cancelled) return;
-      setPendingCount(result.remaining);
-      if (result.flushed > 0) {
-        toast({
-          title: 'Đã đồng bộ',
-          description: `Đã gửi ${result.flushed} bài tập đang chờ.`,
-        });
-      }
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [online, pendingCount, toast]);
+  const graded = submission?.status === 'GRADED' || submission?.status === 'RETURNED';
+  const accepting = assignment?.isAcceptingSubmissions ?? false;
+  // Can submit when: assignment accepting AND not already graded.
+  const canSubmit = accepting && !graded;
+  const score = submission?.adjustedScore ?? submission?.score;
 
-  async function handleSubmit() {
-    if (!body.trim()) {
-      toast({ title: 'Chưa có nội dung', description: 'Hãy viết bài trước khi nộp.' });
-      return;
-    }
-    setSubmitting(true);
-    try {
-      if (!online) {
-        enqueue({ assignmentId, body });
-        setPendingCount(readQueue().length);
-        setBody('');
-        toast({
-          title: 'Đã lưu nháp',
-          description: 'Bài sẽ được gửi tự động khi có mạng trở lại.',
-        });
-        return;
-      }
-      const result = await submitToServer({
-        id: 'inline-' + Date.now(),
+  function handleSubmit() {
+    if (!notes.trim() && !contentUrl.trim()) return;
+    submit.mutate(
+      {
         assignmentId,
-        body,
-        queuedAt: Date.now(),
-        attempts: 1,
-      });
-      if (result.ok) {
-        setBody('');
-        toast({ title: 'Đã nộp bài', description: 'Cô giáo sẽ nhận được ngay.' });
-      } else {
-        // Network error mid-submit → fall back to queue so the work isn't lost.
-        enqueue({ assignmentId, body });
-        setPendingCount(readQueue().length);
-        setBody('');
-        toast({
-          title: 'Lưu nháp do lỗi mạng',
-          description: 'Sẽ tự động gửi lại sau.',
-        });
-      }
-    } finally {
-      setSubmitting(false);
-    }
+        notes: notes.trim() || undefined,
+        contentUrl: contentUrl.trim() || undefined,
+      },
+      {
+        onSuccess: () => {
+          setNotes('');
+          setContentUrl('');
+        },
+      },
+    );
   }
 
   return (
-    <StudentMobileShell title={`Bài luận "Quê hương"`} subtitle="Văn 10 · Hạn 18/04/2026">
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <FileText className="h-4 w-4" aria-hidden /> Đề bài
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2 text-sm text-muted-foreground">
-          <p>
-            Viết bài luận khoảng 600 từ về chủ đề &ldquo;Quê hương&rdquo; — chia sẻ
-            kỷ niệm, cảm xúc và những điều em muốn gìn giữ.
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <Badge variant="outline">~ 600 từ</Badge>
-            <Badge variant="outline">Tự luận</Badge>
-            <Badge variant="outline">Hạn 18/04/2026</Badge>
-          </div>
-        </CardContent>
-      </Card>
+    <StudentMobileShell
+      title={assignment?.title ?? 'Bài tập'}
+      subtitle={assignment ? `Hạn ${formatDue(assignment.dueDate)}` : undefined}
+      headerRight={
+        <Link
+          href="/student/assignments"
+          aria-label="Quay lại danh sách bài tập"
+          className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground hover:bg-accent"
+        >
+          <ArrowLeft className="h-5 w-5" aria-hidden />
+        </Link>
+      }
+    >
+      {isLoading ? (
+        <div className="flex justify-center py-12">
+          <LoadingSpinner size="lg" />
+        </div>
+      ) : !assignment ? (
+        <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive">
+          Không tải được bài tập. Vui lòng thử lại.
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {/* Đề bài */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <FileText className="h-4 w-4" aria-hidden /> Đề bài
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm text-muted-foreground">
+              {assignment.description ? <p>{assignment.description}</p> : null}
+              {assignment.instructions ? (
+                <p className="whitespace-pre-wrap">{assignment.instructions}</p>
+              ) : null}
+              <div className="flex flex-wrap gap-2 pt-1">
+                <Badge variant="outline">Hạn {formatDue(assignment.dueDate)}</Badge>
+                {assignment.maxScore != null ? (
+                  <Badge variant="outline">Điểm tối đa: {assignment.maxScore}</Badge>
+                ) : null}
+                {assignment.weightPercent != null ? (
+                  <Badge variant="outline">Trọng số: {assignment.weightPercent}%</Badge>
+                ) : null}
+                {assignment.isOverdue ? <Badge variant="destructive">Quá hạn</Badge> : null}
+              </div>
+            </CardContent>
+          </Card>
 
-      {!online ? (
-        <Alert className="mt-4 border-amber-500/40 bg-amber-50 dark:bg-amber-950/30">
-          <CloudOff className="h-4 w-4" aria-hidden />
-          <AlertTitle>Đang offline</AlertTitle>
-          <AlertDescription>
-            Bài nộp sẽ được lưu nháp và tự động gửi khi có mạng trở lại.
-          </AlertDescription>
-        </Alert>
-      ) : pendingCount > 0 ? (
-        <Alert className="mt-4">
-          <Cloud className="h-4 w-4" aria-hidden />
-          <AlertTitle>Đang đồng bộ</AlertTitle>
-          <AlertDescription>
-            Còn {pendingCount} bài đang chờ gửi…
-          </AlertDescription>
-        </Alert>
-      ) : null}
+          {/* Existing submission state */}
+          {submission ? (
+            <Card
+              className={
+                graded
+                  ? 'border-emerald-300 bg-emerald-50 dark:border-emerald-700 dark:bg-emerald-950/30'
+                  : 'border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-950/30'
+              }
+            >
+              <CardContent className="space-y-2 p-4">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <CheckCircle2 className="h-4 w-4 shrink-0" aria-hidden />
+                  {graded ? 'Bài đã được chấm' : 'Bạn đã nộp bài'}
+                </div>
+                {graded && score != null ? (
+                  <p className="text-sm">
+                    Điểm:{' '}
+                    <span className="font-semibold">
+                      {score}
+                      {assignment.maxScore != null ? `/${assignment.maxScore}` : ''}
+                    </span>
+                  </p>
+                ) : null}
+                {submission.feedback ? (
+                  <p className="text-sm text-muted-foreground">
+                    Nhận xét: {submission.feedback}
+                  </p>
+                ) : null}
+                {submission.notes ? (
+                  <p className="text-xs text-muted-foreground">
+                    Bài làm đã nộp: {submission.notes}
+                  </p>
+                ) : null}
+              </CardContent>
+            </Card>
+          ) : null}
 
-      <Card className="mt-4">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">Bài làm của em</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Textarea
-            value={body}
-            onChange={(e) => setBody(e.target.value)}
-            placeholder="Nhập bài làm…"
-            rows={10}
-            className="resize-y text-base"
-          />
-          <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
-            <span>{body.length} ký tự · Tự lưu mỗi 10s</span>
-            <Button onClick={handleSubmit} disabled={submitting} className="min-h-[44px]">
-              <Send className="mr-1 h-4 w-4" aria-hidden />
-              {online ? 'Nộp bài' : 'Lưu nháp offline'}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+          {/* Submit form */}
+          {canSubmit ? (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">
+                  {submission ? 'Nộp lại bài làm' : 'Bài làm của em'}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Nhập nội dung bài làm…"
+                  rows={8}
+                  className="resize-y text-base"
+                />
+                <Input
+                  value={contentUrl}
+                  onChange={(e) => setContentUrl(e.target.value)}
+                  placeholder="Đường dẫn tệp bài làm (tùy chọn)"
+                  type="url"
+                />
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>{notes.length} ký tự</span>
+                  <Button
+                    onClick={handleSubmit}
+                    disabled={submit.isPending || (!notes.trim() && !contentUrl.trim())}
+                    className="min-h-[44px]"
+                  >
+                    <Send className="mr-1 h-4 w-4" aria-hidden />
+                    {submit.isPending ? 'Đang nộp…' : 'Nộp bài'}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : !graded ? (
+            <div className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">
+              Bài tập này hiện không nhận bài nộp.
+            </div>
+          ) : null}
+        </div>
+      )}
     </StudentMobileShell>
   );
 }
