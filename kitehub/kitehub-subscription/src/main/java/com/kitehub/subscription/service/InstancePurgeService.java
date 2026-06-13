@@ -9,6 +9,7 @@ import com.kitehub.subscription.domain.BackupStatus;
 import com.kitehub.subscription.dto.PurgeEvent;
 import com.kitehub.subscription.dto.PurgeResult;
 import com.kitehub.subscription.dto.PurgeStatus;
+import com.kitehub.subscription.exception.SubscriptionConflictException;
 import com.kitehub.subscription.repository.BackupRecordRepository;
 import com.kitehub.subscription.repository.EmailSentLogRepository;
 import com.kitehub.subscription.repository.InstanceRepository;
@@ -99,6 +100,9 @@ public class InstancePurgeService {
      * @param actorId    acting PLATFORM_ADMIN user id (gateway {@code X-User-Id}); recorded
      *                   on the {@code TENANT_DELETED} audit row. May be {@code null}.
      * @return PurgeResult with details
+     * @throws SubscriptionConflictException if the instance is not in DELETED status
+     *         (GAP-1026 — admin purge precondition; mapped to HTTP 409 by
+     *         {@code GlobalExceptionHandler}, NOT a 200 with PurgeStatus.FAILED body)
      */
     @Transactional
     public PurgeResult adminPurge(UUID instanceId, UUID actorId) {
@@ -106,12 +110,13 @@ public class InstancePurgeService {
             .orElseThrow(() -> new EntityNotFoundException("Instance not found: " + instanceId));
 
         if (instance.getStatus() != InstanceStatus.DELETED) {
-            return PurgeResult.builder()
-                .instanceId(instanceId)
-                .subdomain(instance.getSubdomain())
-                .status(PurgeStatus.FAILED)
-                .errorMessage("Instance must be in DELETED status for purge (current: " + instance.getStatus() + ")")
-                .build();
+            // GAP-1026: a non-DELETED instance is a precondition conflict, not a "purge
+            // that ran and failed". Surface 409 so the admin gets an actionable error
+            // instead of a misleading 200 + PurgeStatus.FAILED envelope. The scheduled
+            // batch path (purgeInstance) keeps returning PurgeResult — it only ever
+            // receives DELETED instances from findPurgeEligible(), so it never hits this.
+            throw new SubscriptionConflictException(
+                "Instance must be in DELETED status for purge (current: " + instance.getStatus() + ")");
         }
 
         return executePurge(instance, actorId);
