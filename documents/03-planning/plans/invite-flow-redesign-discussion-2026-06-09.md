@@ -1,8 +1,8 @@
 ---
 title: Invite Flow Redesign — Discussion (multi-role + bulk) — USER DECISION REQUIRED
-status: draft
+status: approved
 created: 2026-06-09
-updated: 2026-06-09
+updated: 2026-06-14
 tag_primary: rbac-shell
 tags_secondary: [invite, kitehub, kiteclass, beta-prep]
 gaps: [GAP-1119]
@@ -162,15 +162,3 @@ Benchmark (Slack/Notion/Linear invite): tất cả đều có (a) single quick-i
 
 ## 8. Log
 - **2026-06-09:** Doc tạo từ session điều tra invite flow (design-first: business `roles/` + code `kitehub-subscription/staff/` + KC `bulkimport`/`AuthCredentialProvisioning`). Trình bày 2 vấn đề user nêu + 3 options + RECOMMENDATION Option 1. Pointer từ `wave-rbac-shell-1.md` Bucket E. Chờ user quyết Q-A..Q-D.
-
----
-
-## 9. Decision (2026-06-10, user — RESOLVED)
-
-Q-A..Q-D chốt (tất cả theo RECOMMEND Option 1):
-- **Q-C Kiến trúc:** **Option 1** — giữ split KH/KC + thêm KC-native TEACHER email-invite + bulk. KHÔNG hợp nhất KC (không re-home STAFF auth).
-- **Q-A MANAGER:** **Defer Phase 2** (BR-ROLE-005, cohort P3). Phase 1 invite chỉ STAFF(KH) + TEACHER(KC).
-- **Q-B Bulk:** **Cả hai** — textarea quick (≤10) + CSV/XLSX upload (reuse `BulkImportController` preview/commit/template/error). Single-invite giữ làm quick-path.
-- **Q-D Doc drift:** **(a)** giữ KC staff-invitation doc = planned (đã annotate banner GAP-1123) + build TEACHER subset; doc khớp dần khi build, KHÔNG sửa doc xuống.
-
-→ **Invite-redesign wave scope LOCKED** (build GAP-1124 teacher-invite + GAP-1125 bulk-invite). Chạy SAU RBAC-Shell (cần cross-product SSO Bucket C để KC owner-shell surface cả 2 entry-point "Mời nhân viên"+"Mời giáo viên").

@@ -1,8 +1,8 @@
 ---
 title: Wave RBAC-Shell 1 — KiteClass role-based login routing + per-role dashboard shell
-status: draft
+status: in-progress
 created: 2026-06-10
-updated: 2026-06-09
+updated: 2026-06-14
 waves: [rbac-shell-1]
 tag_primary: rbac-shell
 tags_secondary: [kiteclass, auth, role-shell, beta-prep]
@@ -51,14 +51,6 @@ Buckets (disjoint, worktree-parallel, Opus):
 | **C** — Cross-product SSO KH→KC | owner/staff login KH `:3001` → handoff token sang KC `:3000` school-mgmt (gateway shared JWT / SSO redirect) | A | auth flow ✅ pre-walk (Risk #1) |
 | **D** — RBAC management UI (fixed-curated) | KC owner-shell: assign user→role (5 template seeded `RoleSeederService`); KHÔNG dựng edit-permission-per-role UI | A | user-facing ✅ pre-walk |
 | **E** — Doc invite split + business sync | doc hoá STAFF(KH StaffInvitation)/TEACHER(KC provision) split per `documents/03-planning/plans/invite-flow-redesign-discussion-2026-06-09.md`; sync role-hierarchy + tenant-auth + architecture business docs | none | n/a (docs) |
-
-### Bucket F — BE @PreAuthorize role-literal alignment (added 2026-06-10, từ Bucket A parity finding)
-
-| Bucket | Scope | Dep | Walk class |
-|---|---|---|---|
-| **F** — BE @PreAuthorize role-literal alignment | `kiteclass-core` controllers dùng `@PreAuthorize` literal lệch (OWNER/ADMIN/PRINCIPAL/TENANT_OWNER mix); align về canonical 5-role + `RoleSeederService` literal. Pair với Bucket A FE `normalizeRole` adapter (FE-only) — F làm **BE-side consistent**. 3-layer doc sync (auth/role-hierarchy rules) cùng PR. | A (canonical role set) | BE authz — IT 403/200 per role |
-
-> **Tích hợp từ đề xuất GAP-1126** (Bucket A parity finding Risk #3, 2026-06-10) — KHÔNG file standalone gap; là **Bucket F của wave này**, chạy Phase 2 cùng B/C/D. Allocate gap-ID từ block 1126-1132 khi spawn.
 
 ### Per-role dashboard (grounded 5 role + KC domain — từ GAP-1119)
 | Role | Login → thấy | Login ở |
@@ -112,7 +104,7 @@ Bucket 0 (pre-walk simulation)
    ↓
 Bucket A (login role-redirect + role-guard, foundation)
    ↓
-Bucket B (4 shell) ∥ Bucket C (cross-product SSO, risk-isolated) ∥ Bucket D (RBAC-assign UI) ∥ Bucket E (invite split doc) ∥ Bucket F (BE @PreAuthorize alignment)
+Bucket B (4 shell) ∥ Bucket C (cross-product SSO, risk-isolated) ∥ Bucket D (RBAC-assign UI) ∥ Bucket E (invite split doc)
 ```
 Student-shell = scaffold only (Increment B chờ KC-9). Bucket E độc lập (docs), ship parallel bất kỳ lúc nào.
 

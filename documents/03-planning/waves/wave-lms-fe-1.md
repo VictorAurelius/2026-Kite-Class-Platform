@@ -1,8 +1,8 @@
 ---
 title: Wave LMS-FE 1 — KiteClass LMS content-delivery FE (lean MVP)
-status: draft
+status: approved
 created: 2026-06-10
-updated: 2026-06-09
+updated: 2026-06-14
 waves: [lms-fe-1]
 tag_primary: lms-fe
 tags_secondary: [kiteclass, content-delivery, beta-prep]
