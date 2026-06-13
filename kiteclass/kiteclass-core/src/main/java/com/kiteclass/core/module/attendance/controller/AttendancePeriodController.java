@@ -77,7 +77,7 @@ public class AttendancePeriodController {
     }
 
     @GetMapping("/classes/{classId}")
-    @PreAuthorize("@authz.hasAccessToClass(#classId)")
+    @PreAuthorize("hasAnyRole('STAFF') or @authz.hasAccessToClass(#classId)")
     @Operation(summary = "Daily roster: all periods + all students for a class on one date.",
             description = "Daily roll-up (vắng cả ngày = vắng ≥7 tiết) deferred to GAP-323b. "
                     + "Wave 105 Bucket C: per-class authz guard (OWASP A01).")
@@ -119,7 +119,7 @@ public class AttendancePeriodController {
     }
 
     @GetMapping("/daily-rollup")
-    @PreAuthorize("@authz.hasAccessToClass(#classId)")
+    @PreAuthorize("hasAnyRole('STAFF') or @authz.hasAccessToClass(#classId)")
     @Operation(summary = "Daily roll-up across one class for a date range.",
             description = "Per-(student, date) counts plus the boolean allDayAbsent "
                     + "(absent + late ≥ 7 tiết per TT 22/2021/TT-BGDĐT). Phase 1B v1 "

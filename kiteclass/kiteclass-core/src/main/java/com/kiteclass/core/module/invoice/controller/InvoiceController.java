@@ -56,7 +56,7 @@ public class InvoiceController {
      * @return preview of the invoices that would be generated
      */
     @PostMapping("/batch-generate")
-    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER', 'PLATFORM_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
     public ResponseEntity<ApiResponse<BatchInvoicePreviewResponse>> batchGenerate(
             @RequestParam("month") String month) {
         log.info("POST /api/v1/invoices/batch-generate?month={}", month);
@@ -75,7 +75,7 @@ public class InvoiceController {
      * @return created/skipped counts + created invoice ids
      */
     @PostMapping("/batch-confirm")
-    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER', 'PLATFORM_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
     public ResponseEntity<ApiResponse<BatchInvoiceConfirmResponse>> batchConfirm(
             @RequestParam("month") String month) {
         log.info("POST /api/v1/invoices/batch-confirm?month={}", month);
@@ -94,7 +94,7 @@ public class InvoiceController {
      * @return page of invoice response DTOs scoped to the current tenant
      */
     @GetMapping
-    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'OWNER', 'PLATFORM_ADMIN')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
     public ResponseEntity<ApiResponse<PageResponse<InvoiceResponse>>> getInvoices(
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         log.info("GET /api/v1/invoices");
@@ -109,7 +109,7 @@ public class InvoiceController {
      * @return invoice response DTO
      */
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'OWNER', 'PLATFORM_ADMIN')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
     public ResponseEntity<ApiResponse<InvoiceResponse>> getInvoiceById(@PathVariable Long id) {
         log.info("GET /api/v1/invoices/{}", id);
         InvoiceResponse invoice = invoiceService.getInvoiceById(id);
@@ -123,7 +123,7 @@ public class InvoiceController {
      * @return list of invoice item response DTOs
      */
     @GetMapping("/{id}/items")
-    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'OWNER', 'PLATFORM_ADMIN')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
     public ResponseEntity<ApiResponse<List<InvoiceItemResponse>>> getInvoiceItems(@PathVariable Long id) {
         log.info("GET /api/v1/invoices/{}/items", id);
         List<InvoiceItemResponse> items = invoiceService.getInvoiceItems(id);
@@ -138,7 +138,7 @@ public class InvoiceController {
      * @return page of invoice response DTOs
      */
     @GetMapping("/student/{studentId}")
-    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'OWNER', 'PLATFORM_ADMIN')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
     public ResponseEntity<ApiResponse<Page<InvoiceResponse>>> getInvoicesByStudent(
             @PathVariable Long studentId,
             @PageableDefault(size = 20) Pageable pageable) {
@@ -156,7 +156,7 @@ public class InvoiceController {
      * @return updated invoice response DTO
      */
     @PostMapping("/{id}/adjustments")
-    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER', 'PLATFORM_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
     public ResponseEntity<ApiResponse<InvoiceResponse>> applyAdjustment(
             @PathVariable Long id,
             @Valid @RequestBody ApplyAdjustmentRequest request) {
@@ -173,7 +173,7 @@ public class InvoiceController {
      * @return updated invoice response DTO
      */
     @PostMapping("/{id}/late-fees")
-    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER', 'PLATFORM_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
     public ResponseEntity<ApiResponse<InvoiceResponse>> calculateLateFees(@PathVariable Long id) {
         log.info("POST /api/v1/invoices/{}/late-fees", id);
         InvoiceResponse invoice = invoiceService.calculateLateFees(id);
@@ -187,7 +187,7 @@ public class InvoiceController {
      * @return page of overdue invoice response DTOs
      */
     @GetMapping("/overdue")
-    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'OWNER', 'PLATFORM_ADMIN')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
     public ResponseEntity<ApiResponse<Page<InvoiceResponse>>> getOverdueInvoices(
             @PageableDefault(size = 20) Pageable pageable) {
 
@@ -204,7 +204,7 @@ public class InvoiceController {
      * @return page of unpaid invoice response DTOs
      */
     @GetMapping("/student/{studentId}/unpaid")
-    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'OWNER', 'PLATFORM_ADMIN')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
     public ResponseEntity<ApiResponse<Page<InvoiceResponse>>> getUnpaidInvoicesByStudent(
             @PathVariable Long studentId,
             @PageableDefault(size = 20) Pageable pageable) {
@@ -222,7 +222,7 @@ public class InvoiceController {
      * @return page of overdue invoice response DTOs
      */
     @GetMapping("/student/{studentId}/overdue")
-    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'OWNER', 'PLATFORM_ADMIN')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
     public ResponseEntity<ApiResponse<Page<InvoiceResponse>>> getOverdueInvoicesByStudent(
             @PathVariable Long studentId,
             @PageableDefault(size = 20) Pageable pageable) {
@@ -239,7 +239,7 @@ public class InvoiceController {
      * @return updated invoice response DTO
      */
     @PostMapping("/{id}/mark-paid")
-    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER', 'PLATFORM_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
     public ResponseEntity<ApiResponse<InvoiceResponse>> markInvoiceAsPaid(@PathVariable Long id) {
         log.info("POST /api/v1/invoices/{}/mark-paid", id);
         InvoiceResponse invoice = invoiceService.markInvoiceAsPaid(id);
@@ -253,7 +253,7 @@ public class InvoiceController {
      * @return cancelled invoice response DTO
      */
     @PutMapping("/{id}/cancel")
-    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER', 'PLATFORM_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
     public ResponseEntity<ApiResponse<InvoiceResponse>> cancelInvoice(@PathVariable Long id) {
         log.info("PUT /api/v1/invoices/{}/cancel", id);
         InvoiceResponse invoice = invoiceService.cancelInvoice(id);

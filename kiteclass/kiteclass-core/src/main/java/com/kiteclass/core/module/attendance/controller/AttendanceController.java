@@ -60,7 +60,7 @@ public class AttendanceController {
      * @param request attendance marking request
      * @return created attendance record
      */
-    @PreAuthorize("@authz.hasAccessToEnrollment(#request.enrollmentId)")
+    @PreAuthorize("hasAnyRole('STAFF') or @authz.hasAccessToEnrollment(#request.enrollmentId)")
     @PostMapping
     @Operation(summary = "Mark attendance for a student",
                description = "Creates a new attendance record. Validates enrollment and prevents duplicates. "
@@ -84,7 +84,7 @@ public class AttendanceController {
      * @param teacherId teacher ID from header (must be MAIN_TEACHER)
      * @return list of created attendance records
      */
-    @PreAuthorize("@authz.hasAccessToClass(#classId)")
+    @PreAuthorize("hasAnyRole('STAFF') or @authz.hasAccessToClass(#classId)")
     @PostMapping("/classes/{classId}/sessions/{sessionId}/attendance")
     @Operation(summary = "Bulk mark attendance for a session",
                description = "Creates multiple attendance records for a session. Only MAIN_TEACHER can mark attendance. "
@@ -149,7 +149,7 @@ public class AttendanceController {
      * @param pageable pagination parameters
      * @return page of attendance records
      */
-    @PreAuthorize("@authz.hasAccessToClass(#classId)")
+    @PreAuthorize("hasAnyRole('STAFF') or @authz.hasAccessToClass(#classId)")
     @GetMapping("/classes/{classId}/sessions/{sessionId}/attendance")
     @Operation(summary = "Get attendance roster for a session",
                description = "Returns all attendance records for a specific session. "
@@ -183,7 +183,7 @@ public class AttendanceController {
      * @param pageable pagination parameters
      * @return page of attendance records
      */
-    @PreAuthorize("@authz.hasAccessToSession(#sessionId)")
+    @PreAuthorize("hasAnyRole('STAFF') or @authz.hasAccessToSession(#sessionId)")
     @GetMapping("/session/{sessionId}")
     @Operation(summary = "Get attendance roster for a session (by session id)",
                description = "Returns all attendance records for a specific session, resolved by session id alone. "
@@ -229,7 +229,7 @@ public class AttendanceController {
      * @return attendance statistics
      */
     @GetMapping("/stats/class/{classId}")
-    @PreAuthorize("@authz.hasAccessToClass(#classId)")
+    @PreAuthorize("hasAnyRole('STAFF') or @authz.hasAccessToClass(#classId)")
     @Operation(summary = "Get attendance statistics for a class",
                description = "Returns aggregated attendance statistics for all students in a class.")
     public ResponseEntity<AttendanceStatsResponse> getClassStats(

@@ -37,6 +37,22 @@ public interface StudentService {
     StudentResponse createStudent(@Valid CreateStudentRequest request, java.util.UUID tenantId);
 
     /**
+     * Set/reset a student's KC-native login password (KC-9 student-auth, Wave auth-1
+     * Option B — mirrors the teacher provisioning path GAP-725).
+     *
+     * <p>Provisions (UPSERT) an {@code auth_credentials} row (entity_type=STUDENT,
+     * entity_id=student.id, email=student.email, instance_id=tenant) so the student can
+     * log in via {@code POST /api/v1/tenant-auth/login}. Owner/teacher action — no Zalo/SMS OTP.
+     *
+     * @param studentId   target student (tenant-scoped)
+     * @param rawPassword the new password (validated at the controller)
+     * @throws com.kiteclass.core.common.exception.EntityNotFoundException if the student does not exist in this tenant
+     * @throws com.kiteclass.core.common.exception.BusinessException 400 {@code STUDENT_EMAIL_REQUIRED}
+     *         if the student has no email (login is email-keyed)
+     */
+    void provisionCredential(Long studentId, String rawPassword);
+
+    /**
      * Retrieves a student by ID.
      *
      * @param id the student ID
