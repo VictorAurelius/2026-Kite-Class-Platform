@@ -1,5 +1,10 @@
 package com.kitehub.subscription.controller;
 
+import com.kitehub.platform.domain.enums.PricingTier;
+import com.kitehub.subscription.billing.dto.DowngradePreviewResponse;
+import com.kitehub.subscription.billing.dto.PendingPaymentStatusResponse;
+import com.kitehub.subscription.billing.dto.ReactivateResponse;
+import com.kitehub.subscription.billing.service.OwnerBillingService;
 import com.kitehub.subscription.dto.CreateSubscriptionRequest;
 import com.kitehub.subscription.dto.SubscriptionResponse;
 import com.kitehub.subscription.dto.TierChangeRequest;
@@ -58,6 +63,7 @@ public class SubscriptionController {
 
     private final SubscriptionService subscriptionService;
     private final SubscriptionRenewalService renewalService;
+    private final OwnerBillingService ownerBillingService;
 
     /**
      * GAP-1015: resolve the subscription's owning instance and verify it belongs to the
@@ -228,5 +234,60 @@ public class SubscriptionController {
     public ResponseEntity<List<SubscriptionResponse>> getExpiringSubscriptions() {
         List<SubscriptionResponse> responses = subscriptionService.getExpiringSubscriptions();
         return ResponseEntity.ok(responses);
+    }
+
+    /**
+     * Pending-payment status for the instance (GAP-1257-BE). FE polls this for the
+     * "đang chờ xác nhận" screen while waiting for the platform admin to reconcile the
+     * VietQR transfer (SUB-19).
+     *
+     * @param instanceId instance UUID
+     * @return pending-payment status (hasPendingPayment=false when none is in flight)
+     */
+    @GetMapping("/instance/{instanceId}/pending-payment-status")
+    @PreAuthorize(OWNER_OR_STAFF_AUTHZ)
+    public ResponseEntity<PendingPaymentStatusResponse> getPendingPaymentStatus(
+        @RequestHeader(value = "X-Tenant-Id", required = false) String tenantHeader,
+        @PathVariable UUID instanceId
+    ) {
+        // GAP-1015: instance path id IS the tenant scope — bind it to the caller.
+        TenantOwnershipGuard.requireOwnership(instanceId, tenantHeader);
+        return ResponseEntity.ok(ownerBillingService.getPendingPaymentStatus(instanceId));
+    }
+
+    /**
+     * Over-cap impact preview for a tier downgrade (GAP-1261). FE shows the owner what
+     * entitlement caps shrink + which features are lost before they confirm the downgrade.
+     *
+     * @param instanceId instance UUID
+     * @param targetTier the lower tier being considered
+     * @return downgrade preview
+     */
+    @GetMapping("/instance/{instanceId}/downgrade-preview")
+    @PreAuthorize(OWNER_OR_STAFF_AUTHZ)
+    public ResponseEntity<DowngradePreviewResponse> getDowngradePreview(
+        @RequestHeader(value = "X-Tenant-Id", required = false) String tenantHeader,
+        @PathVariable UUID instanceId,
+        @RequestParam PricingTier targetTier
+    ) {
+        TenantOwnershipGuard.requireOwnership(instanceId, tenantHeader);
+        return ResponseEntity.ok(ownerBillingService.getDowngradePreview(instanceId, targetTier));
+    }
+
+    /**
+     * Win-back reactivation for a SUSPENDED/cancelled instance (GAP-1263-BE). Idempotent;
+     * fraud/admin tombstones (PURGED/DELETED) return 409 — contact support.
+     *
+     * @param instanceId instance UUID
+     * @return reactivation outcome (PAYMENT_REQUIRED / ALREADY_ACTIVE / NO_SUBSCRIPTION)
+     */
+    @PostMapping("/instance/{instanceId}/reactivate")
+    @PreAuthorize(OWNER_AUTHZ)
+    public ResponseEntity<ReactivateResponse> reactivate(
+        @RequestHeader(value = "X-Tenant-Id", required = false) String tenantHeader,
+        @PathVariable UUID instanceId
+    ) {
+        TenantOwnershipGuard.requireOwnership(instanceId, tenantHeader);
+        return ResponseEntity.ok(ownerBillingService.reactivate(instanceId));
     }
 }

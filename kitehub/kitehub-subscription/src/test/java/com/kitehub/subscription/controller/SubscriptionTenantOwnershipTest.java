@@ -67,6 +67,9 @@ class SubscriptionTenantOwnershipTest {
     private DomainService domainService;
 
     @MockitoBean
+    private com.kitehub.subscription.billing.service.OwnerBillingService ownerBillingService;
+
+    @MockitoBean
     private JpaMetamodelMappingContext jpaMetamodelMappingContext;
 
     @BeforeEach

@@ -1,0 +1,20 @@
+THANH TOÁN ĐÃ ĐƯỢC XÁC NHẬN
+
+Xin chào [(${organizationName})],
+
+KiteHub đã xác nhận khoản thanh toán của bạn. Cảm ơn bạn!
+
+BIÊN NHẬN THANH TOÁN
+- Mã biên nhận: [(${receiptNumber})]
+- Gói đăng ký: [(${tier})]
+- Số tiền: [(${amountVnd})]đ
+- Mã giao dịch: [(${transactionId})]
+- Thời điểm thanh toán: [(${paidAt})]
+
+Xem chi tiết: [(${billingUrl})]
+
+Đây là biên nhận thanh toán (không phải hóa đơn GTGT). Hóa đơn điện tử có giá trị
+về thuế sẽ được phát hành riêng nếu trung tâm yêu cầu.
+
+Đội ngũ KiteHub
+support@kitehub.me

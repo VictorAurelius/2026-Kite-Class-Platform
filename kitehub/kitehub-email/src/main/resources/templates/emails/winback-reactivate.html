@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Kích hoạt lại trung tâm của bạn</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #2563eb 0%, #38bdf8 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { background: #f9f9f9; padding: 30px; border: 1px solid #ddd; }
+        .info-box { background: white; border: 1px solid #ddd; padding: 20px; margin: 20px 0; border-radius: 5px; }
+        .button { display: inline-block; padding: 12px 30px; background: #2563eb; color: white; text-decoration: none; border-radius: 5px; margin-top: 20px; }
+        .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Chúng tôi nhớ bạn 👋</h1>
+    </div>
+
+    <div class="content">
+        <p>Xin chào <strong th:text="${organizationName}">Trung tâm</strong>,</p>
+
+        <div class="info-box">
+            <p th:text="${reason}">Gói đăng ký của bạn đã hết hạn và bị tạm ngưng.</p>
+            <p>Dữ liệu của bạn vẫn được giữ an toàn. Kích hoạt lại bất cứ lúc nào để tiếp tục
+                sử dụng đầy đủ tính năng của KiteHub.</p>
+        </div>
+
+        <a th:href="${reactivateUrl}" class="button">Kích hoạt lại ngay</a>
+
+        <p style="margin-top: 24px;">Nếu bạn cần hỗ trợ trong quá trình kích hoạt lại, đội ngũ
+            KiteHub luôn sẵn sàng giúp đỡ.</p>
+
+        <p><strong>Đội ngũ KiteHub</strong></p>
+    </div>
+
+    <div class="footer">
+        <p>© 2026 KiteHub Platform. All rights reserved.</p>
+        <p>Nếu cần hỗ trợ, vui lòng liên hệ: support@kitehub.me</p>
+    </div>
+</body>
+</html>

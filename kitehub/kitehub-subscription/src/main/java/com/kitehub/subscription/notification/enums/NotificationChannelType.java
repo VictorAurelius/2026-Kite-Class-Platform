@@ -17,6 +17,12 @@ public enum NotificationChannelType {
     /** Phase 1 wired (SESEmailService). */
     EMAIL,
 
+    /**
+     * Phase 1 wired (GAP-1265) — persistent in-app banner fallback
+     * ({@code InAppNotificationChannel} + {@code in_app_notifications} table).
+     */
+    IN_APP,
+
     /** Phase 2 deferred — Twilio / VNStack / FPT SMS adapter (GAP-063b). */
     SMS,
 

@@ -148,6 +148,91 @@ giữ tách bạch (subscription tier-payment ≠ school invoice/installment pay
 
 ---
 
+## GET /api/platform/subscriptions/instance/{instanceId}/pending-payment-status
+**Use case:** UC-SUB-07 / owner "đang chờ xác nhận" screen (GAP-1257-BE)
+**Auth:** Bearer token (Owner | Staff) — `X-Tenant-Id` bound to the instance (`TenantOwnershipGuard`)
+**Response 200:**
+```json
+{
+  "hasPendingPayment": true,
+  "subscriptionId": "subscription-uuid",
+  "pendingPaymentId": "payment-uuid",
+  "amount": 500000,
+  "currency": "VND",
+  "status": "PENDING",
+  "tier": "BASIC",
+  "createdAt": "2026-06-13T09:00:00",
+  "expiresAt": "2026-06-14T09:00:00",
+  "adminConfirmSlaHours": 24
+}
+```
+**Contract:** Reads the instance's in-flight pending payment (the subscription holding `pendingPaymentId`).
+`expiresAt` is the derived admin-confirm SLA deadline = `payment.createdAt + adminConfirmSlaHours`
+(SUB-19 admin confirm is the capture source). When no payment is in flight, returns
+`{ "hasPendingPayment": false, "adminConfirmSlaHours": 24 }`. FE polls this for the waiting screen.
+**Config:** `kitehub.payment.admin-confirm-sla-hours` (default `24`).
+**Errors:** 403 cross-tenant.
+
+---
+
+## GET /api/platform/subscriptions/instance/{instanceId}/downgrade-preview
+**Use case:** UC-SUB-03 over-cap impact preview (GAP-1261)
+**Auth:** Bearer token (Owner | Staff) — tenant-bound
+**Query params:** `targetTier` (enum `FREE|BASIC|PREMIUM|ENTERPRISE`, required) — must be strictly lower than current tier
+**Response 200:**
+```json
+{
+  "currentTier": "PREMIUM",
+  "targetTier": "BASIC",
+  "currentMaxStudents": 200,
+  "targetMaxStudents": 50,
+  "currentMaxTeachers": 20,
+  "targetMaxTeachers": 5,
+  "currentStorageMb": 10240,
+  "targetStorageMb": 2048,
+  "customDomainCurrentlyAllowed": true,
+  "customDomainTargetAllowed": false,
+  "customDomainWillBeDisabled": true,
+  "hasActiveCustomDomain": true,
+  "warnings": ["Gói BASIC giới hạn 50 học sinh (gói hiện tại PREMIUM cho 200).", "..."],
+  "usageDataNote": "Số liệu sử dụng thực tế ... so sánh giới hạn (cap) ..."
+}
+```
+**Contract:** Compares entitlement caps of the current vs target tier (from `PricingTier`) + flags the
+real custom-domain loss (read from `instances.custom_domain`). Live usage counters (students/storage
+used) live in the per-tenant kiteclass-core DB and are NOT available here — `usageDataNote` documents
+this; the owner compares the shrunk caps against their own known usage.
+**Errors:** 400 `targetTier` missing OR not strictly lower than current; 403 cross-tenant; 404 instance not found.
+
+---
+
+## POST /api/platform/subscriptions/instance/{instanceId}/reactivate
+**Use case:** UC-SUB-04 win-back reactivation (GAP-1263-BE)
+**Auth:** Bearer token (Owner) — tenant-bound
+**Response 200:**
+```json
+{
+  "instanceId": "instance-uuid",
+  "outcome": "PAYMENT_REQUIRED",
+  "churnType": "INVOLUNTARY",
+  "subscriptionId": "subscription-uuid",
+  "pendingPaymentId": "payment-uuid",
+  "amount": 500000,
+  "currency": "VND",
+  "message": "Vui lòng thanh toán để kích hoạt lại trung tâm..."
+}
+```
+**Contract:** Phase 1 BETA manual-VietQR gate (mirrors GAP-1016 manual renewal). For a SUSPENDED
+instance, creates a PENDING reactivation payment + sets `subscription.pendingPaymentId`; the instance
+flips back to ACTIVE only after admin confirm (existing `applyConfirmedRenewal` path). **Idempotent** —
+a repeat call while a reactivation payment is in flight returns the same payment.
+- `outcome`: `PAYMENT_REQUIRED` (suspended, payment created/returned) | `ALREADY_ACTIVE` (idempotent no-op) | `NO_SUBSCRIPTION` (no subscription to revive → create a fresh one).
+- `churnType`: `VOLUNTARY` (subscription CANCELLED) | `INVOLUNTARY` (non-payment lapse, SUB-24) | `NONE`.
+- PURGED instance → 409 (data removed, create new); DELETED instance (fraud-block / admin tombstone) → 409 (contact support). Distinguishes the fraud tombstone from a voluntary cancel (merely SUSPENDED → reactivatable).
+**Errors:** 403 cross-tenant; 404 instance not found; 409 tombstone (PURGED/DELETED) OR never-activated (PENDING).
+
+---
+
 ## Note: UC-SUB-06 — Automated Expiration Scheduler (no HTTP endpoint)
 
 `SubscriptionExpirationChecker` runs daily (scheduler-triggered, no endpoint):
@@ -250,6 +335,37 @@ Monitor via `GET /api/platform/subscriptions/expiring` and instance status.
 
 ---
 
+## GET /api/platform/payments/{id}/receipt
+**Use case:** UC-SUB-07 non-VAT receipt / biên nhận (GAP-1266)
+**Auth:** Bearer token (Owner | Staff)
+**Response 200:**
+```json
+{
+  "receiptNumber": "BN-2026-1A2B3C4D",
+  "paymentId": "payment-uuid",
+  "subscriptionId": "subscription-uuid",
+  "instanceId": "instance-uuid",
+  "organizationName": "Trung tâm Demo",
+  "tier": "BASIC",
+  "billingCycle": "MONTHLY",
+  "amountVnd": 500000,
+  "currency": "VND",
+  "paymentMethod": "VIETQR",
+  "transactionId": "VCB-20260613-001",
+  "paidAt": "2026-06-13T10:00:00",
+  "issuedAt": "2026-06-13T10:05:00",
+  "note": "Đây là biên nhận thanh toán (không phải hóa đơn GTGT)..."
+}
+```
+**Contract:** Phase 1 BETA **non-VAT** receipt (biên nhận), NOT a VAT e-invoice (hóa đơn GTGT —
+deferred to MISA MeInvoice partnership GAP-185/634). Derived on-demand from the completed payment
+row (no separate storage). Available only after the payment is COMPLETED. `receiptNumber` is
+deterministic: `BN-<year>-<8 uppercase hex of payment id>`. Also emailed to the owner on payment
+confirm (template `payment-confirmed`).
+**Errors:** 400 payment not COMPLETED; 404 payment not found.
+
+---
+
 ## Admin endpoints — authentication note (GAP-938, Wave flow-kh3)
 
 > Tất cả admin endpoint dưới đây (`/api/platform/admin/**`) yêu cầu **JWT với role `PLATFORM_ADMIN`** forward qua gateway. Gateway extract role từ JWT và set header `X-User-Id` + `X-User-Roles` cho downstream services. Spring Security trong `kitehub-subscription` đọc header, map sang `ROLE_PLATFORM_ADMIN` và enforce qua `@PreAuthorize("hasRole('PLATFORM_ADMIN')")` ở mỗi handler.
@@ -347,3 +463,32 @@ Monitor via `GET /api/platform/subscriptions/expiring` and instance status.
 - Bucket B (GAP-976): rewrites existing `PaymentWebhookController` from generic HMAC body-signature → SePay `Authorization: Apikey` header + payload field adapter
 - Bucket C (GAP-974): `applyPendingUpgrade` emits `SUBSCRIPTION_ACTIVATED` outbox event → `subscription-activated.html` email arrives MailHog/Resend
 - Bucket D (GAP-977): FE WS subscribe + BetaModeBanner conditional render
+
+---
+
+## Notification channel seam + in-app notifications (GAP-1265)
+
+KiteHub owner notifications flow through a thin `NotificationChannel` abstraction (email is not the
+only channel). Phase 1 wires **EMAIL** (primary, via `EmailServiceClient` outbox path) + **IN_APP**
+(durable persistent-banner fallback, table `in_app_notifications`). SMS / **Zalo OA** / PUSH are
+documented stubs deferred to GAP-063b — a future bean implements `NotificationChannel` + registers,
+and `OwnerNotificationDispatcher` picks it up automatically (no full Zalo build in this scope).
+
+**Side effect — payment confirm (GAP-1257-BE + GAP-1266):** every confirm path
+(`POST /admin/payments/{id}/confirm`, SePay webhook, legacy gateway webhook) dispatches a
+`payment-confirmed` notification (email `payment-confirmed` template + in-app banner) carrying the
+non-VAT receipt summary. Best-effort: a notify failure never blocks payment capture.
+
+**Win-back (GAP-1263-BE):** `OwnerNotificationDispatcher.sendWinBack(instance, voluntary)` ships the
+`winback-reactivate` email + banner (CTA → reactivate). Provided as a seam for the suspend/cancel
+scheduler paths (cross-bucket handoff) — the reactivate endpoint above is the CTA target.
+
+### GET /api/platform/notifications/in-app/instance/{instanceId}
+**Auth:** Bearer token (Owner | Staff) — tenant-bound
+**Query params:** `unreadOnly` (boolean, default `false`)
+**Response 200:** `[InAppNotificationResponse]` (newest-first) — `{ id, notificationType, title, body, actionUrl, read, createdAt, readAt }`
+
+### PATCH /api/platform/notifications/in-app/instance/{instanceId}/{notificationId}/read
+**Auth:** Bearer token (Owner | Staff) — tenant-bound
+**Response 200:** `InAppNotificationResponse` with `read=true`
+**Errors:** 403 cross-tenant; 404 notification not found for this instance

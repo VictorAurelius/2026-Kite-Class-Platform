@@ -59,6 +59,9 @@ class SubscriptionControllerSecurityTest {
     private SubscriptionRenewalService renewalService;
 
     @MockitoBean
+    private com.kitehub.subscription.billing.service.OwnerBillingService ownerBillingService;
+
+    @MockitoBean
     private JpaMetamodelMappingContext jpaMetamodelMappingContext;
 
     /** Fixed instance id used as the gateway-trusted X-Tenant-Id in OWNER/STAFF happy paths. */
