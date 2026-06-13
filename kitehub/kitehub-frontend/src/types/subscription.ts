@@ -27,6 +27,24 @@ export interface TierChangeRequest {
   newTier: PricingTier;
 }
 
+/**
+ * GAP-1257-FE — "Đang chờ xác nhận" pending-payment status.
+ *
+ * Contract for `GET /api/platform/subscriptions/instance/{id}/pending-payment-status`
+ * (BE-4 will add this endpoint). VietQR manual transfer flow (SUB-11) — after the
+ * owner submits a transfer, the payment sits PENDING until a platform admin
+ * reconciles the bank statement and confirms (SUB-19, UC-SUB-07). This shape lets
+ * the FE show an "awaiting confirmation" screen with the admin-confirm SLA.
+ */
+export interface PendingPaymentStatus {
+  pendingPaymentId: string;
+  amountVnd: number;
+  status: 'PENDING' | 'COMPLETED' | 'FAILED' | 'EXPIRED';
+  expiresAt: string | null;
+  /** Human-readable SLA, e.g. "trong vòng 24 giờ làm việc". */
+  adminConfirmSla: string | null;
+}
+
 export interface PlanDetails {
   tier: PricingTier;
   name: string;

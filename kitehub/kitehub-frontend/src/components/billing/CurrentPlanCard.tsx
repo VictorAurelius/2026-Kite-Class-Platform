@@ -72,11 +72,12 @@ export function CurrentPlanCard({ subscription }: CurrentPlanCardProps) {
       </div>
 
       <CardContent className="p-6 space-y-4">
-        {/* Renewal Info */}
+        {/* Renewal Info — GAP-1258: VietQR manual không tự trừ tiền, dùng từ
+            "nhắc gia hạn" thay vì "gia hạn" để tránh ngụ ý auto-charge. */}
         <div className="flex items-center gap-2 text-sm">
           <Calendar className="h-4 w-4 text-muted-foreground" />
           <span className="text-muted-foreground">
-            {subscription.autoRenew ? 'Gia hạn vào' : 'Hết hạn vào'} {renewalDate}
+            {subscription.autoRenew ? 'Nhắc gia hạn vào' : 'Hết hạn vào'} {renewalDate}
           </span>
         </div>
 
@@ -89,12 +90,24 @@ export function CurrentPlanCard({ subscription }: CurrentPlanCardProps) {
           <Progress value={progressPercent} className="h-2" />
         </div>
 
-        {/* Auto-renew Status */}
-        <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-xl">
-          <CreditCard className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm">
-            Tự động gia hạn: {subscription.autoRenew ? 'Bật' : 'Tắt'}
-          </span>
+        {/* Auto-renew Status — GAP-1258: relabel. VietQR/chuyển khoản thủ công
+            (SUB-11) KHÔNG tự động trừ tiền; "tự động" ở đây chỉ là nhắc gia hạn,
+            owner vẫn phải chuyển khoản tay + admin đối soát (SUB-19). */}
+        <div className="flex items-start gap-2 p-3 bg-muted/50 rounded-xl">
+          <CreditCard className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+          <div className="text-sm">
+            <span
+              className="inline-flex items-center gap-1"
+              title="Phase 1 BETA dùng chuyển khoản VietQR thủ công — hệ thống chỉ gửi nhắc gia hạn, KHÔNG tự trừ tiền. Bạn chuyển khoản và quản trị viên đối soát."
+            >
+              Tự động nhắc gia hạn (cần chuyển khoản thủ công):{' '}
+              <strong>{subscription.autoRenew ? 'Bật' : 'Tắt'}</strong>
+            </span>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Hệ thống chỉ gửi nhắc gia hạn — không tự động trừ tiền. Bạn chuyển khoản
+              VietQR và quản trị viên xác nhận.
+            </p>
+          </div>
         </div>
 
         {/* Pending Tier Change */}

@@ -5,6 +5,7 @@ import { useOwnerInstances } from '@/hooks/use-instances';
 import { useActiveSubscription } from '@/hooks/use-subscriptions';
 import { usePaymentHistory } from '@/hooks/use-payments';
 import { PaymentHistoryTable } from '@/components/billing/PaymentHistoryTable';
+import { CurrentPlanCard } from '@/components/billing/CurrentPlanCard';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { ErrorAlert } from '@/components/common/ErrorAlert';
 import { Button } from '@/components/ui/button';
@@ -73,8 +74,20 @@ export default function PaymentHistoryPage() {
         </div>
       </div>
 
-      {/* Payment History Table */}
-      <PaymentHistoryTable payments={payments || []} />
+      {/* GAP-1267 — self-serve billing portal: gói hiện tại + ngày nhắc gia hạn
+          (next-renewal) bên cạnh lịch sử hóa đơn/thanh toán. */}
+      {subscription ? (
+        <div className="grid gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-1">
+            <CurrentPlanCard subscription={subscription} />
+          </div>
+          <div className="lg:col-span-2">
+            <PaymentHistoryTable payments={payments || []} />
+          </div>
+        </div>
+      ) : (
+        <PaymentHistoryTable payments={payments || []} />
+      )}
     </div>
   );
 }

@@ -45,8 +45,11 @@ import {
 
 import { useAuthStore } from '@/stores/auth-store';
 import { useOwnerInstances } from '@/hooks/use-instances';
-import { useActiveSubscription } from '@/hooks/use-subscriptions';
+import { useActiveSubscription, usePendingPaymentStatus } from '@/hooks/use-subscriptions';
 import { CurrentPlanCard } from '@/components/billing/CurrentPlanCard';
+import { PendingPaymentBanner } from '@/components/billing/PendingPaymentBanner';
+import { ReactivateBanner } from '@/components/billing/ReactivateBanner';
+import { TierRecommender } from '@/components/billing/TierRecommender';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { ErrorAlert } from '@/components/common/ErrorAlert';
 import { Button } from '@/components/ui/button';
@@ -218,6 +221,11 @@ export default function BillingPage() {
     error: subError,
   } = useActiveSubscription(instanceId?.toString());
 
+  // GAP-1257-FE — awaiting-confirmation pending payment (VietQR manual, SUB-19).
+  // Code-to-contract: returns null until BE-4 ships the endpoint.
+  const { data: pendingPayment } = usePendingPaymentStatus(instanceId?.toString());
+  const instanceStatus = instances?.[0]?.status;
+
   const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | null>(
     MOCK_INVOICES[0]?.id ?? null,
   );
@@ -278,7 +286,9 @@ export default function BillingPage() {
     );
   }
 
-  // subscription === null (404 no active sub) hoặc subError = trial user chưa nâng cấp → show plan comparison.
+  // GAP-1079-FE: `GET .../active` trả 404 khi chưa có gói trả phí (TRIAL tenant
+  // = bình thường). Hook đã map 404 → null, KHÔNG phải error toast. Hiển thị
+  // empty-state "Chưa có gói trả phí" + gợi ý gói, KHÔNG crash.
   if (!subscription || subError) {
     return (
       <div className="space-y-6">
@@ -288,13 +298,22 @@ export default function BillingPage() {
               <CreditCard className="h-5 w-5" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">Chưa có gói đăng ký</h1>
+              <h1 className="text-2xl font-bold">Chưa có gói trả phí</h1>
               <p className="text-muted-foreground">
-                Bạn đang trong giai đoạn dùng thử. Chọn gói phù hợp với nhu cầu của bạn.
+                Bạn đang dùng gói Trial/Miễn phí. Chọn gói phù hợp để mở khóa đầy đủ tính năng.
               </p>
             </div>
           </div>
         </div>
+
+        {/* GAP-1263-FE — reactivate CTA khi instance bị tạm ngưng/hết hạn */}
+        <ReactivateBanner subscription={null} instanceStatus={instanceStatus} />
+
+        {/* GAP-1257-FE — đang chờ admin xác nhận chuyển khoản */}
+        {pendingPayment && <PendingPaymentBanner pending={pendingPayment} />}
+
+        {/* GAP-1269 — gợi ý gói theo số học viên */}
+        <TierRecommender />
 
         <PlanComparison currentTier={null} />
       </div>
@@ -333,6 +352,12 @@ export default function BillingPage() {
           </div>
         </div>
       </div>
+
+      {/* GAP-1263-FE — reactivate CTA khi gói đã hủy/hết hạn hoặc instance tạm ngưng */}
+      <ReactivateBanner subscription={subscription} instanceStatus={instanceStatus} />
+
+      {/* GAP-1257-FE — đang chờ admin xác nhận chuyển khoản VietQR */}
+      {pendingPayment && <PendingPaymentBanner pending={pendingPayment} />}
 
       {/* Owner KPI tiles — pro v2 token-style cards using formatVNCurrency */}
       <div className="grid gap-4 sm:grid-cols-3" data-testid="billing-summary">
