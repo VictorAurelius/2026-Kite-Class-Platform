@@ -1,6 +1,6 @@
 # GAP-1113: LMS frontend headless — BE đủ 15 endpoint nhưng kiteclass-frontend 0 consumer
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (60% — Increment A shipped FE: teacher authoring + guest catalog/trial + assignment give/grade; student-player gated KC-9; G2 browser-walk pending)
 **Priority:** 🟠 P1
 **Domain:** Frontend
 **Found:** 2026-06-10 (audit cluster doc DB schema-reference LMS — phát hiện BE LMS đầy đủ nhưng FE chưa tiêu thụ)

@@ -1,6 +1,6 @@
 # GAP-1119: KiteClass role-based login routing + per-role dashboard shell + RBAC management
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (85% — item (d) RBAC assign-UI shipped FE; G2 browser-walk pending; student-shell gated KC-9)
 **Priority:** 🟠 P1
 **Domain:** Mixed (FE kiteclass-frontend + BE kiteclass-core + cross-product auth)
 **Found:** 2026-06-10 (user-flagged khi scope FE LMS wave — outside-in audit GAP-1113)

@@ -31,6 +31,7 @@ interface CourseModule {
   id: number;
   title: string;
   orderNumber: number;
+  lessonCount?: number;
   lessons: { id: number; title: string; isTrial: boolean }[];
 }
 
@@ -238,12 +239,41 @@ export default async function CourseDetailPage({
                 <BookOpen className="h-6 w-6 text-theme-primary" aria-hidden="true" /> Nội dung khóa học
               </h2>
               <ol className="space-y-3">
-                {course.modules.map((m) => (
-                  <li key={m.id} className="rounded-xl border bg-white p-4">
-                    <b className="block">{m.title}</b>
-                    <small className="text-muted-foreground">{m.lessons?.length || 0} bài học</small>
-                  </li>
-                ))}
+                {course.modules.map((m) => {
+                  const trialLessons = (m.lessons ?? []).filter((l) => l.isTrial);
+                  const totalLessons = m.lessonCount ?? m.lessons?.length ?? 0;
+                  const lockedCount = Math.max(0, totalLessons - trialLessons.length);
+                  return (
+                    <li key={m.id} className="rounded-xl border bg-white p-4">
+                      <b className="block">{m.title}</b>
+                      <small className="text-muted-foreground">{totalLessons} bài học</small>
+                      {trialLessons.length > 0 && (
+                        <ul className="mt-2 space-y-1.5">
+                          {trialLessons.map((l) => (
+                            <li key={l.id} className="flex items-center justify-between gap-2 text-sm">
+                              <span className="flex items-center gap-1.5">
+                                <BookOpen className="h-3.5 w-3.5 text-theme-primary" aria-hidden="true" />
+                                {l.title}
+                              </span>
+                              <Link
+                                href={`/catalog/${course.id}/lessons/${l.id}`}
+                                className="shrink-0 font-semibold text-theme-primary hover:underline"
+                              >
+                                Học thử →
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      {lockedCount > 0 && (
+                        <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
+                          Còn {lockedCount} bài học — đăng ký để mở khóa toàn bộ.
+                        </p>
+                      )}
+                    </li>
+                  );
+                })}
               </ol>
             </section>
           ) : course.syllabus ? (

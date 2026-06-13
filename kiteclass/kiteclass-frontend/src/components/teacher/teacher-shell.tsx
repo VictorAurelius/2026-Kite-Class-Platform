@@ -13,7 +13,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Bell, ClipboardCheck, BookOpenCheck, CalendarDays, BarChart3, Settings } from 'lucide-react';
+import { Bell, ClipboardCheck, BookOpenCheck, CalendarDays, BarChart3, Settings, ClipboardList } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type NavItem = {
@@ -35,6 +35,12 @@ const NAV_ITEMS: NavItem[] = [
     label: 'Vào điểm',
     icon: BookOpenCheck,
     match: (p) => p.startsWith('/teacher/grades'),
+  },
+  {
+    href: '/teacher/assignments',
+    label: 'Bài tập',
+    icon: ClipboardList,
+    match: (p) => p.startsWith('/teacher/assignments'),
   },
   {
     href: '/teacher/schedule',
