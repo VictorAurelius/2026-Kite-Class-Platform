@@ -108,7 +108,7 @@ class DataRetentionServiceTest {
         @DisplayName("Should send warning at 50% of retention period")
         void shouldSendWarningAtHalfRetention() {
             // Suspended 15 days ago, retention is 30 days → 50% → should warn
-            suspendedInstance.setUpdatedAt(LocalDateTime.now().minusDays(15));
+            suspendedInstance.setSuspendedAt(LocalDateTime.now().minusDays(15));
 
             when(instanceRepository.findByStatusAndDeletedFalse(InstanceStatus.SUSPENDED))
                 .thenReturn(List.of(suspendedInstance));
@@ -126,7 +126,7 @@ class DataRetentionServiceTest {
         @DisplayName("Should send warning at 80% of retention period")
         void shouldSendWarningAt80PercentRetention() {
             // Suspended 24 days ago, retention is 30 days → 80% → should warn
-            suspendedInstance.setUpdatedAt(LocalDateTime.now().minusDays(24));
+            suspendedInstance.setSuspendedAt(LocalDateTime.now().minusDays(24));
 
             when(instanceRepository.findByStatusAndDeletedFalse(InstanceStatus.SUSPENDED))
                 .thenReturn(List.of(suspendedInstance));
@@ -144,7 +144,7 @@ class DataRetentionServiceTest {
         @DisplayName("Should not send warning at non-trigger days")
         void shouldNotSendWarningAtNonTriggerDays() {
             // Suspended 10 days ago, retention is 30 days → not at 50% or 80%
-            suspendedInstance.setUpdatedAt(LocalDateTime.now().minusDays(10));
+            suspendedInstance.setSuspendedAt(LocalDateTime.now().minusDays(10));
 
             when(instanceRepository.findByStatusAndDeletedFalse(InstanceStatus.SUSPENDED))
                 .thenReturn(List.of(suspendedInstance));
@@ -172,7 +172,7 @@ class DataRetentionServiceTest {
         @DisplayName("Should skip instances without contact email")
         void shouldSkipInstancesWithoutContactEmail() {
             suspendedInstance.setContactEmail(null);
-            suspendedInstance.setUpdatedAt(LocalDateTime.now().minusDays(15));
+            suspendedInstance.setSuspendedAt(LocalDateTime.now().minusDays(15));
 
             when(instanceRepository.findByStatusAndDeletedFalse(InstanceStatus.SUSPENDED))
                 .thenReturn(List.of(suspendedInstance));
@@ -192,7 +192,7 @@ class DataRetentionServiceTest {
         @DisplayName("Should delete instance when retention expired")
         void shouldDeleteInstanceWhenRetentionExpired() {
             // Suspended 31 days ago, retention is 30 days → expired
-            suspendedInstance.setUpdatedAt(LocalDateTime.now().minusDays(31));
+            suspendedInstance.setSuspendedAt(LocalDateTime.now().minusDays(31));
 
             when(instanceRepository.findByStatusAndDeletedFalse(InstanceStatus.SUSPENDED))
                 .thenReturn(List.of(suspendedInstance));
@@ -213,7 +213,7 @@ class DataRetentionServiceTest {
         @DisplayName("Should not delete instance within retention period")
         void shouldNotDeleteInstanceWithinRetentionPeriod() {
             // Suspended 20 days ago, retention is 30 days → still within retention
-            suspendedInstance.setUpdatedAt(LocalDateTime.now().minusDays(20));
+            suspendedInstance.setSuspendedAt(LocalDateTime.now().minusDays(20));
 
             when(instanceRepository.findByStatusAndDeletedFalse(InstanceStatus.SUSPENDED))
                 .thenReturn(List.of(suspendedInstance));
@@ -227,8 +227,9 @@ class DataRetentionServiceTest {
         }
 
         @Test
-        @DisplayName("Should handle instance without updatedAt")
-        void shouldHandleInstanceWithoutUpdatedAt() {
+        @DisplayName("Should skip instance with no retention-clock anchor (suspendedAt + updatedAt both null)")
+        void shouldHandleInstanceWithoutClockAnchor() {
+            suspendedInstance.setSuspendedAt(null);
             suspendedInstance.setUpdatedAt(null);
 
             when(instanceRepository.findByStatusAndDeletedFalse(InstanceStatus.SUSPENDED))
@@ -238,6 +239,61 @@ class DataRetentionServiceTest {
             int deleted = dataRetentionService.processExpiredRetention();
 
             assertThat(deleted).isEqualTo(0);
+        }
+
+        @Test
+        @DisplayName("GAP-1264: legacy row (suspendedAt null) falls back to updatedAt for the clock")
+        void shouldFallBackToUpdatedAtForLegacyRow() {
+            // Legacy SUSPENDED row from before V73 — no suspended_at stamp.
+            suspendedInstance.setSuspendedAt(null);
+            suspendedInstance.setUpdatedAt(LocalDateTime.now().minusDays(31));
+
+            when(instanceRepository.findByStatusAndDeletedFalse(InstanceStatus.SUSPENDED))
+                .thenReturn(List.of(suspendedInstance));
+            when(retentionConfig.getRetentionDays("BASIC")).thenReturn(30);
+            when(instanceRepository.save(any(Instance.class))).thenReturn(suspendedInstance);
+
+            int deleted = dataRetentionService.processExpiredRetention();
+
+            assertThat(deleted).isEqualTo(1);
+            assertThat(suspendedInstance.getStatus()).isEqualTo(InstanceStatus.DELETED);
+        }
+
+        @Test
+        @DisplayName("GAP-1264: suspendedAt takes precedence over updatedAt (clock not reset by later update)")
+        void shouldPreferSuspendedAtOverUpdatedAt() {
+            // suspended 31 days ago, but a later unrelated row update bumped updatedAt to now.
+            // Clock MUST follow suspendedAt → still expired → deleted.
+            suspendedInstance.setSuspendedAt(LocalDateTime.now().minusDays(31));
+            suspendedInstance.setUpdatedAt(LocalDateTime.now());
+
+            when(instanceRepository.findByStatusAndDeletedFalse(InstanceStatus.SUSPENDED))
+                .thenReturn(List.of(suspendedInstance));
+            when(retentionConfig.getRetentionDays("BASIC")).thenReturn(30);
+            when(instanceRepository.save(any(Instance.class))).thenReturn(suspendedInstance);
+
+            int deleted = dataRetentionService.processExpiredRetention();
+
+            assertThat(deleted).isEqualTo(1);
+            assertThat(suspendedInstance.getStatus()).isEqualTo(InstanceStatus.DELETED);
+        }
+
+        @Test
+        @DisplayName("GAP-1026: final warning fires range-based within lead window (not exact ==1)")
+        void shouldSendFinalWarningWithinLeadWindow() {
+            // finalWarningLeadDays default 1; suspended 29 days ago, retention 30 → 1 day left.
+            suspendedInstance.setSuspendedAt(LocalDateTime.now().minusDays(29));
+
+            when(instanceRepository.findByStatusAndDeletedFalse(InstanceStatus.SUSPENDED))
+                .thenReturn(List.of(suspendedInstance));
+            when(retentionConfig.getRetentionDays("BASIC")).thenReturn(30);
+            when(retentionConfig.getFinalWarningLeadDays()).thenReturn(1);
+
+            int deleted = dataRetentionService.processExpiredRetention();
+
+            assertThat(deleted).isEqualTo(0);
+            verify(emailServiceClient).sendDataRetentionFinalWarning(
+                eq(instanceId), eq("admin@test.org"), eq("test-org"));
         }
     }
 

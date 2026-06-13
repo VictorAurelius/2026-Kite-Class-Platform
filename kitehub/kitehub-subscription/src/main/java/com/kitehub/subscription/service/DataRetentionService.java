@@ -67,7 +67,7 @@ public class DataRetentionService {
                 int retentionDays = retentionConfig.getRetentionDays(
                     instance.getTier() != null ? instance.getTier().name() : "FREE");
 
-                LocalDateTime suspendedAt = instance.getUpdatedAt();
+                LocalDateTime suspendedAt = retentionClockStart(instance);
                 if (suspendedAt == null) {
                     continue;
                 }
@@ -124,7 +124,7 @@ public class DataRetentionService {
                 int retentionDays = retentionConfig.getRetentionDays(
                     instance.getTier() != null ? instance.getTier().name() : "FREE");
 
-                LocalDateTime suspendedAt = instance.getUpdatedAt();
+                LocalDateTime suspendedAt = retentionClockStart(instance);
                 if (suspendedAt == null) {
                     continue;
                 }
@@ -132,16 +132,29 @@ public class DataRetentionService {
                 LocalDateTime retentionExpiry = suspendedAt.plusDays(retentionDays);
                 LocalDateTime now = LocalDateTime.now();
 
-                // Send final warning 1 day before deletion
+                // GAP-1026: final warning is RANGE-based, not exact == 1 day.
+                // The old exact-day check silently skipped the warning forever if the
+                // 3 AM scheduler missed the single day with daysUntilExpiry==1 (cron
+                // downtime, host reboot, DST). Now fire whenever we are within the
+                // final-warning lead window [1, finalWarningLeadDays] before deletion.
+                // De-dup is provided by EmailServiceClient.alreadySentToday() keyed on
+                // instanceId + "retention-final-warning" → at most one send per day even
+                // if the window spans multiple scheduler runs.
                 long daysUntilExpiry = ChronoUnit.DAYS.between(now, retentionExpiry);
-                if (daysUntilExpiry == 1 && instance.getContactEmail() != null) {
+                // Fire while NOT yet deleted (now before expiry) AND within the final-warning
+                // lead window. now.isBefore(retentionExpiry) keeps it robust to sub-day timing
+                // (no fragile == 1 day-count check); the deletion branch below handles the
+                // already-past-expiry case.
+                boolean inFinalWarningWindow = now.isBefore(retentionExpiry)
+                    && daysUntilExpiry <= retentionConfig.getFinalWarningLeadDays();
+                if (inFinalWarningWindow && instance.getContactEmail() != null) {
                     emailServiceClient.sendDataRetentionFinalWarning(
                         instance.getId(),
                         instance.getContactEmail(),
                         instance.getSubdomain()
                     );
-                    log.info("Data retention final warning sent for instance {} (subdomain: {})",
-                        instance.getId(), instance.getSubdomain());
+                    log.info("Data retention final warning sent for instance {} (subdomain: {}, {} day(s) left)",
+                        instance.getId(), instance.getSubdomain(), daysUntilExpiry);
                 }
 
                 if (now.isAfter(retentionExpiry)) {
@@ -195,5 +208,22 @@ public class DataRetentionService {
         long secondWarningDay = (long) (retentionDays * 0.8);
 
         return daysSuspended == firstWarningDay || daysSuspended == secondWarningDay;
+    }
+
+    /**
+     * Resolve the deterministic anchor for the data-retention clock (SUB-25, GAP-1264).
+     *
+     * <p>Prefers {@link Instance#getSuspendedAt()} — stamped at the suspend transition,
+     * immune to unrelated row updates (tier sync, contact-email edit, …). Falls back to
+     * {@link Instance#getUpdatedAt()} ONLY for legacy rows suspended before the V73
+     * migration shipped (null {@code suspended_at}), preserving prior behavior for those.</p>
+     *
+     * @param instance the suspended instance
+     * @return the retention-clock start timestamp, or {@code null} if neither is set
+     */
+    private LocalDateTime retentionClockStart(Instance instance) {
+        return instance.getSuspendedAt() != null
+            ? instance.getSuspendedAt()
+            : instance.getUpdatedAt();
     }
 }

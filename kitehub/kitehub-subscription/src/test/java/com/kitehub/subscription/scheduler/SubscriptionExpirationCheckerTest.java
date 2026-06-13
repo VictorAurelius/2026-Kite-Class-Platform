@@ -1,12 +1,15 @@
 package com.kitehub.subscription.scheduler;
 
 import com.kitehub.platform.domain.entity.Instance;
+import com.kitehub.platform.domain.entity.Payment;
 import com.kitehub.platform.domain.entity.Subscription;
+import com.kitehub.platform.domain.enums.PaymentStatus;
 import com.kitehub.platform.domain.enums.PricingTier;
 import com.kitehub.platform.domain.enums.SubscriptionStatus;
 import com.kitehub.subscription.client.EmailServiceClient;
 import com.kitehub.subscription.config.SubscriptionConfig;
 import com.kitehub.subscription.repository.InstanceRepository;
+import com.kitehub.subscription.repository.PaymentRepository;
 import com.kitehub.subscription.repository.SubscriptionRepository;
 import com.kitehub.subscription.service.SubscriptionRenewalService;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,6 +24,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -39,6 +46,9 @@ class SubscriptionExpirationCheckerTest {
 
     @Mock
     private InstanceRepository instanceRepository;
+
+    @Mock
+    private PaymentRepository paymentRepository;
 
     @Mock
     private SubscriptionRenewalService renewalService;
@@ -188,5 +198,98 @@ class SubscriptionExpirationCheckerTest {
         checker.checkExpiringSubscriptions();
 
         verifyNoInteractions(emailServiceClient);
+    }
+
+    // ---- GAP-1259 (SUB-23): grace dunning + pending-payment TTL ----
+
+    @Test
+    void processExpiredSubscriptions_emitsGraceDunningReminderDuringGrace() {
+        subscription.setStatus(SubscriptionStatus.EXPIRED);
+        subscription.setExpiresAt(LocalDateTime.now().minusDays(1)); // expired, within 3d grace
+        when(subscriptionRepository.findExpiredSubscriptions(any())).thenReturn(List.of(subscription));
+        when(renewalService.isInGracePeriod(subscription)).thenReturn(true);
+        when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
+        when(subscriptionConfig.getGracePeriodDays()).thenReturn(3);
+
+        checker.processExpiredSubscriptions();
+
+        verify(renewalService, never()).suspendExpiredSubscription(any());
+        verify(emailServiceClient).sendRenewalReminder(
+            eq(instanceId), eq("admin@test.edu.vn"), eq("Test School"),
+            anyLong(), eq("BASIC"), anyLong());
+    }
+
+    @Test
+    void processStalePendingPayments_expiresOldPaymentAndReleasesSubscription() {
+        Payment stale = new Payment();
+        stale.setId(UUID.randomUUID());
+        stale.setSubscriptionId(subscriptionId);
+        stale.setStatus(PaymentStatus.PENDING);
+        stale.setCreatedAt(LocalDateTime.now().minusDays(10)); // older than 7-day TTL
+        subscription.setPendingPaymentId(stale.getId());
+
+        when(subscriptionConfig.getPendingPaymentTtlDays()).thenReturn(7);
+        when(paymentRepository.findPendingPayments()).thenReturn(List.of(stale));
+        when(subscriptionRepository.findById(subscriptionId)).thenReturn(Optional.of(subscription));
+
+        checker.processStalePendingPayments();
+
+        assertEquals(PaymentStatus.FAILED, stale.getStatus());
+        verify(paymentRepository).save(stale);
+        assertNull(subscription.getPendingPaymentId());
+        verify(subscriptionRepository).save(subscription);
+    }
+
+    @Test
+    void processStalePendingPayments_keepsPaymentWithinTtl() {
+        Payment fresh = new Payment();
+        fresh.setId(UUID.randomUUID());
+        fresh.setSubscriptionId(subscriptionId);
+        fresh.setStatus(PaymentStatus.PENDING);
+        fresh.setCreatedAt(LocalDateTime.now().minusDays(2)); // within 7-day TTL
+
+        when(subscriptionConfig.getPendingPaymentTtlDays()).thenReturn(7);
+        when(paymentRepository.findPendingPayments()).thenReturn(List.of(fresh));
+
+        checker.processStalePendingPayments();
+
+        assertEquals(PaymentStatus.PENDING, fresh.getStatus());
+        verify(paymentRepository, never()).save(any());
+    }
+
+    // ---- GAP-1080 AC#2: orphan PENDING subscription cleanup ----
+
+    @Test
+    void processOrphanPendingSubscriptions_softDeletesStalePending() {
+        Subscription orphan = new Subscription();
+        orphan.setId(UUID.randomUUID());
+        orphan.setStatus(SubscriptionStatus.PENDING);
+        orphan.setCreatedAt(LocalDateTime.now().minusDays(10)); // older than 7-day TTL
+
+        when(subscriptionConfig.getOrphanPendingSubscriptionTtlDays()).thenReturn(7);
+        when(subscriptionRepository.findByStatus(SubscriptionStatus.PENDING))
+            .thenReturn(List.of(orphan));
+
+        checker.processOrphanPendingSubscriptions();
+
+        assertTrue(orphan.isDeleted());
+        verify(subscriptionRepository).save(orphan);
+    }
+
+    @Test
+    void processOrphanPendingSubscriptions_keepsRecentPending() {
+        Subscription recent = new Subscription();
+        recent.setId(UUID.randomUUID());
+        recent.setStatus(SubscriptionStatus.PENDING);
+        recent.setCreatedAt(LocalDateTime.now().minusDays(1)); // within 7-day TTL
+
+        when(subscriptionConfig.getOrphanPendingSubscriptionTtlDays()).thenReturn(7);
+        when(subscriptionRepository.findByStatus(SubscriptionStatus.PENDING))
+            .thenReturn(List.of(recent));
+
+        checker.processOrphanPendingSubscriptions();
+
+        assertFalse(recent.isDeleted());
+        verify(subscriptionRepository, never()).save(any());
     }
 }

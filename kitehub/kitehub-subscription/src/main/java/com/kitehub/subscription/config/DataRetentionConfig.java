@@ -46,6 +46,16 @@ public class DataRetentionConfig {
     private int warningCount = 2;
 
     /**
+     * Final-warning lead window in days before deletion (GAP-1026).
+     *
+     * <p>DataRetentionService fires the final "data will be deleted" warning when the
+     * instance is within this many days of its retention expiry. Range-based (not an
+     * exact == 1 day check) so a cron-downtime day no longer skips the warning forever.
+     * De-dup across the window is handled by EmailServiceClient per-day idempotency.</p>
+     */
+    private int finalWarningLeadDays = 1;
+
+    /**
      * Get retention days by tier name.
      *
      * @param tier pricing tier name

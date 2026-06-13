@@ -25,8 +25,11 @@ class TrialConfigTest {
         // Then
         assertThat(config.getDurationDays()).isEqualTo(14);
         assertThat(config.getMaxPerOwner()).isEqualTo(1);
-        assertThat(config.getWarningDays()).isEqualTo(List.of(3, 1));
+        // TR-08 / GAP-1270 — widened conversion cadence from [3, 1] to [10, 5, 3, 1].
+        assertThat(config.getWarningDays()).isEqualTo(List.of(10, 5, 3, 1));
         assertThat(config.getMidpointDay()).isEqualTo(7);
+        assertThat(config.getExtensionDays()).isEqualTo(7);
+        assertThat(config.isAutoExtendOnExpiry()).isFalse();
     }
 
     @Test

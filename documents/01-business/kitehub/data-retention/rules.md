@@ -15,10 +15,10 @@
 | RET-06 | Warning count | 2 lần trước khi xóa | `kitehub.data-retention.warning-count` |
 | RET-07 | Warning 1 | 50% retention period | shouldSendWarning() |
 | RET-08 | Warning 2 | 80% retention period | shouldSendWarning() |
-| RET-09 | Final warning | 1 ngày trước khi xóa | processExpiredRetention() |
+| RET-09 | Final warning | Range-based trong lead window `final-warning-lead-days` (default 1) trước khi xóa — KHÔNG còn exact ==1 (tránh cron-downtime skip, GAP-1026) | `kitehub.data-retention.final-warning-lead-days` |
 | RET-10 | Deletion method | Soft delete (status=DELETED, deleted=true) | instance.softDelete() |
 | RET-11 | Scheduler time | Daily 3:00 AM | `0 0 3 * * *` |
-| RET-12 | Retention start | Instance updatedAt (when suspended) | ChronoUnit.DAYS.between() |
+| RET-12 | Retention start | Instance `suspended_at` (stamped khi suspend, SUB-25/GAP-1264); fallback `updated_at` chỉ cho legacy row null (pre-V73) | `DataRetentionService.retentionClockStart()` |
 | RET-13 | Default fallback tier | FREE (7 ngày) | getRetentionDays() default |
 | RET-14 | TRIAL/FREE xử lý như nhau | Cùng map tới trial config | getRetentionDays() switch |
 | RET-15 | Hard purge safety gate | Ít nhất 1 backup COMPLETED trước khi purge | `backupRecordRepository.existsByInstanceIdAndStatus()` |
@@ -68,6 +68,7 @@ kitehub:
     premium: 60
     enterprise: 90
     warning-count: 2
+    final-warning-lead-days: 1   # RET-09 (GAP-1026) — range-based final-warning lead window
 
 backup:
   retention-count: 7    # Số lượng backups giữ lại mỗi instance
