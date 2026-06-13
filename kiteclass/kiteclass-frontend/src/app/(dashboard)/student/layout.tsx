@@ -8,18 +8,18 @@
  *
  * Wave RBAC-Shell 1 Bucket A (GAP-1122): the inline STUDENT-only check is
  * replaced by the shared {@link RoleGuard} (non-student bounces to its own
- * role-home). Student login itself is still gated by KC-9 — the route group
- * shell is scaffolded but the KC-native student auth path is not yet functional.
+ * role-home).
  *
- * Wave RBAC-Shell 1 Bucket B (GAP-1119): a {@link StudentAuthGatedBanner} marks
- * the KC-9 scaffold state above every student route.
+ * Wave rbac-lms-student-fe (GAP-1119/1113): KC-9 student-auth shipped
+ * (`POST /api/v1/tenant-auth/login` → JWT role=STUDENT), so the KC-9 scaffold
+ * banner is removed — the student shell + LMS player + assignment-submit are
+ * now functional. Student login lands here via {@link RoleGuard} + roleHome.
  *
- * @since Wave 49 Bucket C (GAP-269); Wave RBAC-Shell 1 RoleGuard + scaffold banner
+ * @since Wave 49 Bucket C (GAP-269); Wave RBAC-Shell 1 RoleGuard; Wave rbac-lms-student-fe (KC-9 ungated)
  */
 'use client';
 
 import { RoleGuard } from '@/components/auth/role-guard';
-import { StudentAuthGatedBanner } from '@/components/student/student-auth-gated-banner';
 import { UserType } from '@/types/auth';
 
 export default function StudentLayout({
@@ -27,10 +27,5 @@ export default function StudentLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <RoleGuard allow={[UserType.STUDENT]}>
-      <StudentAuthGatedBanner />
-      {children}
-    </RoleGuard>
-  );
+  return <RoleGuard allow={[UserType.STUDENT]}>{children}</RoleGuard>;
 }

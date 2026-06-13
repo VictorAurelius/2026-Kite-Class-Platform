@@ -15,6 +15,7 @@ import type {
   CreateAssignmentRequest,
   UpdateAssignmentRequest,
   GradeSubmissionRequest,
+  SubmitAssignmentRequest,
 } from '@/types/assignment';
 
 const ASSIGN_KEY = 'assignments';
@@ -116,4 +117,57 @@ export function useAssignmentMutations(classId: number | null, teacherId: number
   });
 
   return { create, update, publish, close, remove, grade, returnGraded };
+}
+
+// ---- Student surface (KC-9 unblocked, Increment B) ----
+
+/** Published assignments for a class (student view — drafts excluded). */
+export function usePublishedAssignments(classId: number | null) {
+  return useQuery({
+    queryKey: [ASSIGN_KEY, 'published', classId],
+    queryFn: () => assignmentsApi.getPublishedByClass(classId as number),
+    enabled: !!classId,
+  });
+}
+
+/** Single assignment detail. */
+export function useAssignment(assignmentId: number | null) {
+  return useQuery({
+    queryKey: [ASSIGN_KEY, 'detail', assignmentId],
+    queryFn: () => assignmentsApi.getById(assignmentId as number),
+    enabled: !!assignmentId,
+  });
+}
+
+/** The current student's submission for one assignment (null when not submitted). */
+export function useMySubmission(assignmentId: number | null, studentId?: number) {
+  return useQuery({
+    queryKey: [ASSIGN_KEY, 'my-submission', assignmentId, studentId],
+    queryFn: () => assignmentsApi.getMySubmission(assignmentId as number, studentId as number),
+    enabled: !!assignmentId && !!studentId,
+  });
+}
+
+/** All of the current student's submissions (across assignments). */
+export function useMySubmissions(studentId?: number) {
+  return useQuery({
+    queryKey: [ASSIGN_KEY, 'my-submissions', studentId],
+    queryFn: () => assignmentsApi.getMySubmissions(studentId as number),
+    enabled: !!studentId,
+  });
+}
+
+/** Student submit mutation (X-User-Id = current student). */
+export function useSubmitAssignment(studentId?: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: SubmitAssignmentRequest) =>
+      assignmentsApi.submit(data, studentId as number),
+    onSuccess: (_d, vars) => {
+      qc.invalidateQueries({ queryKey: [ASSIGN_KEY, 'my-submission', vars.assignmentId, studentId] });
+      qc.invalidateQueries({ queryKey: [ASSIGN_KEY, 'my-submissions', studentId] });
+      toast({ title: 'Thành công', description: 'Đã nộp bài cho giáo viên' });
+    },
+    onError: onErr('Không thể nộp bài'),
+  });
 }

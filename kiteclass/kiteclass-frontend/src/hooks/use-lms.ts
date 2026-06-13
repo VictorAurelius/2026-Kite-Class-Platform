@@ -56,6 +56,52 @@ export function useCompletionRoster(courseId: number, teacherId: number, enabled
   });
 }
 
+// ---- Student consumption (Increment B) ----
+
+/** Full lesson detail for a student (`userId` → full content if enrolled, else paywall-stripped). */
+export function useStudentLesson(lessonId: number | null, userId?: number) {
+  return useQuery({
+    queryKey: [LMS_KEY, 'lesson', lessonId, userId ?? 'guest'],
+    queryFn: () => lmsApi.getLesson(lessonId as number, userId),
+    enabled: !!lessonId,
+  });
+}
+
+/** Aggregate course progress for the current student. */
+export function useCourseProgress(courseId: number, userId?: number) {
+  return useQuery({
+    queryKey: [LMS_KEY, 'progress', 'course', courseId, userId],
+    queryFn: () => lmsApi.getCourseProgress(courseId, userId as number),
+    enabled: !!courseId && !!userId,
+  });
+}
+
+/** Single-lesson progress record (null when not started). */
+export function useLessonProgress(lessonId: number | null, userId?: number) {
+  return useQuery({
+    queryKey: [LMS_KEY, 'progress', 'lesson', lessonId, userId],
+    queryFn: () => lmsApi.getLessonProgress(lessonId as number, userId as number),
+    enabled: !!lessonId && !!userId,
+  });
+}
+
+/**
+ * Mark a lesson complete (idempotent). Invalidates the lesson + course progress
+ * queries so the player + progress bar refresh. Gamification toast on success.
+ */
+export function useCompleteLesson(courseId: number, userId?: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (lessonId: number) => lmsApi.completeLesson(lessonId, userId as number),
+    onSuccess: (_data, lessonId) => {
+      qc.invalidateQueries({ queryKey: [LMS_KEY, 'progress', 'course', courseId, userId] });
+      qc.invalidateQueries({ queryKey: [LMS_KEY, 'progress', 'lesson', lessonId, userId] });
+      toast({ title: '🎉 Hoàn thành!', description: 'Bạn đã học xong bài này. Tiếp tục phát huy nhé!' });
+    },
+    onError: onErr('Không thể đánh dấu hoàn thành bài học'),
+  });
+}
+
 /**
  * Authoring mutations bundled for a single course (invalidate its structure on success).
  * `teacherId` is the current user id (X-Teacher-Id, must be course owner).

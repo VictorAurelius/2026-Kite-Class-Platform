@@ -134,6 +134,29 @@ export interface PresignedUploadResponse {
   expiresAt: string;
 }
 
+// ---- Progress (UC-LMS-06/07/08, Increment B student consumption) ----
+
+/** A single lesson's completion record for a student (`/progress/lessons/{id}`). */
+export interface LessonProgress {
+  id: number;
+  userId: number;
+  lessonId: number;
+  completed: boolean;
+  completedAt?: string | null;
+  progressPercent: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+/** Aggregate course progress for a student (`/progress/courses/{courseId}`). */
+export interface CourseProgress {
+  courseId: number;
+  userId: number;
+  totalLessons: number;
+  completedLessons: number;
+  progressPercent: number;
+}
+
 // ---- Completion roster (UC-LMS-11) ----
 
 export interface CompletionRosterStudent {

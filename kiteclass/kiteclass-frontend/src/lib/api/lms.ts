@@ -28,6 +28,8 @@ import type {
   PresignedUploadRequest,
   PresignedUploadResponse,
   CompletionRoster,
+  LessonProgress,
+  CourseProgress,
 } from '@/types/lms';
 
 /** X-Teacher-Id header for teacher-authoring endpoints (must be course owner). */
@@ -223,5 +225,38 @@ export const lmsApi = {
       teacherHeader(teacherId),
     );
     return res.data.data!;
+  },
+
+  // ---- Student progress (X-User-Id) — Increment B consumption ----
+
+  /** Mark a lesson complete (idempotent, BR-LMS-016). Paid lessons require enrollment (403). */
+  completeLesson: async (lessonId: number, userId: number): Promise<LessonProgress> => {
+    const res = await apiClient.post<ApiResponse<LessonProgress>>(
+      `/api/v1/lms/progress/lessons/${lessonId}/complete`,
+      undefined,
+      userHeader(userId),
+    );
+    return res.data.data!;
+  },
+
+  /** Aggregate course progress (completed/total lessons + percent). */
+  getCourseProgress: async (courseId: number, userId: number): Promise<CourseProgress> => {
+    const res = await apiClient.get<ApiResponse<CourseProgress>>(
+      `/api/v1/lms/progress/courses/${courseId}`,
+      userHeader(userId),
+    );
+    return res.data.data!;
+  },
+
+  /** Single-lesson progress record (null when no record yet). */
+  getLessonProgress: async (
+    lessonId: number,
+    userId: number,
+  ): Promise<LessonProgress | null> => {
+    const res = await apiClient.get<ApiResponse<LessonProgress | null>>(
+      `/api/v1/lms/progress/lessons/${lessonId}`,
+      userHeader(userId),
+    );
+    return res.data.data ?? null;
   },
 };
