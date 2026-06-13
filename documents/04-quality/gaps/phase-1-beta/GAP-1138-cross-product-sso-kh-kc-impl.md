@@ -1,6 +1,6 @@
 # GAP-1138: Cross-product SSO KiteHub→KiteClass implementation (dedicated wave)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — code + unit tests shipped Wave RBAC-SSO 1 (2026-06-14); runtime G2 walk (human) pending
 **Priority:** 🟠 P1
 **Domain:** Mixed
 **Found:** 2026-06-10 (Wave RBAC-Shell 1 Bucket C design-first)
@@ -22,15 +22,27 @@ Triển khai Option A của **ADR-040** (redirect + one-time exchange code):
 
 ## Acceptance Criteria
 
-- [ ] Owner/Staff login KH `:3001` → click → vào KC `:3000` owner-shell không re-login
-- [ ] One-time code single-use + TTL ≤60s enforced (replay rejected)
-- [ ] KC session scoped đúng tenant (gateway header inject verified)
-- [ ] Security review pass (no token-in-URL leak / CSRF guard)
-- [ ] Runtime walk per `feature-ship-runtime-walk-mandate.md` §3
+- [ ] Owner/Staff login KH `:3001` → click → vào KC `:3000` owner-shell không re-login (code shipped; runtime G2 walk pending — nút "Mở quản lý trường" + `/sso/callback`)
+- [x] One-time code single-use + TTL ≤60s enforced (replay rejected) — `SsoCodeService` GETDEL single-use + TTL clamp ≤60s; unit-tested (replay → empty → exchange 401)
+- [x] KC session scoped đúng tenant (gateway header inject verified) — `TokenService.generateAccessToken` mints `tenantId` claim; gateway `TenantHeaderGuardFilter` injects `X-Tenant-Id` (ADR-039 precedent, pre-existing); claim-mint unit-tested
+- [x] Security review pass (no token-in-URL leak / CSRF guard) — opaque code-only in URL (JWT minted only in exchange response body); CSRF guard = `consumes=application/json` (form-POST → 415, unit-tested); replay → 401; refresh-token rejected at issue-code
+- [ ] Runtime walk per `feature-ship-runtime-walk-mandate.md` §3 (human G2 walk on production-equivalent stack — coordinator does code+tests, human walks)
 
 ## Related
 
-- Design: ADR-040 (PROPOSED) — cross-product SSO KH→KC
+- Design: ADR-040 (ACCEPTED 2026-06-14) — cross-product SSO KH→KC; Option A implemented
 - Discovered in: Wave RBAC-Shell 1 Bucket C (branch wave/rbac-shell-1-c-sso)
+- Implemented in: Wave RBAC-SSO 1 (branch wave/rbac-sso-gap-1138)
 - Umbrella: GAP-1119; precedent ADR-039
 - Beta unblock: Bucket B owner/staff dùng KC-native fallback login; KHÔNG chặn LMS-FE
+
+## Implementation note (2026-06-14)
+
+Wave RBAC-SSO 1 đã ship code + unit tests cho cả 4 surface:
+- `kitehub-subscription`: `SsoCodeService` (Redis one-time code, TTL ≤60s, single-use GETDEL) + `SsoController` (`POST /api/v1/auth/sso/issue-code` self-validate Bearer + `/exchange` consume → KH-minted JWT). DTO `SsoIssueCodeResponse` + `SsoExchangeRequest`. 18 unit tests (`SsoCodeServiceTest` 10 + `SsoControllerTest` 8) PASS.
+- `kitehub-frontend`: `lib/api/sso.ts` (`issueSsoCode` + `buildKiteClassSsoCallbackUrl`) + `OpenSchoolManagementButton` wired vào customer dashboard per-instance. Vitest 3/3 PASS.
+- `kiteclass-frontend`: `lib/api/sso.ts` (`exchangeSsoCode`) + route `/sso/callback` (Suspense-wrapped useSearchParams; single-use guard; establish KC session via `setTokens`+`setAuth`+roleHome redirect). Vitest 2/2 PASS.
+
+Endpoints under `/api/v1/auth/sso/**` đã public sẵn ở gateway (`JwtAuthenticationGatewayFilter.isPublicPath`) + subscription SecurityConfig (`/api/v1/auth/** permitAll`) → không cần đổi gateway/security config. Gateway route `kitehub-auth-v1` (`Path=/api/v1/auth/**`) đã trỏ subscription.
+
+Còn lại: runtime G2 walk (human) trên stack production-equivalent + paired re-walk evidence per `feature-ship-runtime-walk-mandate.md` §3 trước khi flip DONE.
