@@ -3,6 +3,7 @@ package com.kitehub.subscription.service;
 import com.kitehub.platform.domain.entity.Instance;
 import com.kitehub.platform.domain.entity.Payment;
 import com.kitehub.platform.domain.entity.Subscription;
+import com.kitehub.platform.domain.enums.BillingCycle;
 import com.kitehub.platform.domain.enums.InstanceStatus;
 import com.kitehub.platform.domain.enums.PaymentMethod;
 import com.kitehub.platform.domain.enums.PaymentStatus;
@@ -38,6 +39,9 @@ public class SubscriptionRenewalService {
     private final EmailServiceClient emailServiceClient;
     private final SubscriptionConfig subscriptionConfig;
     private final VietQRService vietQRService;
+    // GAP-1256 (SUB-21): single instance.tier sync point — processRenewal's end-of-cycle
+    // downgrade-apply routes through this helper so instances.tier never drifts.
+    private final InstanceTierSyncService instanceTierSyncService;
 
     /**
      * Process subscription renewal.
@@ -75,14 +79,14 @@ public class SubscriptionRenewalService {
             subscription.setPriceVnd(appliedTier.getPrice(subscription.getBillingCycle()));
             subscription.setPendingTier(null);  // Clear pending tier
 
-            // GAP-1090 (SUB-21): sync instances.tier to the newly-applied subscription tier.
-            // instance.tier is load-bearing (connection-pool size, custom-domain eligibility,
-            // data-retention window); the end-of-cycle downgrade apply previously changed only
-            // subscriptions.tier, leaving instances.tier stuck at the pre-downgrade tier.
+            // GAP-1256 (SUB-21): sync instances.tier to the newly-applied subscription tier via
+            // the single sync point. instance.tier is load-bearing (connection-pool size,
+            // custom-domain eligibility, data-retention window); the end-of-cycle downgrade apply
+            // previously changed only subscriptions.tier, leaving instances.tier stuck (GAP-1090).
             Instance tierSyncInstance = instanceRepository.findById(subscription.getInstanceId())
                 .orElseThrow(() -> new IllegalArgumentException(
                     "Instance not found: " + subscription.getInstanceId()));
-            tierSyncInstance.setTier(appliedTier);
+            instanceTierSyncService.syncInstanceTier(tierSyncInstance, appliedTier);
             instanceRepository.save(tierSyncInstance);
         }
 
@@ -90,8 +94,12 @@ public class SubscriptionRenewalService {
         Payment renewalPayment = createRenewalPayment(subscription);
         Payment savedPayment = paymentRepository.save(renewalPayment);
 
-        // Extend subscription (will be activated when payment completes)
-        LocalDateTime newExpiresAt = subscription.getExpiresAt().plusMonths(1);
+        // Extend subscription (will be activated when payment completes).
+        // GAP-1018 bug 1 (FM-6): honor BillingCycle — ANNUALLY renewals extend +1 year, not the
+        // hardcoded +1 month that silently short-changed annual subscribers.
+        LocalDateTime newExpiresAt = subscription.getBillingCycle() == BillingCycle.ANNUALLY
+            ? subscription.getExpiresAt().plusYears(1)
+            : subscription.getExpiresAt().plusMonths(1);
         subscription.setExpiresAt(newExpiresAt);
         subscription.setStatus(SubscriptionStatus.ACTIVE);
         subscription.setPendingPaymentId(savedPayment.getId());
@@ -170,7 +178,17 @@ public class SubscriptionRenewalService {
     }
 
     /**
-     * Suspend instance when subscription expires and grace period ends.
+     * GAP-1260 (SUB-24): involuntary-churn suspend path — suspend the instance of a PAID
+     * subscription that lapsed (EXPIRED + past the {@code grace-period-days} window, SUB-04)
+     * without being renewed.
+     *
+     * <p>A subscription reaching this path is, by construction, <strong>still unpaid</strong>:
+     * a confirmed renewal would have flipped it back to ACTIVE and extended {@code expiresAt}
+     * (see {@code SubscriptionService.applyConfirmedRenewal}), removing it from
+     * {@code findExpiredSubscriptions}. This is <em>involuntary</em> churn (non-payment lapse) —
+     * distinct from <em>voluntary</em> cancellation handled by {@link #suspendCancelledExpired}
+     * (which keys on {@code CANCELLED} status). Wired into
+     * {@code SubscriptionExpirationChecker.processExpiredSubscriptions} after the grace check.</p>
      *
      * @param subscriptionId UUID of the subscription
      * @throws IllegalArgumentException if subscription not found
@@ -193,6 +211,14 @@ public class SubscriptionRenewalService {
             return;
         }
 
+        // GAP-1260 (SUB-24): EXPIRED + past grace ⟹ still unpaid (a paid renewal would have
+        // re-activated + extended the cycle). Mark this explicitly as involuntary churn so it is
+        // observable (metrics/win-back) and never conflated with a voluntary cancel.
+        log.warn("INVOLUNTARY CHURN (non-payment lapse) — suspending instance for subscription {} "
+                + "(tier={}, expired {}, grace {}d elapsed)",
+            subscriptionId, subscription.getTier(), subscription.getExpiresAt(),
+            subscriptionConfig.getGracePeriodDays());
+
         // Suspend instance
         Instance instance = instanceRepository.findById(subscription.getInstanceId())
             .orElseThrow(() -> new IllegalArgumentException("Instance not found: " + subscription.getInstanceId()));
@@ -200,7 +226,7 @@ public class SubscriptionRenewalService {
         if (instance.getStatus() != InstanceStatus.SUSPENDED) {
             instance.suspend();
             instanceRepository.save(instance);
-            log.info("Instance suspended due to expired subscription: {}", instance.getId());
+            log.info("Instance suspended due to involuntary churn (expired subscription): {}", instance.getId());
         }
 
         // Send suspension notification email

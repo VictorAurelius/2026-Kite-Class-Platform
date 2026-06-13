@@ -42,6 +42,10 @@ public class SubscriptionService {
     private final PaymentRepository paymentRepository;
     private final VietQRService vietQRService;
     private final com.kitehub.subscription.client.EmailServiceClient emailServiceClient;
+    // GAP-1256 (SUB-21): the single instance.tier sync point. applyPendingUpgrade
+    // (create-flow activation + upgrade apply) routes through this helper so the
+    // denormalized instances.tier never drifts from the active subscription tier.
+    private final InstanceTierSyncService instanceTierSyncService;
 
     // Phase 1 BETA (SUB-20 create + upgrade): when enabled, the PENDING payment + VietQR charge the
     // symbolic override (default 10.000đ) via a real bank transfer instead of the full tier price.
@@ -94,6 +98,28 @@ public class SubscriptionService {
         // Validate tier (FREE cannot have paid subscription)
         if (request.getTier() == PricingTier.FREE) {
             throw new IllegalArgumentException("Cannot create subscription for FREE tier");
+        }
+
+        // GAP-1080: idempotency — findActiveByInstanceId only matches ACTIVE, so without this
+        // guard every retry (FE double-click / curl re-run) spawns a fresh PENDING row + a
+        // duplicate VietQR Payment (KH-3 G2 walk 2026-06-09: instance had 3 PENDING rows).
+        // Same-tier retry → return the existing PENDING subscription (idempotent).
+        // Different-tier request while a PENDING exists → 409, resolve the in-flight one first.
+        java.util.Optional<Subscription> existingPending = subscriptionRepository
+            .findByInstanceId(request.getInstanceId())
+            .stream()
+            .filter(s -> s.getStatus() == SubscriptionStatus.PENDING)
+            .findFirst();
+        if (existingPending.isPresent()) {
+            Subscription pending = existingPending.get();
+            if (pending.getPendingTier() == request.getTier()) {
+                log.info("Instance {} already has PENDING subscription {} for tier {} — returning existing "
+                        + "(idempotent, GAP-1080)", request.getInstanceId(), pending.getId(), request.getTier());
+                return SubscriptionResponse.fromEntity(pending);
+            }
+            throw new com.kitehub.subscription.exception.SubscriptionConflictException(
+                "Instance already has a pending subscription (" + pending.getId() + ", tier "
+                    + pending.getPendingTier() + "); resolve or cancel it before creating another");
         }
 
         // Calculate price based on requested tier and billing cycle
@@ -247,6 +273,16 @@ public class SubscriptionService {
             throw new IllegalArgumentException("Can only downgrade to lower tier. Use upgrade for higher tiers.");
         }
 
+        // GAP-1018 bug 4 (FM-10b): downgrade to FREE is inconsistent with createSubscription which
+        // forbids FREE per SUB-01 (a paid subscription never holds tier FREE). Allowing it would let
+        // auto-renew later mint a 0₫ payment for a FREE "subscription". Cancel ends the subscription;
+        // downgrade only moves between paid tiers.
+        if (newTier == PricingTier.FREE) {
+            throw new IllegalArgumentException(
+                "Cannot downgrade to FREE tier (consistent with create per SUB-01). "
+                    + "Cancel the subscription to drop to FREE.");
+        }
+
         if (subscription.getStatus() != SubscriptionStatus.ACTIVE) {
             throw new IllegalArgumentException("Can only downgrade active subscriptions");
         }
@@ -321,45 +357,11 @@ public class SubscriptionService {
         log.info("Cancelled subscription: {}", subscriptionId);
     }
 
-    /**
-     * Activate subscription after payment completed.
-     * Changes subscription status to ACTIVE and updates expiry date.
-     *
-     * @param subscriptionId Subscription UUID
-     * @return Activated subscription response
-     */
-    @Transactional
-    public SubscriptionResponse activateSubscription(UUID subscriptionId) {
-        log.info("Activating subscription: {}", subscriptionId);
-
-        Subscription subscription = subscriptionRepository.findById(subscriptionId)
-            .orElseThrow(() -> new IllegalArgumentException("Subscription not found: " + subscriptionId));
-
-        // Verify subscription is not already active
-        if (subscription.getStatus() == SubscriptionStatus.ACTIVE) {
-            log.warn("Subscription already active: {}", subscriptionId);
-            return SubscriptionResponse.fromEntity(subscription);
-        }
-
-        // Activate subscription
-        subscription.setStatus(SubscriptionStatus.ACTIVE);
-        subscription.setStartedAt(LocalDateTime.now());
-        subscription.setExpiresAt(calculateExpiryDate(LocalDateTime.now(), subscription.getBillingCycle()));
-
-        Subscription activated = subscriptionRepository.save(subscription);
-
-        // Update instance status to ACTIVE
-        Instance instance = instanceRepository.findById(subscription.getInstanceId())
-            .orElseThrow(() -> new IllegalArgumentException("Instance not found: " + subscription.getInstanceId()));
-
-        instance.setStatus(InstanceStatus.ACTIVE);
-        instance.setSubscriptionExpiresAt(activated.getExpiresAt());
-        instanceRepository.save(instance);
-
-        log.info("Activated subscription: {} for instance: {}", subscriptionId, instance.getId());
-
-        return SubscriptionResponse.fromEntity(activated);
-    }
+    // GAP-1096: removed dead-code activateSubscription(UUID). It had 0 production callers
+    // (superseded by applyPendingUpgrade create-flow per SUB-20) and set status without
+    // syncing instances.tier — a latent split-brain (same class as GAP-1090) if ever
+    // re-wired. Activation now flows exclusively through applyPendingUpgrade (tier synced
+    // via InstanceTierSyncService per SUB-21).
 
     /**
      * Get subscriptions expiring within the next 30 days.
@@ -499,6 +501,18 @@ public class SubscriptionService {
         PricingTier targetTier = subscription.getPendingTier();
         boolean isCreateFlow = subscription.getStatus() == SubscriptionStatus.PENDING;
 
+        // GAP-1018 bug 2 (FM-7): a confirmed payment with a pendingTier that is NOT an upgrade
+        // (lower-or-equal ordinal, never a PENDING create-flow) means a manual-renewal payment
+        // cleared while a downgrade was scheduled (downgradeSubscription sets pendingTier but no
+        // payment; only renewal/upgrade create payments, and upgrade is higher-ordinal). Route to
+        // the renewal path so the cycle is extended AND the scheduled downgrade is applied — the
+        // upgrade branch below would change tier without extending the cycle (owner pays renewal,
+        // gets no extra time + downgrade left half-applied).
+        if (!isCreateFlow && targetTier.ordinal() <= subscription.getTier().ordinal()) {
+            applyConfirmedRenewal(subscription, paymentId);
+            return;
+        }
+
         subscription.setTier(targetTier);
         subscription.setPriceVnd(targetTier.getPrice(subscription.getBillingCycle()));
         subscription.setPendingTier(null);
@@ -520,11 +534,12 @@ public class SubscriptionService {
                 .orElseThrow(() -> new IllegalArgumentException(
                     "Instance not found: " + saved.getInstanceId()));
             instance.setStatus(InstanceStatus.ACTIVE);
-            // GAP-1090 (SUB-21): sync instances.tier to the activated paid tier. instance.tier is
-            // load-bearing (connection-pool size MultiTenantDataSourceConfig, custom-domain
-            // eligibility DomainService, data-retention window DataRetentionService); the create
-            // flow previously only flipped subscriptions.tier, leaving instances.tier stuck at FREE.
-            instance.setTier(targetTier);
+            // GAP-1256 (SUB-21): sync instances.tier to the activated paid tier via the single
+            // sync point. instance.tier is load-bearing (connection-pool size
+            // MultiTenantDataSourceConfig, custom-domain eligibility DomainService, data-retention
+            // window DataRetentionService); the create flow previously only flipped
+            // subscriptions.tier, leaving instances.tier stuck at FREE (GAP-1090).
+            instanceTierSyncService.syncInstanceTier(instance, targetTier);
             instance.setSubscriptionId(saved.getId());
             instance.setSubscriptionExpiresAt(saved.getExpiresAt());
             instanceRepository.save(instance);
@@ -545,15 +560,16 @@ public class SubscriptionService {
             log.info("Activated PENDING subscription {} to tier {} (create-flow SUB-20)",
                 subscriptionId, targetTier);
         } else {
-            // GAP-1090 (SUB-21): upgrade-flow must sync instances.tier to the new active tier.
-            // instance.tier is load-bearing (connection-pool size, custom-domain eligibility,
-            // data-retention window); previously only subscriptions.tier flipped on upgrade,
-            // leaving instances.tier stuck at the pre-upgrade tier. Load + set + save runs OUTSIDE
-            // the best-effort email try/catch so a tier-sync failure is never silently swallowed.
+            // GAP-1256 (SUB-21): upgrade-flow syncs instances.tier to the new active tier via the
+            // single sync point. instance.tier is load-bearing (connection-pool size, custom-domain
+            // eligibility, data-retention window); previously only subscriptions.tier flipped on
+            // upgrade, leaving instances.tier stuck at the pre-upgrade tier (GAP-1090). Load + sync
+            // + save runs OUTSIDE the best-effort email try/catch so a tier-sync failure is never
+            // silently swallowed.
             Instance instance = instanceRepository.findById(saved.getInstanceId())
                 .orElseThrow(() -> new IllegalArgumentException(
                     "Instance not found: " + saved.getInstanceId()));
-            instance.setTier(targetTier);
+            instanceTierSyncService.syncInstanceTier(instance, targetTier);
             instanceRepository.save(instance);
 
             // GAP-974: notify the owner that the paid tier upgrade is now active.
@@ -588,6 +604,17 @@ public class SubscriptionService {
      * @param paymentId confirmed payment UUID (for logging)
      */
     private void applyConfirmedRenewal(Subscription subscription, UUID paymentId) {
+        // GAP-1018 bug 2 (FM-7): apply a scheduled downgrade (pendingTier set, ≤ current ordinal)
+        // on renewal-confirm so it is not silently stuck. priceVnd follows the new (lower) tier.
+        boolean downgradeApplied = false;
+        if (subscription.getPendingTier() != null) {
+            PricingTier downgraded = subscription.getPendingTier();
+            subscription.setTier(downgraded);
+            subscription.setPriceVnd(downgraded.getPrice(subscription.getBillingCycle()));
+            subscription.setPendingTier(null);
+            downgradeApplied = true;
+        }
+
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime base = subscription.getExpiresAt() != null
             && subscription.getExpiresAt().isAfter(now)
@@ -601,14 +628,18 @@ public class SubscriptionService {
             .orElseThrow(() -> new IllegalArgumentException(
                 "Instance not found: " + saved.getInstanceId()));
         instance.setSubscriptionExpiresAt(saved.getExpiresAt());
+        if (downgradeApplied) {
+            // GAP-1256 (SUB-21): a renewal that applied a downgrade must sync instances.tier.
+            instanceTierSyncService.syncInstanceTier(instance, saved.getTier());
+        }
         if (instance.getStatus() == InstanceStatus.SUSPENDED) {
             instance.setStatus(InstanceStatus.ACTIVE);
             log.info("Instance reactivated on renewal-payment confirm: {}", instance.getId());
         }
         instanceRepository.save(instance);
 
-        log.info("Confirmed manual renewal for subscription {} (payment {}); new expiry {}",
-            saved.getId(), paymentId, saved.getExpiresAt());
+        log.info("Confirmed manual renewal for subscription {} (payment {}); new expiry {} "
+                + "(downgrade applied: {})", saved.getId(), paymentId, saved.getExpiresAt(), downgradeApplied);
     }
 
     /**
