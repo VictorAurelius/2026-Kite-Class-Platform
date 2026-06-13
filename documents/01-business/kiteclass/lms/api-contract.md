@@ -160,6 +160,87 @@
 
 ---
 
+## Teacher Endpoints — Reorder (UC-LMS-09, Phase0-BE)
+
+> Drag-drop reorder. The FE sends the **FULL ordered set** of siblings; the server
+> applies order numbers atomically (two-phase negative-park swap so the
+> `(course_id|module_id, order_number)` unique constraint is never transiently
+> violated). Partial sets / duplicate order numbers are rejected.
+
+### PUT `/courses/{courseId}/modules/reorder`
+
+- **Headers:** `X-Teacher-Id` (required, must be course owner)
+- **Request:** `ReorderRequest`
+  ```json
+  { "items": [ { "id": 10, "orderNumber": 2 }, { "id": 11, "orderNumber": 1 } ] }
+  ```
+- **Response:** `200` `ApiResponse<List<CourseModuleResponse>>` (ascending `orderNumber`)
+- **Errors:** `400 VALIDATION_ERROR` (`REORDER_INCOMPLETE_SET` / `REORDER_DUPLICATE_ID` / `REORDER_DUPLICATE_ORDER`), `403 PERMISSION_DENIED` (not owner), `404 NOT_FOUND`
+
+### PUT `/modules/{moduleId}/lessons/reorder`
+
+- **Headers:** `X-Teacher-Id` (required, must be course owner)
+- **Request:** `ReorderRequest` (same shape — `items[].id` = lesson IDs)
+- **Response:** `200` `ApiResponse<List<LessonResponse>>` (ascending `orderNumber`)
+- **Errors:** as above
+
+---
+
+## Teacher Endpoints — Resource Upload (UC-LMS-10, Phase0-BE)
+
+> Presigned MinIO/S3 upload reusing the central storage pipeline (`StorageService` —
+> MIME whitelist + tenant quota + presigned PUT, 30-min TTL). `learning_resources`
+> stays a metadata table: after uploading + confirming, the teacher persists the row
+> via `POST /lessons/{lessonId}/resources` with the resulting file URL.
+
+### POST `/lessons/{lessonId}/resources/upload-url`
+
+- **Headers:** `X-Teacher-Id` (required, must be course owner)
+- **Request:** `PresignedUploadRequest`
+  ```json
+  { "fileName": "slides.pdf", "fileSize": 1048576,
+    "mimeType": "application/pdf", "fileType": "DOCUMENT", "accessLevel": "TENANT" }
+  ```
+- **Response:** `201` `ApiResponse<PresignedUploadResponse>`
+  ```json
+  { "fileId": 7, "uploadUrl": "https://<minio>/...signed...", "expiresAt": "2026-06-14T10:30:00Z" }
+  ```
+- **Client workflow:** (1) call this → (2) HTTP PUT file to `uploadUrl` → (3) `POST /api/v1/storage/{fileId}/confirm` → (4) `POST /lessons/{lessonId}/resources` with the file URL + title.
+- **Errors:** `400 VALIDATION_ERROR` (file too large / type not allowed / quota exceeded), `403 PERMISSION_DENIED` (not owner), `404 NOT_FOUND`
+
+---
+
+## Teacher Endpoints — Completion Roster (UC-LMS-11, Phase0-BE)
+
+### GET `/courses/{courseId}/completion-roster`
+
+- **Headers:** `X-Teacher-Id` (required, must be course owner)
+- **Response:** `200` `ApiResponse<CompletionRosterResponse>`
+  ```json
+  { "courseId": 10, "totalLessons": 20,
+    "students": [
+      { "userId": 100, "completedLessons": 8, "progressPercent": 40.0,
+        "completedLessonIds": [1, 2, 3, 5, 8, 11, 13, 18] }
+    ] }
+  ```
+- Only students with ≥1 completed lesson appear in `students`. `progressPercent` = `completedLessons / totalLessons * 100` (2 dp).
+- **Errors:** `403 PERMISSION_DENIED` (not owner), `404 NOT_FOUND`
+
+---
+
+## Related — Course catalog + lifecycle (Course domain, NOT `/api/v1/lms`)
+
+Course **list/search** and the **publish/unpublish/archive** lifecycle live in the
+Course domain (`/api/v1/courses`, `CourseController`) — the FE catalog consumes these,
+not the LMS controller:
+
+- `GET /api/v1/courses?status=PUBLISHED&search=&teacherId=&page=&size=&sort=` — paginated, tenant-scoped catalog.
+- `POST /api/v1/courses/{id}/publish` — DRAFT → PUBLISHED.
+- `POST /api/v1/courses/{id}/unpublish` — **PUBLISHED → DRAFT (NEW, Phase0-BE)** — revert for full re-editing, then re-publish.
+- `POST /api/v1/courses/{id}/archive` — PUBLISHED → ARCHIVED (take off catalog; ARCHIVED is terminal).
+
+---
+
 ## Common Error Responses
 
 | HTTP | Code | Description |

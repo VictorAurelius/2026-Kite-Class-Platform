@@ -210,6 +210,26 @@ public class CourseController {
     }
 
     /**
+     * Unpublishes a course (changes status from PUBLISHED back to DRAFT).
+     *
+     * <p>Reverts the course to DRAFT so the teacher can make full edits, then
+     * re-publish. To remove a published course from the catalog permanently,
+     * use archive instead.
+     *
+     * @param id the course ID
+     * @return ApiResponse with unpublished (DRAFT) course data and HTTP 200
+     */
+    @PostMapping("/{id}/unpublish")
+    @Operation(summary = "Unpublish course",
+            description = "Reverts course status from PUBLISHED back to DRAFT for full re-editing, then re-publish.")
+    public ApiResponse<CourseResponse> unpublishCourse(
+            @Parameter(description = "Course ID") @PathVariable Long id) {
+        log.info("REST request to unpublish course with ID: {}", id);
+        CourseResponse response = courseService.unpublishCourse(id);
+        return ApiResponse.success(response, "Course unpublished successfully");
+    }
+
+    /**
      * Archives a course (changes status from PUBLISHED to ARCHIVED).
      *
      * <p>After archiving, no new enrollments are accepted.

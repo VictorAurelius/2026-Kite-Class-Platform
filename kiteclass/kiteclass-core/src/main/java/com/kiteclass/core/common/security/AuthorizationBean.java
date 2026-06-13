@@ -331,9 +331,6 @@ public class AuthorizationBean {
     }
 
     /**
-<<<<<<< HEAD
-     * Check Spring Security context for an admin-equivalent role (bypass).
-=======
      * Check if the current authenticated user owns the class the given session
      * belongs to, OR is a platform admin.
      *
@@ -380,7 +377,6 @@ public class AuthorizationBean {
 
     /**
      * Check Spring Security context for admin role (bypass).
->>>>>>> origin/main
      *
      * <p>{@code ROLE_OWNER} is the school owner — the highest tenant-scoped role
      * in KiteClass — and is treated as a tenant-admin here: requests reaching

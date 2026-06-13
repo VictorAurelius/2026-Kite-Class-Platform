@@ -323,6 +323,34 @@ public class CourseServiceImpl implements CourseService {
         return courseMapper.toResponse(published);
     }
 
+    @Override
+    @Transactional
+    // GAP-792 — evict key includes tenant to match tenant-scoped @Cacheable key.
+    @CacheEvict(value = "courses", key = "T(com.kiteclass.core.common.context.TenantContext).getCurrentTenant() + ':' + #id")
+    public CourseResponse unpublishCourse(Long id) {
+        log.info("Unpublishing course with ID: {}", id);
+
+        Course course = courseRepository.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> {
+                    log.warn("Course not found with ID: {}", id);
+                    return new EntityNotFoundException("COURSE_NOT_FOUND", (Object) id);
+                });
+
+        // Validate current status — only a PUBLISHED course can revert to DRAFT.
+        // ARCHIVED is terminal; DRAFT is already unpublished.
+        if (!CourseStatus.PUBLISHED.equals(course.getStatus())) {
+            log.warn("Cannot unpublish course with status: {}", course.getStatus());
+            throw new ValidationException("COURSE_INVALID_UNPUBLISH_STATE", (Object) course.getStatus());
+        }
+
+        // Revert to DRAFT so the teacher can make full edits, then re-publish.
+        course.setStatus(CourseStatus.DRAFT);
+        Course unpublished = courseRepository.save(course);
+
+        log.info("Unpublished course with ID: {} (PUBLISHED -> DRAFT)", id);
+        return courseMapper.toResponse(unpublished);
+    }
+
     /**
      * Archive khóa học từ PUBLISHED sang ARCHIVED.
      *

@@ -3,13 +3,17 @@ package com.kiteclass.core.module.lms.service;
 import com.kiteclass.core.module.lms.dto.request.CreateCourseModuleRequest;
 import com.kiteclass.core.module.lms.dto.request.CreateLearningResourceRequest;
 import com.kiteclass.core.module.lms.dto.request.CreateLessonRequest;
+import com.kiteclass.core.module.lms.dto.request.ReorderRequest;
 import com.kiteclass.core.module.lms.dto.request.UpdateCourseModuleRequest;
 import com.kiteclass.core.module.lms.dto.request.UpdateLessonRequest;
+import com.kiteclass.core.module.lms.dto.response.CompletionRosterResponse;
 import com.kiteclass.core.module.lms.dto.response.CourseModuleDetailResponse;
 import com.kiteclass.core.module.lms.dto.response.CourseModuleResponse;
 import com.kiteclass.core.module.lms.dto.response.LearningResourceResponse;
 import com.kiteclass.core.module.lms.dto.response.LessonDetailResponse;
 import com.kiteclass.core.module.lms.dto.response.LessonResponse;
+import com.kiteclass.core.module.storage.dto.PresignedUploadRequest;
+import com.kiteclass.core.module.storage.dto.PresignedUploadResponse;
 
 import java.util.List;
 
@@ -215,4 +219,76 @@ public interface LmsService {
      * @throws com.kiteclass.core.common.exception.PermissionDeniedException if teacher is not course owner
      */
     void deleteResource(Long resourceId, Long teacherId);
+
+    // ==================== Teacher Endpoints - Reorder (drag-drop) ====================
+
+    /**
+     * Atomically reorder all modules of a course (teacher only).
+     *
+     * <p>The request MUST contain the full ordered set of the course's non-deleted
+     * modules with distinct order numbers (drag-drop sends the whole list). The
+     * update is applied in a single transaction using a two-phase swap so the
+     * {@code (course_id, order_number)} unique constraint is never transiently
+     * violated.
+     *
+     * @param courseId  the course ID
+     * @param request   full ordered set of modules with new order numbers
+     * @param teacherId the teacher ID (must be course owner)
+     * @return reordered modules (ascending order)
+     * @throws com.kiteclass.core.common.exception.EntityNotFoundException if course not found
+     * @throws com.kiteclass.core.common.exception.PermissionDeniedException if teacher is not course owner
+     * @throws com.kiteclass.core.common.exception.ValidationException if the set is incomplete or order numbers clash
+     */
+    List<CourseModuleResponse> reorderModules(Long courseId, ReorderRequest request, Long teacherId);
+
+    /**
+     * Atomically reorder all lessons within a module (teacher only).
+     *
+     * <p>Same contract as {@link #reorderModules}: request carries the full ordered
+     * set of the module's non-deleted lessons with distinct order numbers.
+     *
+     * @param moduleId  the module ID
+     * @param request   full ordered set of lessons with new order numbers
+     * @param teacherId the teacher ID (must be course owner)
+     * @return reordered lessons (ascending order)
+     * @throws com.kiteclass.core.common.exception.EntityNotFoundException if module not found
+     * @throws com.kiteclass.core.common.exception.PermissionDeniedException if teacher is not course owner
+     * @throws com.kiteclass.core.common.exception.ValidationException if the set is incomplete or order numbers clash
+     */
+    List<LessonResponse> reorderLessons(Long moduleId, ReorderRequest request, Long teacherId);
+
+    // ==================== Teacher Endpoints - Resource Upload (presigned) ====================
+
+    /**
+     * Generate a presigned upload URL for a lesson learning-resource file (teacher only).
+     *
+     * <p>Reuses the central storage pipeline (MIME whitelist + quota + presigned PUT,
+     * 30-min TTL). Client workflow: call this → HTTP PUT file to the returned URL →
+     * confirm via the storage API → {@code POST /lessons/{lessonId}/resources} to
+     * persist the {@code LearningResource} metadata row with the resulting URL.
+     *
+     * @param lessonId  the lesson the resource will belong to
+     * @param request   file metadata (name, size, mime, type, access level)
+     * @param teacherId the teacher ID (must be course owner)
+     * @return presigned upload response (fileId + uploadUrl + expiresAt)
+     * @throws com.kiteclass.core.common.exception.EntityNotFoundException if lesson/module not found
+     * @throws com.kiteclass.core.common.exception.PermissionDeniedException if teacher is not course owner
+     */
+    PresignedUploadResponse generateResourceUploadUrl(Long lessonId, PresignedUploadRequest request, Long teacherId);
+
+    // ==================== Teacher Endpoints - Completion Roster ====================
+
+    /**
+     * Build the completion roster for a course (teacher only).
+     *
+     * <p>Aggregates {@code lesson_progress} across all students of the course into a
+     * per-student completion summary. Only the course owner can view it.
+     *
+     * @param courseId  the course ID
+     * @param teacherId the teacher ID (must be course owner)
+     * @return completion roster (totalLessons + per-student completion)
+     * @throws com.kiteclass.core.common.exception.EntityNotFoundException if course not found
+     * @throws com.kiteclass.core.common.exception.PermissionDeniedException if teacher is not course owner
+     */
+    CompletionRosterResponse getCompletionRoster(Long courseId, Long teacherId);
 }

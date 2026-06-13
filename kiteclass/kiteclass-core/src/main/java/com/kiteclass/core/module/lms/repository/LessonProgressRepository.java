@@ -72,6 +72,23 @@ public interface LessonProgressRepository extends JpaRepository<LessonProgress, 
     );
 
     /**
+     * Find all COMPLETED progress records across ALL students for a course.
+     * Used to build the teacher completion roster (BR-LMS-016..020 aggregate).
+     *
+     * @param courseId the course ID
+     * @return list of completed progress records for every student in the course
+     */
+    @Query("SELECT lp FROM LessonProgress lp " +
+           "JOIN Lesson l ON lp.lessonId = l.id " +
+           "JOIN CourseModule m ON l.moduleId = m.id " +
+           "WHERE m.courseId = :courseId " +
+           "AND lp.completed = true " +
+           "AND lp.deleted = false " +
+           "AND l.deleted = false " +
+           "AND m.deleted = false")
+    List<LessonProgress> findCompletedProgressByCourseId(@Param("courseId") Long courseId);
+
+    /**
      * Find all progress records for a user.
      *
      * @param userId the user ID

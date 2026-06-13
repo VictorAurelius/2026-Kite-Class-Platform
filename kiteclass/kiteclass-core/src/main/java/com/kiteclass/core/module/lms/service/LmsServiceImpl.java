@@ -10,20 +10,28 @@ import com.kiteclass.core.module.course.repository.CourseRepository;
 import com.kiteclass.core.module.lms.dto.request.CreateCourseModuleRequest;
 import com.kiteclass.core.module.lms.dto.request.CreateLearningResourceRequest;
 import com.kiteclass.core.module.lms.dto.request.CreateLessonRequest;
+import com.kiteclass.core.module.lms.dto.request.ReorderRequest;
 import com.kiteclass.core.module.lms.dto.request.UpdateCourseModuleRequest;
 import com.kiteclass.core.module.lms.dto.request.UpdateLessonRequest;
+import com.kiteclass.core.module.lms.dto.response.CompletionRosterResponse;
 import com.kiteclass.core.module.lms.dto.response.CourseModuleDetailResponse;
 import com.kiteclass.core.module.lms.dto.response.CourseModuleResponse;
 import com.kiteclass.core.module.lms.dto.response.LearningResourceResponse;
 import com.kiteclass.core.module.lms.dto.response.LessonDetailResponse;
 import com.kiteclass.core.module.lms.dto.response.LessonResponse;
+import com.kiteclass.core.module.lms.dto.response.StudentCompletionResponse;
 import com.kiteclass.core.module.lms.entity.CourseModule;
 import com.kiteclass.core.module.lms.entity.LearningResource;
 import com.kiteclass.core.module.lms.entity.Lesson;
+import com.kiteclass.core.module.lms.entity.LessonProgress;
 import com.kiteclass.core.module.lms.mapper.LmsMapper;
 import com.kiteclass.core.module.lms.repository.CourseModuleRepository;
 import com.kiteclass.core.module.lms.repository.LearningResourceRepository;
+import com.kiteclass.core.module.lms.repository.LessonProgressRepository;
 import com.kiteclass.core.module.lms.repository.LessonRepository;
+import com.kiteclass.core.module.storage.dto.PresignedUploadRequest;
+import com.kiteclass.core.module.storage.dto.PresignedUploadResponse;
+import com.kiteclass.core.module.storage.service.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -31,8 +39,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 
 /**
@@ -50,9 +63,11 @@ public class LmsServiceImpl implements LmsService {
     private final CourseModuleRepository courseModuleRepository;
     private final LessonRepository lessonRepository;
     private final LearningResourceRepository learningResourceRepository;
+    private final LessonProgressRepository lessonProgressRepository;
     private final CourseRepository courseRepository;
     private final com.kiteclass.core.module.enrollment.repository.EnrollmentRepository enrollmentRepository;
     private final com.kiteclass.core.module.clazz.repository.ClassRepository classRepository;
+    private final StorageService storageService;
     private final LmsMapper lmsMapper;
 
     // ==================== Public Endpoints (Guest Access) ====================
@@ -423,7 +438,184 @@ public class LmsServiceImpl implements LmsService {
         log.info("Deleted resource {}", resourceId);
     }
 
+    // ==================== Teacher Endpoints - Reorder (drag-drop) ====================
+
+    @Override
+    @Transactional
+    public List<CourseModuleResponse> reorderModules(Long courseId, ReorderRequest request, Long teacherId) {
+        log.info("Reordering {} modules for courseId: {} by teacherId: {}",
+                request.items().size(), courseId, teacherId);
+
+        verifyCourseOwnership(courseId, teacherId);
+
+        List<CourseModule> modules = courseModuleRepository
+                .findByCourseIdAndDeletedFalseOrderByOrderNumber(courseId);
+        Map<Long, CourseModule> byId = modules.stream()
+                .collect(Collectors.toMap(CourseModule::getId, m -> m));
+
+        validateReorderItems(request, byId.keySet(), "MODULE");
+
+        // Two-phase swap: park every row at a (distinct) negative order number first,
+        // flush, then set the final positive order numbers. This avoids transiently
+        // violating the (course_id, order_number) unique constraint mid-swap.
+        for (ReorderRequest.ReorderItem item : request.items()) {
+            byId.get(item.id()).setOrderNumber(-item.orderNumber());
+        }
+        courseModuleRepository.saveAll(byId.values());
+        courseModuleRepository.flush();
+
+        for (ReorderRequest.ReorderItem item : request.items()) {
+            byId.get(item.id()).setOrderNumber(item.orderNumber());
+        }
+        List<CourseModule> saved = courseModuleRepository.saveAll(byId.values());
+        courseModuleRepository.flush();
+
+        log.info("Reordered {} modules for course {}", saved.size(), courseId);
+        return saved.stream()
+                .sorted(Comparator.comparingInt(CourseModule::getOrderNumber))
+                .map(lmsMapper::toModuleResponse)
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public List<LessonResponse> reorderLessons(Long moduleId, ReorderRequest request, Long teacherId) {
+        log.info("Reordering {} lessons for moduleId: {} by teacherId: {}",
+                request.items().size(), moduleId, teacherId);
+
+        CourseModule module = courseModuleRepository.findByIdAndDeletedFalse(moduleId)
+                .orElseThrow(() -> new EntityNotFoundException("MODULE_NOT_FOUND", (Object) moduleId));
+        verifyCourseOwnership(module.getCourseId(), teacherId);
+
+        List<Lesson> lessons = lessonRepository.findByModuleIdAndDeletedFalseOrderByOrderNumber(moduleId);
+        Map<Long, Lesson> byId = lessons.stream()
+                .collect(Collectors.toMap(Lesson::getId, l -> l));
+
+        validateReorderItems(request, byId.keySet(), "LESSON");
+
+        // Two-phase swap (see reorderModules) for the (module_id, order_number) constraint.
+        for (ReorderRequest.ReorderItem item : request.items()) {
+            byId.get(item.id()).setOrderNumber(-item.orderNumber());
+        }
+        lessonRepository.saveAll(byId.values());
+        lessonRepository.flush();
+
+        for (ReorderRequest.ReorderItem item : request.items()) {
+            byId.get(item.id()).setOrderNumber(item.orderNumber());
+        }
+        List<Lesson> saved = lessonRepository.saveAll(byId.values());
+        lessonRepository.flush();
+
+        log.info("Reordered {} lessons for module {}", saved.size(), moduleId);
+        return saved.stream()
+                .sorted(Comparator.comparingInt(Lesson::getOrderNumber))
+                .map(lmsMapper::toLessonResponse)
+                .toList();
+    }
+
+    // ==================== Teacher Endpoints - Resource Upload (presigned) ====================
+
+    @Override
+    @Transactional
+    public PresignedUploadResponse generateResourceUploadUrl(
+            Long lessonId, PresignedUploadRequest request, Long teacherId) {
+        log.info("Generating resource upload URL for lessonId: {} by teacherId: {}", lessonId, teacherId);
+
+        Lesson lesson = lessonRepository.findByIdAndDeletedFalse(lessonId)
+                .orElseThrow(() -> new EntityNotFoundException("LESSON_NOT_FOUND", (Object) lessonId));
+        CourseModule module = courseModuleRepository.findByIdAndDeletedFalse(lesson.getModuleId())
+                .orElseThrow(() -> new EntityNotFoundException("MODULE_NOT_FOUND", (Object) lesson.getModuleId()));
+
+        // Only the course owner may request an upload slot for a lesson resource.
+        verifyCourseOwnership(module.getCourseId(), teacherId);
+
+        UUID tenantId = TenantContext.getCurrentTenant();
+        // Reuse the central storage pipeline (MIME whitelist + quota + presigned PUT,
+        // 30-min TTL). The teacher PUTs the file + confirms via the storage API, then
+        // POST /lessons/{lessonId}/resources persists the LearningResource metadata row.
+        return storageService.generatePresignedUploadUrl(request, teacherId, tenantId);
+    }
+
+    // ==================== Teacher Endpoints - Completion Roster ====================
+
+    @Override
+    @Transactional(readOnly = true)
+    public CompletionRosterResponse getCompletionRoster(Long courseId, Long teacherId) {
+        log.info("Building completion roster for courseId: {} teacherId: {}", courseId, teacherId);
+
+        verifyCourseOwnership(courseId, teacherId);
+
+        long totalLessons = lessonRepository.countLessonsByCourseId(courseId);
+
+        // Group completed progress rows by student (preserve first-seen order).
+        Map<Long, List<Long>> completedByUser = lessonProgressRepository
+                .findCompletedProgressByCourseId(courseId)
+                .stream()
+                .collect(Collectors.groupingBy(
+                        LessonProgress::getUserId,
+                        LinkedHashMap::new,
+                        Collectors.mapping(LessonProgress::getLessonId, Collectors.toList())));
+
+        List<StudentCompletionResponse> students = completedByUser.entrySet().stream()
+                .map(entry -> {
+                    long completed = entry.getValue().size();
+                    double pct = totalLessons == 0
+                            ? 0.0
+                            : Math.round((completed * 10000.0) / totalLessons) / 100.0;
+                    return StudentCompletionResponse.builder()
+                            .userId(entry.getKey())
+                            .completedLessons(completed)
+                            .progressPercent(pct)
+                            .completedLessonIds(entry.getValue())
+                            .build();
+                })
+                .toList();
+
+        return CompletionRosterResponse.builder()
+                .courseId(courseId)
+                .totalLessons(totalLessons)
+                .students(students)
+                .build();
+    }
+
     // ==================== Helper Methods ====================
+
+    /**
+     * Validates a batch reorder request against the live sibling set.
+     *
+     * <p>Requires the request to cover EXACTLY the live (non-deleted) sibling IDs with
+     * distinct IDs AND distinct order numbers — the drag-drop FE always sends the full
+     * ordered list, so partial reorders (which could clash with un-sent siblings on the
+     * unique order-number constraint) are rejected.
+     *
+     * @param request     the reorder request
+     * @param existingIds the live sibling IDs (modules of a course, or lessons of a module)
+     * @param entityLabel "MODULE" or "LESSON" — surfaced in the error code args
+     * @throws ValidationException if IDs duplicate, the set is incomplete, or order numbers clash
+     */
+    private void validateReorderItems(ReorderRequest request, Set<Long> existingIds, String entityLabel) {
+        List<ReorderRequest.ReorderItem> items = request.items();
+
+        Set<Long> requestedIds = items.stream()
+                .map(ReorderRequest.ReorderItem::id)
+                .collect(Collectors.toSet());
+        if (requestedIds.size() != items.size()) {
+            throw new ValidationException("REORDER_DUPLICATE_ID", entityLabel);
+        }
+
+        if (!requestedIds.equals(existingIds)) {
+            throw new ValidationException(
+                    "REORDER_INCOMPLETE_SET", entityLabel, existingIds.size(), requestedIds.size());
+        }
+
+        long distinctOrders = items.stream()
+                .map(ReorderRequest.ReorderItem::orderNumber)
+                .distinct()
+                .count();
+        if (distinctOrders != items.size()) {
+            throw new ValidationException("REORDER_DUPLICATE_ORDER", entityLabel);
+        }
+    }
 
     /**
      * Verifies that the teacher is the owner of the course.
