@@ -30,6 +30,7 @@ Bảng tổng hợp endpoint để drift detector dễ verify (`scripts/check-cr
 | /api/v1/students/bulk-import/commit | POST | BulkImportController |
 | /api/v1/students/bulk-import/jobs/{id}/errors | POST | BulkImportController |
 | /api/v1/enrollments | POST | EnrollmentController |
+| /api/v1/enrollments/me | GET | EnrollmentController |
 | /api/v1/enrollments/{id} | GET | EnrollmentController |
 | /api/v1/enrollments/student/{studentId} | GET | EnrollmentController |
 | /api/v1/enrollments/class/{classId} | GET | EnrollmentController |
@@ -39,7 +40,7 @@ Bảng tổng hợp endpoint để drift detector dễ verify (`scripts/check-cr
 | /api/v1/enrollments/bulk-import/preview | POST | EnrollmentBulkImportController |
 | /api/v1/enrollments/bulk-import/commit | POST | EnrollmentBulkImportController |
 
-Total: 25 public + 3 internal = 28 endpoints across 6 controllers.
+Total: 26 public + 3 internal = 29 endpoints across 6 controllers.
 
 ---
 
@@ -52,7 +53,7 @@ Total: 25 public + 3 internal = 28 endpoints across 6 controllers.
 | `Authorization: Bearer <jwt>` | Bắt buộc (mọi public endpoint) | JWT từ Gateway, chứa role + tenant claim |
 | `X-Tenant-Id: <uuid>` | Bắt buộc khi POST student / bulk-import / multi-tenant create | UUID của KiteHub instance (BR-STU-006 multi-tenant isolation) |
 | `X-Internal-Request: true` | Bắt buộc cho mọi `/internal/**` endpoint | Validated bởi `InternalRequestFilter`; gateway-only — block từ public internet |
-| `X-User-Reference-Id: <long>` | Bắt buộc cho `/api/v1/students/me/**` | Gateway populate từ `users.reference_id` khi `userType=STUDENT` |
+| `X-User-Reference-Id: <long>` | Bắt buộc cho `/api/v1/students/me/**` + `/api/v1/enrollments/me` | Gateway populate từ `users.reference_id` khi `userType=STUDENT` |
 | `Idempotency-Key: <uuid/ulid/ksuid>` | Optional (POST enrollment only) | Dedupe accidental double-submit per GAP-730; replay cùng key trả `X-Idempotent-Replay: true` |
 
 ### Response envelope chung
@@ -541,6 +542,69 @@ Lifecycle-critical — enroll/withdraw triggers invoice generation (event-driven
 
 ---
 
+### GET /api/v1/enrollments/me
+
+**Use Case:** Student-self — liệt kê các lớp/khóa mình đã ghi danh (kc-student portal "Học tập" + "Bài tập") — GAP-1285
+**Auth:** `Bearer JWT`
+**Role:** `STUDENT` (chỉ STUDENT) — `@PreAuthorize("hasRole('STUDENT')")`
+**Headers:** `X-User-Reference-Id: <long>` (bắt buộc) — Gateway populate từ `users.reference_id` khi `userType=STUDENT` (= `students.id`)
+**Response status:** `HTTP 200 OK`
+
+**Self-scoped — KHÔNG có path variable `studentId`.** Actor chỉ đọc được enrollment của CHÍNH MÌNH (resolve từ `X-User-Reference-Id` = `students.id`), không có IDOR surface. Khác `GET /api/v1/enrollments/student/{studentId}` (teacher/admin-guarded qua `@authz.hasAccessToStudent`, vốn chặn student tự đọc) — đây là path STUDENT-accessible.
+
+**Query parameters:**
+
+| Param | Type | Default | Mô tả |
+|---|---|---|---|
+| `page` | int | `0` | 0-indexed |
+| `size` | int | `100` | Page size (FE student shell dùng size lớn để lấy hết) |
+| `sort` | string | `enrollmentDate,DESC` | Default — mới nhất trước |
+
+**Response 200:** `ApiResponse<Page<MyEnrollmentResponse>>` (Spring `Page<T>`)
+
+```json
+{
+  "success": true,
+  "data": {
+    "content": [
+      {
+        "id": 1,
+        "studentId": 42,
+        "classId": 17,
+        "className": "Lớp Anh ngữ 5A1 - Tối",
+        "courseId": 8,
+        "courseName": "Anh ngữ B1",
+        "enrollmentDate": "2026-06-14T14:30:00",
+        "status": "ACTIVE",
+        "tuitionAmount": 1500000.00,
+        "discountPercent": 10.00,
+        "finalAmount": 1350000.00,
+        "notes": null,
+        "createdAt": "2026-06-14T14:30:00Z",
+        "updatedAt": "2026-06-14T14:30:00Z"
+      }
+    ],
+    "totalElements": 1,
+    "totalPages": 1,
+    "number": 0,
+    "size": 100
+  }
+}
+```
+
+**Enrichment:** mỗi enrollment được bổ sung `classId` + `className` + `courseId` + `courseName` (resolve qua class → course, batch — không N+1). `className` / `courseId` / `courseName` = null nếu class/course đã soft-delete (display-only, không bao giờ leak cross-tenant).
+
+**Errors:**
+
+| Status | Code | Condition |
+|---|---|---|
+| 401 | `AUTH_REQUIRED` | Header `X-User-Reference-Id` vắng mặt (Gateway không forward) |
+| 403 | (Spring Security) | Actor không phải role STUDENT (method-security production) |
+
+**Tenant isolation:** Hibernate `tenantFilter` áp dụng cho cả enrollment query + class/course enrichment lookups; `studentId` predicate scope về 1 student → không cross-student leak (verified `StudentSelfEnrollmentIntegrationTest` Testcontainers).
+
+---
+
 ### GET /api/v1/enrollments/{id}
 
 **Use Case:** Fetch enrollment by ID
@@ -825,6 +889,6 @@ Note: Wave gap-746 (PR #1834) đã ship explicit tenant param fix cho `Enrollmen
 - **Cross-domain contracts:**
   - `documents/01-business/kiteclass/payment-invoice/api-contract.md` (invoice generation event chain — GAP-231)
   - `documents/01-business/kiteclass/attendance/api-contract.md` (attendance enrollment row — deferred Wave 67+ — GAP-232)
-- **Gap:** GAP-233 (this drift sync)
-- **Sibling waves:** Wave gap-746 (PR #1834 EnrollmentRepository tenant param fix); Wave beta-readiness-2 Bucket A (GAP-730 Idempotency-Key)
-- **State-check date:** 2026-05-26 (Wave beta-readiness-6 Bucket C)
+- **Gap:** GAP-233 (this drift sync); GAP-1285 (student-self `/me` enrollment endpoint — Wave rbac-lms-gap-1285)
+- **Sibling waves:** Wave gap-746 (PR #1834 EnrollmentRepository tenant param fix); Wave beta-readiness-2 Bucket A (GAP-730 Idempotency-Key); Wave rbac-lms-gap-1285 (GET /api/v1/enrollments/me — student-self enrolled course/class list)
+- **State-check date:** 2026-06-14 (Wave rbac-lms-gap-1285 — added `/me` endpoint)

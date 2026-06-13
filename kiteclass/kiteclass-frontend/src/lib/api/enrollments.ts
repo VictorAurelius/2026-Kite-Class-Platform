@@ -11,6 +11,7 @@ import type {
   Enrollment,
   EnrollmentSearchParams,
   EnrollmentStatus,
+  MyEnrollment,
 } from '@/types/enrollment';
 import type { ApiResponse, PaginatedResponse } from '@/types/api';
 
@@ -26,6 +27,26 @@ export const enrollmentsApi = {
     const response = await apiClient.post<ApiResponse<Enrollment>>(
       '/api/v1/enrollments',
       req
+    );
+    return response.data.data!;
+  },
+
+  /**
+   * List the calling student's OWN enrollments, enriched with class + course
+   * names (GAP-1285).
+   *
+   * GET /api/v1/enrollments/me — self-scoped. The Gateway resolves the calling
+   * STUDENT's {@code students.id} from the JWT (X-User-Reference-Id), so this
+   * returns ONLY that student's enrollments. Used by the student shell to build
+   * "Khóa học của tôi" + "Lớp của tôi" enrollment-scoped (replaces the catalog /
+   * SHARED-READ workaround).
+   */
+  getMine: async (
+    params: { page?: number; size?: number; sort?: string } = {}
+  ): Promise<PaginatedResponse<MyEnrollment>> => {
+    const response = await apiClient.get<ApiResponse<PaginatedResponse<MyEnrollment>>>(
+      '/api/v1/enrollments/me',
+      { params: { page: 0, size: 100, ...params } }
     );
     return response.data.data!;
   },

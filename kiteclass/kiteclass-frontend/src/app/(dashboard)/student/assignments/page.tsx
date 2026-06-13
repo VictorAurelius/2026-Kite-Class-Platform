@@ -2,16 +2,13 @@
  * Student PWA — Bài tập (assignments list, real-data + filterable).
  *
  * Wave rbac-lms-student-fe (GAP-1113 Increment B / PART 3): rewired from mock to
- * the real KiteClass assignment API. Lists PUBLISHED assignments across the
- * student's tenant classes (`/api/v1/classes` SHARED READ → per-class published),
- * enriched with the student's own submission status (`getMySubmissions`).
- *
- * NOTE (GAP-1285): no student-self enrolled-class endpoint exists yet, so the list
- * spans tenant classes (correct for single-school beta tenant). Enrollment-scoped
- * filtering lands when GAP-1285 ships a STUDENT-accessible endpoint.
+ * the real KiteClass assignment API. GAP-1285: now enrollment-scoped — lists
+ * PUBLISHED assignments across the classes the student is ENROLLED in (resolved
+ * via `/api/v1/enrollments/me`, not the tenant-wide `/api/v1/classes` SHARED
+ * READ), enriched with the student's own submission status (`getMySubmissions`).
  *
  * @author KiteClass Team
- * @since Wave 49 Bucket C (GAP-269) mock; Wave rbac-lms-student-fe real-data
+ * @since Wave 49 Bucket C (GAP-269) mock; Wave rbac-lms-student-fe real-data; GAP-1285 enrollment-scoped
  */
 'use client';
 
@@ -20,7 +17,7 @@ import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronRight, FileText } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth-store';
-import { classesApi } from '@/lib/api/classes';
+import { enrollmentsApi } from '@/lib/api/enrollments';
 import { assignmentsApi } from '@/lib/api/assignments';
 import { useMySubmissions } from '@/hooks/use-assignments';
 import type { Assignment } from '@/types/assignment';
@@ -47,17 +44,24 @@ export default function StudentAssignmentsPage() {
   const userId = useAuthStore((s) => s.user?.id);
   const [filter, setFilter] = useState<Filter>('pending');
 
-  // Published assignments across tenant classes (student-accessible reads).
+  // Published assignments across the classes the student is ENROLLED in
+  // (enrollment-scoped via /api/v1/enrollments/me — GAP-1285).
   const { data: assignments, isLoading: loadingAssignments } = useQuery({
-    queryKey: ['student', 'assignments', 'published-all'],
+    queryKey: ['student', 'assignments', 'my-enrolled'],
     queryFn: async (): Promise<AssignmentWithClass[]> => {
-      const page = await classesApi.list();
-      const classes = page.content ?? [];
+      const page = await enrollmentsApi.getMine({ size: 100 });
+      // Dedupe enrolled classes (a student could have multiple enrollments).
+      const classById = new Map<number, string>();
+      for (const e of page.content ?? []) {
+        if (!classById.has(e.classId)) {
+          classById.set(e.classId, e.className ?? `Lớp #${e.classId}`);
+        }
+      }
       const perClass = await Promise.all(
-        classes.map((c) =>
+        [...classById.entries()].map(([classId, className]) =>
           assignmentsApi
-            .getPublishedByClass(c.id)
-            .then((list) => list.map((a) => ({ ...a, className: c.name })))
+            .getPublishedByClass(classId)
+            .then((list) => list.map((a) => ({ ...a, className })))
             .catch(() => [] as AssignmentWithClass[]),
         ),
       );

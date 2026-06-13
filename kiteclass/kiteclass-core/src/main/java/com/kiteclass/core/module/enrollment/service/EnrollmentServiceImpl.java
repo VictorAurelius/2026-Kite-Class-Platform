@@ -8,8 +8,11 @@ import com.kiteclass.core.common.exception.EntityNotFoundException;
 import com.kiteclass.core.common.exception.ValidationException;
 import com.kiteclass.core.module.clazz.entity.Class;
 import com.kiteclass.core.module.clazz.repository.ClassRepository;
+import com.kiteclass.core.module.course.entity.Course;
+import com.kiteclass.core.module.course.repository.CourseRepository;
 import com.kiteclass.core.module.enrollment.dto.CreateEnrollmentRequest;
 import com.kiteclass.core.module.enrollment.dto.EnrollmentResponse;
+import com.kiteclass.core.module.enrollment.dto.MyEnrollmentResponse;
 import com.kiteclass.core.module.enrollment.dto.UpdateEnrollmentStatusRequest;
 import com.kiteclass.core.module.enrollment.entity.Enrollment;
 import com.kiteclass.core.module.enrollment.mapper.EnrollmentMapper;
@@ -26,6 +29,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of {@link EnrollmentService}.
@@ -42,6 +50,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
     private final EnrollmentRepository enrollmentRepository;
     private final StudentRepository studentRepository;
     private final ClassRepository classRepository;
+    private final CourseRepository courseRepository;
     private final EnrollmentMapper enrollmentMapper;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -154,6 +163,78 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         );
 
         return enrollments.map(enrollmentMapper::toResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<MyEnrollmentResponse> getMyEnrollments(Long studentId, Pageable pageable) {
+        log.debug("Fetching self enrollments for student: {}", studentId);
+
+        // Self-scoped query — studentId is the calling actor's own students.id.
+        // Hibernate tenantFilter scopes this to the current tenant; the studentId
+        // predicate scopes it to the single student → no cross-student leak.
+        Page<Enrollment> enrollments = enrollmentRepository.findByStudentIdAndDeletedFalse(
+                studentId, pageable
+        );
+
+        // Batch-resolve class + course names to enrich the response WITHOUT N+1:
+        // 1 query for the page's distinct classes, 1 for their distinct courses.
+        // findAllById runs through the Hibernate tenantFilter (HQL/criteria), so
+        // tenant isolation is preserved on the enrichment lookups too.
+        List<Long> classIds = enrollments.getContent().stream()
+                .map(Enrollment::getClassId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+
+        Map<Long, Class> classById = classIds.isEmpty()
+                ? Map.of()
+                : classRepository.findAllById(classIds).stream()
+                        .collect(Collectors.toMap(Class::getId, Function.identity(), (a, b) -> a));
+
+        List<Long> courseIds = classById.values().stream()
+                .map(Class::getCourseId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+
+        Map<Long, Course> courseById = courseIds.isEmpty()
+                ? Map.of()
+                : courseRepository.findAllById(courseIds).stream()
+                        .collect(Collectors.toMap(Course::getId, Function.identity(), (a, b) -> a));
+
+        return enrollments.map(enrollment -> toMyEnrollmentResponse(enrollment, classById, courseById));
+    }
+
+    /**
+     * Builds an enriched {@link MyEnrollmentResponse} from an enrollment plus the
+     * pre-fetched class/course lookup maps. Class/course names degrade to null if
+     * the referenced row is absent (soft-deleted) — display-only, never a leak.
+     */
+    private MyEnrollmentResponse toMyEnrollmentResponse(
+            Enrollment enrollment,
+            Map<Long, Class> classById,
+            Map<Long, Course> courseById) {
+        Class clazz = classById.get(enrollment.getClassId());
+        Long courseId = clazz != null ? clazz.getCourseId() : null;
+        Course course = courseId != null ? courseById.get(courseId) : null;
+
+        return MyEnrollmentResponse.builder()
+                .id(enrollment.getId())
+                .studentId(enrollment.getStudentId())
+                .classId(enrollment.getClassId())
+                .className(clazz != null ? clazz.getName() : null)
+                .courseId(courseId)
+                .courseName(course != null ? course.getName() : null)
+                .enrollmentDate(enrollment.getEnrollmentDate())
+                .status(enrollment.getStatus())
+                .tuitionAmount(enrollment.getTuitionAmount())
+                .discountPercent(enrollment.getDiscountPercent())
+                .finalAmount(enrollment.getFinalAmount())
+                .notes(enrollment.getNotes())
+                .createdAt(enrollment.getCreatedAt())
+                .updatedAt(enrollment.getUpdatedAt())
+                .build();
     }
 
     @Override
