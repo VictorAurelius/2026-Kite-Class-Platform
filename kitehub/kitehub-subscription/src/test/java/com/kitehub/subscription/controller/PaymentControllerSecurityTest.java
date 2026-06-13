@@ -62,6 +62,9 @@ class PaymentControllerSecurityTest {
     private PaymentService paymentService;
 
     @MockitoBean
+    private com.kitehub.subscription.billing.service.ReceiptService receiptService;
+
+    @MockitoBean
     private JpaMetamodelMappingContext jpaMetamodelMappingContext;
 
     @BeforeEach

@@ -1,0 +1,15 @@
+CHÚNG TÔI NHỚ BẠN
+
+Xin chào [(${organizationName})],
+
+[(${reason})]
+
+Dữ liệu của bạn vẫn được giữ an toàn. Kích hoạt lại bất cứ lúc nào để tiếp tục
+sử dụng đầy đủ tính năng của KiteHub.
+
+Kích hoạt lại ngay: [(${reactivateUrl})]
+
+Nếu bạn cần hỗ trợ trong quá trình kích hoạt lại, đội ngũ KiteHub luôn sẵn sàng giúp đỡ.
+
+Đội ngũ KiteHub
+support@kitehub.me

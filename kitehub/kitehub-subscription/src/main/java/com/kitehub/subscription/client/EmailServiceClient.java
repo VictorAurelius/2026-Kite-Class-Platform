@@ -879,6 +879,39 @@ public class EmailServiceClient {
     }
 
     /**
+     * Generic templated-email send (GAP-1265 NotificationChannel seam).
+     *
+     * <p>Thin public wrapper over {@link #dispatchEmail} so the
+     * {@link com.kitehub.subscription.notification.channel.EmailNotificationChannel} adapter can
+     * deliver any templated owner notification (payment-confirmed, win-back, ...) without each one
+     * needing a bespoke method. Inherits the same per-type admin toggle + outbox reliability path.
+     * Best-effort: a failure is logged and never propagates back to the caller's transaction.</p>
+     *
+     * @param instanceId   Instance ID (nullable — idempotency tracking, NOT enforced per-day here
+     *                     because the same notification type may legitimately recur per event)
+     * @param emailType    Email type (per-type admin toggle key)
+     * @param to           Recipient email
+     * @param subject      Email subject
+     * @param templateName Thymeleaf template name (under kitehub-email templates/emails)
+     * @param variables    Template variables
+     */
+    public void sendTemplatedEmail(UUID instanceId, String emailType, String to, String subject,
+                                   String templateName, Map<String, Object> variables) {
+        log.info("Sending templated email '{}' to {}", emailType, to);
+        try {
+            EmailRequest request = EmailRequest.builder()
+                .to(to)
+                .subject(subject)
+                .templateName(templateName)
+                .variables(variables)
+                .build();
+            dispatchEmail(instanceId, emailType, request);
+        } catch (Exception e) {
+            log.warn("Failed to send templated email '{}' to {}: {}", emailType, to, e.getMessage());
+        }
+    }
+
+    /**
      * Check if an email of the given type was already sent today.
      *
      * @param instanceId Instance ID (nullable)

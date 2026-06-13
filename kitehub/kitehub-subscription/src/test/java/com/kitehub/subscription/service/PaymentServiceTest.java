@@ -1,10 +1,16 @@
 package com.kitehub.subscription.service;
 
+import com.kitehub.platform.domain.entity.Instance;
 import com.kitehub.platform.domain.entity.Payment;
 import com.kitehub.platform.domain.entity.Subscription;
 import com.kitehub.platform.domain.enums.PaymentMethod;
+import com.kitehub.platform.domain.enums.PaymentStatus;
+import com.kitehub.subscription.billing.dto.ReceiptResponse;
+import com.kitehub.subscription.billing.service.ReceiptService;
 import com.kitehub.subscription.dto.CreatePaymentRequest;
 import com.kitehub.subscription.dto.PaymentResponse;
+import com.kitehub.subscription.notification.channel.OwnerNotificationDispatcher;
+import com.kitehub.subscription.repository.InstanceRepository;
 import com.kitehub.subscription.repository.PaymentRepository;
 import com.kitehub.subscription.repository.SubscriptionRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,6 +58,16 @@ class PaymentServiceTest {
 
     @Mock
     private VietQRService vietQRService;
+
+    // GAP-1257-BE + GAP-1266 constructor deps (api-contract-change-caller-sweep).
+    @Mock
+    private InstanceRepository instanceRepository;
+
+    @Mock
+    private ReceiptService receiptService;
+
+    @Mock
+    private OwnerNotificationDispatcher notificationDispatcher;
 
     @InjectMocks
     private PaymentService paymentService;
@@ -295,6 +311,62 @@ class PaymentServiceTest {
         assertThatThrownBy(() ->
             paymentService.processSepayWebhook("SEPAY-3", 10_000L, "KH3SUB1A2B3C4D"))
             .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    // ==================== GAP-1257-BE + GAP-1266 — confirm notify + receipt ====================
+
+    @Test
+    @DisplayName("GAP-1257-BE: confirmPayment completes payment + notifies owner with receipt")
+    void confirmPayment_notifiesOwnerAndBuildsReceipt() {
+        UUID paymentId = UUID.randomUUID();
+        Payment pending = new Payment();
+        pending.setId(paymentId);
+        pending.setSubscriptionId(subscriptionId);
+        pending.setInstanceId(instanceId);
+        pending.setAmountVnd(500_000L);
+        pending.setStatus(PaymentStatus.PENDING);
+        when(paymentRepository.findById(paymentId)).thenReturn(Optional.of(pending));
+        when(paymentRepository.save(any(Payment.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Instance instance = new Instance();
+        instance.setContactEmail("owner@example.com");
+        instance.setOrganizationName("Trung tâm Demo");
+        when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
+
+        ReceiptResponse receipt = ReceiptResponse.builder()
+            .receiptNumber("BN-2026-AAAABBBB")
+            .amountVnd(500_000L)
+            .build();
+        when(receiptService.buildReceipt(any(Payment.class))).thenReturn(receipt);
+
+        PaymentResponse response = paymentService.confirmPayment(paymentId, "VCB-20260613-001");
+
+        assertThat(pending.isCompleted()).isTrue();
+        assertThat(response.getStatus()).isEqualTo(PaymentStatus.COMPLETED);
+        org.mockito.Mockito.verify(receiptService).buildReceipt(pending);
+        org.mockito.Mockito.verify(notificationDispatcher).sendPaymentConfirmed(instance, receipt);
+    }
+
+    @Test
+    @DisplayName("GAP-1257-BE: confirmPayment notify failure never breaks payment capture")
+    void confirmPayment_notifyFailureSwallowed() {
+        UUID paymentId = UUID.randomUUID();
+        Payment pending = new Payment();
+        pending.setId(paymentId);
+        pending.setSubscriptionId(subscriptionId);
+        pending.setInstanceId(instanceId);
+        pending.setAmountVnd(500_000L);
+        pending.setStatus(PaymentStatus.PENDING);
+        when(paymentRepository.findById(paymentId)).thenReturn(Optional.of(pending));
+        when(paymentRepository.save(any(Payment.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(instanceRepository.findById(instanceId))
+            .thenThrow(new RuntimeException("notify subsystem down"));
+
+        PaymentResponse response = paymentService.confirmPayment(paymentId, "VCB-20260613-002");
+
+        // Payment is still captured despite the notify failure.
+        assertThat(pending.isCompleted()).isTrue();
+        assertThat(response.getStatus()).isEqualTo(PaymentStatus.COMPLETED);
     }
 
     @Test

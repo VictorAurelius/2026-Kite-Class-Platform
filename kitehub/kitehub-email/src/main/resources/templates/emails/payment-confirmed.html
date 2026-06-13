@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Thanh toán đã được xác nhận</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { background: #f9f9f9; padding: 30px; border: 1px solid #ddd; }
+        .success { background: #d4edda; border-left: 4px solid #28a745; padding: 15px; margin: 20px 0; }
+        .receipt { background: white; border: 1px solid #ddd; padding: 20px; margin: 20px 0; border-radius: 5px; }
+        .receipt table { width: 100%; border-collapse: collapse; }
+        .receipt td { padding: 6px 0; }
+        .receipt td.label { color: #666; width: 45%; }
+        .button { display: inline-block; padding: 12px 30px; background: #11998e; color: white; text-decoration: none; border-radius: 5px; margin-top: 20px; }
+        .note { font-size: 12px; color: #888; margin-top: 16px; }
+        .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>✅ Thanh toán đã được xác nhận</h1>
+    </div>
+
+    <div class="content">
+        <p>Xin chào <strong th:text="${organizationName}">Trung tâm</strong>,</p>
+
+        <div class="success">
+            <p>KiteHub đã xác nhận khoản thanh toán của bạn. Cảm ơn bạn!</p>
+        </div>
+
+        <div class="receipt">
+            <h3>Biên nhận thanh toán</h3>
+            <table>
+                <tr><td class="label">Mã biên nhận</td><td><strong th:text="${receiptNumber}">BN-2026-XXXXXXXX</strong></td></tr>
+                <tr><td class="label">Gói đăng ký</td><td th:text="${tier}">BASIC</td></tr>
+                <tr><td class="label">Số tiền</td><td><strong><span th:text="${amountVnd}">500.000</span>đ</strong></td></tr>
+                <tr><td class="label">Mã giao dịch</td><td th:text="${transactionId}">VCB-...</td></tr>
+                <tr><td class="label">Thời điểm thanh toán</td><td th:text="${paidAt}">2026-06-13</td></tr>
+            </table>
+        </div>
+
+        <a th:href="${billingUrl}" class="button">Xem chi tiết thanh toán</a>
+
+        <p class="note">Đây là biên nhận thanh toán (không phải hóa đơn GTGT). Hóa đơn điện tử có
+            giá trị về thuế sẽ được phát hành riêng nếu trung tâm yêu cầu.</p>
+
+        <p style="margin-top: 24px;"><strong>Đội ngũ KiteHub</strong></p>
+    </div>
+
+    <div class="footer">
+        <p>© 2026 KiteHub Platform. All rights reserved.</p>
+        <p>Nếu cần hỗ trợ, vui lòng liên hệ: support@kitehub.me</p>
+    </div>
+</body>
+</html>
