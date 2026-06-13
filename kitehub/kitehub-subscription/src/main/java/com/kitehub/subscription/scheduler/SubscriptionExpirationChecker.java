@@ -7,6 +7,7 @@ import com.kitehub.platform.domain.enums.PaymentStatus;
 import com.kitehub.platform.domain.enums.SubscriptionStatus;
 import com.kitehub.subscription.client.EmailServiceClient;
 import com.kitehub.subscription.config.SubscriptionConfig;
+import com.kitehub.subscription.notification.channel.OwnerNotificationDispatcher;
 import com.kitehub.subscription.repository.InstanceRepository;
 import com.kitehub.subscription.repository.PaymentRepository;
 import com.kitehub.subscription.repository.SubscriptionRepository;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Scheduler for checking subscription expiration and sending renewal reminders.
@@ -38,6 +40,7 @@ public class SubscriptionExpirationChecker {
     private final SubscriptionRenewalService renewalService;
     private final EmailServiceClient emailServiceClient;
     private final SubscriptionConfig subscriptionConfig;
+    private final OwnerNotificationDispatcher ownerNotificationDispatcher;
 
     /**
      * Daily job to check expiring subscriptions and send reminders.
@@ -118,6 +121,8 @@ public class SubscriptionExpirationChecker {
                 if (!renewalService.isInGracePeriod(subscription)) {
                     renewalService.suspendExpiredSubscription(subscription.getId());
                     suspended++;
+                    // GAP-1263: involuntary churn (non-payment lapse) → win-back outreach.
+                    sendWinBackBestEffort(subscription.getInstanceId(), false);
                 } else {
                     // GAP-1259 (SUB-23): still within the SUB-04 grace window → emit a
                     // dunning reminder ("còn X ngày trước suspend") instead of doing
@@ -140,6 +145,8 @@ public class SubscriptionExpirationChecker {
             try {
                 renewalService.suspendCancelledExpired(subscription.getId());
                 cancelledSuspended++;
+                // GAP-1263: voluntary cancel that has now lapsed → win-back outreach.
+                sendWinBackBestEffort(subscription.getInstanceId(), true);
             } catch (Exception e) {
                 log.error("Failed to suspend cancelled-expired subscription: {}", subscription.getId(), e);
             }
@@ -244,6 +251,32 @@ public class SubscriptionExpirationChecker {
         }
 
         log.info("Orphan PENDING subscription sweep complete. Cleaned: {}", cleaned);
+    }
+
+    /**
+     * GAP-1263: best-effort win-back outreach after an instance is suspended (CTA → reactivate).
+     *
+     * <p>Delegates to {@link OwnerNotificationDispatcher#sendWinBack} — the IN_APP + EMAIL channels
+     * each persist/deliver under {@code Propagation.REQUIRES_NEW} (per {@code design-patterns.md}
+     * §3.11), so the notification side-effect can never roll back the suspend transaction. The
+     * dispatcher already swallows per-channel failures; this extra try/catch guards the instance
+     * lookup so a notification miss never aborts the scheduler sweep.</p>
+     *
+     * @param instanceId owning instance (may be {@code null} for malformed rows)
+     * @param voluntary  {@code true} = owner cancelled; {@code false} = non-payment lapse
+     */
+    private void sendWinBackBestEffort(UUID instanceId, boolean voluntary) {
+        if (instanceId == null) {
+            return;
+        }
+        try {
+            Instance instance = instanceRepository.findById(instanceId).orElse(null);
+            if (instance != null) {
+                ownerNotificationDispatcher.sendWinBack(instance, voluntary);
+            }
+        } catch (Exception e) {
+            log.warn("Win-back notification failed for instance {}: {}", instanceId, e.getMessage());
+        }
     }
 
     /**

@@ -29,6 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -58,6 +59,9 @@ class SubscriptionExpirationCheckerTest {
 
     @Mock
     private SubscriptionConfig subscriptionConfig;
+
+    @Mock
+    private com.kitehub.subscription.notification.channel.OwnerNotificationDispatcher ownerNotificationDispatcher;
 
     @InjectMocks
     private SubscriptionExpirationChecker checker;
@@ -159,6 +163,49 @@ class SubscriptionExpirationCheckerTest {
         when(subscriptionRepository.findExpiredSubscriptions(any())).thenReturn(List.of(subscription));
         when(renewalService.isInGracePeriod(subscription)).thenReturn(false);
 
+        checker.processExpiredSubscriptions();
+
+        verify(renewalService).suspendExpiredSubscription(subscriptionId);
+    }
+
+    @Test
+    void processExpiredSubscriptions_sendsWinBackAfterInvoluntarySuspend() {
+        // GAP-1263: non-payment lapse → win-back outreach (voluntary=false).
+        subscription.setStatus(SubscriptionStatus.ACTIVE);
+        when(subscriptionRepository.findExpiredSubscriptions(any())).thenReturn(List.of(subscription));
+        when(renewalService.isInGracePeriod(subscription)).thenReturn(false);
+        when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
+
+        checker.processExpiredSubscriptions();
+
+        verify(renewalService).suspendExpiredSubscription(subscriptionId);
+        verify(ownerNotificationDispatcher).sendWinBack(instance, false);
+    }
+
+    @Test
+    void processExpiredSubscriptions_sendsWinBackAfterCancelledExpiredSuspend() {
+        // GAP-1263: voluntary cancel that has lapsed → win-back outreach (voluntary=true).
+        when(subscriptionRepository.findExpiredSubscriptions(any())).thenReturn(List.of());
+        when(subscriptionRepository.findCancelledExpiredSubscriptions(any())).thenReturn(List.of(subscription));
+        when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
+
+        checker.processExpiredSubscriptions();
+
+        verify(renewalService).suspendCancelledExpired(subscriptionId);
+        verify(ownerNotificationDispatcher).sendWinBack(instance, true);
+    }
+
+    @Test
+    void processExpiredSubscriptions_winBackFailureDoesNotBreakSweep() {
+        // GAP-1263: notification miss must never abort the scheduler sweep.
+        subscription.setStatus(SubscriptionStatus.ACTIVE);
+        when(subscriptionRepository.findExpiredSubscriptions(any())).thenReturn(List.of(subscription));
+        when(renewalService.isInGracePeriod(subscription)).thenReturn(false);
+        when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
+        doThrow(new RuntimeException("dispatcher down"))
+            .when(ownerNotificationDispatcher).sendWinBack(any(), anyBoolean());
+
+        // Should not throw — win-back failure swallowed.
         checker.processExpiredSubscriptions();
 
         verify(renewalService).suspendExpiredSubscription(subscriptionId);
