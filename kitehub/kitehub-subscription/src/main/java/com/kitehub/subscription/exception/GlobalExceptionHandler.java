@@ -76,6 +76,26 @@ public class GlobalExceptionHandler {
             .body(problemDetail);
     }
 
+    /**
+     * Handle subscription state conflicts (GAP-1080) — returns HTTP 409 Conflict.
+     *
+     * <p>E.g. creating a subscription for a different tier while a PENDING subscription
+     * already exists for the same instance. Distinct from {@link IllegalArgumentException}
+     * (400, malformed input) — the request is well-formed but conflicts with current state
+     * per <a href="https://www.rfc-editor.org/rfc/rfc7231#section-6.5.8">RFC 7231 §6.5.8</a>.</p>
+     */
+    @ExceptionHandler(SubscriptionConflictException.class)
+    public ProblemDetail handleSubscriptionConflict(SubscriptionConflictException ex) {
+        log.warn("Subscription conflict: {}", ex.getMessage());
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+            HttpStatus.CONFLICT,
+            ex.getMessage()
+        );
+        problemDetail.setTitle("Conflict");
+        problemDetail.setProperty("errorCode", "SUBSCRIPTION_PENDING_CONFLICT");
+        return problemDetail;
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ProblemDetail handleIllegalArgumentException(
         IllegalArgumentException ex,
