@@ -18,6 +18,7 @@ import {
   ExternalLink, HelpCircle, Search, Receipt, Server, Users, RefreshCw,
 } from 'lucide-react';
 import { getTenantUrl, getTenantDisplayUrl } from '@/lib/tenant-url';
+import { OpenSchoolManagementButton } from '@/components/sso/OpenSchoolManagementButton';
 import { useOnboardingWizard } from '@/components/onboarding/OnboardingWizard';
 import { OnboardingDashboardCTA } from '@/components/onboarding-checklist';
 import {
@@ -396,6 +397,10 @@ export default function DashboardPage() {
                       <ExternalLink className="h-4 w-4" />
                     </a>
                   </div>
+
+                  {/* Cross-product SSO → KiteClass owner-shell (ADR-040, GAP-1138):
+                      owner/staff vào quản lý nghiệp vụ trường không cần đăng nhập lại. */}
+                  <OpenSchoolManagementButton className="mt-2" variant="outline" />
                 </div>
               </div>
             ))}

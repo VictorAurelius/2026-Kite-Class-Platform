@@ -1,6 +1,6 @@
 ---
 title: Cross-Product SSO KiteHub→KiteClass — gateway shared-JWT validation + one-time-code redirect handoff
-status: PROPOSED
+status: ACCEPTED
 date: 2026-06-10
 deciders: ["@nguyenvankiet"]
 gaps: [GAP-1119, GAP-1138]
@@ -9,7 +9,7 @@ audience: mixed
 
 # ADR-040: Cross-Product SSO KiteHub → KiteClass
 
-**Status:** PROPOSED — Wave RBAC-Shell 1 Bucket C (design-first). Implementation tách sang wave riêng (xem §Quyết định scope).
+**Status:** ACCEPTED — Wave RBAC-Shell 1 Bucket C (design-first); Option A đã triển khai Wave RBAC-SSO 1 (GAP-1138, 2026-06-14). `kitehub-subscription` ship `SsoCodeService` (Redis one-time code, TTL ≤60s, single-use GETDEL) + `SsoController` (`POST /api/v1/auth/sso/issue-code` + `/exchange`); `kitehub-frontend` nút "Mở quản lý trường" (dashboard); `kiteclass-frontend` route `/sso/callback`. Runtime G2 walk (human, production-parity) còn pending per `feature-ship-runtime-walk-mandate.md` §3.
 
 ## Context
 
