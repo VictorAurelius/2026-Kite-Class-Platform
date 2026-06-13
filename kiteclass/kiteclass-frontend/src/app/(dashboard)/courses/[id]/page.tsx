@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { useCourse, useDeleteCourse, usePublishCourse, useArchiveCourse } from '@/hooks/use-courses';
 import { CourseStatus } from '@/types/course';
+import { CourseContentManager } from '@/components/lms/course-content-manager';
 
 const statusVariants: Record<CourseStatus, 'success' | 'warning' | 'default' | 'error'> = {
   [CourseStatus.DRAFT]: 'warning',
@@ -206,6 +207,11 @@ export default function CourseDetailPage({
               <p className="mt-1">{new Date(course.updatedAt).toLocaleString('vi-VN')}</p>
             </div>
           </div>
+        </div>
+
+        {/* LMS content authoring (GAP-1113 Increment A — Nội dung tab) */}
+        <div className="rounded-lg border bg-card p-6">
+          <CourseContentManager courseId={courseId} />
         </div>
       </div>
 

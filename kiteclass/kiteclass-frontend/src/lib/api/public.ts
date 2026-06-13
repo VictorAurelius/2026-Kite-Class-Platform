@@ -142,6 +142,18 @@ export const publicApi = {
   },
 
   /**
+   * Get a single lesson for the guest trial viewer (GAP-1113 Bucket B).
+   * No X-User-Id header = guest mode — backend returns trial lessons only; a paid
+   * lesson id resolves to 403/404 (caller must show a paywall CTA, never raw error).
+   */
+  getTrialLesson: async (lessonId: number): Promise<PublicLesson> => {
+    const response = await publicApiClient.get<ApiResponse<PublicLesson>>(
+      `/api/v1/lms/lessons/${lessonId}`
+    );
+    return response.data.data!;
+  },
+
+  /**
    * Get the open classes (lịch lớp đang mở) for a course — public preview.
    * Used by the course-detail "Lịch lớp đang mở" section. The section hides itself
    * when this returns empty/throws (anti-fabrication: never render fake schedule).
@@ -165,4 +177,16 @@ export interface PublicClass {
   maxStudents?: number;
   currentEnrolled?: number;
   status?: string;
+}
+
+/** A trial lesson surfaced to guests (GAP-1113 Bucket B trial viewer). */
+export interface PublicLesson {
+  id: number;
+  moduleId?: number;
+  title: string;
+  content?: string | null;
+  videoUrl?: string | null;
+  isTrial?: boolean;
+  orderNumber?: number;
+  estimatedDuration?: number | null;
 }
