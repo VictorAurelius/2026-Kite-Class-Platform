@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -26,13 +27,24 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Integration tests for branding flow.
  * Tests: logo analysis → theme generation pipeline.
  *
+ * <h3>GAP-1044 — auth-migrated + actually executed in CI</h3>
+ * <p>The {@code AIBrandingController} AI endpoints ({@code /analyze-logo}, {@code /generate-image},
+ * {@code /generate-text}, {@code /generate-theme}) gained {@code @PreAuthorize(OWNER_AUTHZ)} in
+ * Wave 101 (GAP-562); these older flow tests hit them anonymously → 403. {@code @WithMockUser(roles
+ * = "OWNER")} restores access (no {@code X-Instance-Id} sent, so the ownership guard early-returns;
+ * the {@code /templates} list endpoint is unauthenticated and unaffected). Renamed from {@code *IT}
+ * → {@code *IntegrationTest} so Spring Boot's default Surefire {@code <includes>} runs it in CI's
+ * {@code ./mvnw clean test} (the project ships no maven-failsafe plugin, so {@code *IT} classes were
+ * silently never executed).</p>
+ *
  * @since 1.1.0
  */
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@WithMockUser(roles = "OWNER")
 @DisplayName("Branding Flow IT")
-class BrandingFlowIT {
+class BrandingFlowIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
