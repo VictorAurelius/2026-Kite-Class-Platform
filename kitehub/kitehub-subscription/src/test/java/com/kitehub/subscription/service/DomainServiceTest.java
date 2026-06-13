@@ -44,6 +44,9 @@ class DomainServiceTest {
     @Mock
     private DnsTxtLookupService dnsTxtLookupService;
 
+    @Mock
+    private CertProvisioningService certProvisioningService;
+
     @InjectMocks
     private DomainService domainService;
 
@@ -241,9 +244,9 @@ class DomainServiceTest {
     }
 
     @Test
-    @DisplayName("verifyCustomDomain: DNS TXT match flips status to VERIFIED")
+    @DisplayName("verifyCustomDomain: DNS TXT match → CERT_PROVISIONING → cert issued → VERIFIED")
     void verifyCustomDomain_dnsTxtMatch_returnsVerified() {
-        // Given - DNS lookup returns true (TXT match found)
+        // Given - DNS lookup returns true (TXT match found) + stub cert issues synchronously
         premiumInstance.setCustomDomain("school.example.com");
         premiumInstance.setDomainVerifyToken("kitehub-verify=xyz789");
         premiumInstance.setDomainStatus(Instance.DomainStatus.PENDING_VERIFY);
@@ -251,16 +254,101 @@ class DomainServiceTest {
         when(instanceRepository.save(any(Instance.class))).thenReturn(premiumInstance);
         when(dnsTxtLookupService.verifyTxtRecord("school.example.com", "kitehub-verify=xyz789"))
             .thenReturn(true);
+        when(certProvisioningService.requestCertificate("school.example.com"))
+            .thenReturn(CertProvisioningResult.issued("stub-cert"));
 
         // When
         DomainVerifyResponse response = domainService.verifyCustomDomain(instanceId);
 
-        // Then - status flipped to VERIFIED with timestamp recorded
+        // Then - DNS verified → CERT_PROVISIONING → cert issued → VERIFIED with timestamp recorded
         assertThat(response.getStatus()).isEqualTo(Instance.DomainStatus.VERIFIED);
         ArgumentCaptor<Instance> captor = ArgumentCaptor.forClass(Instance.class);
         verify(instanceRepository).save(captor.capture());
         assertThat(captor.getValue().getDomainStatus()).isEqualTo(Instance.DomainStatus.VERIFIED);
         assertThat(captor.getValue().getDomainVerifiedAt()).isNotNull();
+        verify(certProvisioningService).requestCertificate("school.example.com");
+    }
+
+    @Test
+    @DisplayName("verifyCustomDomain: DNS match but cert PENDING → stays CERT_PROVISIONING (not VERIFIED yet)")
+    void verifyCustomDomain_dnsTxtMatch_certPending_staysCertProvisioning() {
+        // Given - DNS verified, but cert authority still issuing (real async path)
+        premiumInstance.setCustomDomain("school.example.com");
+        premiumInstance.setDomainVerifyToken("kitehub-verify=pend123");
+        premiumInstance.setDomainStatus(Instance.DomainStatus.PENDING_VERIFY);
+        when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(premiumInstance));
+        when(instanceRepository.save(any(Instance.class))).thenReturn(premiumInstance);
+        when(dnsTxtLookupService.verifyTxtRecord("school.example.com", "kitehub-verify=pend123"))
+            .thenReturn(true);
+        when(certProvisioningService.requestCertificate("school.example.com"))
+            .thenReturn(CertProvisioningResult.pending("issuance-in-flight"));
+
+        // When
+        DomainVerifyResponse response = domainService.verifyCustomDomain(instanceId);
+
+        // Then - DNS proven, cert in flight → CERT_PROVISIONING, verifiedAt NOT yet set
+        assertThat(response.getStatus()).isEqualTo(Instance.DomainStatus.CERT_PROVISIONING);
+        ArgumentCaptor<Instance> captor = ArgumentCaptor.forClass(Instance.class);
+        verify(instanceRepository).save(captor.capture());
+        assertThat(captor.getValue().getDomainStatus()).isEqualTo(Instance.DomainStatus.CERT_PROVISIONING);
+        assertThat(captor.getValue().getDomainVerifiedAt()).isNull();
+    }
+
+    @Test
+    @DisplayName("verifyCustomDomain: re-verify a CERT_PROVISIONING domain re-polls cert → VERIFIED (idempotent)")
+    void verifyCustomDomain_certProvisioning_repollIssued_returnsVerified() {
+        // Given - instance already in CERT_PROVISIONING; re-poll now succeeds
+        premiumInstance.setCustomDomain("school.example.com");
+        premiumInstance.setDomainVerifyToken("kitehub-verify=cp456");
+        premiumInstance.setDomainStatus(Instance.DomainStatus.CERT_PROVISIONING);
+        when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(premiumInstance));
+        when(instanceRepository.save(any(Instance.class))).thenReturn(premiumInstance);
+        when(certProvisioningService.requestCertificate("school.example.com"))
+            .thenReturn(CertProvisioningResult.issued("stub-cert"));
+
+        // When
+        DomainVerifyResponse response = domainService.verifyCustomDomain(instanceId);
+
+        // Then - cert poll succeeds → VERIFIED; DNS NOT re-checked (idempotent retry path)
+        assertThat(response.getStatus()).isEqualTo(Instance.DomainStatus.VERIFIED);
+        verify(certProvisioningService).requestCertificate("school.example.com");
+        verify(dnsTxtLookupService, never()).verifyTxtRecord(any(), any());
+    }
+
+    @Test
+    @DisplayName("verifyCustomDomain: already-VERIFIED domain is idempotent no-op (no 400, no DNS/cert call)")
+    void verifyCustomDomain_alreadyVerified_idempotentNoOp() {
+        // Given - instance already VERIFIED (GAP-1024: was previously a 400)
+        premiumInstance.setCustomDomain("school.example.com");
+        premiumInstance.setDomainVerifyToken("kitehub-verify=done789");
+        premiumInstance.setDomainStatus(Instance.DomainStatus.VERIFIED);
+        premiumInstance.setDomainVerifiedAt(LocalDateTime.now());
+        when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(premiumInstance));
+
+        // When
+        DomainVerifyResponse response = domainService.verifyCustomDomain(instanceId);
+
+        // Then - returns current VERIFIED state, no throw, no DNS/cert lookup, no save
+        assertThat(response.getStatus()).isEqualTo(Instance.DomainStatus.VERIFIED);
+        verify(dnsTxtLookupService, never()).verifyTxtRecord(any(), any());
+        verify(certProvisioningService, never()).requestCertificate(any());
+        verify(instanceRepository, never()).save(any(Instance.class));
+    }
+
+    @Test
+    @DisplayName("verifyCustomDomain: FAILED domain throws (must re-initiate per BR-DOMAIN-004)")
+    void verifyCustomDomain_failedDomain_throws() {
+        // Given - instance in FAILED state (timeout or cert failure)
+        premiumInstance.setCustomDomain("school.example.com");
+        premiumInstance.setDomainVerifyToken("kitehub-verify=failed");
+        premiumInstance.setDomainStatus(Instance.DomainStatus.FAILED);
+        when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(premiumInstance));
+
+        // When & Then - FAILED is not directly verifiable; tenant must re-initiate
+        assertThatThrownBy(() -> domainService.verifyCustomDomain(instanceId))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("No domain verification pending");
+        verify(instanceRepository, never()).save(any(Instance.class));
     }
 
     // =========================================================
