@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>KiteHub — Bảo vệ khóa luận (bản gọn 20 slide)</title>
+
+  <!-- Reveal.js CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reset.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css" id="theme">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css">
+
+  <!-- Theme tái dùng từ defense-deck.html (40 slide) — giữ đồng bộ visual -->
+  <style>
+    .reveal { font-family: 'Source Sans Pro', sans-serif; }
+    .reveal h1, .reveal h2, .reveal h3 { color: #1E40AF; }
+    .reveal h1 { font-size: 2.2em; }
+    .reveal h2 { font-size: 1.5em; }
+    .reveal h3 { font-size: 1.2em; }
+    .reveal table { font-size: 0.65em; }
+    .reveal table th { background: #1E40AF; color: white; padding: 6px; }
+    .reveal table td { padding: 4px 8px; border-bottom: 1px solid #ddd; }
+    .reveal .small { font-size: 0.7em; color: #666; }
+    .reveal .highlight-box { background: #EFF6FF; border-left: 4px solid #1E40AF; padding: 14px; margin: 14px 0; text-align: left; }
+    .reveal .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .reveal .kpi-card { background: #F0FDF4; border: 2px solid #16A34A; border-radius: 8px; padding: 12px; text-align: center; }
+    .reveal .kpi-number { font-size: 1.8em; color: #16A34A; font-weight: 700; }
+    .reveal .limitation-box { background: #FEF2F2; border-left: 4px solid #DC2626; padding: 12px; text-align: left; }
+    .reveal .footer-meta { position: absolute; bottom: 12px; right: 18px; font-size: 0.45em; color: #999; }
+    .reveal pre code { font-size: 0.65em; }
+    /* SKELETON-only marker — gỡ khi đổ content */
+    .reveal .todo { background: #FEFCE8; border: 1px dashed #CA8A04; color: #92400E; padding: 10px; margin: 10px 0; font-size: 0.7em; text-align: left; border-radius: 6px; }
+    .reveal .diagram-ph { background: #F8FAFC; border: 2px dashed #94A3B8; color: #475569; padding: 28px; margin: 14px 0; font-size: 0.8em; border-radius: 8px; }
+  </style>
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- ═══════════ SKELETON 20 SLIDE — title + note stub + placeholder ═══════════
+         Map nguồn: defense-deck.html (40 slide). Đổ content sau theo defense-deck-20slide-plan.md §2.
+         Quyết định đã chốt 2026-06-13: KPI=số-thật+placeholder NFR/beta · Demo=live+backup · thứ tự AI→Arch giữ nguyên. -->
+
+    <!-- S1 -->
+    <section>
+      <h1>KiteHub &amp; KiteClass</h1>
+      <h3>Xây dựng hệ thống SaaS cung cấp dịch vụ đào tạo</h3>
+      <div class="highlight-box">Nền tảng SaaS đào tạo — native multi-tenant + AI Branding</div>
+      <p class="small">SVTH: Nguyễn Văn Kiệt · MSV 221230890 · CNTT1-K63 · Bộ môn CNPM</p>
+      <p class="small">GVHD: [TÊN GVHD] · Trường ĐH Giao thông Vận tải (UTC)</p>
+      <div class="footer-meta">Bảo vệ khóa luận tốt nghiệp · 2026</div>
+      <aside class="notes">Chào hội đồng, giới thiệu tên + đề tài 1 câu. ~30s.</aside>
+    </section>
+
+    <!-- S2 -->
+    <section>
+      <h2>Nội dung trình bày</h2>
+      <div class="diagram-ph">📊 [5-step bar: Vấn đề → Thiết kế → Cài đặt → Kết quả → Kết luận]</div>
+      <aside class="notes">Đọc nhanh 5 phần. ~20s.</aside>
+    </section>
+
+    <!-- S3 -->
+    <section>
+      <h2>Bối cảnh &amp; vấn đề</h2>
+      <div class="todo">TODO content: gộp deck40 s3 (bối cảnh thị trường) + s4 (3 quan sát thực tế). Thông điệp: trung tâm/trường nhỏ VN thiếu nền tảng quản lý + thương hiệu số giá rẻ.</div>
+      <aside class="notes">3 quan sát thực tế dẫn tới đề tài. ~60s.</aside>
+    </section>
+
+    <!-- S4 -->
+    <section>
+      <h2>Mục tiêu &amp; phạm vi khóa luận</h2>
+      <div class="todo">TODO content: gộp deck40 s5 (4 nhóm mục tiêu) + s6 (phạm vi Phase 1 BETA P1+P2).</div>
+      <aside class="notes">4 nhóm mục tiêu + scope box. ~60s.</aside>
+    </section>
+
+    <!-- S5 -->
+    <section>
+      <h2>Khảo sát hệ thống tương tự + yếu tố khác biệt</h2>
+      <div class="todo">TODO content: gộp deck40 s10 (5 đối thủ BeeClass/MISA/Mona/EasyEdu/DotB) + s11 (khác biệt: native multi-tenant + AI). Dạng bảng so sánh rút gọn.</div>
+      <aside class="notes">Nhấn yếu tố khác biệt; chi tiết để phụ lục A6. ~70s.</aside>
+    </section>
+
+    <!-- S6 — ĐIỂM NHẤN 1 -->
+    <section>
+      <h2>⭐ Kỹ thuật AI Branding</h2>
+      <div class="diagram-ph">📊 [Mermaid pipeline: kéo từ deck40 s9 — text→image → quality gate ≥70 → deploy]</div>
+      <div class="todo">TODO: gộp ý từ deck40 s7 (tổng quan AI) + s8 (4 phương pháp text-to-image, chi tiết → phụ lục A1) + s9 (pipeline).</div>
+      <aside class="notes">Đóng góp 1: tạo bộ nhận diện thương hiệu tự động. ~80s.</aside>
+    </section>
+
+    <!-- S7 -->
+    <section>
+      <h2>Tuân thủ pháp luật Việt Nam</h2>
+      <div class="todo">TODO content: gộp deck40 s13 (3 trụ cột) + s14 (PDPL mapping — đầy đủ → phụ lục A2). Bảng mapping 3 dòng: PDPL 2023 / An ninh mạng 2018 / TT78.</div>
+      <aside class="notes">Mapping điều luật ↔ tính năng. ~60s.</aside>
+    </section>
+
+    <!-- S8 -->
+    <section>
+      <h2>Kiến trúc hệ thống — C4 Level 1</h2>
+      <div class="diagram-ph">📊 [Mermaid C4 L1: kéo từ deck40 s15 — KiteHub (lifecycle/billing) + KiteClass (nghiệp vụ trường) + hạ tầng chung]</div>
+      <aside class="notes">Tách trách nhiệm 2 sản phẩm + hạ tầng chia sẻ. ~70s.</aside>
+    </section>
+
+    <!-- S9 — ĐIỂM NHẤN 2 -->
+    <section>
+      <h2>⭐ Multi-tenant &amp; chiến lược cô lập</h2>
+      <div class="diagram-ph">📊 [Mermaid isolation: kéo từ deck40 s16 — Pool model 1 DB + tenant resolution]</div>
+      <div class="todo">TODO: gộp deck40 s16 (cô lập) + s19 (service decomposition phần liên quan tenant).</div>
+      <aside class="notes">Đóng góp 2: Pool model + RLS. ~70s.</aside>
+    </section>
+
+    <!-- S10 -->
+    <section>
+      <h2>PostgreSQL RLS — cài đặt</h2>
+      <div class="todo">TODO content: kéo deck40 s17. Code/policy snippet: RLS policy + app.current_tenant_id GUC chặn rò chéo tenant tầng DB.</div>
+      <aside class="notes">Highlight kỹ thuật cốt lõi. ~70s.</aside>
+    </section>
+
+    <!-- S11 -->
+    <section>
+      <h2>Defense-in-depth — 5 lớp bảo mật</h2>
+      <div class="diagram-ph">📊 [Mermaid 5-layer: kéo từ deck40 s18 — gateway → JWT → role guard → RLS → audit log]</div>
+      <aside class="notes">Bảo mật nhiều lớp. ~60s.</aside>
+    </section>
+
+    <!-- S12 -->
+    <section>
+      <h2>Tech stack + phân rã service</h2>
+      <div class="todo">TODO content: gộp deck40 s20 (sequence auth — đầy đủ → phụ lục A3) + s21 (stack). Spring Boot modular monolith + microservices, Next.js, Postgres/Redis/RabbitMQ/MinIO.</div>
+      <aside class="notes">Stack + cách chia service. ~50s.</aside>
+    </section>
+
+    <!-- S13 — ĐIỂM NHẤN 3 -->
+    <section>
+      <h2>⭐ Implementation highlight</h2>
+      <pre><code class="java" data-trim>// TODO: kéo 1 snippet tiêu biểu từ deck40 s22
+// JWT auth filter / Tenant RLS interceptor / Outbox dispatcher</code></pre>
+      <aside class="notes">Đóng góp 3: code tiêu biểu. ~70s.</aside>
+    </section>
+
+    <!-- S14 -->
+    <section>
+      <h2>Triển khai — AWS Singapore Free Tier</h2>
+      <div class="diagram-ph">📊 [Mermaid deploy topo: kéo từ deck40 s23 — ap-southeast-1, EC2 + RDS + ECR]</div>
+      <div class="todo">TODO: gộp s23 (AWS) + s24 (lý do AWS Singapore — chi tiết → phụ lục nếu cần).</div>
+      <aside class="notes">Deploy thực tế + tối ưu chi phí Free Tier. ~60s.</aside>
+    </section>
+
+    <!-- S15 -->
+    <section>
+      <h2>CI/CD + Observability</h2>
+      <div class="todo">TODO content: gộp deck40 s25 (GitHub Actions OIDC — không long-lived key) + s26 (observability 3 lớp).</div>
+      <aside class="notes">Pipeline + giám sát. ~50s.</aside>
+    </section>
+
+    <!-- S16 -->
+    <section>
+      <h2>Phương pháp Quality-Driven Development</h2>
+      <div class="todo">TODO content (mới — từ Ch1 §1.6): 4 trụ cột — audit /100 + gap pipeline + wave + meta-rule governance. LƯU Ý thesis-content-standard: diễn đạt học thuật, KHÔNG dùng jargon "Wave/GAP/meta-rule" thô — đổi sang "quy trình kiểm thử lặp / quản lý khoảng thiếu / phát triển theo đợt / chuẩn hóa quy tắc".</div>
+      <aside class="notes">Phương pháp luận đề tài. ~50s.</aside>
+    </section>
+
+    <!-- S17 — KPI (quyết định: số thật đã có + placeholder NFR/beta) -->
+    <section>
+      <h2>Kết quả &amp; KPI</h2>
+      <div class="two-col">
+        <div class="kpi-card"><div class="kpi-number">[số thật]</div><div class="small">Quality/Security score (đã đo)</div></div>
+        <div class="kpi-card"><div class="kpi-number">[số thật]</div><div class="small">Test coverage / AWS cost (đã đo)</div></div>
+      </div>
+      <div class="todo">Quyết định 2026-06-13: dùng SỐ THẬT đã có (quality score trajectory, test coverage, AWS cost — gộp deck40 s27/s28/s29). NFR load-test (GAP-648) + beta feedback (GAP-649) dùng placeholder nhãn "đo tại thời điểm bảo vệ" → backfill khi data về.</div>
+      <aside class="notes">Số thật trước, NFR/beta đo tại bảo vệ. ~80s.</aside>
+    </section>
+
+    <!-- S18 — DEMO (quyết định: live + backup video) -->
+    <section>
+      <h2>Demo trực tiếp</h2>
+      <div class="highlight-box">Live demo: anonymous prospect → onboarding → tenant wizard → multi-tenant proof<br><span class="small">Backup: backup-demo.mp4 (fallback nếu sự cố — per defense-demo-script.md)</span></div>
+      <div class="diagram-ph">🖥️ [Screenshot mở đầu demo]</div>
+      <aside class="notes">Chuyển sang live demo theo defense-demo-script.md 6 phase. ~30s + demo.</aside>
+    </section>
+
+    <!-- S19 -->
+    <section>
+      <h2>Hạn chế &amp; hướng phát triển</h2>
+      <div class="two-col">
+        <div class="limitation-box"><strong>Hạn chế (Phase 1):</strong><br><span class="todo">TODO: kéo từ cuối deck40 — thừa nhận hạn chế.</span></div>
+        <div class="highlight-box"><strong>Hướng phát triển:</strong><br><span class="todo">TODO: Phase 2/3 — EKS, payment gateway, K-12.</span></div>
+      </div>
+      <aside class="notes">Thừa nhận hạn chế + lộ trình. ~70s.</aside>
+    </section>
+
+    <!-- S20 -->
+    <section>
+      <h2>Kết luận</h2>
+      <div class="todo">TODO content: 3 đóng góp chính (AI Branding · Multi-tenant RLS · Quality-driven) + lời cảm ơn GVHD/hội đồng.</div>
+      <h3>Xin cảm ơn — sẵn sàng trả lời câu hỏi</h3>
+      <aside class="notes">Tóm 3 đóng góp + cảm ơn. ~40s.</aside>
+    </section>
+
+    <!-- ═══════════ PHỤ LỤC (backup Q&A — không tính 20) ═══════════ -->
+    <section data-background-color="#F1F5F9">
+      <h2>Phụ lục — Backup Q&amp;A</h2>
+      <p class="small">Bật khi hội đồng hỏi sâu · map theo defense-qa-response-sheet.md 4 archetype</p>
+      <aside class="notes">Slide ngăn cách phụ lục.</aside>
+    </section>
+    <section><h3>A1 — So sánh 4 phương pháp text-to-image</h3><div class="todo">kéo deck40 s8</div></section>
+    <section><h3>A2 — PDPL 2023 mapping đầy đủ</h3><div class="todo">kéo deck40 s14</div></section>
+    <section><h3>A3 — Sequence diagram auth flow đầy đủ</h3><div class="todo">kéo deck40 s20</div></section>
+    <section><h3>A4 — KPI trajectory chi tiết theo đợt</h3><div class="todo">kéo deck40 s28</div></section>
+    <section><h3>A5 — Cost breakdown chi tiết AWS</h3><div class="todo">kéo deck40 s29</div></section>
+    <section><h3>A6 — Phân khúc thị trường mục tiêu</h3><div class="todo">kéo deck40 s12</div></section>
+
+  </div>
+</div>
+
+<!-- Reveal.js + Mermaid plugin (đồng bộ deck 40) -->
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/notes/notes.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>
+  mermaid.initialize({ startOnLoad: false, theme: 'default', securityLevel: 'loose',
+    flowchart: { useMaxWidth: true, htmlLabels: true }, sequence: { useMaxWidth: true } });
+  Reveal.initialize({ hash: true, slideNumber: 'c/t', transition: 'slide',
+    width: 1280, height: 800, margin: 0.04, minScale: 0.2, maxScale: 1.6,
+    plugins: [ RevealNotes, RevealHighlight ] });
+  Reveal.on('ready', function () { mermaid.run({ querySelector: '.mermaid' }); });
+  Reveal.on('slidechanged', function () { mermaid.run({ querySelector: '.mermaid' }); });
+</script>
+</body>
+</html>
