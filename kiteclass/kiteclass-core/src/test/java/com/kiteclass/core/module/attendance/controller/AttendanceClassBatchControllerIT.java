@@ -26,6 +26,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
@@ -71,23 +72,32 @@ class AttendanceClassBatchControllerIT {
         AttendancePeriodService service() {
             return Mockito.mock(AttendancePeriodService.class);
         }
-
-        /**
-         * Wave 105 Bucket C: stub the authz bean so SpEL
-         * {@code @authz.hasAccessToClass(#classId)} resolves without a
-         * full Spring Security ApplicationContext + TeacherClassRepository.
-         * Tests below configure return values per-scenario.
-         */
-        @Bean("authz") @Primary
-        AuthorizationBean authz() {
-            return Mockito.mock(AuthorizationBean.class);
-        }
     }
 
     @Autowired private MockMvc mockMvc;
     @Autowired private AttendancePeriodService service;
-    @Autowired private AuthorizationBean authz;
     @Autowired private ObjectMapper objectMapper;
+
+    /**
+     * Wave 105 Bucket C: stub the authz bean so SpEL
+     * {@code @authz.hasAccessToClass(#classId)} resolves without a full Spring
+     * Security ApplicationContext + TeacherClassRepository. Tests below
+     * configure return values per-scenario.
+     *
+     * <p>GAP-1278: registered as a Spring Boot {@code @MockitoBean} (bean-override
+     * mechanism) rather than a {@code @TestConfiguration @Bean Mockito.mock(...)}.
+     * A {@code @Bean}-registered mock is a Mockito subclass of
+     * {@link AuthorizationBean}, so it inherits the {@code @PersistenceContext
+     * EntityManager} field (added in GAP-1165). In this JPA-less {@code @WebMvcTest}
+     * slice, Spring's {@code PersistenceAnnotationBeanPostProcessor} then tries to
+     * inject an {@code EntityManager} into the mock and fails with
+     * {@code NoSuchBeanDefinitionException: EntityManagerFactory} → context init
+     * fails. Bean-override beans are registered as pre-built singletons that bypass
+     * property post-processing, so the persistence post-processor never touches the
+     * mock — context loads cleanly.
+     */
+    @MockitoBean(name = "authz")
+    private AuthorizationBean authz;
 
     private static final Long CLASS_ID = 100L;
     private static final Long TEACHER_ID = 5L;
