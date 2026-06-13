@@ -173,3 +173,121 @@ export function formatPrice(price: number, cycle: BillingCycle = 'MONTHLY'): str
 
   return cycle === 'MONTHLY' ? `${formatted}/tháng` : `${formatted}/năm`;
 }
+
+/**
+ * Format a plain VND amount (no /tháng suffix) — for breakdown rows.
+ */
+export function formatVnd(amount: number): string {
+  if (amount === -1) return 'Liên hệ';
+  return new Intl.NumberFormat('vi-VN', {
+    style: 'currency',
+    currency: 'VND',
+  }).format(amount);
+}
+
+/**
+ * Custom-domain eligibility per tier (SUB-22 entitlement matrix:
+ * PREMIUM + ENTERPRISE only).
+ */
+export function allowsCustomDomain(tier: PricingTier): boolean {
+  return tier === 'PREMIUM' || tier === 'ENTERPRISE';
+}
+
+/**
+ * GAP-1269 — Tier recommender by student count.
+ *
+ * Maps a center's student headcount to the smallest tier whose `maxStudents`
+ * cap accommodates it. Caps come from PLAN_DETAILS (SUB-22 canonical matrix):
+ * FREE 10 / BASIC 50 / PREMIUM 200 / ENTERPRISE unlimited.
+ *
+ * Returns the recommended tier plus `isEnterprise` so the UI can swap the
+ * default "select" CTA for a sales "Liên hệ tư vấn" CTA (ENTERPRISE = custom).
+ */
+export interface TierRecommendation {
+  tier: PricingTier;
+  isEnterprise: boolean;
+  reason: string;
+}
+
+export function recommendTierByStudents(studentCount: number): TierRecommendation {
+  const count = Number.isFinite(studentCount) ? Math.max(0, Math.floor(studentCount)) : 0;
+
+  if (count <= PLAN_DETAILS.FREE.maxStudents) {
+    return {
+      tier: 'FREE',
+      isEnterprise: false,
+      reason: `Tối đa ${PLAN_DETAILS.FREE.maxStudents} học viên — gói Miễn phí đủ dùng để bắt đầu.`,
+    };
+  }
+  if (count <= PLAN_DETAILS.BASIC.maxStudents) {
+    return {
+      tier: 'BASIC',
+      isEnterprise: false,
+      reason: `Khoảng ${count} học viên — gói Cơ bản (tối đa ${PLAN_DETAILS.BASIC.maxStudents}) phù hợp.`,
+    };
+  }
+  if (count <= PLAN_DETAILS.PREMIUM.maxStudents) {
+    return {
+      tier: 'PREMIUM',
+      isEnterprise: false,
+      reason: `Khoảng ${count} học viên — gói Cao cấp (tối đa ${PLAN_DETAILS.PREMIUM.maxStudents}) phù hợp.`,
+    };
+  }
+  return {
+    tier: 'ENTERPRISE',
+    isEnterprise: true,
+    reason: `Trên ${PLAN_DETAILS.PREMIUM.maxStudents} học viên — cần gói Doanh nghiệp với giới hạn tùy chỉnh.`,
+  };
+}
+
+/**
+ * GAP-1261 — Downgrade over-cap impact, computed client-side from PricingTier
+ * caps (SUB-22). No usage-preview endpoint exists yet, so this surfaces the
+ * cap REDUCTIONS + feature losses between the two tiers. Whether the tenant's
+ * ACTUAL usage exceeds the new cap requires usage data (student/storage
+ * counts) not present on the Instance type — flagged as a follow-up; UI warns
+ * the owner to verify their current usage stays within the new limits.
+ */
+export interface DowngradeImpact {
+  hasImpact: boolean;
+  studentCapFrom: number; // -1 = unlimited
+  studentCapTo: number;
+  teacherCapFrom: number;
+  teacherCapTo: number;
+  storageFromMB: number;
+  storageToMB: number;
+  losesCustomDomain: boolean;
+  losesAiBranding: boolean;
+}
+
+export function computeDowngradeImpact(
+  currentTier: PricingTier,
+  newTier: PricingTier,
+): DowngradeImpact {
+  const cur = PLAN_DETAILS[currentTier];
+  const next = PLAN_DETAILS[newTier];
+
+  // Cap "reduced" when current is unlimited (-1) and new is finite, OR new < current.
+  const isReduced = (from: number, to: number) =>
+    (from === -1 && to !== -1) || (from !== -1 && to !== -1 && to < from);
+
+  const studentReduced = isReduced(cur.maxStudents, next.maxStudents);
+  const teacherReduced = isReduced(cur.maxTeachers, next.maxTeachers);
+  const storageReduced = isReduced(cur.storageMB, next.storageMB);
+  const losesCustomDomain = allowsCustomDomain(currentTier) && !allowsCustomDomain(newTier);
+  // AI Branding available from BASIC up; FREE loses it.
+  const losesAiBranding = currentTier !== 'FREE' && newTier === 'FREE';
+
+  return {
+    hasImpact:
+      studentReduced || teacherReduced || storageReduced || losesCustomDomain || losesAiBranding,
+    studentCapFrom: cur.maxStudents,
+    studentCapTo: next.maxStudents,
+    teacherCapFrom: cur.maxTeachers,
+    teacherCapTo: next.maxTeachers,
+    storageFromMB: cur.storageMB,
+    storageToMB: next.storageMB,
+    losesCustomDomain,
+    losesAiBranding,
+  };
+}

@@ -9,11 +9,12 @@
 |----|------|-------|-----------|---------------|
 | TR-01 | Trial duration | 14 days | `kitehub.trial.duration-days` | Instance.startTrial() |
 | TR-02 | Max trial per owner | 1 | `kitehub.trial.max-per-owner` | InstanceService |
-| TR-03 | Warning emails | Day 11, 13 | `kitehub.trial.warning-days: [3,1]` | TrialExpirationChecker |
+| TR-03 | Warning emails | Day 4, 9, 11, 13 (widened TR-08/GAP-1270) | `kitehub.trial.warning-days: [10,5,3,1]` | TrialExpirationChecker |
 | TR-04 | Auto-suspend on expire | Yes | — | TrialExpirationChecker |
 | TR-05 | Data retention after suspend | 7 days | `kitehub.data-retention.trial: 7` | DataRetentionService |
 | TR-06 | Retention warnings | Day 3, 6 after suspend | `kitehub.data-retention.warning-count: 2` | DataRetentionScheduler |
 | TR-07 | Re-trial prevention | Block if ever had trial | — | InstanceService |
+| TR-08 | Trial conversion cadence + extension | Tăng touch-points nhắc convert (ngành 5-7 email vs hiện 3 day 7/11/13); thêm cơ chế trial extension `kitehub.trial.extension-days` (admin/auto grant rescue). Wave kitehub-biz-100. | GAP-1270; TrialExpirationChecker + email cadence |
 
 ## Config
 
@@ -22,11 +23,13 @@ kitehub:
   trial:
     duration-days: 14
     max-per-owner: 1
-    warning-days: [3, 1]       # ngày trước khi hết
-    midpoint-day: 7            # gửi email ngày 7
+    warning-days: [10, 5, 3, 1]   # TR-03/TR-08 — widened cadence (trial days 4/9/11/13)
+    midpoint-day: 7               # gửi email ngày 7
+    extension-days: 7             # TR-08 (GAP-1270) — trial extension/rescue length
+    auto-extend-on-expiry: false  # TR-08 — auto-grant 1 extension thay vì suspend (default off)
   data-retention:
-    trial: 7                   # ngày giữ data sau suspend
-    warning-count: 2           # số lần cảnh báo trước xóa
+    trial: 7                      # ngày giữ data sau suspend
+    warning-count: 2              # số lần cảnh báo trước xóa
 ```
 
 ## Five-attribute review per `business-logic-review.md`

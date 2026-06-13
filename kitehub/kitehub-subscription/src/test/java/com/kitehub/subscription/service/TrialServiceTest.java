@@ -42,6 +42,9 @@ class TrialServiceTest {
     @Mock
     private TrialConfig trialConfig;
 
+    @Mock
+    private InstanceTierSyncService instanceTierSyncService;
+
     @InjectMocks
     private TrialService trialService;
 
@@ -222,7 +225,7 @@ class TrialServiceTest {
         when(instanceRepository.save(any(Instance.class))).thenReturn(instance);
 
         // When
-        trialService.convertTrialToSubscription(instanceId);
+        trialService.convertTrialToSubscription(instanceId, PricingTier.PREMIUM);
 
         // Then
         ArgumentCaptor<Instance> captor = ArgumentCaptor.forClass(Instance.class);
@@ -230,6 +233,8 @@ class TrialServiceTest {
 
         Instance saved = captor.getValue();
         assertThat(saved.getStatus()).isEqualTo(InstanceStatus.ACTIVE);
+        // GAP-1095 — effective tier set through the canonical SUB-21 sync point.
+        verify(instanceTierSyncService).syncInstanceTier(saved, PricingTier.PREMIUM);
     }
 
     @Test

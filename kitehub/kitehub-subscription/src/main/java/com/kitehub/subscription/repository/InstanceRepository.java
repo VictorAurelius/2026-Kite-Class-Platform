@@ -6,10 +6,12 @@ import com.kitehub.platform.domain.enums.MigrationPhase;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import jakarta.persistence.LockModeType;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -32,8 +34,25 @@ public interface InstanceRepository extends JpaRepository<Instance, UUID> {
 
     List<Instance> findByStatusAndDeletedFalse(InstanceStatus status);
 
+    /**
+     * GAP-1253 (Wave kitehub-biz-100 Bucket 0): pessimistic-write lock for migration
+     * mutating paths (rule T2P-08). Prevents two concurrent upgrade initiations from
+     * both passing the can-start guard → double migration / double payment.
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT i FROM Instance i WHERE i.id = :id")
+    Optional<Instance> findByIdForUpdate(@Param("id") UUID id);
+
+    /**
+     * GAP-1255 (Wave kitehub-biz-100 Bucket 0): guard {@code migrationPhase = 'NONE'} so an
+     * instance mid-migration (PAYMENT_CAPTURED / MIGRATING — still status=TRIAL) is NOT
+     * suspended by the trial-expiry scheduler. {@code migrationPhase} is
+     * {@code @Enumerated(STRING)} with NOT NULL DEFAULT 'NONE' (V19) → string-literal
+     * comparison mirrors the existing {@code i.status = 'TRIAL'} pattern.
+     */
     @Query("SELECT i FROM Instance i WHERE i.status = 'TRIAL' " +
-           "AND i.trialExpiresAt < :now AND i.deleted = false")
+           "AND i.trialExpiresAt < :now AND i.deleted = false " +
+           "AND i.migrationPhase = 'NONE'")
     List<Instance> findExpiredTrials(@Param("now") LocalDateTime now);
 
     @Query("SELECT i FROM Instance i WHERE i.status = 'ACTIVE' " +

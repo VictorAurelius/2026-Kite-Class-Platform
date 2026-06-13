@@ -8,6 +8,7 @@ import com.kitehub.subscription.domain.BackupRecord;
 import com.kitehub.subscription.domain.BackupStatus;
 import com.kitehub.subscription.dto.PurgeResult;
 import com.kitehub.subscription.dto.PurgeStatus;
+import com.kitehub.subscription.exception.SubscriptionConflictException;
 import com.kitehub.subscription.outbox.SubscriptionOutboxEvent;
 import com.kitehub.subscription.outbox.SubscriptionOutboxRepository;
 import com.kitehub.subscription.repository.BackupRecordRepository;
@@ -256,8 +257,8 @@ class InstancePurgeServiceTest {
         }
 
         @Test
-        @DisplayName("should fail for non-DELETED instance even from admin")
-        void shouldFailForNonDeletedEvenAdmin() {
+        @DisplayName("should throw 409 SubscriptionConflictException for non-DELETED instance even from admin (GAP-1026)")
+        void shouldThrowConflictForNonDeletedEvenAdmin() {
             Instance activeInstance = new Instance();
             activeInstance.setId(instanceId);
             activeInstance.setSubdomain("active-school");
@@ -266,10 +267,11 @@ class InstancePurgeServiceTest {
             when(instanceRepository.findById(instanceId))
                 .thenReturn(Optional.of(activeInstance));
 
-            PurgeResult result = instancePurgeService.adminPurge(instanceId, UUID.randomUUID());
-
-            assertThat(result.getStatus()).isEqualTo(PurgeStatus.FAILED);
-            assertThat(result.getErrorMessage()).contains("DELETED status");
+            // GAP-1026: admin purge of a non-DELETED instance is a precondition conflict
+            // → 409 (SubscriptionConflictException), NOT a 200 with PurgeStatus.FAILED.
+            assertThatThrownBy(() -> instancePurgeService.adminPurge(instanceId, UUID.randomUUID()))
+                .isInstanceOf(SubscriptionConflictException.class)
+                .hasMessageContaining("DELETED status");
         }
 
         @Test

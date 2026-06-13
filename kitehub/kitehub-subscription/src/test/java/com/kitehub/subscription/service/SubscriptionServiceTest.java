@@ -21,6 +21,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
@@ -56,6 +57,11 @@ class SubscriptionServiceTest {
 
     @Mock
     private com.kitehub.subscription.client.EmailServiceClient emailServiceClient;
+
+    // GAP-1256: real stateless helper (not a mock) so instances.tier sync actually runs
+    // and tier assertions hold; @InjectMocks wires the spy via the constructor.
+    @Spy
+    private InstanceTierSyncService instanceTierSyncService = new InstanceTierSyncService();
 
     @InjectMocks
     private SubscriptionService subscriptionService;
@@ -448,21 +454,23 @@ class SubscriptionServiceTest {
     @Test
     @DisplayName("KH-5 FM-5: should reject downgrade while a pending tier-change payment is in flight")
     void shouldRejectDowngradeWhenPendingPaymentExists() {
-        // Given — an upgrade left a pending payment; downgrading now would corrupt the pair
+        // Given — an upgrade left a pending payment; downgrading now would corrupt the pair.
+        // Uses PREMIUM->BASIC (a valid non-FREE downgrade) so the assertion isolates the FM-5
+        // pending-payment guard, independent of the GAP-1018 bug-4 downgrade-to-FREE guard.
         UUID subscriptionId = UUID.randomUUID();
         Subscription subscription = new Subscription();
         subscription.setId(subscriptionId);
-        subscription.setTier(PricingTier.BASIC);
+        subscription.setTier(PricingTier.PREMIUM);
         subscription.setBillingCycle(BillingCycle.MONTHLY);
         subscription.setStatus(SubscriptionStatus.ACTIVE);
         subscription.setExpiresAt(java.time.LocalDateTime.now().plusDays(15));
-        subscription.setPendingTier(PricingTier.PREMIUM);
+        subscription.setPendingTier(PricingTier.ENTERPRISE);
         subscription.setPendingPaymentId(UUID.randomUUID());
 
         when(subscriptionRepository.findById(subscriptionId)).thenReturn(Optional.of(subscription));
 
         // When & Then
-        assertThatThrownBy(() -> subscriptionService.downgradeSubscription(subscriptionId, PricingTier.FREE))
+        assertThatThrownBy(() -> subscriptionService.downgradeSubscription(subscriptionId, PricingTier.BASIC))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("pending tier change payment");
         verify(subscriptionRepository, never()).save(any(Subscription.class));
@@ -508,5 +516,205 @@ class SubscriptionServiceTest {
         Subscription saved = captor.getValue();
         assertThat(saved.getStatus()).isEqualTo(SubscriptionStatus.CANCELLED);
         assertThat(saved.getAutoRenew()).isFalse();
+    }
+
+    @Test
+    @DisplayName("GAP-1080: create is idempotent — same-tier retry returns existing PENDING, no new row")
+    void shouldReturnExistingPendingOnIdempotentCreate() {
+        // Given — instance already has a PENDING subscription for BASIC (e.g. FE double-click)
+        CreateSubscriptionRequest request = CreateSubscriptionRequest.builder()
+            .instanceId(instanceId)
+            .tier(PricingTier.BASIC)
+            .billingCycle(BillingCycle.MONTHLY)
+            .autoRenew(true)
+            .build();
+
+        UUID existingPaymentId = UUID.randomUUID();
+        Subscription existing = new Subscription();
+        existing.setId(UUID.randomUUID());
+        existing.setInstanceId(instanceId);
+        existing.setTier(PricingTier.FREE);
+        existing.setPendingTier(PricingTier.BASIC);
+        existing.setPendingPaymentId(existingPaymentId);
+        existing.setStatus(SubscriptionStatus.PENDING);
+        existing.setPriceVnd(500_000L);
+
+        when(instanceRepository.existsById(instanceId)).thenReturn(true);
+        when(subscriptionRepository.findActiveByInstanceId(instanceId)).thenReturn(Optional.empty());
+        when(subscriptionRepository.findByInstanceId(instanceId))
+            .thenReturn(java.util.List.of(existing));
+
+        // When
+        SubscriptionResponse response = subscriptionService.createSubscription(request);
+
+        // Then — existing PENDING returned, NO new subscription / payment created
+        assertThat(response.getStatus()).isEqualTo(SubscriptionStatus.PENDING);
+        assertThat(response.getPendingPaymentId()).isEqualTo(existingPaymentId);
+        verify(subscriptionRepository, never()).save(any(Subscription.class));
+        verify(paymentRepository, never()).save(any(Payment.class));
+    }
+
+    @Test
+    @DisplayName("GAP-1080: create with a different tier while a PENDING exists -> 409 conflict")
+    void shouldRejectCreateWhenDifferentTierPending() {
+        // Given — a PENDING BASIC exists, owner now requests PREMIUM
+        CreateSubscriptionRequest request = CreateSubscriptionRequest.builder()
+            .instanceId(instanceId)
+            .tier(PricingTier.PREMIUM)
+            .billingCycle(BillingCycle.MONTHLY)
+            .autoRenew(true)
+            .build();
+
+        Subscription existing = new Subscription();
+        existing.setId(UUID.randomUUID());
+        existing.setInstanceId(instanceId);
+        existing.setPendingTier(PricingTier.BASIC);
+        existing.setStatus(SubscriptionStatus.PENDING);
+
+        when(instanceRepository.existsById(instanceId)).thenReturn(true);
+        when(subscriptionRepository.findActiveByInstanceId(instanceId)).thenReturn(Optional.empty());
+        when(subscriptionRepository.findByInstanceId(instanceId))
+            .thenReturn(java.util.List.of(existing));
+
+        // When & Then — 409 (SubscriptionConflictException), no new payment
+        assertThatThrownBy(() -> subscriptionService.createSubscription(request))
+            .isInstanceOf(com.kitehub.subscription.exception.SubscriptionConflictException.class)
+            .hasMessageContaining("pending subscription");
+        verify(paymentRepository, never()).save(any(Payment.class));
+    }
+
+    @Test
+    @DisplayName("GAP-1018 bug 4: downgrade to FREE is rejected (consistent with create per SUB-01)")
+    void shouldRejectDowngradeToFree() {
+        // Given — an ACTIVE BASIC subscription
+        UUID subscriptionId = UUID.randomUUID();
+        Subscription subscription = new Subscription();
+        subscription.setId(subscriptionId);
+        subscription.setTier(PricingTier.BASIC);
+        subscription.setBillingCycle(BillingCycle.MONTHLY);
+        subscription.setStatus(SubscriptionStatus.ACTIVE);
+        subscription.setExpiresAt(LocalDateTime.now().plusDays(10));
+
+        when(subscriptionRepository.findById(subscriptionId)).thenReturn(Optional.of(subscription));
+
+        // When & Then
+        assertThatThrownBy(() -> subscriptionService.downgradeSubscription(subscriptionId, PricingTier.FREE))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("FREE");
+        verify(subscriptionRepository, never()).save(any(Subscription.class));
+    }
+
+    @Test
+    @DisplayName("GAP-1017: immediate cancel suspends the instance")
+    void shouldSuspendInstanceOnImmediateCancel() {
+        // Given
+        UUID subscriptionId = UUID.randomUUID();
+        Subscription subscription = new Subscription();
+        subscription.setId(subscriptionId);
+        subscription.setInstanceId(instanceId);
+        subscription.setStatus(SubscriptionStatus.ACTIVE);
+        subscription.setExpiresAt(LocalDateTime.now().plusDays(10));
+        instance.setStatus(InstanceStatus.ACTIVE);
+
+        when(subscriptionRepository.findById(subscriptionId)).thenReturn(Optional.of(subscription));
+        when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
+
+        // When
+        subscriptionService.cancelSubscription(subscriptionId, true);
+
+        // Then — instance suspended now
+        assertThat(instance.getStatus()).isEqualTo(InstanceStatus.SUSPENDED);
+        verify(instanceRepository).save(instance);
+    }
+
+    @Test
+    @DisplayName("GAP-1017: end-of-cycle cancel does NOT suspend the instance now (scheduler handles at expiry)")
+    void shouldNotSuspendInstanceOnEndOfCycleCancel() {
+        // Given
+        UUID subscriptionId = UUID.randomUUID();
+        Subscription subscription = new Subscription();
+        subscription.setId(subscriptionId);
+        subscription.setInstanceId(instanceId);
+        subscription.setStatus(SubscriptionStatus.ACTIVE);
+        subscription.setExpiresAt(LocalDateTime.now().plusDays(10));
+
+        when(subscriptionRepository.findById(subscriptionId)).thenReturn(Optional.of(subscription));
+
+        // When
+        subscriptionService.cancelSubscription(subscriptionId, false);
+
+        // Then — instance untouched at cancel time
+        verify(instanceRepository, never()).findById(any());
+        verify(instanceRepository, never()).save(any(Instance.class));
+    }
+
+    @Test
+    @DisplayName("GAP-1016: confirmed renewal payment (no tier change) extends cycle + reactivates SUSPENDED instance")
+    void shouldExtendCycleAndReactivateOnRenewalConfirm() {
+        // Given — an EXPIRED subscription with a pending renewal payment (pendingTier null)
+        UUID subscriptionId = UUID.randomUUID();
+        UUID paymentId = UUID.randomUUID();
+        Subscription subscription = new Subscription();
+        subscription.setId(subscriptionId);
+        subscription.setInstanceId(instanceId);
+        subscription.setTier(PricingTier.BASIC);
+        subscription.setBillingCycle(BillingCycle.MONTHLY);
+        subscription.setStatus(SubscriptionStatus.EXPIRED);
+        LocalDateTime oldExpiry = LocalDateTime.now().minusDays(1);
+        subscription.setExpiresAt(oldExpiry);
+        subscription.setPendingPaymentId(paymentId);
+        instance.setStatus(InstanceStatus.SUSPENDED);
+
+        when(subscriptionRepository.findById(subscriptionId)).thenReturn(Optional.of(subscription));
+        when(subscriptionRepository.save(any(Subscription.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
+        when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
+
+        // When
+        subscriptionService.applyPendingUpgrade(subscriptionId, paymentId);
+
+        // Then — cycle extended, status ACTIVE, instance reactivated, no tier change
+        assertThat(subscription.getStatus()).isEqualTo(SubscriptionStatus.ACTIVE);
+        assertThat(subscription.getTier()).isEqualTo(PricingTier.BASIC);
+        assertThat(subscription.getExpiresAt()).isAfter(oldExpiry);
+        assertThat(subscription.getPendingPaymentId()).isNull();
+        assertThat(instance.getStatus()).isEqualTo(InstanceStatus.ACTIVE);
+    }
+
+    @Test
+    @DisplayName("GAP-1018 bug 2: renewal confirm with scheduled downgrade applies downgrade + extends + syncs instance tier")
+    void shouldApplyScheduledDowngradeOnRenewalConfirm() {
+        // Given — PREMIUM ACTIVE with a scheduled downgrade to BASIC + a confirmed renewal payment
+        UUID subscriptionId = UUID.randomUUID();
+        UUID paymentId = UUID.randomUUID();
+        Subscription subscription = new Subscription();
+        subscription.setId(subscriptionId);
+        subscription.setInstanceId(instanceId);
+        subscription.setTier(PricingTier.PREMIUM);
+        subscription.setPendingTier(PricingTier.BASIC);     // scheduled downgrade
+        subscription.setBillingCycle(BillingCycle.MONTHLY);
+        subscription.setStatus(SubscriptionStatus.ACTIVE);
+        LocalDateTime oldExpiry = LocalDateTime.now().plusDays(2);
+        subscription.setExpiresAt(oldExpiry);
+        subscription.setPendingPaymentId(paymentId);
+        instance.setStatus(InstanceStatus.ACTIVE);
+        instance.setTier(PricingTier.PREMIUM);
+
+        when(subscriptionRepository.findById(subscriptionId)).thenReturn(Optional.of(subscription));
+        when(subscriptionRepository.save(any(Subscription.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
+        when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
+
+        // When
+        subscriptionService.applyPendingUpgrade(subscriptionId, paymentId);
+
+        // Then — downgrade applied + cycle extended + instances.tier synced (GAP-1256 SUB-21)
+        assertThat(subscription.getTier()).isEqualTo(PricingTier.BASIC);
+        assertThat(subscription.getPendingTier()).isNull();
+        assertThat(subscription.getPriceVnd()).isEqualTo(PricingTier.BASIC.getPrice(BillingCycle.MONTHLY));
+        assertThat(subscription.getExpiresAt()).isAfter(oldExpiry);
+        assertThat(subscription.getPendingPaymentId()).isNull();
+        assertThat(instance.getTier()).isEqualTo(PricingTier.BASIC);
+        verify(instanceRepository).save(any(Instance.class));
     }
 }

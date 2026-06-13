@@ -12,6 +12,7 @@ import {
   useCreateSubscription,
 } from '@/hooks/use-subscriptions';
 import { StepIndicator } from '@/components/billing/StepIndicator';
+import { TierRecommender } from '@/components/billing/TierRecommender';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 
 // GAP-236 Sub-PR B — only one wizard step is rendered at a time, so each
@@ -235,16 +236,25 @@ export default function UpgradePage() {
 
       <div className="mt-2">
         {step === 1 && (
-          <TierSelector
-            // Khi chưa có subscription, treat current tier = FREE để TierSelector
-            // hiển thị mọi tier paid như "upgrade" candidate.
-            currentTier={subscription?.tier ?? 'FREE'}
-            selectedTier={selectedTier}
-            onSelect={(tier) => {
-              setSelectedTier(tier);
-              setStep(2);
-            }}
-          />
+          <div className="space-y-6">
+            {/* GAP-1269 — gợi ý gói theo số học viên; chọn xong nhảy sang bước xác nhận */}
+            <TierRecommender
+              onSelectTier={(tier) => {
+                setSelectedTier(tier);
+                setStep(2);
+              }}
+            />
+            <TierSelector
+              // Khi chưa có subscription, treat current tier = FREE để TierSelector
+              // hiển thị mọi tier paid như "upgrade" candidate.
+              currentTier={subscription?.tier ?? 'FREE'}
+              selectedTier={selectedTier}
+              onSelect={(tier) => {
+                setSelectedTier(tier);
+                setStep(2);
+              }}
+            />
+          </div>
         )}
 
         {step === 2 && selectedTier && (

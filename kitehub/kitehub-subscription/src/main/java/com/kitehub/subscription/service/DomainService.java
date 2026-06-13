@@ -19,10 +19,12 @@ import java.util.UUID;
  *
  * Business rules:
  * - Only PREMIUM and ENTERPRISE instances can use custom domains
- * - Flow: initiate → user adds TXT record → verify → active
+ * - State machine (BR-DOMAIN-002): NONE → PENDING_VERIFY → CERT_PROVISIONING → VERIFIED;
+ *   FAILED reachable from any non-terminal state; re-initiate resets FAILED → PENDING_VERIFY
  * - Token format: kitehub-verify={uuid}
- * - Timeout: configurable (default 48h)
- * - Backup URL (subdomain.kitehub.me) always works in parallel
+ * - Timeout: configurable (default 48h, BR-DOMAIN-003) — PENDING_VERIFY → FAILED via
+ *   {@code DomainVerificationTimeoutScheduler}
+ * - Backup URL (subdomain.kitehub.me) always works in parallel (BR-DOMAIN-007)
  *
  * @author KiteHub Team
  * @since 1.0.0
@@ -36,6 +38,7 @@ public class DomainService {
     private final InstanceRepository instanceRepository;
     private final DomainVerificationConfig domainVerificationConfig;
     private final DnsTxtLookupService dnsTxtLookupService;
+    private final CertProvisioningService certProvisioningService;
 
     // KH-7 FM-5: a tenant must not be able to claim the platform's own domains as their
     // custom domain (no denylist previously — `kitehub.me` was accepted). Block the
@@ -95,7 +98,7 @@ public class DomainService {
         // Generate verification token: kitehub-verify={uuid}
         String token = "kitehub-verify=" + UUID.randomUUID();
 
-        // Update instance
+        // Update instance — (re)enters PENDING_VERIFY (BR-DOMAIN-004: also the FAILED → retry path)
         instance.setCustomDomain(customDomain);
         instance.setDomainVerifyToken(token);
         instance.setDomainStatus(Instance.DomainStatus.PENDING_VERIFY);
@@ -109,9 +112,19 @@ public class DomainService {
     }
 
     /**
-     * Verify custom domain by checking DNS TXT record.
-     * In mock mode: if DNS is not resolvable, returns PENDING (does not fail hard).
-     * In production: checks actual TXT record matches the token.
+     * Verify custom domain by advancing the verification state machine
+     * (BR-DOMAIN-002: PENDING_VERIFY → CERT_PROVISIONING → VERIFIED).
+     *
+     * <p>Idempotent (GAP-1024): re-verifying an already-VERIFIED domain returns the current
+     * state (HTTP 200 no-op) instead of throwing. Re-verifying a CERT_PROVISIONING domain
+     * re-polls certificate issuance. PENDING_VERIFY does a DNS TXT lookup; on success it
+     * enters CERT_PROVISIONING then requests a cert (stub auto-issues → VERIFIED). NONE /
+     * FAILED (or no domain set) → IllegalArgumentException (use {@link #initiateCustomDomain}
+     * to (re)start).</p>
+     *
+     * <p>In mock mode, an unresolved DNS lookup keeps the instance PENDING_VERIFY (does not
+     * fail hard). The {@code DomainVerificationTimeoutScheduler} flips PENDING_VERIFY → FAILED
+     * after the configured timeout (BR-DOMAIN-003).</p>
      *
      * @param instanceId the instance UUID
      * @return DomainVerifyResponse with updated status
@@ -122,8 +135,25 @@ public class DomainService {
         log.info("Verifying custom domain for instance '{}'", instanceId);
 
         Instance instance = findInstanceOrThrow(instanceId);
+        Instance.DomainStatus status = instance.getDomainStatus();
 
-        if (instance.getDomainStatus() != Instance.DomainStatus.PENDING_VERIFY
+        // Idempotent: already VERIFIED → no-op (GAP-1024 — previously threw 400)
+        if (status == Instance.DomainStatus.VERIFIED) {
+            log.info("Domain '{}' already VERIFIED for instance '{}' — idempotent no-op",
+                instance.getCustomDomain(), instanceId);
+            return buildResponse(instance, instance.getCustomDomain(), instance.getDomainVerifyToken());
+        }
+
+        // Idempotent: certificate provisioning in flight → re-poll issuance (no DNS re-check)
+        if (status == Instance.DomainStatus.CERT_PROVISIONING) {
+            provisionCertAndAdvance(instance);
+            instanceRepository.save(instance);
+            return buildResponse(instance, instance.getCustomDomain(), instance.getDomainVerifyToken());
+        }
+
+        // Only PENDING_VERIFY is DNS-verifiable. NONE / FAILED / no-domain → nothing pending
+        // (FAILED must re-initiate to regenerate token per BR-DOMAIN-004).
+        if (status != Instance.DomainStatus.PENDING_VERIFY
             || instance.getCustomDomain() == null
             || instance.getDomainVerifyToken() == null) {
             throw new IllegalArgumentException(
@@ -138,27 +168,53 @@ public class DomainService {
         boolean verified = checkDnsTxtRecord(domain, expectedToken);
 
         if (verified) {
-            instance.setDomainStatus(Instance.DomainStatus.VERIFIED);
-            instance.setDomainVerifiedAt(LocalDateTime.now());
-            log.info("Domain '{}' verified for instance '{}'", domain, instanceId);
+            // DNS ownership proven → enter CERT_PROVISIONING, then request the cert.
+            instance.setDomainStatus(Instance.DomainStatus.CERT_PROVISIONING);
+            log.info("Domain '{}' DNS TXT verified for instance '{}' → CERT_PROVISIONING", domain, instanceId);
+            provisionCertAndAdvance(instance);
         } else {
-            // Mock mode: stay PENDING instead of marking FAILED
-            // This prevents hard failures in environments where DNS is not accessible
-            if (!domainVerificationConfig.isMockMode()) {
-                // Check timeout: if past timeoutHours, mark FAILED
-                // (Timeout logic would be implemented in a scheduled job)
-                instance.setDomainStatus(Instance.DomainStatus.PENDING_VERIFY);
-                log.info("Domain '{}' TXT record not found yet for instance '{}', staying PENDING",
-                    domain, instanceId);
-            } else {
-                instance.setDomainStatus(Instance.DomainStatus.PENDING_VERIFY);
+            // No TXT yet — stay PENDING_VERIFY; timeout scheduler flips FAILED after timeout-hours.
+            instance.setDomainStatus(Instance.DomainStatus.PENDING_VERIFY);
+            if (domainVerificationConfig.isMockMode()) {
                 log.info("Mock mode: domain '{}' DNS not resolvable, keeping PENDING for instance '{}'",
                     domain, instanceId);
+            } else {
+                log.info("Domain '{}' TXT record not found yet for instance '{}', staying PENDING "
+                        + "(timeout job will FAIL after {}h)",
+                    domain, instanceId, domainVerificationConfig.getTimeoutHours());
             }
         }
 
         instanceRepository.save(instance);
         return buildResponse(instance, instance.getCustomDomain(), instance.getDomainVerifyToken());
+    }
+
+    /**
+     * Request a TLS certificate for the (DNS-verified) domain and advance the state machine:
+     * ISSUED → VERIFIED (+ domainVerifiedAt); PENDING → stay CERT_PROVISIONING (real async
+     * issuance in flight); FAILED → FAILED. The instance is mutated in place; caller persists.
+     *
+     * @param instance the instance currently entering/in CERT_PROVISIONING
+     */
+    private void provisionCertAndAdvance(Instance instance) {
+        String domain = instance.getCustomDomain();
+        CertProvisioningResult cert = certProvisioningService.requestCertificate(domain);
+
+        if (cert.isIssued()) {
+            instance.setDomainStatus(Instance.DomainStatus.VERIFIED);
+            instance.setDomainVerifiedAt(LocalDateTime.now());
+            log.info("Domain '{}' certificate issued ({}) for instance '{}' → VERIFIED",
+                domain, cert.detail(), instance.getId());
+        } else if (cert.isFailed()) {
+            instance.setDomainStatus(Instance.DomainStatus.FAILED);
+            log.warn("Domain '{}' certificate provisioning FAILED ({}) for instance '{}' → FAILED",
+                domain, cert.detail(), instance.getId());
+        } else {
+            // PENDING — real async issuance in flight; stay CERT_PROVISIONING (re-poll on next verify).
+            instance.setDomainStatus(Instance.DomainStatus.CERT_PROVISIONING);
+            log.info("Domain '{}' certificate provisioning PENDING ({}) for instance '{}' — staying CERT_PROVISIONING",
+                domain, cert.detail(), instance.getId());
+        }
     }
 
     /**

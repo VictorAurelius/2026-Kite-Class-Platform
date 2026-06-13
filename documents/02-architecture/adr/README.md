@@ -128,7 +128,9 @@ Out-of-cadence reviews triggered by: production incident referencing a decision,
 | [027](ADR-027-statuspage-vendor.md) | Status Page Vendor — Instatus Free Tier (Phase 1 BETA) | ACCEPTED | 2026-05-07 |
 | [028](ADR-028-ecs-fargate-vs-eks-phase-1-beta.md) | ECS Fargate vs EKS for Phase 1 BETA Container Orchestration | ACCEPTED | 2026-05-11 |
 
-Next free ID: **ADR-029**.
+Next free ID: **ADR-046**.
+
+> **Canonical index:** This per-ADR table is human-readable but stops at ADR-028 (pre-existing drift). The authoritative, always-current index is [`adrs-index.csv`](adrs-index.csv) (per [ADR-030](ADR-030-csv-canonical-meta-indexes.md) + `meta-csv-index-pattern.md`) — query via `bash scripts/query-adrs.sh`. ADR-029 → ADR-045 live in the CSV. Wave kitehub-biz-100 added ADR-041..045 (tier-sync centralization, trial→paid atomicity, manual-VietQR dunning/churn lifecycle, owner notification channels, custom-domain state machine).
 
 ---
 

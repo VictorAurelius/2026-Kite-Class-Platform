@@ -18,8 +18,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -189,6 +192,46 @@ class TrialExpirationCheckerTest {
 
         // Then
         verify(instanceRepository).findExpiredTrials(any(LocalDateTime.class));
+    }
+
+    // ---- GAP-1270 (TR-08): trial extension / auto-rescue ----
+
+    @Test
+    @DisplayName("GAP-1270: grantTrialExtension extends expiry + reactivates a suspended trial")
+    void grantTrialExtension_extendsAndReactivates() {
+        Instance suspended = createInstance("rescue-org", InstanceStatus.SUSPENDED);
+        suspended.setTrialStartedAt(LocalDateTime.now().minusDays(14));
+        suspended.setTrialExpiresAt(LocalDateTime.now().minusDays(1)); // expired
+        when(trialConfig.getExtensionDays()).thenReturn(7);
+        when(instanceRepository.findById(suspended.getId())).thenReturn(Optional.of(suspended));
+
+        expirationChecker.grantTrialExtension(suspended.getId());
+
+        assertEquals(InstanceStatus.TRIAL, suspended.getStatus());
+        assertTrue(suspended.getTrialExpiresAt().isAfter(LocalDateTime.now().plusDays(6)));
+        verify(instanceRepository).save(suspended);
+    }
+
+    @Test
+    @DisplayName("GAP-1270: auto-extend grants one extension instead of suspend when enabled")
+    void checkExpiredTrials_autoExtendsWhenEnabled() {
+        Instance expiring = createInstance("auto-rescue-org", InstanceStatus.TRIAL);
+        expiring.setTrialStartedAt(LocalDateTime.now().minusDays(14));
+        expiring.setTrialExpiresAt(LocalDateTime.now().minusDays(1)); // expired, not yet extended
+        when(instanceRepository.findExpiredTrials(any(LocalDateTime.class)))
+            .thenReturn(Collections.singletonList(expiring));
+        when(instanceRepository.findByStatusAndDeletedFalse(InstanceStatus.TRIAL))
+            .thenReturn(Collections.emptyList());
+        when(trialConfig.isAutoExtendOnExpiry()).thenReturn(true);
+        when(trialConfig.getDurationDays()).thenReturn(14);
+        when(trialConfig.getExtensionDays()).thenReturn(7);
+        when(instanceRepository.findById(expiring.getId())).thenReturn(Optional.of(expiring));
+
+        expirationChecker.checkExpiredTrials();
+
+        verify(trialService, never()).suspendExpiredTrial(any());
+        verify(instanceRepository).save(expiring);
+        assertTrue(expiring.getTrialExpiresAt().isAfter(LocalDateTime.now()));
     }
 
     /**

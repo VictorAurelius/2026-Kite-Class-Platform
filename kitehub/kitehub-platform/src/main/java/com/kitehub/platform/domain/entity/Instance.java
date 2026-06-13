@@ -151,6 +151,24 @@ public class Instance extends BaseEntity {
     private InstanceStatus status;
 
     /**
+     * Timestamp of the most recent transition INTO {@link InstanceStatus#SUSPENDED}
+     * (trial-expiry / involuntary-churn / cancel suspend).
+     *
+     * <p>Deterministic anchor for the data-retention clock (SUB-25, GAP-1264).
+     * {@code DataRetentionService} computes the retention window from this column —
+     * NOT {@code updatedAt}, which is bumped by any unrelated row update and would
+     * silently reset the PDPL delete-by date. Stamped/cleared centrally in
+     * {@link #setStatus(InstanceStatus)} so every suspend/reactivate path tracks it
+     * (including callers that mutate status directly, e.g. immediate-cancel in
+     * {@code SubscriptionService}). NULL = never suspended OR a legacy row suspended
+     * before V73 (retention falls back to {@code updatedAt}).</p>
+     *
+     * @since GAP-1264 (Wave kitehub-biz-100)
+     */
+    @Column(name = "suspended_at")
+    private LocalDateTime suspendedAt;
+
+    /**
      * Database URL for this instance.
      */
     @NotBlank(message = "Database URL is required")
@@ -321,7 +339,7 @@ public class Instance extends BaseEntity {
      * @param durationDays number of days for the trial period
      */
     public void startTrial(int durationDays) {
-        this.status = InstanceStatus.TRIAL;
+        setStatus(InstanceStatus.TRIAL);
         this.trialStartedAt = LocalDateTime.now();
         this.trialExpiresAt = LocalDateTime.now().plusDays(durationDays);
     }
@@ -332,7 +350,7 @@ public class Instance extends BaseEntity {
      * @param expiresAt subscription expiration date
      */
     public void activateSubscription(LocalDateTime expiresAt) {
-        this.status = InstanceStatus.ACTIVE;
+        setStatus(InstanceStatus.ACTIVE);
         this.subscriptionExpiresAt = expiresAt;
     }
 
@@ -340,7 +358,43 @@ public class Instance extends BaseEntity {
      * Suspend instance (trial expired or subscription lapsed).
      */
     public void suspend() {
-        this.status = InstanceStatus.SUSPENDED;
+        setStatus(InstanceStatus.SUSPENDED);
+    }
+
+    /**
+     * Status mutator with retention-clock side-effect (SUB-25, GAP-1264).
+     *
+     * <p>Custom-written so Lombok's class-level {@code @Setter} skips generating it.
+     * Centralizes {@link #suspendedAt} management so EVERY suspend/reactivate path —
+     * {@link #suspend()}, {@link #activateSubscription(LocalDateTime)},
+     * {@code instance.setStatus(SUSPENDED)} direct calls (e.g. end-of-cycle cancel,
+     * immediate-cancel in {@code SubscriptionService}), reactivation
+     * {@code setStatus(ACTIVE)} — stamps/clears the retention anchor without each
+     * caller remembering to.</p>
+     *
+     * <ul>
+     *   <li>Fresh transition INTO SUSPENDED (from a non-suspended state) → stamp
+     *       {@code suspendedAt = now()}. Re-suspend of an already-SUSPENDED row does
+     *       NOT reset the clock (guards against PDPL retention-window reset).</li>
+     *   <li>Transition to ACTIVE / TRIAL (reactivation / re-provision) → clear
+     *       {@code suspendedAt = null}.</li>
+     *   <li>Transition to DELETED / PURGED → preserve {@code suspendedAt} for audit.</li>
+     * </ul>
+     *
+     * <p>JPA uses field access on this entity (annotations on fields), so Hibernate
+     * hydration sets the field directly and does NOT trigger this method — only
+     * explicit Java calls do. Loading a SUSPENDED row from DB therefore never
+     * re-stamps the anchor.</p>
+     *
+     * @param newStatus the target lifecycle status
+     */
+    public void setStatus(InstanceStatus newStatus) {
+        if (newStatus == InstanceStatus.SUSPENDED && this.status != InstanceStatus.SUSPENDED) {
+            this.suspendedAt = LocalDateTime.now();
+        } else if (newStatus == InstanceStatus.ACTIVE || newStatus == InstanceStatus.TRIAL) {
+            this.suspendedAt = null;
+        }
+        this.status = newStatus;
     }
 
     /**

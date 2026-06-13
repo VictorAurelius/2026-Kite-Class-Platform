@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Scheduled job to check and handle trial expirations.
@@ -48,8 +49,18 @@ public class TrialExpirationChecker {
         log.info("Found {} expired trials", expiredTrials.size());
 
         int suspendedCount = 0;
+        int autoExtendedCount = 0;
         for (Instance instance : expiredTrials) {
             try {
+                // GAP-1270 (TR-08): auto-rescue — if enabled AND this trial has not yet
+                // been extended, grant ONE extension instead of suspending. Bounded to a
+                // single auto-extension (derived from trialStartedAt + durationDays).
+                if (trialConfig.isAutoExtendOnExpiry() && !hasBeenExtended(instance)) {
+                    grantTrialExtension(instance.getId());
+                    autoExtendedCount++;
+                    continue;
+                }
+
                 trialService.suspendExpiredTrial(instance.getId());
                 suspendedCount++;
 
@@ -66,7 +77,7 @@ public class TrialExpirationChecker {
             }
         }
 
-        log.info("Suspended {} expired trials", suspendedCount);
+        log.info("Suspended {} expired trials, auto-extended {}", suspendedCount, autoExtendedCount);
 
         // Check for trials needing warnings
         checkTrialWarnings();
@@ -162,6 +173,60 @@ public class TrialExpirationChecker {
         } else {
             return "NONE";
         }
+    }
+
+    /**
+     * GAP-1270 (TR-08): grant a trial extension/rescue (admin manual OR auto on expiry).
+     *
+     * <p>Extends {@code trialExpiresAt} by {@code kitehub.trial.extension-days}. If the
+     * trial has not yet expired the extension is added to the current expiry; if already
+     * expired it is added from now. A trial instance that was already SUSPENDED (recently
+     * expired) is reactivated to TRIAL — {@code Instance.setStatus} clears the suspend
+     * retention anchor as part of reactivation.</p>
+     *
+     * @param instanceId instance to extend
+     * @throws IllegalArgumentException if the instance is not found
+     */
+    public void grantTrialExtension(UUID instanceId) {
+        Instance instance = instanceRepository.findById(instanceId)
+            .orElseThrow(() -> new IllegalArgumentException("Instance not found: " + instanceId));
+
+        int extensionDays = trialConfig.getExtensionDays();
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime base = (instance.getTrialExpiresAt() != null
+            && instance.getTrialExpiresAt().isAfter(now))
+            ? instance.getTrialExpiresAt()   // not yet expired → extend from current expiry
+            : now;                            // already expired → extend from now
+        instance.setTrialExpiresAt(base.plusDays(extensionDays));
+
+        // Rescue: reactivate an instance suspended on trial expiry back to TRIAL.
+        if (instance.getStatus() == InstanceStatus.SUSPENDED) {
+            instance.setStatus(InstanceStatus.TRIAL);
+        }
+
+        instanceRepository.save(instance);
+        log.info("Trial extension granted for instance {} (+{} days, new expiry {})",
+            instanceId, extensionDays, instance.getTrialExpiresAt());
+    }
+
+    /**
+     * Whether a trial has already been extended at least once (TR-08 auto-rescue bound).
+     *
+     * <p>Stateless heuristic — no per-trial counter column. The original trial window ends
+     * at {@code trialStartedAt + durationDays}; once {@code trialExpiresAt} sits beyond that
+     * window (+1 day tolerance for timing) the trial was extended. Guarantees at most one
+     * auto-extension since any extension pushes {@code trialExpiresAt} past the window.</p>
+     *
+     * @param instance trial instance
+     * @return true if the trial appears already extended
+     */
+    private boolean hasBeenExtended(Instance instance) {
+        if (instance.getTrialStartedAt() == null || instance.getTrialExpiresAt() == null) {
+            return false;
+        }
+        LocalDateTime originalExpiry = instance.getTrialStartedAt()
+            .plusDays(trialConfig.getDurationDays());
+        return instance.getTrialExpiresAt().isAfter(originalExpiry.plusDays(1));
     }
 
     /**

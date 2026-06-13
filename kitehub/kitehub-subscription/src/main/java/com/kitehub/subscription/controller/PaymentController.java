@@ -1,6 +1,8 @@
 package com.kitehub.subscription.controller;
 
 import com.kitehub.platform.domain.enums.PaymentStatus;
+import com.kitehub.subscription.billing.dto.ReceiptResponse;
+import com.kitehub.subscription.billing.service.ReceiptService;
 import com.kitehub.subscription.dto.CreatePaymentRequest;
 import com.kitehub.subscription.dto.CursorPage;
 import com.kitehub.subscription.dto.PaymentResponse;
@@ -65,6 +67,7 @@ public class PaymentController {
             "hasAnyRole('OWNER','STAFF','PLATFORM_ADMIN','ADMIN')";
 
     private final PaymentService paymentService;
+    private final ReceiptService receiptService;
 
     /**
      * Create a new payment.
@@ -180,5 +183,18 @@ public class PaymentController {
     public ResponseEntity<Map<String, String>> getQRCode(@PathVariable UUID id) {
         String qrCodeUrl = paymentService.getQRCode(id);
         return ResponseEntity.ok(Map.of("qrCodeUrl", qrCodeUrl));
+    }
+
+    /**
+     * Non-VAT receipt (biên nhận) for a confirmed payment (GAP-1266). Available only after the
+     * payment is COMPLETED (400 otherwise); derived on-demand from the payment row.
+     *
+     * @param id payment UUID
+     * @return receipt representation
+     */
+    @GetMapping("/{id}/receipt")
+    @PreAuthorize(OWNER_OR_STAFF_AUTHZ)
+    public ResponseEntity<ReceiptResponse> getReceipt(@PathVariable UUID id) {
+        return ResponseEntity.ok(receiptService.generateReceipt(id));
     }
 }

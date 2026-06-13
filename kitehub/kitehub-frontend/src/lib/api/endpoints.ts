@@ -12,6 +12,9 @@ export const endpoints = {
     delete: (id: string) => `${API_BASE}/instances/${id}`,
     trialStatus: (id: string) => `${API_BASE}/instances/${id}/trial-status`,
     extendTrial: (id: string) => `${API_BASE}/instances/${id}/extend-trial`,
+    // GAP-1268 — "Tải dữ liệu về" trong cancel wizard. Code-to-contract:
+    // BE export endpoint may not exist yet → FE handles failure gracefully.
+    exportData: (id: string) => `${API_BASE}/instances/${id}/export`,
     // SAAS-16: Custom domain endpoints
     domain: (id: string) => `/api/instances/${id}/domain`,
     domainVerify: (id: string) => `/api/instances/${id}/domain/verify`,
@@ -25,6 +28,11 @@ export const endpoints = {
     upgrade: (id: string) => `${API_BASE}/subscriptions/${id}/upgrade`,
     downgrade: (id: string) => `${API_BASE}/subscriptions/${id}/downgrade`,
     cancel: (id: string) => `${API_BASE}/subscriptions/${id}`,
+    // GAP-1257-FE — "Đang chờ xác nhận" pending-payment status (VietQR manual,
+    // SUB-19 admin confirm). Code-to-contract: BE-4 adds this endpoint.
+    // 404 = no pending payment (normal) → hook returns null gracefully.
+    pendingPaymentStatus: (instanceId: string) =>
+      `${API_BASE}/subscriptions/instance/${instanceId}/pending-payment-status`,
   },
 
   // Payment

@@ -1,11 +1,16 @@
 package com.kitehub.subscription.service;
 
+import com.kitehub.platform.domain.entity.Instance;
 import com.kitehub.platform.domain.entity.Payment;
 import com.kitehub.platform.domain.enums.PaymentMethod;
 import com.kitehub.platform.domain.enums.PaymentStatus;
+import com.kitehub.subscription.billing.dto.ReceiptResponse;
+import com.kitehub.subscription.billing.service.ReceiptService;
 import com.kitehub.subscription.dto.CreatePaymentRequest;
 import com.kitehub.subscription.dto.CursorPage;
 import com.kitehub.subscription.dto.PaymentResponse;
+import com.kitehub.subscription.notification.channel.OwnerNotificationDispatcher;
+import com.kitehub.subscription.repository.InstanceRepository;
 import com.kitehub.subscription.repository.PaymentRepository;
 import com.kitehub.subscription.repository.SubscriptionRepository;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +42,11 @@ public class PaymentService {
     private final SubscriptionRepository subscriptionRepository;
     private final SubscriptionService subscriptionService;
     private final VietQRService vietQRService;
+    // GAP-1257-BE + GAP-1266: notify the owner + generate a non-VAT receipt when a pending payment
+    // is confirmed (admin confirm OR webhook). Best-effort — never blocks payment capture.
+    private final InstanceRepository instanceRepository;
+    private final ReceiptService receiptService;
+    private final OwnerNotificationDispatcher notificationDispatcher;
 
     /**
      * Phase 1 BETA symbolic-amount override (Wave flow-kh3-2, GAP-975). When
@@ -266,6 +276,9 @@ public class PaymentService {
             // Payment is still completed, but subscription update failed.
             // This should be handled by admin/retry mechanism.
         }
+
+        // GAP-1257-BE + GAP-1266: confirm the owner + issue the non-VAT receipt (legacy gateway path).
+        notifyPaymentConfirmed(payment);
     }
 
     /**
@@ -329,6 +342,9 @@ public class PaymentService {
                 payment.getSubscriptionId(), e);
             // Payment captured; subscription update retried by admin/job mechanism.
         }
+
+        // GAP-1257-BE + GAP-1266: confirm the owner + issue the non-VAT receipt (webhook path).
+        notifyPaymentConfirmed(payment);
     }
 
     /**
@@ -433,14 +449,63 @@ public class PaymentService {
         log.info("Payment confirmed: {} for subscription: {}", payment.getId(), payment.getSubscriptionId());
 
         // Apply pending subscription upgrade after manual admin confirmation.
+        //
+        // GAP-1273 (D2): on the admin-confirm path we must NOT report success when the tier-flip
+        // genuinely rolled back — that produced a silent split-brain (payment COMPLETED + this
+        // request returns HTTP 200, but subscription stuck PENDING + instances.tier stuck FREE,
+        // /active → 404). applyPendingUpgrade runs REQUIRES_NEW (GAP-1062), so its failure rolled
+        // back ONLY the tier-flip tx, never this payment-capture tx; the old swallow left the two
+        // inconsistent. Re-throw so this confirm tx rolls back too (payment → PENDING) → the admin
+        // sees the error and can re-confirm, keeping payment + subscription consistent.
+        //
+        // NOTE: the SePay/legacy webhook paths deliberately KEEP the swallow (payment captured,
+        // money already moved, the gateway must not retry forever) — see GAP-1062 +
+        // SepayWebhookRollbackIsolationIT. Only the synchronous admin-confirm path surfaces here.
         try {
             subscriptionService.applyPendingUpgrade(payment.getSubscriptionId(), payment.getId());
             log.info("Pending upgrade applied for subscription: {}", payment.getSubscriptionId());
         } catch (Exception e) {
-            log.error("Failed to apply pending upgrade for subscription: {}", payment.getSubscriptionId(), e);
+            log.error("Tier-flip failed after admin payment-confirm for subscription {} — rolling "
+                + "back payment capture to avoid split-brain", payment.getSubscriptionId(), e);
+            throw new IllegalStateException(
+                "Payment confirmed but subscription upgrade failed for subscription "
+                    + payment.getSubscriptionId()
+                    + "; payment capture rolled back — please retry confirm", e);
         }
 
+        // GAP-1257-BE + GAP-1266: confirm the owner + issue the non-VAT receipt.
+        notifyPaymentConfirmed(payment);
+
         return PaymentResponse.fromEntity(payment);
+    }
+
+    /**
+     * Notify the owner their pending payment was confirmed (GAP-1257-BE) and bundle the non-VAT
+     * receipt summary (GAP-1266) into the email + in-app banner.
+     *
+     * <p>Best-effort: a notification/receipt failure is logged and never propagates back to the
+     * caller — the payment is already captured. Fired from every confirm path (admin confirm +
+     * SePay webhook + legacy gateway webhook).</p>
+     *
+     * @param payment the just-completed payment
+     */
+    private void notifyPaymentConfirmed(Payment payment) {
+        try {
+            if (payment.getInstanceId() == null) {
+                return;
+            }
+            Instance instance = instanceRepository.findById(payment.getInstanceId()).orElse(null);
+            if (instance == null) {
+                log.warn("Cannot notify payment-confirmed — instance {} not found for payment {}",
+                    payment.getInstanceId(), payment.getId());
+                return;
+            }
+            ReceiptResponse receipt = receiptService.buildReceipt(payment);
+            notificationDispatcher.sendPaymentConfirmed(instance, receipt);
+        } catch (Exception e) {
+            log.error("Failed to send payment-confirmed notification for payment {}: {}",
+                payment.getId(), e.getMessage());
+        }
     }
 
     /**
