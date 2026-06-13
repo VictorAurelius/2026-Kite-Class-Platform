@@ -449,11 +449,28 @@ public class PaymentService {
         log.info("Payment confirmed: {} for subscription: {}", payment.getId(), payment.getSubscriptionId());
 
         // Apply pending subscription upgrade after manual admin confirmation.
+        //
+        // GAP-1273 (D2): on the admin-confirm path we must NOT report success when the tier-flip
+        // genuinely rolled back — that produced a silent split-brain (payment COMPLETED + this
+        // request returns HTTP 200, but subscription stuck PENDING + instances.tier stuck FREE,
+        // /active → 404). applyPendingUpgrade runs REQUIRES_NEW (GAP-1062), so its failure rolled
+        // back ONLY the tier-flip tx, never this payment-capture tx; the old swallow left the two
+        // inconsistent. Re-throw so this confirm tx rolls back too (payment → PENDING) → the admin
+        // sees the error and can re-confirm, keeping payment + subscription consistent.
+        //
+        // NOTE: the SePay/legacy webhook paths deliberately KEEP the swallow (payment captured,
+        // money already moved, the gateway must not retry forever) — see GAP-1062 +
+        // SepayWebhookRollbackIsolationIT. Only the synchronous admin-confirm path surfaces here.
         try {
             subscriptionService.applyPendingUpgrade(payment.getSubscriptionId(), payment.getId());
             log.info("Pending upgrade applied for subscription: {}", payment.getSubscriptionId());
         } catch (Exception e) {
-            log.error("Failed to apply pending upgrade for subscription: {}", payment.getSubscriptionId(), e);
+            log.error("Tier-flip failed after admin payment-confirm for subscription {} — rolling "
+                + "back payment capture to avoid split-brain", payment.getSubscriptionId(), e);
+            throw new IllegalStateException(
+                "Payment confirmed but subscription upgrade failed for subscription "
+                    + payment.getSubscriptionId()
+                    + "; payment capture rolled back — please retry confirm", e);
         }
 
         // GAP-1257-BE + GAP-1266: confirm the owner + issue the non-VAT receipt.

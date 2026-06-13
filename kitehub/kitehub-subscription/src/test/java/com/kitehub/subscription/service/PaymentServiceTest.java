@@ -388,4 +388,34 @@ class PaymentServiceTest {
         org.mockito.Mockito.verify(subscriptionService, org.mockito.Mockito.never())
             .applyPendingUpgrade(any(UUID.class), any(UUID.class));
     }
+
+    @Test
+    @DisplayName("GAP-1273-D2: confirmPayment surfaces a genuine tier-flip failure — no silent split-brain 200")
+    void confirmPayment_tierFlipFailureSurfaced() {
+        UUID paymentId = UUID.randomUUID();
+        Payment pending = new Payment();
+        pending.setId(paymentId);
+        pending.setSubscriptionId(subscriptionId);
+        pending.setInstanceId(instanceId);
+        pending.setAmountVnd(1_500_000L);
+        pending.setStatus(PaymentStatus.PENDING);
+        when(paymentRepository.findById(paymentId)).thenReturn(Optional.of(pending));
+        when(paymentRepository.save(any(Payment.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        // applyPendingUpgrade genuinely fails (its REQUIRES_NEW tier-flip tx rolled back) — e.g. the
+        // instance row is missing or an optimistic-lock clash. The old code swallowed this and still
+        // returned a COMPLETED PaymentResponse → split-brain (payment COMPLETED + sub PENDING).
+        org.mockito.Mockito.doThrow(new IllegalStateException("Instance not found"))
+            .when(subscriptionService).applyPendingUpgrade(subscriptionId, paymentId);
+
+        // D2: confirmPayment must re-throw so its own tx rolls back (payment → PENDING) and the
+        // admin sees the failure instead of a false success.
+        assertThatThrownBy(() -> paymentService.confirmPayment(paymentId, "ADMIN-CONFIRM-FAIL"))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("subscription upgrade failed");
+
+        // The owner-confirmed notification must NOT fire when the upgrade failed.
+        org.mockito.Mockito.verify(notificationDispatcher, org.mockito.Mockito.never())
+            .sendPaymentConfirmed(any(Instance.class), any(ReceiptResponse.class));
+    }
 }

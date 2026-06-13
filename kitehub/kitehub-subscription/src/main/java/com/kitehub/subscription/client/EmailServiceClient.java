@@ -13,6 +13,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
@@ -571,6 +572,14 @@ public class EmailServiceClient {
      * @param tier Subscription tier
      * @param billingCycle Billing cycle
      */
+    // GAP-1273 (D1): the subscription-created email is a best-effort notification fired from
+    // SubscriptionService.applyPendingUpgrade (REQUIRES_NEW tier-flip tx). Running the EmailSentLog
+    // INSERT in this method's own REQUIRES_NEW boundary isolates it: a notification/log failure
+    // (e.g. NULL recipient from a missing contact_email, constraint violation, DB hiccup) commits or
+    // rolls back HERE and surfaces synchronously inside the caller's try/catch — it can NEVER set
+    // rollback-only on the paid-upgrade tier-flip tx. Aligns this path with the BE-4 notification
+    // channels (InAppNotificationChannel / EmailNotificationChannel) already on REQUIRES_NEW.
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void sendSubscriptionCreatedEmail(UUID instanceId, String to, String organizationName,
                                              String tier, String billingCycle) {
         if (alreadySentToday(instanceId, "subscription-created", to)) {
@@ -615,6 +624,10 @@ public class EmailServiceClient {
      * @param tier Activated subscription tier
      * @param expiresAt Subscription expiry date (display string)
      */
+    // GAP-1273 (D1): same isolation as sendSubscriptionCreatedEmail — this upgrade-flow notification
+    // also fires inside SubscriptionService.applyPendingUpgrade's REQUIRES_NEW tier-flip tx. Own
+    // REQUIRES_NEW boundary so a notification/EmailSentLog failure never rolls back the tier-flip.
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void sendSubscriptionActivatedEmail(UUID instanceId, String to, String organizationName,
                                                String tier, String expiresAt) {
         if (alreadySentToday(instanceId, "subscription-activated", to)) {
@@ -950,6 +963,17 @@ public class EmailServiceClient {
         if (!isEmailTypeEnabled(emailType)) {
             log.warn("Email type '{}' is disabled by admin config, skipping send to {}",
                 emailType, request.getTo());
+            return;
+        }
+
+        // GAP-1273 (D1 defensive): never queue/send/log an email with no recipient. A NULL/blank
+        // recipient (e.g. instance.contact_email not yet populated) would otherwise reach
+        // recordEmailSent() and violate the email_sent_log.recipient NOT-NULL constraint at flush —
+        // the exact NULL contact_email trigger that rolled back the paid-upgrade tier-flip in the
+        // G3 walk. There is no one to email, so skip the whole dispatch.
+        if (request.getTo() == null || request.getTo().isBlank()) {
+            log.warn("Email type '{}' has no recipient (instanceId={}), skipping dispatch",
+                emailType, instanceId);
             return;
         }
 

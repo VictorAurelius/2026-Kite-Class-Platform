@@ -668,4 +668,32 @@ class EmailServiceClientTest {
             verify(outboxRepository).save(any(SubscriptionOutboxEvent.class));
         }
     }
+
+    @Nested
+    @DisplayName("GAP-1273 — NULL-recipient guard (D1 defensive)")
+    class NullRecipientGuard {
+
+        @Test
+        @DisplayName("subscription-created email with NULL recipient skips dispatch — no EmailSentLog INSERT, no publish")
+        void nullRecipientSkipsDispatchAndLog() {
+            // No contact_email → null recipient. dispatchEmail must skip the whole dispatch BEFORE
+            // recordEmailSent (the email_sent_log.recipient NOT-NULL INSERT that rolled back the
+            // paid-upgrade tier-flip in the G3 walk).
+            emailServiceClient.sendSubscriptionCreatedEmail(
+                instanceId, null, "Trung tâm Demo", "PREMIUM", "MONTHLY");
+
+            verify(emailSentLogRepository, never()).save(any(EmailSentLog.class));
+            verify(rabbitTemplate, never()).send(anyString(), anyString(), any(Message.class));
+        }
+
+        @Test
+        @DisplayName("subscription-activated email with blank recipient skips dispatch")
+        void blankRecipientSkipsDispatch() {
+            emailServiceClient.sendSubscriptionActivatedEmail(
+                instanceId, "   ", "Trung tâm Demo", "PREMIUM", "2026-07-14");
+
+            verify(emailSentLogRepository, never()).save(any(EmailSentLog.class));
+            verify(rabbitTemplate, never()).send(anyString(), anyString(), any(Message.class));
+        }
+    }
 }
