@@ -102,7 +102,20 @@ gaps: [GAP-1079, GAP-1080, GAP-1016, GAP-1017, GAP-1018, GAP-1095, GAP-1096, GAP
 
 ---
 
-## 5. Quality-target gate (per `wave-closure-scope-completeness.md` §2.5 — "-100" = quality target)
+## 5. Verification Gates
+
+Per-bucket local verify (per `feature-ship-runtime-walk-mandate.md` + `fe-build-local-verify.md`):
+
+| Bucket | Local verify command | CI gate |
+|--------|----------------------|---------|
+| 0 / BE-1 / BE-2 / BE-3 / BE-5 | `cd kitehub && ./mvnw -pl kitehub-subscription test` | kitehub-ci (Test KiteHub Subscription) + DB RLS coverage + DB migration replay |
+| BE-4 | `cd kitehub && ./mvnw -pl kitehub-email -am test && ./mvnw -pl kitehub-branding -am test` | Test KiteHub Email / Branding Service |
+| TEST infra | ITs actually run green per §6 bucket brief | kitehub-ci |
+| FE-1 | `pnpm -F kitehub-frontend test --run && pnpm -F kitehub-frontend build` | kitehub-frontend-ci |
+
+Cross-cutting CI gates (all buckets): Audits index CSV + Wave plan completeness + gap-status CSV (docs sync).
+
+### 5.1 Quality-target closure gate (per `wave-closure-scope-completeness.md` §2.5 — "-100" = quality target)
 
 Wave KHÔNG flip COMPLETE cho tới khi (không kể phase label):
 - [ ] 0 gap OPEN/PARTIAL thuộc scope wave (trừ defer trailer user-approved)
@@ -112,7 +125,11 @@ Wave KHÔNG flip COMPLETE cho tới khi (không kể phase label):
 
 ---
 
-## 6. Bucket agent briefs (compact — spawn sau Bucket 0 merge)
+## 6. Agent Spawn Pattern
+
+Per `feedback_parallel_agent_strategy.md` + `agent-background-spawn-default.md` + `agent-model-opus-default.md`: tất cả bucket spawn `model: opus` + `run_in_background: true` + `isolation: worktree`, RELATIVE paths, coordinator merge tuần tự sau khi background completions. Spawn order = Bucket 0 MERGE FIRST → Batch 1 (5 agent) → Batch 2 (2 agent), per §3 batching.
+
+### 6.1 Bucket agent briefs (compact — spawn sau Bucket 0 merge)
 
 Mọi agent: Opus, worktree-isolated, branch `wave/kitehub-biz-100-<bucket>`, RELATIVE paths, conventional commit (no Co-Authored-By), KHÔNG đụng `gaps/`+CSV, reference gap IDs, mở PR base main (coordinator verify+merge), per-bucket G2 walk sau merge. Dùng helper `InstanceTierSyncService` + repo `findByIdForUpdate`/`findExpiredTrials`(đã guard) + col `suspended_at` + contract SUB-23..26/TR-08 từ Bucket 0.
 
@@ -128,7 +145,18 @@ Mọi agent: Opus, worktree-isolated, branch `wave/kitehub-biz-100-<bucket>`, RE
 
 ---
 
-## 7. Log
+## 7. Closure Protocol
+
+Per `gap-done-discipline.md` + `wave-closure-scope-completeness.md` + `post-wave-cleanup.md` + `feedback_post_merge_doc_sync.md`:
+- Mỗi bucket PR update affected GAP file Log + status; KH-3 + KH-5 G2 walk evidence per `feature-ship-runtime-walk-mandate.md`.
+- Closure PR body chứa **Scope-Completeness Reconciliation table** (mọi §3 bucket → ✅ DONE / 🟡 PARTIAL+gap-link / ❌ NOT-IMPLEMENTED+follow-up) per `wave-closure-scope-completeness.md` §3 + **§5.1 quality-target gate** (0 gap OPEN/PARTIAL thuộc wave trừ PENDING external-blocked).
+- ROADMAP §🚀 Next Action update + frontmatter `status: draft → complete` flip + `wave-history.jsonl` append (tag_primary=kitehub-biz) trong closure PR.
+- `bash scripts/prune-merged-worktrees.sh --yes` sau khi mọi bucket PR merged, trước drafting closure PR.
+- Post-wave audit suite (business-logic + api-contract subscription domain) ≤3 ngày per `post-wave-audit-mandate.md`.
+
+---
+
+## 8. Log
 
 - **2026-06-13:** Plan skeleton created (inside-out 6 cụm + outside-in 3-agent pending). Per `outside-in-coverage-trigger.md` §3 — outside-in findings merge vào §1.2 TRƯỚC khi lock + PR.
 - **2026-06-13:** Outside-in 3-agent DONE (persona+benchmark+failure-mode, 33 findings). Plan locked: §1.2 filled, 20 NET-NEW gap GAP-1253..1272 reserved + filed, §2 8-bucket file-ownership split, §3 spawn batching. Goal-set "complete wave kitehub-biz-100" → executing: Bucket 0 Foundation spawned (branch b0-foundation, V73 suspended_at + @Lock repo + query guard + tier-sync helper + SUB-23..26/TR-08 contract). Batch 1 briefs §6 ready.
