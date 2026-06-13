@@ -1,5 +1,6 @@
 package com.kiteclass.core.module.role.service;
 
+import com.kiteclass.core.module.role.dto.UserRoleAssignmentResponse;
 import com.kiteclass.core.module.role.entity.Permission;
 import com.kiteclass.core.module.role.entity.Role;
 import com.kiteclass.core.module.role.entity.UserRole;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -168,5 +170,52 @@ public class RoleService {
 
     public Optional<Role> getById(Long id) {
         return roleRepository.findById(id);
+    }
+
+    // ==================== RBAC Bucket D — owner-shell role management (GAP-1119) ====================
+
+    /**
+     * List all role assignments in the current tenant grouped per user.
+     *
+     * <p>Tenant-scoped via the Hibernate {@code tenantFilter} on {@code user_roles}.
+     * Each entry maps a numeric {@code user_id} → the role names assigned to it.
+     *
+     * @return per-user assignment summary (first-seen order preserved)
+     */
+    public List<UserRoleAssignmentResponse> listAssignments() {
+        return userRoleRepository.findByDeletedFalse().stream()
+                .collect(Collectors.groupingBy(
+                        UserRole::getUserId,
+                        LinkedHashMap::new,
+                        Collectors.mapping(ur -> ur.getRole().getName(), Collectors.toList())))
+                .entrySet().stream()
+                .map(entry -> new UserRoleAssignmentResponse(entry.getKey(), entry.getValue()))
+                .toList();
+    }
+
+    /**
+     * Get the current role-name assignments for a single user.
+     *
+     * @param userId the user's numeric reference id
+     * @return assignment summary (empty role list if none)
+     */
+    public UserRoleAssignmentResponse getAssignmentForUser(Long userId) {
+        List<String> roles = getUserRoles(userId).stream()
+                .map(Role::getName)
+                .toList();
+        return new UserRoleAssignmentResponse(userId, roles);
+    }
+
+    /**
+     * Revoke a role from a user by role NAME (idempotent — no-op if the role does not
+     * exist in the tenant or the user is not assigned to it).
+     *
+     * @param userId   the user's numeric reference id
+     * @param roleName the role name to revoke (e.g. "TEACHER")
+     */
+    @Transactional
+    public void revokeTemplateRoleByName(Long userId, String roleName) {
+        roleRepository.findByNameAndDeletedFalse(roleName)
+                .ifPresent(role -> revokeRoleFromUser(userId, role.getId()));
     }
 }

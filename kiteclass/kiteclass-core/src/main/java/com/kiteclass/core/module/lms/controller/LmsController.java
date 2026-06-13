@@ -4,14 +4,18 @@ import com.kiteclass.core.common.dto.ApiResponse;
 import com.kiteclass.core.module.lms.dto.request.CreateCourseModuleRequest;
 import com.kiteclass.core.module.lms.dto.request.CreateLearningResourceRequest;
 import com.kiteclass.core.module.lms.dto.request.CreateLessonRequest;
+import com.kiteclass.core.module.lms.dto.request.ReorderRequest;
 import com.kiteclass.core.module.lms.dto.request.UpdateCourseModuleRequest;
 import com.kiteclass.core.module.lms.dto.request.UpdateLessonRequest;
+import com.kiteclass.core.module.lms.dto.response.CompletionRosterResponse;
 import com.kiteclass.core.module.lms.dto.response.CourseModuleDetailResponse;
 import com.kiteclass.core.module.lms.dto.response.CourseModuleResponse;
 import com.kiteclass.core.module.lms.dto.response.LearningResourceResponse;
 import com.kiteclass.core.module.lms.dto.response.LessonDetailResponse;
 import com.kiteclass.core.module.lms.dto.response.LessonResponse;
 import com.kiteclass.core.module.lms.service.LmsService;
+import com.kiteclass.core.module.storage.dto.PresignedUploadRequest;
+import com.kiteclass.core.module.storage.dto.PresignedUploadResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -324,5 +328,104 @@ public class LmsController {
         log.info("DELETE /api/v1/lms/resources/{} - teacherId: {}", resourceId, teacherId);
         lmsService.deleteResource(resourceId, teacherId);
         return ApiResponse.success(null);
+    }
+
+    // ==================== Teacher Endpoints - Reorder (drag-drop) ====================
+
+    /**
+     * Reorder all modules of a course atomically (teacher only).
+     * Send the FULL ordered set of the course's modules with their new order numbers.
+     *
+     * @param courseId the course ID
+     * @param request full ordered set of modules with new order numbers
+     * @param teacherId teacher user ID (must be course owner)
+     * @return reordered modules (ascending)
+     */
+    @PutMapping("/courses/{courseId}/modules/reorder")
+    @Operation(summary = "Reorder course modules (teacher only)",
+               description = "Atomic batch update of module order numbers. Send the FULL ordered set of modules.")
+    public ApiResponse<List<CourseModuleResponse>> reorderModules(
+            @PathVariable Long courseId,
+            @Valid @RequestBody ReorderRequest request,
+            @Parameter(description = "Teacher user ID (must be course owner)", required = true)
+            @RequestHeader("X-Teacher-Id") Long teacherId) {
+
+        log.info("PUT /api/v1/lms/courses/{}/modules/reorder - teacherId: {}", courseId, teacherId);
+        return ApiResponse.success(
+                lmsService.reorderModules(courseId, request, teacherId), "Modules reordered successfully");
+    }
+
+    /**
+     * Reorder all lessons within a module atomically (teacher only).
+     * Send the FULL ordered set of the module's lessons with their new order numbers.
+     *
+     * @param moduleId the module ID
+     * @param request full ordered set of lessons with new order numbers
+     * @param teacherId teacher user ID (must be course owner)
+     * @return reordered lessons (ascending)
+     */
+    @PutMapping("/modules/{moduleId}/lessons/reorder")
+    @Operation(summary = "Reorder lessons within a module (teacher only)",
+               description = "Atomic batch update of lesson order numbers. Send the FULL ordered set of lessons.")
+    public ApiResponse<List<LessonResponse>> reorderLessons(
+            @PathVariable Long moduleId,
+            @Valid @RequestBody ReorderRequest request,
+            @Parameter(description = "Teacher user ID (must be course owner)", required = true)
+            @RequestHeader("X-Teacher-Id") Long teacherId) {
+
+        log.info("PUT /api/v1/lms/modules/{}/lessons/reorder - teacherId: {}", moduleId, teacherId);
+        return ApiResponse.success(
+                lmsService.reorderLessons(moduleId, request, teacherId), "Lessons reordered successfully");
+    }
+
+    // ==================== Teacher Endpoints - Resource Upload (presigned) ====================
+
+    /**
+     * Request a presigned upload URL for a lesson learning-resource file (teacher only).
+     *
+     * <p>Reuses the central storage pipeline (MinIO/S3). Client PUTs the file to the
+     * returned URL, confirms via the storage API, then calls
+     * {@code POST /lessons/{lessonId}/resources} to persist the resource metadata.
+     *
+     * @param lessonId the lesson the resource will belong to
+     * @param request file metadata (name, size, mime, type, access level)
+     * @param teacherId teacher user ID (must be course owner)
+     * @return presigned upload response (fileId + uploadUrl + expiresAt)
+     */
+    @PostMapping("/lessons/{lessonId}/resources/upload-url")
+    @ResponseStatus(HttpStatus.CREATED)
+    @Operation(summary = "Request presigned upload URL for a lesson resource (teacher only)",
+               description = "Returns a presigned PUT URL (MinIO/S3). Client uploads the file, confirms, "
+                       + "then POST /lessons/{lessonId}/resources to persist the resource metadata.")
+    public ApiResponse<PresignedUploadResponse> requestResourceUploadUrl(
+            @PathVariable Long lessonId,
+            @Valid @RequestBody PresignedUploadRequest request,
+            @Parameter(description = "Teacher user ID (must be course owner)", required = true)
+            @RequestHeader("X-Teacher-Id") Long teacherId) {
+
+        log.info("POST /api/v1/lms/lessons/{}/resources/upload-url - teacherId: {}", lessonId, teacherId);
+        return ApiResponse.success(lmsService.generateResourceUploadUrl(lessonId, request, teacherId));
+    }
+
+    // ==================== Teacher Endpoints - Completion Roster ====================
+
+    /**
+     * Get the completion roster for a course (teacher only).
+     * Returns per-student lesson-completion summary. Only the course owner can view.
+     *
+     * @param courseId the course ID
+     * @param teacherId teacher user ID (must be course owner)
+     * @return completion roster
+     */
+    @GetMapping("/courses/{courseId}/completion-roster")
+    @Operation(summary = "Get completion roster for a course (teacher only)",
+               description = "Per-student lesson-completion summary. Only the course owner can view it.")
+    public ApiResponse<CompletionRosterResponse> getCompletionRoster(
+            @PathVariable Long courseId,
+            @Parameter(description = "Teacher user ID (must be course owner)", required = true)
+            @RequestHeader("X-Teacher-Id") Long teacherId) {
+
+        log.info("GET /api/v1/lms/courses/{}/completion-roster - teacherId: {}", courseId, teacherId);
+        return ApiResponse.success(lmsService.getCompletionRoster(courseId, teacherId));
     }
 }

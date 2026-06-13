@@ -16,7 +16,9 @@ import lombok.Getter;
  * <ul>
  *   <li>DRAFT → PUBLISHED: When course is ready and published</li>
  *   <li>PUBLISHED → ARCHIVED: When course is no longer offered</li>
- *   <li>No transitions allowed to DRAFT after publishing</li>
+ *   <li>PUBLISHED → DRAFT: Explicit unpublish to allow full re-editing
+ *       ({@code CourseService.unpublishCourse}); then the course can be re-published</li>
+ *   <li>ARCHIVED is terminal — no transition out of ARCHIVED</li>
  * </ul>
  *
  * @author KiteClass Team

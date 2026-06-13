@@ -132,6 +132,25 @@ public interface CourseService {
     CourseResponse publishCourse(Long id);
 
     /**
+     * Unpublishes a course (changes status from PUBLISHED back to DRAFT).
+     *
+     * <p>Business Rules:
+     * <ul>
+     *   <li>Course must be in PUBLISHED status (ARCHIVED is terminal, DRAFT is already unpublished)</li>
+     * </ul>
+     *
+     * <p>After unpublishing the course returns to DRAFT so the teacher can make
+     * full edits (BR-COURSE-002) and re-publish later. To take a published course
+     * out of the catalog permanently use {@link #archiveCourse(Long)} instead.
+     *
+     * @param id the course ID
+     * @return CourseResponse with the unpublished (DRAFT) course data
+     * @throws com.kiteclass.core.common.exception.EntityNotFoundException if course not found
+     * @throws com.kiteclass.core.common.exception.ValidationException if course is not PUBLISHED
+     */
+    CourseResponse unpublishCourse(Long id);
+
+    /**
      * Archives a course (changes status from PUBLISHED to ARCHIVED).
      *
      * <p>Business Rules:
