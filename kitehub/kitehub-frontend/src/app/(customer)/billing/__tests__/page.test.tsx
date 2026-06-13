@@ -27,6 +27,9 @@ vi.mock('@/hooks/use-instances', () => ({
 
 vi.mock('@/hooks/use-subscriptions', () => ({
   useActiveSubscription: vi.fn(),
+  // GAP-1257-FE — pending-payment-status hook (code-to-contract). Default null
+  // = no pending payment so the awaiting-confirmation banner doesn't render.
+  usePendingPaymentStatus: vi.fn(() => ({ data: null })),
 }));
 
 const pushMock = vi.fn();
@@ -110,10 +113,11 @@ describe('BillingPage (Wave 31 Bucket B port)', () => {
 
     render(<BillingPage />);
 
-    expect(screen.getByText('Chưa có gói đăng ký')).toBeInTheDocument();
+    // GAP-1079-FE: empty-state copy (404 no-active-sub handled gracefully).
+    expect(screen.getByText('Chưa có gói trả phí')).toBeInTheDocument();
     expect(
       screen.getByText(
-        'Bạn đang trong giai đoạn dùng thử. Chọn gói phù hợp với nhu cầu của bạn.',
+        'Bạn đang dùng gói Trial/Miễn phí. Chọn gói phù hợp để mở khóa đầy đủ tính năng.',
       ),
     ).toBeInTheDocument();
     // PlanComparison loaded via `next/dynamic` — wait for it.

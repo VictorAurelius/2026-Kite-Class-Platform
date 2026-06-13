@@ -2,7 +2,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import apiClient from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
-import type { Subscription, PricingTier, BillingCycle } from '@/types/subscription';
+import type {
+  Subscription,
+  PricingTier,
+  BillingCycle,
+  PendingPaymentStatus,
+} from '@/types/subscription';
 import type { ApiResponse } from '@/types/api';
 
 /**
@@ -27,6 +32,42 @@ export function useActiveSubscription(instanceId: string | undefined) {
     },
     enabled: !!instanceId,
     staleTime: 30000, // 30s - subscription thay đổi không thường xuyên
+  });
+}
+
+/**
+ * GAP-1257-FE — Poll the pending-payment status for an instance.
+ *
+ * Code-to-contract: `GET /api/platform/subscriptions/instance/{id}/pending-payment-status`
+ * is added by BE-4. Until then this returns null (404 / not-found / endpoint-missing
+ * → treated as "no pending payment"), so the UI degrades gracefully — the awaiting-
+ * confirmation banner simply doesn't render. Polls every 15s while a PENDING payment
+ * exists so the owner sees the flip to COMPLETED after admin confirm (SUB-19).
+ */
+export function usePendingPaymentStatus(instanceId: string | undefined) {
+  return useQuery({
+    queryKey: ['subscriptions', 'pending-payment-status', instanceId],
+    queryFn: async () => {
+      try {
+        const { data } = await apiClient.get<PendingPaymentStatus>(
+          endpoints.subscriptions.pendingPaymentStatus(instanceId!)
+        );
+        // BE may return 200 with empty/no pending — normalise to null.
+        if (!data || !data.pendingPaymentId) return null;
+        return data;
+      } catch (err) {
+        // 404 = no pending payment (normal). Endpoint absent pre-BE-4 also 404s.
+        if (axios.isAxiosError(err) && err.response?.status === 404) return null;
+        // Any other error: don't crash the billing page — degrade to null.
+        return null;
+      }
+    },
+    enabled: !!instanceId,
+    refetchInterval: (query) => {
+      const status = query.state.data;
+      return status?.status === 'PENDING' ? 15000 : false;
+    },
+    refetchIntervalInBackground: false,
   });
 }
 

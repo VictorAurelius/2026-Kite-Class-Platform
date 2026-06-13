@@ -3,9 +3,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ArrowRight, Info, AlertCircle } from 'lucide-react';
+import { ArrowRight, Info, AlertCircle, AlertTriangle } from 'lucide-react';
 import type { Subscription, PricingTier } from '@/types/subscription';
-import { PLAN_DETAILS, calculateProration, getDaysRemaining, isUpgrade, formatPrice } from '@/lib/pricing';
+import {
+  PLAN_DETAILS,
+  calculateProration,
+  getDaysRemaining,
+  isUpgrade,
+  formatPrice,
+  formatVnd,
+  computeDowngradeImpact,
+} from '@/lib/pricing';
 
 interface ChangeConfirmationProps {
   subscription: Subscription;
@@ -30,6 +38,19 @@ export function ChangeConfirmation({
   const proratedAmount = isUpgrading
     ? calculateProration(subscription.tier, newTier, daysRemaining, subscription.billingCycle)
     : 0;
+
+  // GAP-1262 — prorated breakdown inputs.
+  const cycleLabel = subscription.billingCycle === 'MONTHLY' ? 'tháng' : 'năm';
+  const daysInCycle = subscription.billingCycle === 'MONTHLY' ? 30 : 365;
+  const currentCyclePrice =
+    subscription.billingCycle === 'MONTHLY' ? currentPlan.monthlyPrice : currentPlan.yearlyPrice;
+  const newCyclePrice =
+    subscription.billingCycle === 'MONTHLY' ? newPlan.monthlyPrice : newPlan.yearlyPrice;
+
+  // GAP-1261 — downgrade over-cap impact (client-side from caps).
+  const downgradeImpact = !isUpgrading
+    ? computeDowngradeImpact(subscription.tier, newTier)
+    : null;
 
   const renewalDate = new Date(subscription.expiresAt).toLocaleDateString('vi-VN', {
     day: '2-digit',
@@ -108,25 +129,46 @@ export function ChangeConfirmation({
         </CardContent>
       </Card>
 
-      {/* Upgrade Notice */}
+      {/* Upgrade Notice — GAP-1262 prorated breakdown */}
       {isUpgrading && (
         <Alert>
           <Info className="h-4 w-4" />
           <AlertDescription className="ml-2">
-            <p className="font-medium mb-2">Thanh toán ngay:</p>
+            <p className="font-medium mb-2">Chi tiết khoản thanh toán nâng cấp:</p>
+            <div
+              className="space-y-1 text-sm border-l-2 border-primary/30 pl-3 mb-3"
+              data-testid="proration-breakdown"
+            >
+              <div className="flex justify-between gap-4">
+                <span className="text-muted-foreground">Còn lại trong kỳ hiện tại</span>
+                <span className="font-medium">{daysRemaining}/{daysInCycle} ngày</span>
+              </div>
+              <div className="flex justify-between gap-4">
+                <span className="text-muted-foreground">Giá gói {currentPlan.name}/{cycleLabel}</span>
+                <span>{formatVnd(currentCyclePrice)}</span>
+              </div>
+              <div className="flex justify-between gap-4">
+                <span className="text-muted-foreground">Giá gói {newPlan.name}/{cycleLabel}</span>
+                <span>{formatVnd(newCyclePrice)}</span>
+              </div>
+              <div className="flex justify-between gap-4 border-t pt-1 mt-1">
+                <span className="text-muted-foreground">
+                  Chênh lệch tính cho {daysRemaining} ngày còn lại
+                </span>
+                <span className="font-semibold">{formatVnd(proratedAmount)}</span>
+              </div>
+            </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-bold">
-                {new Intl.NumberFormat('vi-VN', {
-                  style: 'currency',
-                  currency: 'VND',
-                }).format(proratedAmount)}
-              </span>
-              <span className="text-sm text-muted-foreground">
-                (tính theo tỷ lệ cho {daysRemaining} ngày còn lại)
+              <span className="text-sm text-muted-foreground">Bạn chỉ trả phần chênh lệch:</span>
+              <span className="text-2xl font-bold" data-testid="proration-amount">
+                {formatVnd(proratedAmount)}
               </span>
             </div>
             <p className="text-sm text-muted-foreground mt-2">
-              Gói mới sẽ có hiệu lực ngay sau khi thanh toán thành công.
+              Còn {daysRemaining} ngày của gói {currentPlan.name} được trừ vào — bạn chỉ trả
+              phần chênh lệch <strong>{formatVnd(proratedAmount)}</strong>, không phải giá đầy đủ
+              {' '}{formatVnd(newCyclePrice)}. Gói mới có hiệu lực ngay sau khi thanh toán được
+              xác nhận.
             </p>
           </AlertDescription>
         </Alert>
@@ -143,6 +185,68 @@ export function ChangeConfirmation({
               <li>• Bạn vẫn sử dụng gói {currentPlan.name} đến hết ngày {renewalDate}</li>
               <li>• Không cần thanh toán thêm</li>
             </ul>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Downgrade over-cap warning — GAP-1261 (client-side cap deltas) */}
+      {!isUpgrading && downgradeImpact?.hasImpact && (
+        <Alert variant="destructive" data-testid="downgrade-impact-warning">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription className="ml-2">
+            <p className="font-medium mb-2">
+              Gói {newPlan.name} có giới hạn thấp hơn — hãy kiểm tra mức sử dụng hiện tại:
+            </p>
+            <ul className="text-sm space-y-1">
+              {downgradeImpact.studentCapTo !== downgradeImpact.studentCapFrom && (
+                <li data-testid="impact-students">
+                  • Học viên tối đa:{' '}
+                  <strong>
+                    {downgradeImpact.studentCapFrom === -1 ? 'Không giới hạn' : downgradeImpact.studentCapFrom}
+                  </strong>{' '}
+                  →{' '}
+                  <strong>
+                    {downgradeImpact.studentCapTo === -1 ? 'Không giới hạn' : downgradeImpact.studentCapTo}
+                  </strong>
+                </li>
+              )}
+              {downgradeImpact.teacherCapTo !== downgradeImpact.teacherCapFrom && (
+                <li>
+                  • Giảng viên tối đa:{' '}
+                  <strong>
+                    {downgradeImpact.teacherCapFrom === -1 ? 'Không giới hạn' : downgradeImpact.teacherCapFrom}
+                  </strong>{' '}
+                  →{' '}
+                  <strong>
+                    {downgradeImpact.teacherCapTo === -1 ? 'Không giới hạn' : downgradeImpact.teacherCapTo}
+                  </strong>
+                </li>
+              )}
+              {downgradeImpact.storageToMB !== downgradeImpact.storageFromMB && (
+                <li>
+                  • Dung lượng lưu trữ:{' '}
+                  <strong>
+                    {downgradeImpact.storageFromMB === -1 ? 'Không giới hạn' : `${downgradeImpact.storageFromMB}MB`}
+                  </strong>{' '}
+                  →{' '}
+                  <strong>
+                    {downgradeImpact.storageToMB === -1 ? 'Không giới hạn' : `${downgradeImpact.storageToMB}MB`}
+                  </strong>
+                </li>
+              )}
+              {downgradeImpact.losesCustomDomain && (
+                <li data-testid="impact-custom-domain">
+                  • <strong>Mất tên miền tùy chỉnh (custom domain)</strong> — sẽ quay về subdomain mặc định
+                </li>
+              )}
+              {downgradeImpact.losesAiBranding && (
+                <li>• <strong>Mất tính năng AI Branding</strong></li>
+              )}
+            </ul>
+            <p className="text-sm mt-2">
+              Nếu mức sử dụng hiện tại (số học viên/giảng viên, dữ liệu, tên miền) vượt giới
+              hạn gói mới, bạn cần điều chỉnh trước khi hạ gói để tránh gián đoạn.
+            </p>
           </AlertDescription>
         </Alert>
       )}
