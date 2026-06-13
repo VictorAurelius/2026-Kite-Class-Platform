@@ -1,8 +1,11 @@
 package com.kiteclass.core.module.student.service;
 
+import com.kiteclass.core.common.context.TenantContext;
 import com.kiteclass.core.common.dto.PageResponse;
+import com.kiteclass.core.common.exception.BusinessException;
 import com.kiteclass.core.common.exception.DuplicateResourceException;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
+import com.kiteclass.core.module.auth.service.AuthCredentialProvisioningService;
 import com.kiteclass.core.module.student.dto.CreateStudentRequest;
 import com.kiteclass.core.module.student.dto.StudentResponse;
 import com.kiteclass.core.module.student.dto.UpdateStudentRequest;
@@ -11,6 +14,7 @@ import com.kiteclass.core.module.student.mapper.StudentMapper;
 import com.kiteclass.core.module.student.repository.StudentRepository;
 import com.kiteclass.core.module.student.service.impl.StudentServiceImpl;
 import com.kiteclass.core.testutil.StudentTestDataBuilder;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,9 +25,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -46,6 +52,9 @@ class StudentServiceTest {
 
     @Mock
     private StudentMapper studentMapper;
+
+    @Mock
+    private AuthCredentialProvisioningService credentialProvisioning;
 
     @InjectMocks
     private StudentServiceImpl studentService;
@@ -72,6 +81,11 @@ class StudentServiceTest {
         );
         createRequest = StudentTestDataBuilder.createDefaultCreateRequest();
         updateRequest = StudentTestDataBuilder.createDefaultUpdateRequest();
+    }
+
+    @AfterEach
+    void clearTenant() {
+        TenantContext.clear();
     }
 
     @Test
@@ -213,6 +227,57 @@ class StudentServiceTest {
         // Then
         verify(studentRepository).findByIdAndDeletedFalse(1L);
         verify(studentRepository).save(student);
+        // KC-9 parity (GAP-1013b): soft-delete revokes the student's KC-native login
+        verify(credentialProvisioning).disableCredential(
+                AuthCredentialProvisioningService.ROLE_STUDENT, student.getId());
+    }
+
+    // ── KC-9 student-auth — provisionCredential (GAP-1277) ──────────────────
+
+    @Test
+    void provisionCredential_shouldSetPassword_forStudentWithEmail() {
+        // Given
+        UUID tenantId = UUID.randomUUID();
+        TenantContext.setCurrentTenant(tenantId);
+        when(studentRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(student));
+
+        // When
+        studentService.provisionCredential(1L, "Password1!");
+
+        // Then — mirrors teacher provisioning: STUDENT entity_type, student id + email
+        verify(credentialProvisioning).setPassword(
+                eq(AuthCredentialProvisioningService.ROLE_STUDENT),
+                eq(student.getId()), eq(student.getEmail()), eq(tenantId), eq("Password1!"));
+    }
+
+    @Test
+    void provisionCredential_shouldThrowEntityNotFound_whenStudentMissing() {
+        // Given
+        TenantContext.setCurrentTenant(UUID.randomUUID());
+        when(studentRepository.findByIdAndDeletedFalse(999L)).thenReturn(Optional.empty());
+
+        // When / Then
+        assertThatThrownBy(() -> studentService.provisionCredential(999L, "Password1!"))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasFieldOrPropertyWithValue("code", "STUDENT_NOT_FOUND");
+
+        verify(credentialProvisioning, never()).setPassword(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void provisionCredential_shouldThrowBusinessException_whenStudentHasNoEmail() {
+        // Given — student row with no email cannot have an email-keyed login provisioned
+        TenantContext.setCurrentTenant(UUID.randomUUID());
+        student.setEmail(null);
+        when(studentRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(student));
+
+        // When / Then
+        assertThatThrownBy(() -> studentService.provisionCredential(1L, "Password1!"))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("code", "STUDENT_EMAIL_REQUIRED")
+                .hasFieldOrPropertyWithValue("status", HttpStatus.BAD_REQUEST);
+
+        verify(credentialProvisioning, never()).setPassword(any(), any(), any(), any(), any());
     }
 
     @Test

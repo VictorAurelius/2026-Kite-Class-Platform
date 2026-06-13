@@ -1,9 +1,12 @@
 package com.kiteclass.core.module.student.service.impl;
 
 import com.kiteclass.core.common.constant.StudentStatus;
+import com.kiteclass.core.common.context.TenantContext;
 import com.kiteclass.core.common.dto.PageResponse;
+import com.kiteclass.core.common.exception.BusinessException;
 import com.kiteclass.core.common.exception.DuplicateResourceException;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
+import com.kiteclass.core.module.auth.service.AuthCredentialProvisioningService;
 import com.kiteclass.core.module.student.dto.CreateStudentRequest;
 import com.kiteclass.core.module.student.dto.StudentResponse;
 import com.kiteclass.core.module.student.dto.UpdateStudentRequest;
@@ -17,8 +20,11 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
 
 /**
  * Implementation of StudentService interface.
@@ -42,6 +48,7 @@ public class StudentServiceImpl implements StudentService {
 
     private final StudentRepository studentRepository;
     private final StudentMapper studentMapper;
+    private final AuthCredentialProvisioningService credentialProvisioning;
 
     /**
      * Tạo học viên mới.
@@ -78,6 +85,39 @@ public class StudentServiceImpl implements StudentService {
 
         log.info("Created student with ID: {}, instanceId: {}", saved.getId(), saved.getInstanceId());
         return studentMapper.toResponse(saved);
+    }
+
+    /**
+     * Set/reset a student's KC-native login password (KC-9 student-auth, Wave auth-1
+     * Hướng B — mirrors {@code TeacherServiceImpl.provisionCredential}, GAP-725).
+     *
+     * <p>Provisions an {@code auth_credentials} row (entityType=STUDENT,
+     * entityId=student.id, email=student.email) so the student can log in via
+     * {@code POST /api/v1/tenant-auth/login}. Upsert — re-invoking rotates the password.
+     *
+     * @param studentId   target student (tenant-scoped)
+     * @param rawPassword the new password (validated at the controller)
+     * @throws EntityNotFoundException if the student does not exist in this tenant
+     * @throws BusinessException 400 {@code STUDENT_EMAIL_REQUIRED} if the student has no
+     *         email — login is email-keyed, so a credential cannot be provisioned without one
+     */
+    @Override
+    @Transactional
+    public void provisionCredential(Long studentId, String rawPassword) {
+        UUID tenantId = TenantContext.getCurrentTenant();
+        Student student = studentRepository.findByIdAndDeletedFalse(studentId)
+                .orElseThrow(() -> {
+                    log.warn("Student not found for credential provisioning, ID: {}", studentId);
+                    return new EntityNotFoundException("STUDENT_NOT_FOUND", (Object) studentId);
+                });
+        if (student.getEmail() == null || student.getEmail().isBlank()) {
+            log.warn("Cannot provision login for student id={} — no email on record", studentId);
+            throw new BusinessException("STUDENT_EMAIL_REQUIRED", HttpStatus.BAD_REQUEST);
+        }
+        credentialProvisioning.setPassword(
+                AuthCredentialProvisioningService.ROLE_STUDENT,
+                student.getId(), student.getEmail(), tenantId, rawPassword);
+        log.info("Provisioned login credential for student id={}, tenant={}", studentId, tenantId);
     }
 
     /**
@@ -203,6 +243,12 @@ public class StudentServiceImpl implements StudentService {
 
         student.markAsDeleted();
         studentRepository.save(student);
+
+        // KC-9 student-auth parity with teacher (Wave auth-2, GAP-1013b): revoke the
+        // student's KC-native login when the entity is soft-deleted so a deactivated
+        // student cannot still log in. No-op when no credential was ever provisioned.
+        credentialProvisioning.disableCredential(
+                AuthCredentialProvisioningService.ROLE_STUDENT, student.getId());
 
         log.info("Deleted student with ID: {}", id);
     }

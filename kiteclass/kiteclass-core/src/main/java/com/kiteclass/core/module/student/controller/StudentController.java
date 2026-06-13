@@ -2,6 +2,7 @@ package com.kiteclass.core.module.student.controller;
 
 import com.kiteclass.core.common.dto.ApiResponse;
 import com.kiteclass.core.common.dto.PageResponse;
+import com.kiteclass.core.module.auth.dto.SetPasswordRequest;
 import com.kiteclass.core.module.student.dto.CreateStudentRequest;
 import com.kiteclass.core.module.student.dto.StudentResponse;
 import com.kiteclass.core.module.student.dto.UpdateStudentRequest;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -61,6 +63,29 @@ public class StudentController {
         log.info("REST request to create student: {}, tenantId: {}", request.name(), tenantId);
         StudentResponse response = studentService.createStudent(request, tenantId);
         return ApiResponse.success(response, "Student created successfully");
+    }
+
+    /**
+     * Set/reset a student's KC-native login password (KC-9 student-auth, Wave auth-1
+     * Hướng B — mirrors {@code POST /api/v1/teachers/{id}/credentials}).
+     *
+     * <p>Owner/teacher action — provisions the student's login credential so the
+     * student can log in via {@code POST /api/v1/tenant-auth/login}. No Zalo/SMS OTP.
+     *
+     * @param id      student id (tenant-scoped)
+     * @param request the new password
+     * @return ApiResponse with success message
+     */
+    @PostMapping("/{id}/credentials")
+    @PreAuthorize("hasAnyRole('OWNER','ADMIN','PRINCIPAL','TEACHER')")
+    @Operation(summary = "Set/reset a student's login password",
+            description = "Provisions KC-native login for the student (KC-9, Wave auth-1). Owner/teacher only.")
+    public ApiResponse<Void> setStudentCredential(
+            @Parameter(description = "Student ID") @PathVariable Long id,
+            @Valid @RequestBody SetPasswordRequest request) {
+        log.info("REST request to set login credential for student id={}", id);
+        studentService.provisionCredential(id, request.password());
+        return ApiResponse.success(null, "Đặt mật khẩu học sinh thành công");
     }
 
     /**

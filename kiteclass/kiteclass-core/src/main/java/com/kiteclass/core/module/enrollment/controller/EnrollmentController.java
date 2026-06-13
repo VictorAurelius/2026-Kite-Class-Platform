@@ -201,7 +201,7 @@ public class EnrollmentController {
      */
     @GetMapping("/{id}")
     @Operation(summary = "Get enrollment by ID")
-    @PreAuthorize("@authz.hasAccessToEnrollment(#id)")
+    @PreAuthorize("hasAnyRole('STAFF') or @authz.hasAccessToEnrollment(#id)")
     public ResponseEntity<ApiResponse<EnrollmentResponse>> getEnrollment(
             @Parameter(description = "Enrollment ID") @PathVariable Long id) {
         log.debug("GET /api/v1/enrollments/{}", id);
@@ -225,7 +225,7 @@ public class EnrollmentController {
      */
     @GetMapping("/student/{studentId}")
     @Operation(summary = "Get all enrollments for a student")
-    @PreAuthorize("@authz.hasAccessToStudent(#studentId)")
+    @PreAuthorize("hasAnyRole('STAFF') or @authz.hasAccessToStudent(#studentId)")
     public ResponseEntity<ApiResponse<Page<EnrollmentResponse>>> getEnrollmentsByStudent(
             @Parameter(description = "Student ID") @PathVariable Long studentId,
             @PageableDefault(sort = "enrollmentDate", direction = Sort.Direction.DESC)
@@ -255,7 +255,7 @@ public class EnrollmentController {
      */
     @GetMapping("/class/{classId}")
     @Operation(summary = "Get all enrollments for a class")
-    @PreAuthorize("@authz.hasAccessToClass(#classId)")
+    @PreAuthorize("hasAnyRole('STAFF') or @authz.hasAccessToClass(#classId)")
     public ResponseEntity<ApiResponse<Page<EnrollmentResponse>>> getEnrollmentsByClass(
             @Parameter(description = "Class ID") @PathVariable Long classId,
             @Parameter(description = "Filter by status (optional)")
@@ -286,7 +286,7 @@ public class EnrollmentController {
     @PutMapping("/{id}/status")
     @Operation(summary = "Update enrollment status",
                description = "Updates enrollment status (e.g., PENDING_PAYMENT → ACTIVE)")
-    @PreAuthorize("@authz.hasAccessToEnrollment(#id)")
+    @PreAuthorize("hasAnyRole('STAFF') or @authz.hasAccessToEnrollment(#id)")
     public ResponseEntity<ApiResponse<EnrollmentResponse>> updateEnrollmentStatus(
             @Parameter(description = "Enrollment ID") @PathVariable Long id,
             @Valid @RequestBody UpdateEnrollmentStatusRequest request) {
@@ -305,7 +305,7 @@ public class EnrollmentController {
     @PutMapping("/{id}/withdraw")
     @Operation(summary = "Withdraw a student from a class",
                description = "Sets enrollment status to WITHDRAWN")
-    @PreAuthorize("@authz.hasAccessToEnrollment(#id)")
+    @PreAuthorize("hasAnyRole('STAFF') or @authz.hasAccessToEnrollment(#id)")
     public ResponseEntity<ApiResponse<EnrollmentResponse>> withdrawStudent(
             @Parameter(description = "Enrollment ID") @PathVariable Long id) {
         log.info("PUT /api/v1/enrollments/{}/withdraw", id);

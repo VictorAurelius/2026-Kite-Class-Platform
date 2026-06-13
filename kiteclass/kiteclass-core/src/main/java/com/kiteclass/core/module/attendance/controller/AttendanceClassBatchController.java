@@ -70,7 +70,7 @@ public class AttendanceClassBatchController {
      * upsert path (FK constraints + tenant scoping).
      */
     @PostMapping("/{classId}/batch")
-    @PreAuthorize("@authz.hasAccessToClass(#classId)")
+    @PreAuthorize("hasAnyRole('STAFF') or @authz.hasAccessToClass(#classId)")
     @Operation(summary = "Save attendance for one class on one date in one round-trip",
             description = "GAP-268a: collapses 10 tiết × N students grid into one POST. "
                     + "Idempotent — resubmitting updates the same rows. "

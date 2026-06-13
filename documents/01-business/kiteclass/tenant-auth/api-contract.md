@@ -70,6 +70,36 @@ Provision/UPSERT credential `auth_credentials` (entity_type=TEACHER, entity_id=t
 
 ---
 
+## 2b. StudentController — credential provisioning (KC-9, GAP-1277)
+
+Bổ sung KC-9 student-auth (Hướng B, mirror teacher). Endpoint đầy đủ student xem `student/api-contract.md`; phần này chỉ ghi endpoint credential mới. KHÔNG dùng Zalo/SMS OTP — password-based như parent/teacher.
+
+### POST /api/v1/students/{id}/credentials
+**Use Case:** UC-AUTH-02 (student variant)  |  **Auth:** Bearer token  |  **Role:** OWNER, ADMIN, PRINCIPAL, TEACHER
+
+```json
+// Request — SetPasswordRequest
+{ "password": "string (required, 8-100 chars, regex: letter + digit + special)" }
+// Response 200 — ApiResponse<Void>
+{ "success": true, "data": null, "message": "Đặt mật khẩu học sinh thành công" }
+```
+
+Provision/UPSERT credential `auth_credentials` (entity_type=STUDENT, entity_id=student.id, email=student.email, instance_id=tenant). Idempotent set-password → rotate nếu đã tồn tại (BR-AUTH-PROV-003). Email + role lấy từ student entity (request chỉ mang password). Owner/teacher provision (teacher được phép vì quản học sinh của lớp mình).
+
+| Status | Code | Message | Nguyên nhân |
+|--------|------|---------|-------------|
+| 200 | — | "Đặt mật khẩu học sinh thành công" | Thành công (set hoặc reset) |
+| 403 | — | Forbidden | Caller không phải OWNER/ADMIN/PRINCIPAL/TEACHER (`@PreAuthorize`) |
+| 400 | VALIDATION_ERROR | "Mật khẩu phải từ 8-100 ký tự" / "Mật khẩu phải có chữ, số và ký tự đặc biệt" | Bean-validation `SetPasswordRequest` (BR-AUTH-PROV-005) |
+| 400 | STUDENT_EMAIL_REQUIRED | — | Student không có email → không thể provision login email-keyed |
+| 404 | STUDENT_NOT_FOUND | "Student not found" | Student id không tồn tại trong tenant |
+
+**Soft-delete:** xóa student → `disableCredential(STUDENT, id)` revoke login (parity teacher GAP-1013b).
+
+**Login:** student dùng chung `POST /api/v1/tenant-auth/login` (entity_type=STUDENT đã hợp lệ trong V89 CHECK + AuthService/AuthTokenService role-agnostic) → JWT `role=STUDENT`.
+
+---
+
 ## 3. Anti-Spoof Header Contract (Gateway)
 
 `X-User-Reference-Id` là header **gateway-only-trusted** (giống `X-User-Id`):
@@ -90,6 +120,7 @@ Provision/UPSERT credential `auth_credentials` (entity_type=TEACHER, entity_id=t
 |--------|------|----------|------|-----------|------------|
 | POST | `/api/v1/tenant-auth/login` | UC-AUTH-01 | Public | 3/5 IP-keyed | Public (Tag: Tenant Auth) |
 | POST | `/api/v1/teachers/{id}/credentials` | UC-AUTH-02 | OWNER/ADMIN/PRINCIPAL | (teacher route) | Public Swagger (Tag: Teacher) |
+| POST | `/api/v1/students/{id}/credentials` | UC-AUTH-02 | OWNER/ADMIN/PRINCIPAL/TEACHER | (student route) | Public Swagger (Tag: Student) |
 
 ---
 

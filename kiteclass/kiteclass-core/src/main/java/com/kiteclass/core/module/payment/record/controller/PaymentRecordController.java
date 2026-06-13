@@ -61,7 +61,7 @@ public class PaymentRecordController {
      * @return 201 Created + PaymentRecordResponse
      */
     @PostMapping("/{invoiceId}/record-payment")
-    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'OWNER', 'PLATFORM_ADMIN')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
     public ResponseEntity<ApiResponse<PaymentRecordResponse>> recordPayment(
             @PathVariable Long invoiceId,
             @Valid @RequestBody RecordPaymentRequest request,
@@ -86,7 +86,7 @@ public class PaymentRecordController {
      * Lists all payment records for an invoice (current tenant scope).
      */
     @GetMapping("/{invoiceId}/payment-records")
-    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'OWNER', 'PLATFORM_ADMIN')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
     public ResponseEntity<ApiResponse<List<PaymentRecordResponse>>> listPayments(
             @PathVariable Long invoiceId
     ) {
