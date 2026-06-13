@@ -14,6 +14,7 @@
 | TR-05 | Data retention after suspend | 7 days | `kitehub.data-retention.trial: 7` | DataRetentionService |
 | TR-06 | Retention warnings | Day 3, 6 after suspend | `kitehub.data-retention.warning-count: 2` | DataRetentionScheduler |
 | TR-07 | Re-trial prevention | Block if ever had trial | — | InstanceService |
+| TR-08 | Trial conversion cadence + extension | Tăng touch-points nhắc convert (ngành 5-7 email vs hiện 3 day 7/11/13); thêm cơ chế trial extension `kitehub.trial.extension-days` (admin/auto grant rescue). Wave kitehub-biz-100. | GAP-1270; TrialExpirationChecker + email cadence |
 
 ## Config
 
