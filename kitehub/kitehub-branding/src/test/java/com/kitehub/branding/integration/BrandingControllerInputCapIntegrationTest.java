@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -24,12 +25,23 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *
  * <p>Validates the controller-level guard rejects oversized prompts before any
  * AI provider call (cost-attack defense).</p>
+ *
+ * <h3>GAP-1044 — auth-migrated + actually executed in CI</h3>
+ * <p>{@code AIBrandingController} gained {@code @PreAuthorize(OWNER_AUTHZ)} in Wave 101
+ * (GAP-562); these GAP-258 input-cap tests predate it and hit the endpoint anonymously, so
+ * method security now answers 403 before the input-cap guard runs. {@code @WithMockUser(roles
+ * = "OWNER")} restores access — the endpoints send no {@code X-Instance-Id}, so
+ * {@code TenantOwnershipGuard.requireInstanceOwnershipIfPresent} early-returns and no tenant
+ * header is needed. Renamed from {@code *IT} → {@code *IntegrationTest} so Spring Boot's
+ * default Surefire {@code <includes>} runs it in CI's {@code ./mvnw clean test} (the project
+ * ships no maven-failsafe plugin, so {@code *IT} classes were silently never executed).</p>
  */
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@WithMockUser(roles = "OWNER")
 @DisplayName("Branding Controller — Input Cap (GAP-258)")
-class BrandingControllerInputCapIT {
+class BrandingControllerInputCapIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
