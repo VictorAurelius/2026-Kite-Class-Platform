@@ -1,0 +1,90 @@
+name: Compile Gate — all Maven modules (path-unfiltered)
+
+# GAP-1276 META prevention.
+#
+# Why this exists: a committed merge-conflict / compile break in ANY Maven module
+# must never reach `main` again. The originating incident — main HEAD 16eb921c3 shipped
+# with unresolved git conflict markers in
+# `kiteclass/kiteclass-core/.../security/AuthorizationBean.java` (kiteclass-core did NOT
+# compile) — slipped past CI because the per-service test workflows are PATH-FILTERED:
+#   - core-ci.yml   runs only when kiteclass/kiteclass-core/** changes
+#   - kitehub-ci.yml runs only when kitehub/<service>/** changes
+# A PR whose diff did NOT touch the broken module (or a break introduced at squash-merge
+# time, invisible to any single candidate-branch diff) carried the conflict past every
+# path-filtered gate.
+#
+# This gate compiles EVERY Maven module on EVERY PR + every push to main, with NO path
+# filter. Compile-only (no test execution) → fast (~2-4 min) → safe to keep blocking.
+#
+# push:main retained here (vs the solo-dev "no push:main on test workflows" policy in
+# CLAUDE.md) ON PURPOSE: the policy's premise ("PR CI already validates the merge
+# candidate") does NOT hold for a merge-time break that exists only on the merged HEAD,
+# never in a candidate diff. A post-merge net is exactly the point of this gate.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: compile-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  conflict-markers:
+    name: Conflict-marker scan (tracked source)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Scan for committed git conflict markers
+        run: |
+          set -uo pipefail
+          # Git conflict markers are 7-char sequences at line start. <<<<<<< and >>>>>>>
+          # (followed by a space or end-of-line) are virtually never legitimate in source.
+          # A bare ======= line is deliberately NOT matched alone (markdown setext headings
+          # / ASCII rules) — the <<<<<<< / >>>>>>> bookends always wrap a conflict block,
+          # so detecting either is sufficient. Scans test sources too (belt-and-suspenders
+          # for conflicts the compile-only step below would miss in test files).
+          if git grep -nIE '^(<{7}|>{7})( |$)' -- \
+               '*.java' '*.kt' '*.ts' '*.tsx' '*.js' '*.jsx' \
+               '*.sql' '*.xml' '*.yml' '*.yaml' '*.gradle' \
+               '*.properties' '*.json' '*.sh' '*.py'; then
+            echo "::error::Committed git conflict markers found in tracked source (see matches above). Resolve before merge — GAP-1276."
+            exit 1
+          fi
+          echo "✅ No committed git conflict markers in tracked source."
+
+  compile-all:
+    name: Compile all Maven modules (no tests)
+    needs: conflict-markers
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Make Maven wrappers executable
+        run: chmod +x kitehub/mvnw kiteclass/kiteclass-core/mvnw
+
+      # kitehub/pom.xml is an aggregator POM — compiling it compiles all 6 modules
+      # (platform, subscription, branding, email, admin, gateway) in one reactor.
+      - name: Compile KiteHub (aggregator + 6 modules)
+        working-directory: kitehub
+        run: ./mvnw -q -B -T 1C clean compile -DskipTests
+
+      # kiteclass-core is a standalone module with its own wrapper (no kiteclass parent).
+      - name: Compile KiteClass core
+        working-directory: kiteclass/kiteclass-core
+        run: ./mvnw -q -B clean compile -DskipTests

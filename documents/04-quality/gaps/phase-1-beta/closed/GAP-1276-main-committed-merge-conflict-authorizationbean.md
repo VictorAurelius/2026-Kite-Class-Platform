@@ -1,6 +1,6 @@
 # GAP-1276: Committed git merge conflict on main — `AuthorizationBean.java` (kiteclass-core did not compile)
 
-**Status:** 🟡 PARTIAL
+**Status:** 🟢 DONE
 **Priority:** 🔴 P0
 **Domain:** Backend
 **Found:** 2026-06-14 (Wave rbac-lms-be-foundation — discovered while building kiteclass-core BE foundation)
@@ -28,8 +28,12 @@ Code conflict **resolved in this PR** (kept origin/main's `hasAccessToSession` G
 
 ## Acceptance Criteria
 
-- [x] Conflict markers removed from `AuthorizationBean.java`; kiteclass-core compiles
-- [ ] CI gate prevents committed conflict markers / non-compiling code from reaching `main` (META follow-up)
+- [x] Conflict markers removed from `AuthorizationBean.java`; kiteclass-core compiles (PR #2385)
+- [x] CI gate prevents committed conflict markers / non-compiling code from reaching `main` (META follow-up — `.github/workflows/compile-gate.yml`)
+
+## Log
+
+- **2026-06-14:** META follow-up closed. Added `.github/workflows/compile-gate.yml` — path-UNFILTERED compile gate running on every PR + every push to `main`. Two jobs: (1) `conflict-markers` — `git grep` for committed git conflict markers (`<<<<<<<`/`>>>>>>>` at line start) across tracked source incl. test files; (2) `compile-all` — `./mvnw clean compile -DskipTests` on the `kitehub` aggregator (6 modules: platform/subscription/branding/email/admin/gateway) + standalone `kiteclass-core`. Closes the path-filter gap: `core-ci.yml`/`kitehub-ci.yml` are path-scoped so a conflict/compile break carried by an unrelated PR (or introduced at squash-merge time) slipped past; this gate compiles ALL modules regardless of which files the PR touched. `push:main` retained on purpose (vs solo-dev no-push policy) because a merge-time break exists only on merged HEAD, never in a candidate diff — a post-merge net is the point. Self-test verified: synthetic `AuthorizationBean.java` with conflict markers → grep guard flags lines 3+8 AND `javac` errors `illegal start of type` (→ `mvn compile` BUILD FAILURE) — both layers would have caught the originating incident. YAML validated via `python3 -c "import yaml; yaml.safe_load(...)"`. No human-walk needed (CI infra, not user-facing).
 
 ## Related
 
