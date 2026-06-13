@@ -51,6 +51,9 @@ class TenantProvisioningSagaTest {
     @Spy
     private MeterRegistry meterRegistry = new SimpleMeterRegistry();
 
+    @Mock
+    private com.kiteclass.core.module.grade.service.DefaultGradingScaleProvisioner gradingScaleProvisioner;
+
     @InjectMocks
     private TenantProvisioningSaga saga;
 
@@ -119,6 +122,8 @@ class TenantProvisioningSagaTest {
         verify(planner).plan(any());
         verify(executor).execute(any(Plan.class), any(StepContext.class));
         verify(lifecycle, never()).markFailed(anyLong(), anyString());
+        // GAP-1002: infra provisioning seeds default grading scales (TenantContext-driven, null arg)
+        verify(gradingScaleProvisioner).seedDefaults(null);
     }
 
     // ---- GAP-953 admin force-retry: idempotent + retry-aware provision ----

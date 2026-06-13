@@ -26,10 +26,12 @@
 ## Domain Status States
 
 ```
-NONE → PENDING_VERIFY → VERIFIED
+NONE → PENDING_VERIFY → CERT_PROVISIONING → VERIFIED
               ↓
-           FAILED (timeout - chưa implement trong scheduler)
+           FAILED (timeout sweep → implemented GAP-1024)
 ```
+
+> **GAP-1024 (2026-06-13):** state machine hoàn chỉnh — `PENDING_VERIFY → CERT_PROVISIONING → VERIFIED` wired (`DomainService` + `CertProvisioningService` stub) + timeout sweep `DomainVerificationTimeoutScheduler` (PENDING_VERIFY quá `kitehub.domain.verification.timeout-hours`=48 → FAILED) + verify idempotent (VERIFIED no-op). Spec + BR đầy đủ ở sister doc [`../custom-domain/rules.md`](../custom-domain/rules.md) §2 BR-DOMAIN-013/014/015 + §3.1.
 
 ## Custom-Domain Verification Flow (state machine spec — implementation deferred)
 
@@ -140,4 +142,5 @@ Per-rule attributes (Source / Rationale / Reviewer / Compliance check / Review c
 
 ## Log
 
+- **2026-06-13** GAP-1024 (Wave kitehub-biz-100 Bucket BE-5) — domain verification state machine completion: CERT_PROVISIONING step + timeout sweep scheduler (DOM-03 timeout giờ enforced) + idempotent verify. Canonical spec + BR ở sister doc `../custom-domain/rules.md`. DOM-03 timeout value đo từ `updatedAt`; key `kitehub.domain.verification.timeout-hours` (note: custom-domain doc dùng 48, domain-management doc DOM-03 ghi 48 — đồng nhất).
 - **2026-05-08** Backfill 5-attribute review section per GAP-433 Phase 1 (`business-logic-review.md` §2 standard). Placeholder Reviewer + Quarterly cadence + domain-specific Compliance check. GAP-156 Phase 2 will replace placeholders with stakeholder sign-offs.
