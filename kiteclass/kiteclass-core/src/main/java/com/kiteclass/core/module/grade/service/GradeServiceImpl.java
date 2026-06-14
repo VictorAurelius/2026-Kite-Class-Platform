@@ -7,6 +7,7 @@ import com.kiteclass.core.common.context.UserContext;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
 import com.kiteclass.core.common.exception.PermissionDeniedException;
 import com.kiteclass.core.common.exception.ValidationException;
+import com.kiteclass.core.common.security.AuthorizationBean;
 import com.kiteclass.core.module.clazz.entity.Class;
 import com.kiteclass.core.module.clazz.repository.ClassRepository;
 import com.kiteclass.core.module.grade.dto.request.CreateGradeComponentRequest;
@@ -31,8 +32,6 @@ import com.kiteclass.core.module.teacher.entity.TeacherClass;
 import com.kiteclass.core.module.teacher.repository.TeacherClassRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -67,6 +66,7 @@ public class GradeServiceImpl implements GradeService {
     private final com.kiteclass.core.module.enrollment.repository.EnrollmentRepository enrollmentRepository;
     private final com.kiteclass.core.module.assignment.repository.AssignmentRepository assignmentRepository;
     private final GradeMapper gradeMapper;
+    private final AuthorizationBean authz;
 
     @Override
     @Transactional
@@ -569,9 +569,12 @@ public class GradeServiceImpl implements GradeService {
      * @throws PermissionDeniedException if teacher is not MAIN_TEACHER
      */
     private void validateTeacherPermission(Grade grade, Long teacherId) {
-        // GAP-1000: ADMIN / PLATFORM_ADMIN has full access (BR-GRD-007) and has no
-        // TeacherClass row, so it must bypass the MAIN_TEACHER check.
-        if (isAdmin()) {
+        // GAP-1000/GAP-1301: ADMIN / PLATFORM_ADMIN / OWNER have full access (BR-GRD-007) and
+        // have no TeacherClass row, so they bypass the MAIN_TEACHER check. Uses the shared
+        // AuthorizationBean.isAdmin() (now OWNER-inclusive, matching @authz.hasAccessToGrade*
+        // guards at the controller) so an OWNER passing the @PreAuthorize gate is not then
+        // rejected here. The teacher id is the token-derived reference id, NOT a client header.
+        if (authz.isAdmin()) {
             return;
         }
 
@@ -582,22 +585,6 @@ public class GradeServiceImpl implements GradeService {
         if (teacherClass.getRole() != TeacherClassRole.MAIN_TEACHER) {
             throw new PermissionDeniedException("ONLY_MAIN_TEACHER_CAN_MODIFY_GRADE");
         }
-    }
-
-    /**
-     * GAP-1000: whether the authenticated principal holds an ADMIN-class role.
-     * Mirrors {@code AuthorizationBean.isAdmin()} (PLATFORM_ADMIN / ADMIN full access).
-     *
-     * @return true if the current request carries ROLE_ADMIN or ROLE_PLATFORM_ADMIN
-     */
-    private boolean isAdmin() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated()) {
-            return false;
-        }
-        return auth.getAuthorities().stream()
-                .map(a -> a.getAuthority())
-                .anyMatch(r -> "ROLE_PLATFORM_ADMIN".equals(r) || "ROLE_ADMIN".equals(r));
     }
 
     /**

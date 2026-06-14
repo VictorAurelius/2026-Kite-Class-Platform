@@ -190,7 +190,7 @@ class AssignmentFlowIntegrationTest {
         MvcResult assignmentResult = mockMvc.perform(post("/api/v1/assignments")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Tenant-Id", tenantId.toString())
-                        .header("X-Teacher-Id", teacherId.toString())
+                        .header("X-User-Reference-Id", teacherId.toString())
                         .content(objectMapper.writeValueAsString(assignmentRequest)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.data.title").value("Lab Report 1"))
@@ -203,7 +203,7 @@ class AssignmentFlowIntegrationTest {
         // Publish assignment so it can accept submissions
         mockMvc.perform(post("/api/v1/assignments/" + assignmentId + "/publish")
                         .header("X-Tenant-Id", tenantId.toString())
-                        .header("X-Teacher-Id", teacherId.toString()))
+                        .header("X-User-Reference-Id", teacherId.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.status").value("PUBLISHED"));
 
@@ -236,7 +236,7 @@ class AssignmentFlowIntegrationTest {
         mockMvc.perform(post("/api/v1/assignments/submissions/" + submissionId + "/grade")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Tenant-Id", tenantId.toString())
-                        .header("X-Teacher-Id", teacherId.toString())
+                        .header("X-User-Reference-Id", teacherId.toString())
                         .content(objectMapper.writeValueAsString(gradeRequest)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.score").value(85.0))
@@ -372,7 +372,7 @@ class AssignmentFlowIntegrationTest {
         MvcResult assignmentResult = mockMvc.perform(post("/api/v1/assignments")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Tenant-Id", tenantId.toString())
-                        .header("X-Teacher-Id", teacherId.toString())
+                        .header("X-User-Reference-Id", teacherId.toString())
                         .content(objectMapper.writeValueAsString(assignmentRequest)))
                 .andExpect(status().isCreated())
                 .andReturn();
@@ -383,7 +383,7 @@ class AssignmentFlowIntegrationTest {
         // Publish assignment so it can accept submissions
         mockMvc.perform(post("/api/v1/assignments/" + assignmentId + "/publish")
                         .header("X-Tenant-Id", tenantId.toString())
-                        .header("X-Teacher-Id", teacherId.toString()))
+                        .header("X-User-Reference-Id", teacherId.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.status").value("PUBLISHED"));
 

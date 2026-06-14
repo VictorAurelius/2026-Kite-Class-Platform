@@ -48,8 +48,7 @@ GET /api/v1/parent/children/{childId}/attendance                                
 |---|---|---|
 | `Authorization: Bearer <JWT>` | Yes (mọi endpoint) | JWT chứa `userId`, `role`, `tenantSlug` claims (per Gateway) |
 | `X-Tenant-Id: <tenantSlug>` | Yes | Multi-tenant isolation per BR-ATT-009 (V60 RLS migration enforces) |
-| `X-Teacher-Id: <userId>` | Conditional | Required cho mọi write/upsert path (bulk mark, batch, period upsert, period PATCH) |
-| `X-User-Reference-Id: <userId>` | Conditional | Required cho parent-facet endpoints (Gateway-injected từ `users.reference_id` khi `userType=PARENT`) |
+| `X-User-Reference-Id: <userId>` | Conditional | Gateway-injected từ `users.reference_id` (token claim). **GAP-1300/GAP-1301:** dùng làm danh tính giáo viên ghi điểm danh (`recorded_by` / `marked_by`) trên mọi write/upsert path (bulk mark, batch, period upsert, period PATCH) + parent-facet endpoints. Thay thế hoàn toàn header `X-Teacher-Id` cũ — gateway KHÔNG kiểm soát `X-Teacher-Id` (GAP-814) nên client tự đặt được (spoofable); đã bỏ. |
 
 ### 1.2 Common error envelope
 
@@ -140,7 +139,7 @@ Source: `com.kiteclass.core.common.constant.AttendanceStatus`.
 **Use case:** UC-ATT-02 (Mark Bulk Attendance)
 **Auth:** `@PreAuthorize("@authz.hasAccessToClass(#classId)")` — Wave 105 Bucket E0 per-resource authz (OWASP A01). Teacher không assigned to classId → 403.
 
-**Headers:** `X-Teacher-Id: <Long>` (required) — recording teacher.
+**Headers:** `X-User-Reference-Id: <Long>` (token-derived, gateway-injected — GAP-1300) — recording teacher.
 
 **Path params:** `classId` (Long), `sessionId` (Long).
 
@@ -235,7 +234,7 @@ Source: `com.kiteclass.core.common.constant.AttendanceStatus`.
 
 **Use case:** UC-ATT-04 (Update Attendance Status — correct mistake / override)
 **Auth:** MAIN_TEACHER hoặc Admin per BR-ATT-006 (ASSISTANT → 403).
-**Headers:** `X-Teacher-Id: <Long>` (required).
+**Headers:** `X-User-Reference-Id: <Long>` (token-derived, gateway-injected — GAP-1300).
 
 **Request body (`UpdateAttendanceStatusRequest`):**
 
@@ -276,7 +275,7 @@ Source: `com.kiteclass.core.common.constant.AttendanceStatus`.
 
 **Use case:** UC-ATT-09 (Class-overview batch save — Wave 51 Bucket B)
 **Auth:** `@PreAuthorize("@authz.hasAccessToClass(#classId)")` — Wave 105 Bucket C per-class authz (OWASP A01). Teacher không assigned → 403.
-**Headers:** `X-Teacher-Id: <Long>` (required) — recording GVCN.
+**Headers:** `X-User-Reference-Id: <Long>` (token-derived, gateway-injected — GAP-1300) — recording GVCN.
 
 **Path:** `classId` (Long).
 **Query:** `date` (LocalDate ISO-8601) — lesson date.
@@ -297,7 +296,8 @@ Source: `com.kiteclass.core.common.constant.AttendanceStatus`.
 **Idempotency (per BR-ATT-CLASS-BATCH-002):** DB unique index `(student_id, subject_section_id, date, period_no, instance_id)` (V50 migration) backstops resubmits. Same body → cùng final state, no duplicate rows. Partial-fail: row-level upsert; service wraps trong `@Transactional` — single optimistic-lock conflict rolls back batch.
 
 **Errors:**
-- `400 VALIDATION_ERROR` — entries empty / batch > 200 / periodNo out of 1..10 / missing X-Teacher-Id header
+- `400 VALIDATION_ERROR` — entries empty / batch > 200 / periodNo out of 1..10
+- `403 FORBIDDEN` — caller role not in {TEACHER, STAFF, OWNER, ADMIN} (role gate, GAP-1300)
 - `403 FORBIDDEN_ROLE` — teacher không có access to classId (OWASP A01 guard)
 - `409 OPTIMISTIC_LOCK_CONFLICT` — concurrent `@Version` bump beats request
 
@@ -355,7 +355,7 @@ K-12 per-period (per-tiết) attendance. GAP-323 Phase 1A (Wave 18b1 read-only) 
 
 **Use case:** GVCN/bộ môn mark từng tiết riêng lẻ.
 **Auth:** Teacher (any class teacher của subject_section).
-**Headers:** `X-Teacher-Id: <Long>` (required) — recording teacher.
+**Headers:** `X-User-Reference-Id: <Long>` (token-derived, gateway-injected — GAP-1300) — recording teacher.
 
 **Request body (`AttendancePeriodBatchCreateRequest`):**
 
@@ -384,7 +384,7 @@ K-12 per-period (per-tiết) attendance. GAP-323 Phase 1A (Wave 18b1 read-only) 
 
 **Use case:** GVCN correct mistake (per-tiết).
 **Auth:** Teacher of class (service-layer guard).
-**Headers:** `X-Teacher-Id: <Long>` (required).
+**Headers:** `X-User-Reference-Id: <Long>` (token-derived, gateway-injected — GAP-1300).
 
 **Request body (`AttendancePeriodUpdateRequest`):**
 

@@ -1,5 +1,6 @@
 package com.kiteclass.core.module.attendance.controller;
 
+import com.kiteclass.core.common.context.UserContext;
 import com.kiteclass.core.module.attendance.dto.AttendancePeriodResponse;
 import com.kiteclass.core.module.attendance.dto.ClassBatchAttendanceRequest;
 import com.kiteclass.core.module.attendance.service.AttendancePeriodService;
@@ -16,7 +17,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -53,6 +53,17 @@ public class AttendanceClassBatchController {
     private final AttendancePeriodService service;
 
     /**
+     * Resolve the recording teacher's numeric id from the authenticated principal
+     * (gateway-injected {@code X-User-Reference-Id} → {@link UserContext}), NOT from any
+     * client-supplied header (GAP-1300). Returns {@code null} for OWNER/ADMIN/STAFF.
+     *
+     * @return the authenticated teacher's reference id, or {@code null} for admin/owner/staff
+     */
+    private Long actingTeacherId() {
+        return UserContext.getCurrentReferenceId();
+    }
+
+    /**
      * Upserts attendance for one class on one date across all submitted
      * (period × student) cells in a single request.
      *
@@ -65,9 +76,10 @@ public class AttendanceClassBatchController {
      *       this request (handled by the global handler).</li>
      * </ul>
      *
-     * <p>Authorization: {@code X-Teacher-Id} header carries the recording
-     * teacher / GVCN. Class-access policy is enforced by the underlying
-     * upsert path (FK constraints + tenant scoping).
+     * <p>Authorization: the recording teacher / GVCN is derived from the authenticated
+     * principal ({@code X-User-Reference-Id} → {@link UserContext}), NOT a client-supplied
+     * header (GAP-1300). Per-class access is enforced by
+     * {@code @authz.hasAccessToClass(#classId)}.
      */
     @PostMapping("/{classId}/batch")
     @PreAuthorize("hasAnyRole('STAFF') or @authz.hasAccessToClass(#classId)")
@@ -75,15 +87,15 @@ public class AttendanceClassBatchController {
             description = "GAP-268a: collapses 10 tiết × N students grid into one POST. "
                     + "Idempotent — resubmitting updates the same rows. "
                     + "Wave 105 Bucket C: per-class authz via @authz.hasAccessToClass(#classId) "
-                    + "— teacher not assigned to classId returns 403 (OWASP A01 guard).")
+                    + "— teacher not assigned to classId returns 403 (OWASP A01 guard). "
+                    + "GAP-1300: recording teacher from X-User-Reference-Id, not client header.")
     public ResponseEntity<List<AttendancePeriodResponse>> saveClassBatch(
             @Parameter(description = "Target class ID") @PathVariable Long classId,
             @Parameter(description = "Lesson date (ISO-8601)", required = true)
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-            @Valid @RequestBody ClassBatchAttendanceRequest request,
-            @Parameter(description = "Recording teacher / GVCN user ID", required = true)
-            @RequestHeader("X-Teacher-Id") Long teacherId) {
+            @Valid @RequestBody ClassBatchAttendanceRequest request) {
 
+        Long teacherId = actingTeacherId();
         log.info("POST /api/v1/attendance/class/{}/batch date={} cells={} teacher={}",
                 classId, date, request.getEntries().size(), teacherId);
         List<AttendancePeriodResponse> out =

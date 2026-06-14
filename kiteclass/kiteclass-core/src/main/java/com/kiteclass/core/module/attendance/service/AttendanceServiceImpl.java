@@ -1,6 +1,7 @@
 package com.kiteclass.core.module.attendance.service;
 
 import com.kiteclass.core.common.constant.AttendanceStatus;
+import com.kiteclass.core.common.security.AuthorizationBean;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
 import com.kiteclass.core.common.exception.PermissionDeniedException;
 import com.kiteclass.core.common.exception.ValidationException;
@@ -55,6 +56,7 @@ public class AttendanceServiceImpl implements AttendanceService {
     private final AttendanceMapper attendanceMapper;
     private final PointService pointService;
     private final ApplicationEventPublisher eventPublisher;
+    private final AuthorizationBean authz;
 
     @Override
     @Transactional
@@ -137,15 +139,21 @@ public class AttendanceServiceImpl implements AttendanceService {
         log.info("Bulk marking attendance for {} students in session {} by teacher {}",
                 request.getRecords().size(), sessionId, teacherId);
 
-        // 1. Permission Check: Verify teacher is MAIN_TEACHER in this class
-        TeacherClass teacherClass = teacherClassRepository
-                .findByTeacherIdAndClassId(teacherId, classId)
-                .orElseThrow(() -> new PermissionDeniedException("TEACHER_NOT_IN_CLASS"));
+        // 1. Permission Check: Verify teacher is MAIN_TEACHER in this class.
+        // GAP-1301/GAP-1299: ADMIN/OWNER (tenant-admin) carry no numeric reference id
+        // (teacherId == null) and have no TeacherClass row, so they bypass the per-class
+        // MAIN_TEACHER check — mirrors AuthorizationBean.isAdmin() used across the per-resource
+        // authz beans. A real teacher uses the token-derived reference id (NOT a client header).
+        if (!authz.isAdmin()) {
+            TeacherClass teacherClass = teacherClassRepository
+                    .findByTeacherIdAndClassId(teacherId, classId)
+                    .orElseThrow(() -> new PermissionDeniedException("TEACHER_NOT_IN_CLASS"));
 
-        if (teacherClass.getRole() != TeacherClassRole.MAIN_TEACHER) {
-            log.warn("Teacher {} is not MAIN_TEACHER in class {} (role: {})",
-                    teacherId, classId, teacherClass.getRole());
-            throw new PermissionDeniedException("ONLY_MAIN_TEACHER_CAN_MARK_ATTENDANCE");
+            if (teacherClass.getRole() != TeacherClassRole.MAIN_TEACHER) {
+                log.warn("Teacher {} is not MAIN_TEACHER in class {} (role: {})",
+                        teacherId, classId, teacherClass.getRole());
+                throw new PermissionDeniedException("ONLY_MAIN_TEACHER_CAN_MARK_ATTENDANCE");
+            }
         }
 
         // 2. Validate session exists and belongs to class
@@ -296,15 +304,20 @@ public class AttendanceServiceImpl implements AttendanceService {
         ClassSession session = classSessionRepository.findByIdAndDeletedFalse(attendance.getSessionId())
                 .orElseThrow(() -> new EntityNotFoundException("SESSION_NOT_FOUND", (Object) attendance.getSessionId()));
 
-        // 3. Permission check: Verify teacher is MAIN_TEACHER
-        TeacherClass teacherClass = teacherClassRepository
-                .findByTeacherIdAndClassId(teacherId, session.getClassId())
-                .orElseThrow(() -> new PermissionDeniedException("TEACHER_NOT_IN_CLASS"));
+        // 3. Permission check: Verify teacher is MAIN_TEACHER.
+        // GAP-1301/GAP-1299: ADMIN/OWNER bypass the per-class MAIN_TEACHER check (no numeric
+        // reference id, no TeacherClass row) — mirrors AuthorizationBean.isAdmin(). The teacher
+        // id is the token-derived reference id (X-User-Reference-Id), NOT a client header.
+        if (!authz.isAdmin()) {
+            TeacherClass teacherClass = teacherClassRepository
+                    .findByTeacherIdAndClassId(teacherId, session.getClassId())
+                    .orElseThrow(() -> new PermissionDeniedException("TEACHER_NOT_IN_CLASS"));
 
-        if (teacherClass.getRole() != TeacherClassRole.MAIN_TEACHER) {
-            log.warn("Teacher {} is not MAIN_TEACHER in class {} (role: {})",
-                    teacherId, session.getClassId(), teacherClass.getRole());
-            throw new PermissionDeniedException("ONLY_MAIN_TEACHER_CAN_UPDATE_ATTENDANCE");
+            if (teacherClass.getRole() != TeacherClassRole.MAIN_TEACHER) {
+                log.warn("Teacher {} is not MAIN_TEACHER in class {} (role: {})",
+                        teacherId, session.getClassId(), teacherClass.getRole());
+                throw new PermissionDeniedException("ONLY_MAIN_TEACHER_CAN_UPDATE_ATTENDANCE");
+            }
         }
 
         // 4. Update status and notes

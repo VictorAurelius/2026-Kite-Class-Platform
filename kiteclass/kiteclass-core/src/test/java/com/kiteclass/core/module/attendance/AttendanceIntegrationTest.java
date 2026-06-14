@@ -332,7 +332,7 @@ class AttendanceIntegrationTest {
 
         mockMvc.perform(patch("/api/v1/attendance/" + attendanceId)
                         .header("X-Tenant-Id", tenantId.toString())
-                        .header("X-Teacher-Id", savedTeacher.getId())
+                        .header("X-User-Reference-Id", savedTeacher.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateRequest)))
                 .andExpect(status().isOk())

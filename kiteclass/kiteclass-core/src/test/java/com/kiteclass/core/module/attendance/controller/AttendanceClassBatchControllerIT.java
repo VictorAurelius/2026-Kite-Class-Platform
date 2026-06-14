@@ -2,11 +2,13 @@ package com.kiteclass.core.module.attendance.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kiteclass.core.common.constant.AttendanceStatus;
+import com.kiteclass.core.common.context.UserContext;
 import com.kiteclass.core.common.security.AuthorizationBean;
 import com.kiteclass.core.module.attendance.dto.AttendancePeriodResponse;
 import com.kiteclass.core.module.attendance.dto.ClassBatchAttendanceEntry;
 import com.kiteclass.core.module.attendance.dto.ClassBatchAttendanceRequest;
 import com.kiteclass.core.module.attendance.service.AttendancePeriodService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -109,6 +111,16 @@ class AttendanceClassBatchControllerIT {
         // cross-test invocation pollution (e.g., happyPath verify(... 1 time)
         // would see invocations from assignedClass_stillAllowed otherwise).
         Mockito.reset(service, authz);
+        // GAP-1300: the recording teacher is now derived from the authenticated principal
+        // (X-User-Reference-Id → UserContext), NOT the dropped client X-Teacher-Id header.
+        // This @WebMvcTest slice does not run the real TenantFilterInterceptor, so seed the
+        // thread-local directly (MockMvc executes synchronously on this thread).
+        UserContext.setCurrentReferenceId(TEACHER_ID);
+    }
+
+    @AfterEach
+    void clearUserContext() {
+        UserContext.clear();
     }
 
     @Test
@@ -139,7 +151,6 @@ class AttendanceClassBatchControllerIT {
 
         mockMvc.perform(post("/api/v1/attendance/class/{classId}/batch", CLASS_ID)
                         .param("date", DATE)
-                        .header("X-Teacher-Id", TEACHER_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(body)))
                 .andExpect(status().isCreated());
@@ -164,7 +175,6 @@ class AttendanceClassBatchControllerIT {
 
         mockMvc.perform(post("/api/v1/attendance/class/{classId}/batch", CLASS_ID)
                         .param("date", DATE)
-                        .header("X-Teacher-Id", TEACHER_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(body)))
                 .andExpect(status().isBadRequest());
@@ -188,17 +198,18 @@ class AttendanceClassBatchControllerIT {
 
         mockMvc.perform(post("/api/v1/attendance/class/{classId}/batch", CLASS_ID)
                         .param("date", DATE)
-                        .header("X-Teacher-Id", TEACHER_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(body)))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    @DisplayName("rejects missing X-Teacher-Id header (4xx/5xx — Spring MissingRequestHeader)")
+    @DisplayName("GAP-1300 — spoofed X-Teacher-Id ignored; recording teacher from token")
     @WithMockUser
-    void missingTeacherHeader_isError() throws Exception {
+    void spoofedTeacherHeaderIgnored_usesTokenIdentity() throws Exception {
         when(authz.hasAccessToClass(eq(CLASS_ID))).thenReturn(true);
+        when(service.upsertClassBatch(eq(CLASS_ID), eq(LocalDate.parse(DATE)),
+                any(), eq(TEACHER_ID))).thenReturn(Collections.<AttendancePeriodResponse>emptyList());
 
         ClassBatchAttendanceRequest body = ClassBatchAttendanceRequest.builder()
                 .entries(List.of(ClassBatchAttendanceEntry.builder()
@@ -206,20 +217,22 @@ class AttendanceClassBatchControllerIT {
                         .status(AttendanceStatus.PRESENT).build()))
                 .build();
 
-        // Behaviour mirrors existing AttendancePeriodController upsertBatch path:
-        // GlobalExceptionHandler maps MissingRequestHeaderException via the default
-        // SYSTEM_INTERNAL_ERROR envelope. Test asserts the request is rejected
-        // (any 4xx/5xx — what matters is no successful 201).
+        // The authenticated principal (UserContext) = TEACHER_ID (seeded in @BeforeEach).
+        // A spoofed client X-Teacher-Id header claims a DIFFERENT teacher (999) — the
+        // controller no longer reads it, so the service must be invoked with TEACHER_ID,
+        // not the spoofed 999.
         mockMvc.perform(post("/api/v1/attendance/class/{classId}/batch", CLASS_ID)
                         .param("date", DATE)
+                        .header("X-Teacher-Id", "999")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(body)))
-                .andExpect(result -> {
-                    int status = result.getResponse().getStatus();
-                    if (status < 400) {
-                        throw new AssertionError("Expected 4xx/5xx but got " + status);
-                    }
-                });
+                .andExpect(status().isCreated());
+
+        // recording teacher = token identity (TEACHER_ID), NOT the spoofed header (999)
+        verify(service).upsertClassBatch(eq(CLASS_ID), eq(LocalDate.parse(DATE)),
+                any(), eq(TEACHER_ID));
+        Mockito.verify(service, Mockito.never())
+                .upsertClassBatch(eq(CLASS_ID), eq(LocalDate.parse(DATE)), any(), eq(999L));
     }
 
     /**
@@ -255,7 +268,6 @@ class AttendanceClassBatchControllerIT {
 
         mockMvc.perform(post("/api/v1/attendance/class/{classId}/batch", spoofedClassId)
                         .param("date", DATE)
-                        .header("X-Teacher-Id", TEACHER_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(body)))
                 .andExpect(result -> {
@@ -290,7 +302,6 @@ class AttendanceClassBatchControllerIT {
 
         mockMvc.perform(post("/api/v1/attendance/class/{classId}/batch", CLASS_ID)
                         .param("date", DATE)
-                        .header("X-Teacher-Id", TEACHER_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(body)))
                 .andExpect(status().isCreated());

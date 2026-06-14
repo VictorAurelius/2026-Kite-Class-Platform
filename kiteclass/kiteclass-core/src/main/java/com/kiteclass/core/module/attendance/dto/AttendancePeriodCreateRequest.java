@@ -15,9 +15,10 @@ import java.time.LocalDate;
 /**
  * Per-period attendance create request (single record).
  *
- * <p>{@code recordedBy} is taken from the {@code X-Teacher-Id} request header
- * by the controller, not the body — the same convention used by the legacy
- * {@code AttendanceController#markBulkAttendance}.
+ * <p>{@code recordedBy} is derived by the controller from the authenticated
+ * principal ({@code X-User-Reference-Id} → {@code UserContext}), not the body and
+ * not a client-supplied header — the spoofable {@code X-Teacher-Id} header was
+ * dropped in GAP-1300 (same convention as {@code AttendanceController}).
  *
  * @since GAP-323b Phase 1B (Wave 18b2)
  */

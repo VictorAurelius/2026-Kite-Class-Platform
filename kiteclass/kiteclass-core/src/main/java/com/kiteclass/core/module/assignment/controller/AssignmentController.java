@@ -1,5 +1,6 @@
 package com.kiteclass.core.module.assignment.controller;
 
+import com.kiteclass.core.common.context.UserContext;
 import com.kiteclass.core.common.dto.ApiResponse;
 import com.kiteclass.core.module.assignment.dto.request.CreateAssignmentRequest;
 import com.kiteclass.core.module.assignment.dto.request.GradeSubmissionRequest;
@@ -37,11 +38,16 @@ import java.util.List;
  *       {@code getPublishedAssignmentsByClass} — by design exposed to enrolled
  *       students (only published items, not drafts). Tightening to teacher-only
  *       would block intended student access pattern.</li>
- *   <li><strong>id-scoped, deferred:</strong> create / update / publish / close /
- *       delete / grade / submission ops use {@code X-Teacher-Id} header for
- *       service-layer ownership check (legacy pre-UUID pattern). Migrating these
- *       to {@code hasAccessToAssignment(#id)} requires new authz helper resolving
- *       assignment → classId → teacher, tracked as GAP-837 follow-up.</li>
+ *   <li><strong>id-scoped (GAP-1301 hardened):</strong> create / update / publish / close /
+ *       delete / grade / submission ops are (1) role-gated
+ *       {@code @PreAuthorize("hasAnyRole('TEACHER','OWNER','ADMIN')")} so STUDENT/PARENT are
+ *       blocked, and (2) derive the acting teacher from the authenticated principal
+ *       (gateway-injected {@code X-User-Reference-Id} → {@link UserContext}). The former
+ *       client-supplied {@code X-Teacher-Id} header — which the gateway does NOT control
+ *       (per GAP-814) and was therefore spoofable — is no longer read as an identity source.
+ *       ADMIN/OWNER (no numeric reference id) bypass the per-class MAIN_TEACHER check at the
+ *       service layer ({@code AuthorizationBean.isAdmin()}). A finer per-resource
+ *       {@code hasAccessToAssignment(#id)} helper remains a GAP-837 follow-up.</li>
  * </ul>
  *
  * @author KiteClass Team
@@ -55,14 +61,26 @@ public class AssignmentController {
     private final AssignmentService assignmentService;
 
     /**
+     * Resolve the acting teacher's numeric id from the authenticated principal
+     * (gateway-injected {@code X-User-Reference-Id} → {@link UserContext}), NOT from any
+     * client-supplied header (GAP-1301). Returns {@code null} for ADMIN/OWNER, who carry no
+     * numeric reference id; the service layer bypasses the MAIN_TEACHER check for them.
+     *
+     * @return the authenticated teacher's reference id, or {@code null} for admin/owner
+     */
+    private Long actingTeacherId() {
+        return UserContext.getCurrentReferenceId();
+    }
+
+    /**
      * Create a new assignment (MAIN_TEACHER only).
      */
     @PostMapping
+    @PreAuthorize("hasAnyRole('TEACHER','OWNER','ADMIN')")
     public ResponseEntity<ApiResponse<AssignmentResponse>> createAssignment(
-            @Valid @RequestBody CreateAssignmentRequest request,
-            @RequestHeader("X-Teacher-Id") Long teacherId) {
+            @Valid @RequestBody CreateAssignmentRequest request) {
 
-        AssignmentResponse response = assignmentService.createAssignment(request, teacherId);
+        AssignmentResponse response = assignmentService.createAssignment(request, actingTeacherId());
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(ApiResponse.success(response));
     }
@@ -71,12 +89,12 @@ public class AssignmentController {
      * Update an assignment (MAIN_TEACHER only).
      */
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('TEACHER','OWNER','ADMIN')")
     public ResponseEntity<ApiResponse<AssignmentResponse>> updateAssignment(
             @PathVariable Long id,
-            @Valid @RequestBody UpdateAssignmentRequest request,
-            @RequestHeader("X-Teacher-Id") Long teacherId) {
+            @Valid @RequestBody UpdateAssignmentRequest request) {
 
-        AssignmentResponse response = assignmentService.updateAssignment(id, request, teacherId);
+        AssignmentResponse response = assignmentService.updateAssignment(id, request, actingTeacherId());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -84,11 +102,11 @@ public class AssignmentController {
      * Publish an assignment (make visible to students).
      */
     @PostMapping("/{id}/publish")
+    @PreAuthorize("hasAnyRole('TEACHER','OWNER','ADMIN')")
     public ResponseEntity<ApiResponse<AssignmentResponse>> publishAssignment(
-            @PathVariable Long id,
-            @RequestHeader("X-Teacher-Id") Long teacherId) {
+            @PathVariable Long id) {
 
-        AssignmentResponse response = assignmentService.publishAssignment(id, teacherId);
+        AssignmentResponse response = assignmentService.publishAssignment(id, actingTeacherId());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -96,11 +114,11 @@ public class AssignmentController {
      * Close an assignment (no more submissions).
      */
     @PostMapping("/{id}/close")
+    @PreAuthorize("hasAnyRole('TEACHER','OWNER','ADMIN')")
     public ResponseEntity<ApiResponse<AssignmentResponse>> closeAssignment(
-            @PathVariable Long id,
-            @RequestHeader("X-Teacher-Id") Long teacherId) {
+            @PathVariable Long id) {
 
-        AssignmentResponse response = assignmentService.closeAssignment(id, teacherId);
+        AssignmentResponse response = assignmentService.closeAssignment(id, actingTeacherId());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -108,11 +126,11 @@ public class AssignmentController {
      * Delete an assignment (soft delete).
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('TEACHER','OWNER','ADMIN')")
     public ResponseEntity<ApiResponse<Void>> deleteAssignment(
-            @PathVariable Long id,
-            @RequestHeader("X-Teacher-Id") Long teacherId) {
+            @PathVariable Long id) {
 
-        assignmentService.deleteAssignment(id, teacherId);
+        assignmentService.deleteAssignment(id, actingTeacherId());
         return ResponseEntity.status(HttpStatus.NO_CONTENT)
             .body(ApiResponse.success(null));
     }
@@ -172,12 +190,12 @@ public class AssignmentController {
      * Grade a submission (MAIN_TEACHER or assigned grader).
      */
     @PostMapping("/submissions/{id}/grade")
+    @PreAuthorize("hasAnyRole('TEACHER','OWNER','ADMIN')")
     public ResponseEntity<ApiResponse<SubmissionResponse>> gradeSubmission(
             @PathVariable Long id,
-            @Valid @RequestBody GradeSubmissionRequest request,
-            @RequestHeader("X-Teacher-Id") Long teacherId) {
+            @Valid @RequestBody GradeSubmissionRequest request) {
 
-        SubmissionResponse response = assignmentService.gradeSubmission(id, request, teacherId);
+        SubmissionResponse response = assignmentService.gradeSubmission(id, request, actingTeacherId());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -185,11 +203,11 @@ public class AssignmentController {
      * Return graded submission to student.
      */
     @PostMapping("/submissions/{id}/return")
+    @PreAuthorize("hasAnyRole('TEACHER','OWNER','ADMIN')")
     public ResponseEntity<ApiResponse<SubmissionResponse>> returnSubmission(
-            @PathVariable Long id,
-            @RequestHeader("X-Teacher-Id") Long teacherId) {
+            @PathVariable Long id) {
 
-        SubmissionResponse response = assignmentService.returnSubmission(id, teacherId);
+        SubmissionResponse response = assignmentService.returnSubmission(id, actingTeacherId());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

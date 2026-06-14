@@ -212,7 +212,8 @@
 - Resubmit cùng body → cùng state, KHÔNG duplicate rows (DB unique index V50 backstop)
 
 **Errors:**
-- `400` entries empty / batch > 200 cells / periodNo ngoài 1..10 / missing X-Teacher-Id
+- `400` entries empty / batch > 200 cells / periodNo ngoài 1..10
+- `403` caller role không thuộc {TEACHER, STAFF, OWNER, ADMIN} — role gate GAP-1300 (định danh giáo viên ghi lấy từ token `X-User-Reference-Id`, không còn header client `X-Teacher-Id` spoofable)
 - `409 OPTIMISTIC_LOCK_CONFLICT` nếu concurrent edit beats request (rare — overview save is single-teacher path)
 
 **Notes:**

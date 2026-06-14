@@ -92,7 +92,7 @@ pinpoints tiết with anomaly status counts. Phase 1A returns raw rows.
 
 **Pre-conditions:**
 - Tenant `vertical_type = 'K12_SCHOOL'`.
-- Caller has resolved `X-Teacher-Id` (gateway/auth maps to user ID).
+- Caller is authenticated with a role in {TEACHER, STAFF, OWNER, ADMIN} (role gate, GAP-1300). The recording teacher (`recordedBy`) is derived from the gateway-injected `X-User-Reference-Id` (token), NOT a client header — the spoofable `X-Teacher-Id` was dropped (GAP-1300; gateway does not control it per GAP-814).
 - Each entry's `(studentId, classId, subjectSectionId)` is consistent with the
   tenant's K-12 structure (FK validation deferred to GAP-323b follow-up;
   service trusts the body in v1).
@@ -125,9 +125,11 @@ pinpoints tiết with anomaly status counts. Phase 1A returns raw rows.
    optimistically without a network round-trip.
 3. "Đánh dấu tất cả có mặt" sets every roster student to `PRESENT` in one
    click; "Xoá lựa chọn" clears local state back to "no entries".
-4. "Lưu" calls `useUpsertAttendancePeriod`, which POSTs the batch with
-   `X-Teacher-Id`. On success, the matching daily-roster query is
-   invalidated so the canonical server state is re-read.
+4. "Lưu" calls `useUpsertAttendancePeriod`, which POSTs the batch; the
+   recording teacher is taken from the authenticated principal
+   (`X-User-Reference-Id`), not a client header (GAP-1300). On success, the
+   matching daily-roster query is invalidated so the canonical server state
+   is re-read.
 5. `Save` is disabled until at least one student has a status set, AND a
    `subjectSectionId` is known (read from the existing roster rows for the
    class+date — Phase 1B follow-up will let the teacher pick the section

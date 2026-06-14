@@ -159,7 +159,7 @@ class AttendancePeriodIntegrationTest {
         // 1st submission: insert
         mockMvc.perform(post("/api/v1/attendance/periods")
                         .header("X-Tenant-Id", TENANT.toString())
-                        .header("X-Teacher-Id", "909")
+                        .header("X-User-Reference-Id", "909")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(batch)))
                 .andExpect(status().isCreated())
@@ -184,7 +184,7 @@ class AttendancePeriodIntegrationTest {
 
         mockMvc.perform(post("/api/v1/attendance/periods")
                         .header("X-Tenant-Id", TENANT.toString())
-                        .header("X-Teacher-Id", "909")
+                        .header("X-User-Reference-Id", "909")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(rebatch)))
                 .andExpect(status().isCreated())
@@ -215,7 +215,7 @@ class AttendancePeriodIntegrationTest {
 
         mockMvc.perform(post("/api/v1/attendance/periods")
                         .header("X-Tenant-Id", TENANT.toString())
-                        .header("X-Teacher-Id", "909")
+                        .header("X-User-Reference-Id", "909")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(batch)))
                 .andExpect(status().isBadRequest());
@@ -232,7 +232,7 @@ class AttendancePeriodIntegrationTest {
 
         mockMvc.perform(patch("/api/v1/attendance/periods/" + sampleId)
                         .header("X-Tenant-Id", TENANT.toString())
-                        .header("X-Teacher-Id", "808")
+                        .header("X-User-Reference-Id", "808")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isOk())
@@ -251,7 +251,7 @@ class AttendancePeriodIntegrationTest {
 
         mockMvc.perform(patch("/api/v1/attendance/periods/" + sampleId)
                         .header("X-Tenant-Id", TENANT.toString())
-                        .header("X-Teacher-Id", "808")
+                        .header("X-User-Reference-Id", "808")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isConflict())

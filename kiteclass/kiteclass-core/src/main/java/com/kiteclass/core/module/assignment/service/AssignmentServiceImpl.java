@@ -7,6 +7,7 @@ import com.kiteclass.core.common.context.TenantContext;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
 import com.kiteclass.core.common.exception.PermissionDeniedException;
 import com.kiteclass.core.common.exception.ValidationException;
+import com.kiteclass.core.common.security.AuthorizationBean;
 import com.kiteclass.core.module.assignment.dto.request.CreateAssignmentRequest;
 import com.kiteclass.core.module.assignment.dto.request.GradeSubmissionRequest;
 import com.kiteclass.core.module.assignment.dto.request.SubmitAssignmentRequest;
@@ -53,6 +54,7 @@ public class AssignmentServiceImpl implements AssignmentService {
     private final TeacherClassRepository teacherClassRepository;
     private final AssignmentMapper assignmentMapper;
     private final ApplicationEventPublisher eventPublisher;
+    private final AuthorizationBean authz;
 
     @Override
     @Transactional
@@ -62,13 +64,19 @@ public class AssignmentServiceImpl implements AssignmentService {
             .orElseThrow(() -> new EntityNotFoundException("CLASS_NOT_FOUND", (Object) request.getClassId()));
         log.debug("Creating assignment for class: {}", clazz.getName());
 
-        // 2. Permission check: Only MAIN_TEACHER can create assignments
-        TeacherClass teacherClass = teacherClassRepository
-                .findByTeacherIdAndClassId(teacherId, request.getClassId())
-                .orElseThrow(() -> new PermissionDeniedException("TEACHER_NOT_IN_CLASS"));
+        // 2. Permission check: Only MAIN_TEACHER can create assignments.
+        // GAP-1301/GAP-1299: ADMIN/OWNER (tenant-admin) carry no numeric reference id
+        // (teacherId == null) and have no TeacherClass row, so they bypass the per-class
+        // MAIN_TEACHER check — mirrors AuthorizationBean.isAdmin(). The teacher id is the
+        // token-derived reference id (X-User-Reference-Id), NOT a spoofable client header.
+        if (!authz.isAdmin()) {
+            TeacherClass teacherClass = teacherClassRepository
+                    .findByTeacherIdAndClassId(teacherId, request.getClassId())
+                    .orElseThrow(() -> new PermissionDeniedException("TEACHER_NOT_IN_CLASS"));
 
-        if (teacherClass.getRole() != TeacherClassRole.MAIN_TEACHER) {
-            throw new PermissionDeniedException("ONLY_MAIN_TEACHER_CAN_CREATE_ASSIGNMENT");
+            if (teacherClass.getRole() != TeacherClassRole.MAIN_TEACHER) {
+                throw new PermissionDeniedException("ONLY_MAIN_TEACHER_CAN_CREATE_ASSIGNMENT");
+            }
         }
 
         // 3. Map to entity
@@ -387,6 +395,13 @@ public class AssignmentServiceImpl implements AssignmentService {
     }
 
     private void validateTeacherPermission(Assignment assignment, Long teacherId) {
+        // GAP-1301/GAP-1299: ADMIN/OWNER bypass the per-class MAIN_TEACHER check (no numeric
+        // reference id, no TeacherClass row) — mirrors AuthorizationBean.isAdmin(). The teacher
+        // id is the token-derived reference id (X-User-Reference-Id), NOT a spoofable header.
+        if (authz.isAdmin()) {
+            return;
+        }
+
         TeacherClass teacherClass = teacherClassRepository
                 .findByTeacherIdAndClassId(teacherId, assignment.getClassId())
                 .orElseThrow(() -> new PermissionDeniedException("TEACHER_NOT_IN_CLASS"));

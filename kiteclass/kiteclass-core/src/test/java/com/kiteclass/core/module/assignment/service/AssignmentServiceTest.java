@@ -27,6 +27,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import com.kiteclass.core.common.security.AuthorizationBean;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -44,6 +45,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.anyList;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -73,6 +75,12 @@ class AssignmentServiceTest {
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
+
+    // GAP-1301: AssignmentServiceImpl now consults AuthorizationBean.isAdmin() to let ADMIN/OWNER
+    // bypass the per-class MAIN_TEACHER check. Unstubbed mock → isAdmin() returns false, so these
+    // tests exercise the non-admin (MAIN_TEACHER-required) path as before.
+    @Mock
+    private AuthorizationBean authz;
 
     @InjectMocks
     private AssignmentServiceImpl assignmentService;
@@ -167,6 +175,37 @@ class AssignmentServiceTest {
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(1L);
         verify(assignmentRepository).save(any(Assignment.class));
+    }
+
+    @Test
+    @DisplayName("GAP-1301 — ADMIN/OWNER bypasses MAIN_TEACHER check (no numeric reference id)")
+    void shouldCreateAssignment_whenAdminBypassesOwnership() {
+        // Given — ADMIN/OWNER carries no numeric reference id (teacherId == null) and has no
+        // TeacherClass row; AuthorizationBean.isAdmin() == true lets them bypass the per-class
+        // MAIN_TEACHER check (GAP-1301), mirroring the LMS / grade precedents.
+        CreateAssignmentRequest request = CreateAssignmentRequest.builder()
+                .classId(1L)
+                .title("Homework Admin")
+                .dueDate(LocalDateTime.now().plusDays(7))
+                .maxScore(BigDecimal.valueOf(100))
+                .weightPercent(BigDecimal.valueOf(20))
+                .allowLateSubmission(true)
+                .build();
+
+        when(authz.isAdmin()).thenReturn(true);
+        when(classRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testClass));
+        when(assignmentMapper.toEntity(request)).thenReturn(testAssignment);
+        when(assignmentRepository.save(any(Assignment.class))).thenReturn(testAssignment);
+        when(assignmentMapper.toResponse(testAssignment))
+                .thenReturn(AssignmentResponse.builder().id(2L).build());
+
+        // When — admin acts with a null reference id
+        AssignmentResponse result = assignmentService.createAssignment(request, null);
+
+        // Then — created without consulting TeacherClass (the MAIN_TEACHER check was bypassed)
+        assertThat(result).isNotNull();
+        verify(assignmentRepository).save(any(Assignment.class));
+        verifyNoInteractions(teacherClassRepository);
     }
 
     @Test
