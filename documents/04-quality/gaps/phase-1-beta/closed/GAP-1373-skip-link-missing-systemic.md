@@ -1,6 +1,6 @@
 # GAP-1373: Skip-to-content link thiếu systemic (KH toàn bộ + KC dashboard/auth/teacher) — WCAG 2.4.1
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟡 P2
 **Domain:** Frontend
 **Found:** 2026-06-14 (UI review full audit, AUDIT-2026-06-14-ui-review-full)
@@ -22,10 +22,23 @@ Trích pattern từ `(public)/layout.tsx` thành shared component (vd `SkipToCon
 
 ## Acceptance Criteria
 
-- [ ] Mỗi top-level layout (KH + KC) render skip-link `sr-only focus:not-sr-only` trỏ `#main-content`
-- [ ] `<main id="main-content" role="main">` tồn tại trong mỗi layout đó
-- [ ] Keyboard Tab đầu tiên trên mỗi page surface skip-link
-- [ ] (optional) CI grep check skip-link presence per layout
+- [x] Mỗi top-level layout (KH + KC) render skip-link `sr-only focus:not-sr-only` trỏ `#main-content`
+- [x] `<main id="main-content" role="main">` tồn tại trong mỗi layout đó
+- [x] Keyboard Tab đầu tiên trên mỗi page surface skip-link (skip-link là first link trong DOM)
+- [ ] (optional) CI grep check skip-link presence per layout — DEFER (optional, không block)
+
+## Resolution
+
+**Fixed:** 2026-06-15 (branch `fix/audit-fixH-ui-2026-06-14`)
+
+Tạo shared `SkipToContent` component cho mỗi app + wire vào mọi top-level layout (mỗi layout đã/được thêm `<main id="main-content" role="main">`):
+
+- **KH** `components/a11y/SkipToContent.tsx` → wired: `components/layout/PublicLayout.tsx`, `AdminLayout.tsx`, `DashboardLayout.tsx` (customer) + inline `app/(auth)/layout.tsx`.
+- **KC** `components/a11y/skip-to-content.tsx` → wired: `components/layout/dashboard-layout.tsx`, `auth-layout.tsx`, `components/teacher/teacher-shell.tsx` ((teacher) group). `(public)/layout.tsx` đã có sẵn (giữ inline pattern gốc).
+
+`(school-admin)` KH layout bounce-all Phase 1 BETA (không render content) → không cần. KC `(dashboard)/admin|parent|student` là RoleGuard wrappers render content qua `DashboardLayout`/own-shell → covered bởi shared component.
+
+**Test:** `components/layout/__tests__/PublicLayout.test.tsx` — thêm test skip-link href `#main-content` + `#main-content` target tồn tại; sửa "renders logo link" để tìm logo theo `href="/"` (skip-link giờ là first link).
 
 ## Related
 

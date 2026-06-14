@@ -26,10 +26,10 @@ vi.mock('@/lib/api/client', async () => {
 import LoginPage from '../page';
 
 async function fillAndSubmit(email: string, password: string = 'Passw0rd!') {
-  // Login form labels lack htmlFor; query by input name attribute via querySelector.
-  const emailInput = document.querySelector('input[name="email"]') as HTMLInputElement;
-  const passwordInput = document.querySelector('input[name="password"]') as HTMLInputElement;
-  if (!emailInput || !passwordInput) throw new Error('Login inputs not found in DOM');
+  // GAP-1374: labels are now associated via htmlFor/id, so we can query by
+  // accessible label instead of raw name attribute.
+  const emailInput = screen.getByLabelText('Email') as HTMLInputElement;
+  const passwordInput = screen.getByLabelText('Mật khẩu') as HTMLInputElement;
   fireEvent.change(emailInput, { target: { value: email } });
   fireEvent.change(passwordInput, { target: { value: password } });
   fireEvent.click(screen.getByRole('button', { name: /Đăng nhập/i }));
@@ -40,6 +40,18 @@ describe('LoginPage — 2FA branching (Wave 72b Bucket B)', () => {
     mockPush.mockClear();
     localStorage.clear();
     sessionStorage.clear();
+  });
+
+  // GAP-1374 — login form a11y: label↔input association + autocomplete.
+  it('associates labels with inputs and sets autocomplete (WCAG 1.3.1/1.3.5)', () => {
+    render(<LoginPage />);
+    const emailInput = screen.getByLabelText('Email') as HTMLInputElement;
+    const passwordInput = screen.getByLabelText('Mật khẩu') as HTMLInputElement;
+
+    expect(emailInput).toHaveAttribute('id', 'login-email');
+    expect(emailInput).toHaveAttribute('autoComplete', 'email');
+    expect(passwordInput).toHaveAttribute('id', 'login-password');
+    expect(passwordInput).toHaveAttribute('autoComplete', 'current-password');
   });
 
   it('redirects to /2fa-challenge when response is requires2fa', async () => {

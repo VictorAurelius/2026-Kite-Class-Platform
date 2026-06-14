@@ -28,11 +28,14 @@
 
 export const dynamic = 'force-dynamic';
 
+import Link from 'next/link';
 import {
+  ArrowRight,
   BookOpen,
   CalendarCheck,
   CreditCard,
   GraduationCap,
+  Inbox,
   TrendingUp,
   Users,
 } from 'lucide-react';
@@ -130,16 +133,42 @@ export default function DashboardHomePage() {
         ))}
       </section>
 
+      {/* GAP-1379: recent-activity placeholder upgraded from a plain explanatory
+          paragraph to an empty-state (icon + message + onboarding CTA) so the
+          first screen after login reads as "ready, add your data" rather than
+          "unfinished". The 4 KPI tiles stay honest "—" (GAP-805 anti-fake-data)
+          until GET /api/v1/dashboard/stats ships. */}
       <section
         aria-label="Hoạt động gần đây"
-        className="rounded-xl border border-border bg-card p-4"
+        className="rounded-xl border border-border bg-card p-6"
       >
         <h2 className="text-sm font-semibold text-foreground">Hoạt động gần đây</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Một số chỉ số (giáo viên, điểm danh, doanh thu, tỷ lệ giữ chân) hiển thị
-          &ldquo;—&rdquo; vì chưa có API tổng hợp; sẽ bổ sung khi endpoint thống kê
-          dashboard sẵn sàng.
-        </p>
+        <div className="mt-4 flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-10 text-center">
+          <div className="rounded-full bg-muted p-3 text-muted-foreground">
+            <Inbox className="h-6 w-6" aria-hidden="true" />
+          </div>
+          <p className="mt-3 text-sm font-medium text-foreground">
+            Chưa có hoạt động để hiển thị
+          </p>
+          <p className="mt-1 max-w-md text-sm text-muted-foreground">
+            Bắt đầu bằng cách thêm học viên và tạo lớp học — các hoạt động gần đây
+            sẽ xuất hiện tại đây khi trung tâm vận hành.
+          </p>
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+            <Link
+              href="/students"
+              className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              Quản lý học viên <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+            <Link
+              href="/courses"
+              className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-semibold transition-colors hover:bg-accent/40"
+            >
+              Quản lý khóa học
+            </Link>
+          </div>
+        </div>
       </section>
     </div>
     </DashboardLayout>

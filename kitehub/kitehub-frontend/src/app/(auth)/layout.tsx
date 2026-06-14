@@ -1,9 +1,12 @@
 import { Clock, Shield, Palette, Smartphone, Zap, CreditCard } from 'lucide-react';
 import { KiteLogo } from '@/components/brand/KiteLogo';
+import { SkipToContent } from '@/components/a11y/SkipToContent';
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen">
+      {/* Skip to main content (accessibility — WCAG 2.4.1) */}
+      <SkipToContent />
       {/* Left: Feature highlights (hidden on mobile) */}
       <div className="hidden lg:flex lg:flex-1 bg-gradient-to-br from-primary/10 via-primary/5 to-accent/10 relative overflow-hidden">
         <div className="flex flex-col justify-center p-12 xl:p-16 relative z-10">
@@ -50,9 +53,9 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       </div>
 
       {/* Right: Form */}
-      <div className="flex flex-1 items-center justify-center p-6 sm:p-8">
+      <main id="main-content" role="main" className="flex flex-1 items-center justify-center p-6 sm:p-8">
         <div className="w-full max-w-md">{children}</div>
-      </div>
+      </main>
     </div>
   );
 }

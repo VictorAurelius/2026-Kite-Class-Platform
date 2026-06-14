@@ -15,6 +15,7 @@
 import type { ReactNode } from 'react';
 import { GraduationCap } from 'lucide-react';
 import { useTenantBranding } from '@/providers/BrandingProvider';
+import { SkipToContent } from '@/components/a11y/skip-to-content';
 
 interface AuthLayoutProps {
   children: ReactNode;
@@ -27,6 +28,8 @@ export function AuthLayout({ children }: AuthLayoutProps) {
 
   return (
     <div className="flex min-h-screen">
+      {/* Skip to main content (accessibility — WCAG 2.4.1) */}
+      <SkipToContent />
       {/* Left Side - Branding */}
       <div className="hidden w-1/2 bg-primary lg:flex lg:flex-col lg:justify-center lg:px-12">
         <div className="mx-auto max-w-md space-y-6 text-primary-foreground">
@@ -67,7 +70,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
       </div>
 
       {/* Right Side - Auth Form */}
-      <div className="flex w-full flex-col justify-center px-6 lg:w-1/2 lg:px-12">
+      <main id="main-content" role="main" className="flex w-full flex-col justify-center px-6 lg:w-1/2 lg:px-12">
         <div className="mx-auto w-full max-w-md space-y-6">
           {/* Logo for mobile */}
           <div className="flex items-center justify-center gap-2 lg:hidden">
@@ -88,7 +91,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
             © {new Date().getFullYear()} {displayName}. Bảo lưu mọi quyền.
           </p>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

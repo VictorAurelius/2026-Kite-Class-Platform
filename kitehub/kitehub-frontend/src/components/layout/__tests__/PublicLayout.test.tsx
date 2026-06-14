@@ -39,8 +39,20 @@ describe('PublicLayout', () => {
 
     it('renders logo link to home', () => {
       render(<PublicLayout><div>Content</div></PublicLayout>);
-      const logoLink = screen.getAllByRole('link')[0];
+      // GAP-1373: a skip-to-content link is now the first link in the DOM, so
+      // the logo is the first link that points to "/".
+      const logoLink = screen
+        .getAllByRole('link')
+        .find((el) => el.getAttribute('href') === '/');
       expect(logoLink).toHaveAttribute('href', '/');
+    });
+
+    // GAP-1373: skip-to-content link present for keyboard/SR users (WCAG 2.4.1).
+    it('renders a skip-to-content link targeting #main-content', () => {
+      render(<PublicLayout><div>Content</div></PublicLayout>);
+      const skipLink = screen.getByRole('link', { name: /Chuyển đến nội dung chính/i });
+      expect(skipLink).toHaveAttribute('href', '#main-content');
+      expect(document.getElementById('main-content')).toBeInTheDocument();
     });
 
     it('renders navigation links', () => {

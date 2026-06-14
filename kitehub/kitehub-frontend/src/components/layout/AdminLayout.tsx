@@ -8,6 +8,7 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { isPlatformAdmin } from '@/lib/auth-helpers';
 import { clearTokens, clearLegacyLocalStorageTokens } from '@/lib/auth/jwt-storage';
 import { BetaDisclaimerBanner } from '@/components/beta-disclaimer';
+import { SkipToContent } from '@/components/a11y/SkipToContent';
 
 /**
  * 2026-05-28: staff-invitations is per-tenant scope (Wave meta-6 canonical
@@ -60,6 +61,8 @@ export function AdminLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-screen">
+      {/* Skip to main content (accessibility — WCAG 2.4.1) */}
+      <SkipToContent />
       <Sidebar variant="admin" />
       <div className="flex-1 flex flex-col">
         <header className="border-b h-16 flex items-center justify-between px-6">
@@ -74,7 +77,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
             </button>
           </div>
         </header>
-        <main className="flex-1 p-6">
+        <main id="main-content" role="main" className="flex-1 p-6">
           {/* Wave 98 Bucket B3 GAP-539 finishing stroke — admin dashboard banner.
               Dismissible via cookie (1y); see BetaDisclaimerBanner.tsx. */}
           <div className="mb-4">

@@ -13,6 +13,7 @@ import { useState, type ReactNode } from 'react';
 import { Sidebar } from './sidebar';
 import { Header } from './header';
 import { Footer } from './footer';
+import { SkipToContent } from '@/components/a11y/skip-to-content';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -23,6 +24,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <div className="flex h-screen overflow-hidden">
+      {/* Skip to main content (accessibility — WCAG 2.4.1) */}
+      <SkipToContent />
       {/* Desktop sidebar — hidden on mobile via sidebar.tsx */}
       <Sidebar />
 
@@ -36,7 +39,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         />
 
         {/* Content */}
-        <main className="flex-1 overflow-y-auto bg-muted/50">
+        <main id="main-content" role="main" className="flex-1 overflow-y-auto bg-muted/50">
           <div className="container mx-auto p-6">{children}</div>
         </main>
 

@@ -1,6 +1,6 @@
 # GAP-1374: KH login form label không associated + thiếu autocomplete + error ARIA — WCAG 1.3.1/3.3.2/1.3.5/4.1.2
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟠 P1
 **Domain:** Frontend
 **Found:** 2026-06-14 (UI review full audit, AUDIT-2026-06-14-ui-review-full)
@@ -26,10 +26,32 @@ Refactor KH login dùng shared FormField pattern (hoặc thêm `id` + `htmlFor` 
 
 ## Acceptance Criteria
 
-- [ ] Email + password input có `id`; label có `htmlFor` khớp `id`
-- [ ] Input có `autoComplete="email"` / `current-password`
-- [ ] Khi lỗi: input có `aria-invalid="true"` + `aria-describedby` trỏ error element có `id`
-- [ ] Sweep evidence: register + 2fa pages kiểm tra cùng class (FIX/EXEMPT documented)
+- [x] Email + password input có `id` (`login-email`/`login-password`); label có `htmlFor` khớp `id`
+- [x] Input có `autoComplete="email"` / `current-password`
+- [x] Khi lỗi: input có `aria-invalid="true"` + `aria-describedby` trỏ error element có `id`; error `<p>` có `role="alert"`
+- [x] Sweep evidence: register + 2fa pages kiểm tra cùng class (FIX/EXEMPT documented)
+
+## Resolution
+
+**Fixed:** 2026-06-15 (branch `fix/audit-fixH-ui-2026-06-14`)
+
+`kitehub-frontend/src/app/(auth)/login/page.tsx`:
+- Email input: `id="login-email"` + `<label htmlFor="login-email">` + `autoComplete="email"` + `aria-invalid` + `aria-describedby="login-email-error"` (set only khi có lỗi).
+- Password input: `id="login-password"` + `<label htmlFor>` + `autoComplete="current-password"` + `aria-invalid` + `aria-describedby="login-password-error"`.
+- Error `<p>` mỗi field: thêm `id` tương ứng + `role="alert"`.
+
+**Test:** `(auth)/login/__tests__/page.test.tsx` — thêm test a11y khẳng định `getByLabelText('Email'/'Mật khẩu')` + `autoComplete` (WCAG 1.3.1/1.3.5); helper `fillAndSubmit` chuyển từ `querySelector('input[name]')` sang `getByLabelText`.
+
+### Cross-flow sweep (per `cross-flow-bug-class-sweep.md`)
+
+**Bug class signature:** raw `<label>` không `htmlFor` + input không `id`/`autoComplete`/`aria-*` trong KH auth pages.
+
+| Page | Verdict | Lý do |
+|---|---|---|
+| `(auth)/login/page.tsx` | **FIX** | Outlier — đã sửa PR này |
+| `(auth)/register/page.tsx` | **EXEMPT** | Server component chỉ `redirect('/request-beta-access')` — không có form |
+| `(auth)/2fa-challenge/page.tsx` | **EXEMPT** | Recovery-code branch đã có `htmlFor`+`aria-describedby`; TOTP branch dùng `<TotpInput aria-label="Mã TOTP 6 số xác thực">` (custom multi-box, có accessible name riêng) |
+| `(auth)/2fa-setup`, `verify-email`, `request-beta-access`, `beta-signup` | **EXEMPT** | Không dùng raw unassociated label (dùng shared form pattern / không có input bị thiếu) |
 
 ## Related
 

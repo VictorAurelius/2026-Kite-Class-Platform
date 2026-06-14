@@ -194,27 +194,38 @@ export default function LoginPage() {
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <div>
-          <label className="block text-sm font-medium mb-1.5">Email</label>
+          {/* GAP-1374: associate label↔input via htmlFor/id, identify input
+              purpose (autoComplete), and link validation errors via
+              aria-invalid + aria-describedby (WCAG 1.3.1/1.3.5/3.3.2/4.1.2). */}
+          <label htmlFor="login-email" className="block text-sm font-medium mb-1.5">Email</label>
           <input
+            id="login-email"
             type="email"
+            autoComplete="email"
+            aria-invalid={errors.email ? true : undefined}
+            aria-describedby={errors.email ? 'login-email-error' : undefined}
             {...register('email')}
             className="w-full rounded-xl border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
             placeholder="email@example.com"
           />
           {errors.email && (
-            <p className="mt-1.5 text-xs text-destructive">{errors.email.message}</p>
+            <p id="login-email-error" role="alert" className="mt-1.5 text-xs text-destructive">{errors.email.message}</p>
           )}
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1.5">Mật khẩu</label>
+          <label htmlFor="login-password" className="block text-sm font-medium mb-1.5">Mật khẩu</label>
           <input
+            id="login-password"
             type="password"
+            autoComplete="current-password"
+            aria-invalid={errors.password ? true : undefined}
+            aria-describedby={errors.password ? 'login-password-error' : undefined}
             {...register('password')}
             className="w-full rounded-xl border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
           />
           {errors.password && (
-            <p className="mt-1.5 text-xs text-destructive">{errors.password.message}</p>
+            <p id="login-password-error" role="alert" className="mt-1.5 text-xs text-destructive">{errors.password.message}</p>
           )}
         </div>
 
