@@ -135,4 +135,90 @@ class AuthorizationBeanTest {
         assertThat(authz.hasAccessToChild(200L)).isTrue();
         org.mockito.Mockito.verifyNoInteractions(parentStudentLinkRepository);
     }
+
+    // ---------------------------------------------------------------------
+    // GAP-1139 — ROLE_OWNER (school owner) is the highest tenant-scoped role
+    // and must be treated as tenant-admin. Before the fix, isAdmin() only
+    // matched ROLE_PLATFORM_ADMIN / ROLE_ADMIN, so an OWNER who was not also
+    // a class teacher hit 403 on enrollment/attendance/grade/report endpoints.
+    // These tests lock the OWNER-inclusive bypass as a CI regression guard;
+    // the matching @WebMvcTest controller slice is ReportControllerAuthzTest.
+    // ---------------------------------------------------------------------
+
+    @Test
+    @DisplayName("isAdmin: ROLE_OWNER (school owner) → true (GAP-1139 tenant-admin)")
+    void isAdminOwnerRecognized() {
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken("owner", "creds",
+                        List.of(new SimpleGrantedAuthority("ROLE_OWNER"))));
+
+        assertThat(authz.isAdmin()).isTrue();
+    }
+
+    @Test
+    @DisplayName("isAdmin: non-admin / non-owner (ROLE_STUDENT) → false")
+    void isAdminNonOwnerDenied() {
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken("student", "creds",
+                        List.of(new SimpleGrantedAuthority("ROLE_STUDENT"))));
+
+        assertThat(authz.isAdmin()).isFalse();
+    }
+
+    @Test
+    @DisplayName("isAdmin: no authentication → false (deny by default)")
+    void isAdminUnauthenticatedDenied() {
+        assertThat(authz.isAdmin()).isFalse();
+    }
+
+    @Test
+    @DisplayName("hasAccessToClass: OWNER bypass → true even when NOT the class teacher (no DB query)")
+    void hasAccessToClassOwnerBypass() {
+        // USER_99 is deliberately NOT the teacher of class 100 — an OWNER must
+        // still be granted access within their own tenant (roster/attendance load).
+        UserContext.setCurrentUser(USER_99);
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken("owner", "creds",
+                        List.of(new SimpleGrantedAuthority("ROLE_OWNER"))));
+
+        assertThat(authz.hasAccessToClass(100L)).isTrue();
+        // OWNER path short-circuits via isAdmin() — no teacher-ownership DB query.
+        org.mockito.Mockito.verifyNoInteractions(entityManager);
+    }
+
+    @Test
+    @DisplayName("hasAccessToEnrollment: OWNER bypass → true (no DB query) — GET /enrollments/{id} authority")
+    void hasAccessToEnrollmentOwnerBypass() {
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken("owner", "creds",
+                        List.of(new SimpleGrantedAuthority("ROLE_OWNER"))));
+
+        assertThat(authz.hasAccessToEnrollment(500L)).isTrue();
+        org.mockito.Mockito.verifyNoInteractions(entityManager);
+    }
+
+    @Test
+    @DisplayName("hasAccessToStudent: OWNER bypass → true (no DB query) — GET /enrollments/student/{id} authority")
+    void hasAccessToStudentOwnerBypass() {
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken("owner", "creds",
+                        List.of(new SimpleGrantedAuthority("ROLE_OWNER"))));
+
+        assertThat(authz.hasAccessToStudent(300L)).isTrue();
+        org.mockito.Mockito.verifyNoInteractions(entityManager);
+    }
+
+    @Test
+    @DisplayName("tenant isolation preserved: non-owner non-teacher → hasAccessToClass false (deny)")
+    void hasAccessToClassNonOwnerNonTeacherStillDenied() {
+        // GAP-1139 widened isAdmin() to OWNER but must NOT relax the per-resource
+        // check for ordinary roles: a non-owner who is not the teacher is denied.
+        UserContext.setCurrentUser(USER_99);
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken("teacher", "creds",
+                        List.of(new SimpleGrantedAuthority("ROLE_TEACHER"))));
+        when(nativeQuery.getSingleResult()).thenReturn(0L);
+
+        assertThat(authz.hasAccessToClass(100L)).isFalse();
+    }
 }
