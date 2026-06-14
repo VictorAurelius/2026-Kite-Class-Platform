@@ -96,6 +96,8 @@ CREATE INDEX idx_consent_record_expires ON consent_record(expires_at);
 
 ## Log
 
+
+- 2026-06-14: phase re-triage — phase-1-beta→phase-2 (title 'PDPL Phase 2' + counsel review Phase 2 trigger).
 - **2026-05-06 (Wave 25 Bucket A):** Status flipped from OPEN → PARTIAL. Shipped: V25 Flyway
   migration + `consent` package (entity / repository / service / controller / DTOs / cron)
   + FE `api.ts` wrapper + `getOrCreateVisitorId` + `useConsent` API sync (best-effort

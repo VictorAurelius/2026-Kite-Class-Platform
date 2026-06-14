@@ -31,4 +31,6 @@ Production-parity gaps for the auth-1 surface (per `local-fix-production-parity-
 
 ## Log
 
+
+- 2026-06-14: phase re-triage — phase-1-beta→phase-3 (blocked-by GAP-444 Phase 7; mapped to phase-3).
 - **2026-06-06:** PARTIAL PR #2191 — secrets.tf HS512 desc + PARENT_PORTAL_ENABLED override + GAP-444 blocker doc shipped. kc-core prod compose DEFERRED (blocked-by GAP-444 Phase 7 per user decision).

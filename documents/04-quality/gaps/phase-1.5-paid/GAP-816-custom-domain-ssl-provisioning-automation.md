@@ -101,4 +101,6 @@ Nếu Cloudflare for SaaS không khả thi (cost, vendor lock-in):
 
 ## Log
 
+
+- 2026-06-14: phase re-triage — phase-1-beta→phase-1.5-paid (notes 'custom domain HTTPS = Phase 1.5+ enhancement').
 - **2026-06-01:** Gap created — Wave tenant-domain-1 Bucket D follow-up to GAP-812. Defers Phần B v2 SSL automation + Phần C scheduler per `release-deploy-standard.md` §9 (terraform apply human-only) + Cloudflare for SaaS budget approval blocker. Phase 1 BETA acceptable: backup URL `{subdomain}.kitehub.me` always HTTPS available — custom domain HTTPS scope = Phase 1.5+ enhancement. P2 priority retained (PREMIUM/ENTERPRISE tier only; backup unblocks Phase 1 BETA).

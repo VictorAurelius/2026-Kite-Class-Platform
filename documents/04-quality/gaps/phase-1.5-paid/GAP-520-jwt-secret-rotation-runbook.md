@@ -29,4 +29,6 @@ JWT secret stored in env var. No rotation runbook. If secret leaks (worktree com
 
 ## Log
 
+
+- 2026-06-14: phase re-triage — phase-1-beta→phase-1.5-paid (notes 'AWS rotation pending Phase 1.5').
 - **2026-05-14** Wave 72a Bucket B PR #1287 ships dual-key code + runbook: `JwtKeyService` (current + optional previous + `jwt.verify.fallback` counter), `AuthService.refresh` + `TokenService` delegate, new `jwt.previous-secret` config slot (env `JWT_SECRET_PREVIOUS`), 7 unit tests + 1 quarterly rotation runbook. Status → 🟡 PARTIAL — last AC (AWS Secret versioning) ships at first real rotation per runbook §3.

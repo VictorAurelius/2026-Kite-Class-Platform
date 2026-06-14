@@ -58,4 +58,6 @@ Restore-drill development decoupled from production deploy lifecycle. Phase 1+2 
 
 ## Log
 
+
+- 2026-06-14: phase re-triage — phase-1-beta→phase-3 (title says Phase 3 quarterly DR).
 - 2026-04-28 — Filed as Phase 3 follow-up after GAP-117 PR #632 shipped Phase 1+2. Honest deferral per `gap-done-discipline.md` §3 PARTIAL exit-ramp; not buried in DONE-flip Log entry.

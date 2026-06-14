@@ -43,4 +43,6 @@ Port the GAP-429 Phase 1 kit patterns into production:
 
 ## Log
 
+
+- 2026-06-14: phase re-triage — phase-1-beta→phase-2 (title 'Phase 2 of GAP-429' production follow-up).
 - **2026-06-02:** Filed as Phase 2 follow-up at GAP-429 Phase 1 closure per `gap-done-discipline.md` §3 PARTIAL exit ramp. Phase 1 (kit HTML) shipped; Phase 2 (production Suspense/skeleton) tracked here separately as code-shaped work.

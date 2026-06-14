@@ -55,6 +55,8 @@ Phase 1 intentionally split off the dashboard provisioning from the backend stac
 
 ## Log
 
+
+- 2026-06-14: phase re-triage — phase-1-beta→phase-2 (title 'Phase 2 of GAP-115' observability).
 - **2026-05-08 — Wave 41 Bucket F:** Gap created when Phase 1 (dashboard + runbook) shipped. Phase 2 scope = Loki/Promtail backend + S3 retention + smoke test. Estimated effort: ~6-8h Helm wiring + cluster smoke test (single bucket — backend stack is internally cohesive).
 - **2026-05-11 — Wave 55 Bucket A:** Chart-level wiring shipped. Status flipped 🔵 OPEN → 🟡 PARTIAL per `gap-done-discipline.md` §3 PARTIAL exit ramp. Scope shipped:
   - `Chart.yaml` v1.1.0 → v1.2.0; added `grafana/loki-stack` v2.10.2 dependency (condition `loki.enabled`).

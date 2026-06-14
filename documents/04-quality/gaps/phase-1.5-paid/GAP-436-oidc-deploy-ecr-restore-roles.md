@@ -141,6 +141,8 @@ First successful Phase 3 image push (per Bucket D runbook `documents/05-guides/d
 
 ## Log
 
+
+- 2026-06-14: phase re-triage — phase-1-beta→phase-1.5-paid (notes 'OIDC sweep pending Phase 1.5').
 - **2026-05-07** Phase 4 checklist added (Wave 42 Bucket E). Status remains PARTIAL until Phase 3 first OIDC trigger verified.
 - **2026-05-08:** GAP filed during Phase 2.2 scope split. Plan role only shipped this session; deploy/ECR/restore-drill roles deferred to this gap.
 - **2026-05-08:** Phase 1+2+3 DONE. Added 3 IAM roles to `iam.tf` (`github_deploy` + `github_ecr_push` + `github_restore_drill`) with scoped trust + least-privilege policies. Targeted `terraform apply` clean (6 resources). 3 GitHub Secrets set: `AWS_DEPLOY_ROLE_ARN`, `AWS_ECR_PUSH_ROLE_ARN`, `AWS_RESTORE_DRILL_ROLE_ARN`. Workflow secret-name disambiguation: `docker-build-push.yml` migrated `AWS_ROLE_ARN` → `AWS_ECR_PUSH_ROLE_ARN`; `deploy-production.yml` migrated `AWS_ROLE_ARN` → `AWS_DEPLOY_ROLE_ARN`. Phase 4 (remove static `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` GH Secrets) deferred until first workflow trigger via OIDC verified — file follow-up GAP at that point or close inline.

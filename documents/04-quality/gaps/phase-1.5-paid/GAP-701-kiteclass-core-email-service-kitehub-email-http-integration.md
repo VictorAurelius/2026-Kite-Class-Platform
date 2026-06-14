@@ -130,4 +130,6 @@ Outside-in benchmark: industry pattern (Stripe, Notion, Linear) — single email
 
 ## Log
 
+
+- 2026-06-14: phase re-triage — phase-1-beta→phase-1.5-paid (notes 'Phase 1.5+; khong block Phase 1 BETA').
 - **2026-05-21 (Wave 102.9 session):** Gap created. Triggered bởi user question "ở local thì có gửi mail bằng resend được không, có routing được cho kiteclass không?" — investigation surfaced silent gap: `kiteclass-core/EmailService` interface có 5 method nhưng impl duy nhất là `LoggingEmailService` (log-only); KHÔNG có HTTP client gọi sang kitehub-email; `EMAIL_SERVICE_URL` env CHỈ wired cho kitehub-subscription. Filed cùng session với sister gap [[GAP-700]] (email-architecture.md doc refresh). Status OPEN; effort ~4h (3 phase: HTTP client + tenant context + production wire); P1 priority cao hơn GAP-700 vì impact tenant-facing flow (BR-MKT-003/004 marketing email silent fail). Recommend wave target Phase 1.5+ (Wave 105+) — không block Phase 1 BETA invite cohort vì close manual support. Outside-in benchmark: industry pattern cross-product email qua HTTP/queue — KiteHub đã có kitehub-email microservice, kiteclass-core chỉ cần wire client.

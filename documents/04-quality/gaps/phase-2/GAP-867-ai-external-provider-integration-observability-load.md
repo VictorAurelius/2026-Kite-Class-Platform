@@ -9,8 +9,7 @@ audience: dev
 **Domain:** AI / Backend / DevOps
 **Created:** 2026-06-02 (Wave local-doable-6 sync — re-scope follow-up của GAP-005)
 **Affects:** kitehub-branding AI client + Grafana observability stack + load test harness
-**Phase:** phase-1-beta
-
+**Phase:** phase-2
 ## Problem
 
 GAP-005 Phase 2 originally bundled 4 items: (a) Ollama horizontal scaling, (b) Circuit breaker real-call wiring, (c) Load test 100 concurrent users, (d) Grafana dashboard AI metrics. 2026-06-02 architecture pivot decided AI inference = external API only (Gemini free tier + OpenAI API); item (a) → WONTFIX-superseded. Còn 3 items vẫn cần thực thi nhưng KHÔNG thuộc original Ollama scope của GAP-005 — tách thành GAP-867 để rõ scope + tránh GAP-005 umbrella không close.
@@ -64,6 +63,8 @@ GAP-005 Phase 2 originally bundled 4 items: (a) Ollama horizontal scaling, (b) C
 
 ## Log
 
+
+- 2026-06-14: phase re-triage — phase-1-beta→phase-2 (AI live integration deferred Phase 2/3 (Phase 1=TEMPLATE/mock)).
 - **2026-06-02** (PARTIAL — design phase DONE Wave local-doable-8 Bucket D): Shipped design-phase artifacts paired same PR:
   - **`documents/02-architecture/adr/ADR-038-ai-external-provider-strategy.md`** (PROPOSED) — provider selection (Gemini Free Tier primary + OpenAI fallback + Bedrock deferred Phase 2) + `AIClient` provider-agnostic interface design (NotificationChannel-style per `design-patterns.md` §3.10) + config model (`ai.provider.primary` / `ai.provider.fallback` / `ai.circuit-breaker.*`) + PDPL 2023 cross-border data flow compliance posture (privacy policy disclosure + opt-in + DPA signing pre-Phase-1.5)
   - **`documents/02-architecture/ai-external-observability-plan.md`** (PROPOSED) — metrics (call count + latency p50/p95/p99 + token usage + cost USD per-tenant), structured JSON logs (PII-scrubbed via SHA-256 hashes per `logs-format-standard.md`), error classification taxonomy (8 codes), Grafana dashboard panel layout (4 rows × 3-5 panels), Prometheus alert rules outline (4 alerts), k6 load test scenario outline (100 concurrent users, 30% Premium + 40% Pro + 30% Free, SLA pass criteria)

@@ -96,4 +96,6 @@ Decision tracked in this gap's Log; recommend Option A for cost discipline (stop
 
 ## Log
 
+
+- 2026-06-14: phase re-triage — phase-1-beta→phase-3 (title 'Phase 7'; Phase 7 mapped to phase-3 (no later subdir)).
 - **2026-05-08**: GAP filed after pivot decision per `release-fix-retry-budget.md` §3 STOP at retry #2+. KC stack stopped via `docker compose down`. KH backend confirmed LIVE (ALB HTTP 200, DB UP). 3 fixes attempted: INTERNAL_API_SECRET (added), Flyway validate=false (added), unknown #3 (deferred). Architectural alignment: KC backend was always Phase 7 scope per ADR-025; mid-session add-on was scope drift.

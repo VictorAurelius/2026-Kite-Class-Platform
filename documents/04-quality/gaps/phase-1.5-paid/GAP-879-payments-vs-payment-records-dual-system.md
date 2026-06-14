@@ -35,3 +35,7 @@ Document `payment_records` canonical trong business doc + add RLS cho `payment_r
 ## Discovered in
 
 `documents/02-architecture/database/kiteclass/04-finance.md` §A1
+
+## Log
+
+- 2026-06-14: phase re-triage — phase-1-beta→phase-1.5-paid (payment dual-system finance scope Phase 1.5).

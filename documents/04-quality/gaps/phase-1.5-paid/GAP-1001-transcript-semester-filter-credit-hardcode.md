@@ -28,4 +28,6 @@ Lọc finalized grades theo semester/academic_year truyền vào; lấy credit t
 
 ## Log
 
+
+- 2026-06-14: phase re-triage — phase-1-beta→phase-1.5-paid (notes 'GPA correctness Phase 1.5').
 - **2026-06-05 (Wave flow-kc6):** Filed — defer (transcript secondary; GPA correctness Phase 1.5).

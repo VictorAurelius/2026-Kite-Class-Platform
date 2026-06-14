@@ -3,7 +3,7 @@
 **Status:** 🟡 PARTIAL (35%) — AC#1 DB-layer idempotency shipped (Flyway V51 + UNIQUE state_token); AC#2/3/4 deferred until OAuth callback controller + FE OAuth signup flow exist (currently no `/auth/callback/{provider}` endpoint shipped — table is defensive scaffolding ahead of provider integration)
 **Priority:** 🟠 P1
 **Domain:** Backend
-**Phase:** phase-1-beta
+**Phase:** phase-1.5-paid
 **Found:** 2026-05-15 (Wave 86 Bucket A simulation-3axis audit cell 4)
 **Affects:** OAuth signup flow cho P2 Owner + future Google/Microsoft SSO
 
@@ -51,4 +51,6 @@ After OAuth signup feature lands (Phase 1.5 estimated), close AC#2-4 in dedicate
 
 ## Log
 
+
+- 2026-06-14: phase re-triage — phase-1-beta→phase-1.5-paid (notes '3/4 AC defer Phase 1.5').
 - **2026-05-16** **🟡 PARTIAL (35%)** — AC#1 shipped via Wave 86 BE security agent. Flyway V51 creates `oauth_attempts` table với `state_token VARCHAR(255) NOT NULL UNIQUE` (constraint `uk_oauth_attempts_state_token`) + lifecycle status enum (PENDING/SUCCEEDED/FAILED) + cleanup index on `(status, initiated_at)` for stale-row purge. Migration renumbered V53→V51 since V51/V52 slots open (last shipped V50). Defensive scaffolding ahead of OAuth provider integration — DB layer rejects duplicate state_token via UNIQUE constraint regardless of controller logic, eliminating the cross-tenant orphan-record race at the data layer. AC#2 (controller 409 mapping) + AC#3 (FE 409 handler) + AC#4 (7d production stability) deferred — gated by OAuth callback controller + FE OAuth signup flow which do not yet exist in codebase (grep confirmed: zero `OAuth*` Java classes in `kitehub/kitehub-subscription/src/main/java`). Follow-up §"Follow-up" section enumerates concrete next steps for the OAuth-feature wave that lands the controller + FE.

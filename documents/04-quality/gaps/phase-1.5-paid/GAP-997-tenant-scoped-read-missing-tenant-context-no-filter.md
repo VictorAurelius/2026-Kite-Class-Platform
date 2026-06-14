@@ -27,4 +27,6 @@ Defer (cross-cutting, low priority). Options: (a) `TenantFilterInterceptor` reje
 
 ## Log
 
+
+- 2026-06-14: phase re-triage — phase-1-beta→phase-1.5-paid (notes 'defer Phase 1.5+ hardening').
 - **2026-06-05 (Wave flow-kc5):** Filed — defense-in-depth, gateway-trust boundary; not production-reachable (gateway always sets tenant). Defer Phase 1.5+ hardening.

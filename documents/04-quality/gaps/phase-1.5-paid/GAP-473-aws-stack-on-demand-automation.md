@@ -135,4 +135,6 @@ This is operational tooling not business logic per se, but the **stop-when-idle 
 
 ## Log
 
+
+- 2026-06-14: phase re-triage — phase-1-beta→phase-1.5-paid (notes 'EventBridge cron defer Phase 1.5').
 - **2026-05-11** — Initial write-up (state-check completed; gap filed during Wave 61 Bucket D execution). Phase 1 DONE (scripts + runbook + ledger schema); Phase 2 (EventBridge cron + Lambda) deferred Phase 1.5; Phase 3 (dashboard + alarms) deferred Phase 2. Status 🟡 PARTIAL because Phase 1 scope shipped fully but full automation vision spans 3 phases; aligns with `gap-done-discipline.md` §3 PARTIAL exit ramp (deferred slices have explicit AC + trigger conditions).

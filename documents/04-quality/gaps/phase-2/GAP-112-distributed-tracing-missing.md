@@ -97,6 +97,8 @@ The application-side infrastructure (deps + config + auto-instrumentation + test
 
 ## Log
 
+
+- 2026-06-14: phase re-triage — phase-1-beta→phase-2 (blocked GAP-111 Phase 2; tracing post-launch ops).
 - 2026-04-19 — Discovered in ops-readiness baseline audit
 - **2026-05-11:** PR# backfill (Wave 60 Bucket D-2). Verified shipped work cross-references:
   - PR #1125 — `feat(observability): GAP-112 distributed tracing across 7 modules [Wave 55 Bucket B]` (merged 2026-05-10) — tracing deps + `management.tracing.*` config + 8 TracingConfigTest unit tests across 7 deployable services.

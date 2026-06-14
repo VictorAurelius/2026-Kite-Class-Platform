@@ -36,3 +36,7 @@ Phase 1.5+ (defer, không block Phase 1 BETA):
 - Discovered in: Wave flow-kc1 KC-1 G1 walk 2026-06-05 (re-scope, user-approved AskUserQuestion)
 - `thesis-as-future-state-mandate.md` (nếu thesis claim tenant-config → Phase 1.5 delivery)
 - Business docs: `documents/01-business/kiteclass/tenant-settings/`
+
+## Log
+
+- 2026-06-14: phase re-triage — phase-1-beta→phase-1.5-paid (notes 'Defer Phase 1.5 feature').

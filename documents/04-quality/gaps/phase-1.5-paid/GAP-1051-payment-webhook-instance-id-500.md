@@ -42,3 +42,7 @@ Một trong các hướng (defer Phase 1.5 payment wave):
 - Discovered in: P3 G3 carve-out runtime walk C4 — `documents/04-quality/audits/architecture/2026-06-07-gateway-carveout-runtime-walk.md`
 - Routing parent: GAP-1049 (C4 routing fixed; this is downstream controller robustness, không phải routing)
 - Phase 1.5 payment scope — webhooks (vnpay/momo/zalopay) chưa trong Phase 1 BETA scope; P3 defer
+
+## Log
+
+- 2026-06-14: phase re-triage — phase-1-beta→phase-1.5-paid (notes 'Phase 1.5 payment scope').

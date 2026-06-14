@@ -62,5 +62,7 @@ Execution **Phase 1.5+** (self-service UX enhancement, không phải P1 MVP bloc
 
 ## Log
 
+
+- 2026-06-14: phase re-triage — phase-1-beta→phase-1.5-paid (notes 'Phase 1.5+ self-service').
 - **2026-06-12:** Design source (基本設計) shipped per GAP-1234 — 3 màn editor trong kit `ui_kits/ai-branding-wizard-v2/v3/screens/`: `editor-overview.html` (7 section + nguồn nhập), `editor-section-ai-draft.html` (AI draft + GV duyệt — pattern cho about/pain/pricing/faq), `editor-testimonials.html` (manual-only, không nút AI). Wizard cũng thêm `step2-info.html` thu facts thật (nguồn prefill cho editor). FE implementation vẫn OPEN scope gap này.
 - **2026-06-11:** GAP-826 lớp 3 advance một phần: card "Banner landing" trong branding-settings — pattern editor section đầu tiên. Editor 6 section đầy đủ vẫn là scope gap này.

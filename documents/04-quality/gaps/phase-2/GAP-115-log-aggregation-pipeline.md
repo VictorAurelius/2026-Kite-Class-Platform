@@ -53,5 +53,7 @@ Log aggregation chưa được infrastructure team build. Thiếu shared logging
 
 ## Log
 
+
+- 2026-06-14: phase re-triage — phase-1-beta→phase-2 (remaining Loki = Phase 2 observability (GAP-434)).
 - **2026-05-08 — Wave 41 Bucket F:** Phase 1 shipped — Grafana skeleton dashboard `infrastructure/helm/kitehub/dashboards/logs-overview.json` (Loki datasource, 4 panels: log volume / error rate / per-service ERROR count last 5m / recent ERROR log lines tenant-scoped) + ConfigMap template `templates/dashboard-logs-overview.yaml` (auto-loaded via Grafana sidecar discovery) + on-call runbook `documents/05-guides/operations/runbooks/monitoring-dashboards.md` cataloging all 5 baseline dashboards (api-latency / http-traffic / jvm-heap-gc / infra-pools / logs-overview) with alert→dashboard→runbook 4-step triage workflow + forward-looking LogQL example queries. Phase 2 (Loki/Promtail backend stack + S3 retention + smoke test) tracked in **GAP-434**. Helm template renders verified via `helm template --show-only templates/dashboard-logs-overview.yaml`. JSON validated via `jq .`. Status flipped 🔵 OPEN → 🟡 PARTIAL.
 - 2026-04-19 — Discovered in ops-readiness baseline audit
