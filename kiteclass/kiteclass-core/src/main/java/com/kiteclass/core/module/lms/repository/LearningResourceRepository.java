@@ -50,4 +50,19 @@ public interface LearningResourceRepository extends JpaRepository<LearningResour
      * @return count of resources
      */
     long countByLessonIdAndDeletedFalse(Long lessonId);
+
+    /**
+     * Find non-deleted resources whose {@code url} contains the given fragment.
+     *
+     * <p>GAP-1307: used by the storage download paywall to resolve which lesson(s) a stored
+     * file backs. The {@code url} column is free text (S3 key, presigned URL, external link,
+     * YouTube, ...) — there is no clean FK to {@code uploaded_files}. The storage key (which
+     * embeds a random UUID, so collisions are effectively impossible) is matched as a substring.
+     * A non-match means the file is not recognised as lesson material and is NOT paywalled
+     * (see {@code LessonMaterialAccessGuard} PARTIAL note).
+     *
+     * @param urlFragment the storage path / key fragment to match within {@code url}
+     * @return matching non-deleted learning resources
+     */
+    List<LearningResource> findByUrlContainingAndDeletedFalse(String urlFragment);
 }

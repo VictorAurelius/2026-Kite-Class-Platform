@@ -14,6 +14,7 @@ import com.kiteclass.core.module.storage.entity.UploadedFile;
 import com.kiteclass.core.module.storage.mapper.StorageMapper;
 import com.kiteclass.core.module.storage.repository.StorageQuotaRepository;
 import com.kiteclass.core.module.storage.repository.UploadedFileRepository;
+import com.kiteclass.core.module.storage.service.LessonMaterialAccessGuard;
 import com.kiteclass.core.module.storage.service.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -61,6 +62,7 @@ public class StorageServiceImpl implements StorageService {
     private final S3Client s3Client;
     private final S3Presigner s3Presigner;
     private final StorageProperties storageProperties;
+    private final LessonMaterialAccessGuard lessonMaterialAccessGuard;
 
     // Constants
     private static final Duration UPLOAD_URL_TTL = Duration.ofMinutes(30);
@@ -148,12 +150,17 @@ public class StorageServiceImpl implements StorageService {
 
     @Override
     @Transactional
-    public FileMetadataResponse confirmUpload(Long fileId) {
-        log.info("Confirming upload for file ID: {}", fileId);
+    public FileMetadataResponse confirmUpload(Long fileId, Long requesterId, boolean privileged) {
+        log.info("Confirming upload for file ID: {} by requester: {}", fileId, requesterId);
 
-        // Find file (must be PENDING)
+        // Find file (must be PENDING). Hibernate tenantFilter scopes this to the caller's
+        // tenant, so cross-tenant access already returns empty → 404.
         UploadedFile file = uploadedFileRepository.findByIdAndDeletedFalse(fileId)
             .orElseThrow(() -> new EntityNotFoundException("FILE_NOT_FOUND", (Object) fileId));
+
+        // GAP-1309: per-resource ownership authz (intra-tenant IDOR guard) — checked BEFORE
+        // status/S3 work so a non-owner is rejected without side effects.
+        verifyFileOwnership(file, requesterId, privileged);
 
         if (!file.isPending()) {
             log.warn("File {} is not PENDING (status: {})", fileId, file.getStatus());
@@ -186,7 +193,7 @@ public class StorageServiceImpl implements StorageService {
 
     @Override
     @Transactional(readOnly = true)
-    public String generatePresignedDownloadUrl(Long fileId, Long requesterId, UUID tenantId) {
+    public String generatePresignedDownloadUrl(Long fileId, Long requesterId, UUID tenantId, boolean elevatedRole) {
         log.info("Generating presigned download URL for file: {}, requester: {}", fileId, requesterId);
 
         // Find file (must be CONFIRMED)
@@ -198,8 +205,13 @@ public class StorageServiceImpl implements StorageService {
             throw new BusinessException("FILE_NOT_CONFIRMED", HttpStatus.CONFLICT, fileId);
         }
 
-        // Check access control
+        // Check access control (visibility model: PUBLIC / PRIVATE / TENANT)
         checkAccessPermission(file, requesterId, tenantId);
+
+        // GAP-1307: LMS enrollment paywall — when the file backs a paid (non-trial) lesson,
+        // a non-enrolled student must not bypass the paywall via the TENANT-scoped storage path.
+        lessonMaterialAccessGuard.verifyLessonMaterialDownloadAccess(
+            file.getStoragePath(), file.getUploaderId(), requesterId, elevatedRole);
 
         // Generate presigned GET URL
         software.amazon.awssdk.services.s3.model.GetObjectRequest getObjectRequest =
@@ -222,11 +234,14 @@ public class StorageServiceImpl implements StorageService {
 
     @Override
     @Transactional
-    public void deleteFile(Long fileId) {
-        log.info("Deleting file ID: {}", fileId);
+    public void deleteFile(Long fileId, Long requesterId, boolean privileged) {
+        log.info("Deleting file ID: {} by requester: {}", fileId, requesterId);
 
         UploadedFile file = uploadedFileRepository.findByIdAndDeletedFalse(fileId)
             .orElseThrow(() -> new EntityNotFoundException("FILE_NOT_FOUND", (Object) fileId));
+
+        // GAP-1309: per-resource ownership authz (intra-tenant IDOR guard).
+        verifyFileOwnership(file, requesterId, privileged);
 
         // Update quota immediately if file was CONFIRMED
         if (file.isConfirmed()) {
@@ -356,6 +371,31 @@ public class StorageServiceImpl implements StorageService {
 
         PresignedPutObjectRequest presignedRequest = s3Presigner.presignPutObject(presignRequest);
         return presignedRequest.url().toString();
+    }
+
+    /**
+     * Verifies the caller may mutate (confirm/delete) the file: only the uploader, or a
+     * tenant-admin role (privileged), is allowed. GAP-1309 intra-tenant IDOR guard.
+     *
+     * <p>Cross-tenant access is already blocked upstream by the Hibernate {@code tenantFilter}
+     * (the lookup returns empty → 404). This adds the missing INTRA-tenant per-resource check
+     * so a non-uploader in the same tenant cannot confirm/delete another user's file by
+     * enumerating {@code fileId}.
+     *
+     * @param file        File being mutated
+     * @param requesterId Gateway user ID of the caller (X-User-Id)
+     * @param privileged  true if caller holds a tenant-admin role (ADMIN/OWNER/PLATFORM_ADMIN)
+     * @throws BusinessException (403 FILE_ACCESS_DENIED) if caller is neither uploader nor privileged
+     */
+    private void verifyFileOwnership(UploadedFile file, Long requesterId, boolean privileged) {
+        if (privileged) {
+            return; // tenant admin/owner may manage any file in the tenant
+        }
+        if (requesterId == null || !requesterId.equals(file.getUploaderId())) {
+            log.warn("Access denied - file {} mutate by non-owner {} (uploader: {})",
+                file.getId(), requesterId, file.getUploaderId());
+            throw new BusinessException("FILE_ACCESS_DENIED", HttpStatus.FORBIDDEN);
+        }
     }
 
     /**
