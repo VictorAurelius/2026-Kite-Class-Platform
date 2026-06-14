@@ -1,5 +1,6 @@
 package com.kiteclass.core.module.attendance.controller;
 
+import com.kiteclass.core.common.context.UserContext;
 import com.kiteclass.core.module.attendance.dto.AttendanceResponse;
 import com.kiteclass.core.module.attendance.dto.AttendanceStatsResponse;
 import com.kiteclass.core.module.attendance.dto.BulkAttendanceRequest;
@@ -25,7 +26,6 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -42,6 +42,14 @@ import java.util.List;
  *   <li>Attendance queries and statistics</li>
  * </ul>
  *
+ * <p><strong>GAP-1300 — recording-teacher authz hardening.</strong> The teacher-attributed
+ * write endpoints ({@code markBulkAttendance}, {@code updateAttendanceStatus}) derive the
+ * acting teacher from the authenticated principal (gateway-injected
+ * {@code X-User-Reference-Id} → {@link UserContext#getCurrentReferenceId()}), NOT the former
+ * client-supplied {@code X-Teacher-Id} header which the gateway does NOT control (per GAP-814)
+ * and was therefore spoofable. ADMIN/OWNER (no numeric reference id) bypass the per-class
+ * MAIN_TEACHER check at the service layer ({@code AuthorizationBean.isAdmin()}).
+ *
  * @author KiteClass Team
  * @since 2.7.0
  */
@@ -53,6 +61,18 @@ import java.util.List;
 public class AttendanceController {
 
     private final AttendanceService attendanceService;
+
+    /**
+     * Resolve the acting teacher's numeric id from the authenticated principal
+     * (gateway-injected {@code X-User-Reference-Id} → {@link UserContext}), NOT from any
+     * client-supplied header (GAP-1300). Returns {@code null} for ADMIN/OWNER, who carry no
+     * numeric reference id; the service layer bypasses the MAIN_TEACHER check for them.
+     *
+     * @return the authenticated teacher's reference id, or {@code null} for admin/owner
+     */
+    private Long actingTeacherId() {
+        return UserContext.getCurrentReferenceId();
+    }
 
     /**
      * Mark attendance for a single student.
@@ -92,9 +112,8 @@ public class AttendanceController {
     public ResponseEntity<List<AttendanceResponse>> markBulkAttendance(
             @Parameter(description = "Class ID") @PathVariable Long classId,
             @Parameter(description = "Session ID") @PathVariable Long sessionId,
-            @Valid @RequestBody BulkAttendanceRequest request,
-            @Parameter(description = "Teacher ID", required = true)
-            @RequestHeader("X-Teacher-Id") Long teacherId) {
+            @Valid @RequestBody BulkAttendanceRequest request) {
+        Long teacherId = actingTeacherId();
         log.info("POST /api/v1/classes/{}/sessions/{}/attendance - Bulk marking attendance for {} students by teacher {}",
                 classId, sessionId, request.getRecords().size(), teacherId);
 
@@ -250,13 +269,15 @@ public class AttendanceController {
      * @return updated attendance record
      */
     @PatchMapping("/{id}")
+    @PreAuthorize("hasAnyRole('TEACHER','STAFF','OWNER','ADMIN')")
     @Operation(summary = "Update attendance status",
-               description = "Updates attendance status and recalculates points. Only MAIN_TEACHER can update.")
+               description = "Updates attendance status and recalculates points. Only MAIN_TEACHER "
+                       + "(or ADMIN/OWNER) can update. Acting teacher derived from the authenticated "
+                       + "principal (X-User-Reference-Id), NOT a client header (GAP-1300).")
     public ResponseEntity<AttendanceResponse> updateAttendanceStatus(
             @Parameter(description = "Attendance ID") @PathVariable Long id,
-            @Valid @RequestBody UpdateAttendanceStatusRequest request,
-            @Parameter(description = "Teacher ID", required = true)
-            @RequestHeader("X-Teacher-Id") Long teacherId) {
+            @Valid @RequestBody UpdateAttendanceStatusRequest request) {
+        Long teacherId = actingTeacherId();
         log.info("PATCH /api/v1/attendance/{} - Updating to status {} by teacher {}",
                 id, request.getStatus(), teacherId);
 

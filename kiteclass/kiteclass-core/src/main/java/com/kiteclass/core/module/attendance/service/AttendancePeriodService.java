@@ -70,8 +70,8 @@ public interface AttendancePeriodService {
      * without producing duplicates.
      *
      * @param request batch (≥1, ≤60 entries)
-     * @param recordedBy teacher / GVCN user ID, taken from the
-     *        {@code X-Teacher-Id} header by the controller
+     * @param recordedBy teacher / GVCN reference id, derived by the controller from the
+     *        authenticated principal ({@code X-User-Reference-Id}), NOT a client header (GAP-1300)
      * @return the upserted rows, in the same order as {@code request.entries}
      */
     List<AttendancePeriodResponse> upsertBatch(
@@ -89,7 +89,8 @@ public interface AttendancePeriodService {
      * @param classId target class (URL path)
      * @param date lesson date (URL query)
      * @param request body containing per-cell entries
-     * @param recordedBy teacher / GVCN user ID from {@code X-Teacher-Id} header
+     * @param recordedBy teacher / GVCN reference id, derived from the authenticated principal
+     *        ({@code X-User-Reference-Id}), NOT a client header (GAP-1300)
      * @return upserted rows in entry order
      * @since GAP-268a (Wave 51 Bucket B)
      */

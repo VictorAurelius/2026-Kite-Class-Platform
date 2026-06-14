@@ -1,5 +1,6 @@
 package com.kiteclass.core.module.grade.controller;
 
+import com.kiteclass.core.common.context.UserContext;
 import com.kiteclass.core.common.dto.ApiResponse;
 import com.kiteclass.core.module.grade.dto.request.CreateGradeComponentRequest;
 import com.kiteclass.core.module.grade.dto.request.FinalizeGradeRequest;
@@ -21,7 +22,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -51,6 +51,18 @@ import java.util.Map;
 public class GradeController {
 
     private final GradeService gradeService;
+
+    /**
+     * Resolve the acting teacher's numeric id from the authenticated principal
+     * (gateway-injected {@code X-User-Reference-Id} → {@link UserContext}), NOT from any
+     * client-supplied header (GAP-1301). Returns {@code null} for ADMIN/OWNER, who carry no
+     * numeric reference id; the service layer bypasses the MAIN_TEACHER check for them.
+     *
+     * @return the authenticated teacher's reference id, or {@code null} for admin/owner
+     */
+    private Long actingTeacherId() {
+        return UserContext.getCurrentReferenceId();
+    }
 
     /**
      * Initialize grade for a student in a class.
@@ -151,10 +163,13 @@ public class GradeController {
     @DeleteMapping("/components/{id}")
     @PreAuthorize("@authz.hasAccessToGradeComponent(#id)")
     public ResponseEntity<ApiResponse<Void>> deleteComponent(
-            @PathVariable Long id,
-            @RequestHeader("X-Teacher-Id") Long teacherId) {
+            @PathVariable Long id) {
 
-        gradeService.deleteComponent(id, teacherId);
+        // GAP-1301: acting teacher from the authenticated principal (X-User-Reference-Id),
+        // NOT the spoofable client X-Teacher-Id header. @authz.hasAccessToGradeComponent
+        // already gates ownership (incl. ADMIN/OWNER bypass); the service-layer check below
+        // is defense-in-depth against the same token-derived identity.
+        gradeService.deleteComponent(id, actingTeacherId());
         return ResponseEntity.status(HttpStatus.NO_CONTENT)
                 .body(ApiResponse.success(null));
     }

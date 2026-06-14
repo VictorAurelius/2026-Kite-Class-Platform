@@ -160,13 +160,18 @@ materialized-view path with a debounced refresh trigger is documented in
 GAP-323b §1B.4 but deferred — the on-demand version is correctness-equivalent
 and unblocks the GVCN dashboard surface.
 
-### BR-PERIOD-ATT-011 — Recording-teacher header contract
+### BR-PERIOD-ATT-011 — Recording-teacher identity contract (GAP-1300)
 
-The `X-Teacher-Id` request header populates `recorded_by` on every write,
-mirroring `AttendanceController#markBulkAttendance`. Fine-grained RBAC (only
+The recording teacher (`recorded_by`) is derived from the authenticated
+principal — the gateway-injected `X-User-Reference-Id` (token claim) read into
+`UserContext` — NOT a client-supplied header. The former `X-Teacher-Id` header
+was **dropped in GAP-1300**: the gateway does not control it (GAP-814), so a
+caller could attribute records to an arbitrary teacher (spoofable). Write
+endpoints are additionally role-gated `hasAnyRole('TEACHER','STAFF','OWNER','ADMIN')`
+so STUDENT/PARENT are blocked entirely. Fine-grained RBAC (only
 the SubjectSection's bộ môn teacher OR the HomeroomClass GVCN may write) is
 deferred to a follow-up PR within GAP-323b once the auth surface is wired —
-Phase 1B v1 trusts the header so the load-test rig + Phase 1B mobile UI
+Phase 1B v1 trusts the token identity so the load-test rig + Phase 1B mobile UI
 work can land independently.
 
 ## 4. Out-of-scope (tracked separately)

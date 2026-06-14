@@ -159,7 +159,7 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Xu ly thieu required request header (vi du X-User-Id, X-Teacher-Id, X-Tenant-Id) -
+     * Xu ly thieu required request header (vi du X-User-Id, X-User-Reference-Id, X-Tenant-Id) -
      * tra HTTP 400 thay vi roi vao catch-all handleUnexpectedException (500). GAP-1117.
      *
      * <p>Spring nem {@link MissingRequestHeaderException} (subclass cua

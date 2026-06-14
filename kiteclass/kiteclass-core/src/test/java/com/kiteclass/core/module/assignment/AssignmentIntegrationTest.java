@@ -187,7 +187,7 @@ class AssignmentIntegrationTest {
 
         mockMvc.perform(post("/api/v1/assignments")
                         .header("X-Tenant-Id", tenantId.toString())
-                        .header("X-Teacher-Id", mainTeacherId.toString())
+                        .header("X-User-Reference-Id", mainTeacherId.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -210,7 +210,7 @@ class AssignmentIntegrationTest {
 
         mockMvc.perform(post("/api/v1/assignments")
                         .header("X-Tenant-Id", tenantId.toString())
-                        .header("X-Teacher-Id", "999")
+                        .header("X-User-Reference-Id", "999")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isForbidden())
@@ -224,7 +224,7 @@ class AssignmentIntegrationTest {
     void publishAssignment_shouldSucceed() throws Exception {
         mockMvc.perform(post("/api/v1/assignments/{id}/publish", testAssignment.getId())
                         .header("X-Tenant-Id", tenantId.toString())
-                        .header("X-Teacher-Id", mainTeacherId.toString())
+                        .header("X-User-Reference-Id", mainTeacherId.toString())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -311,7 +311,7 @@ class AssignmentIntegrationTest {
 
         mockMvc.perform(post("/api/v1/assignments/submissions/{id}/grade", submission.getId())
                         .header("X-Tenant-Id", tenantId.toString())
-                        .header("X-Teacher-Id", mainTeacherId.toString())
+                        .header("X-User-Reference-Id", mainTeacherId.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -346,7 +346,7 @@ class AssignmentIntegrationTest {
 
         mockMvc.perform(post("/api/v1/assignments/submissions/{id}/grade", submission.getId())
                         .header("X-Tenant-Id", tenantId.toString())
-                        .header("X-Teacher-Id", mainTeacherId.toString())
+                        .header("X-User-Reference-Id", mainTeacherId.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -413,7 +413,7 @@ class AssignmentIntegrationTest {
 
         mockMvc.perform(delete("/api/v1/assignments/{id}", testAssignment.getId())
                         .header("X-Tenant-Id", tenantId.toString())
-                        .header("X-Teacher-Id", mainTeacherId.toString())
+                        .header("X-User-Reference-Id", mainTeacherId.toString())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false));
@@ -424,7 +424,7 @@ class AssignmentIntegrationTest {
     void deleteAssignment_shouldSucceed_whenNoSubmissions() throws Exception {
         mockMvc.perform(delete("/api/v1/assignments/{id}", testAssignment.getId())
                         .header("X-Tenant-Id", tenantId.toString())
-                        .header("X-Teacher-Id", mainTeacherId.toString())
+                        .header("X-User-Reference-Id", mainTeacherId.toString())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent())
                 .andExpect(jsonPath("$.success").value(true));

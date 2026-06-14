@@ -109,7 +109,7 @@ layers (BR-PERIOD-ATT-008).
 | Name | Type | Required |
 |------|------|:--------:|
 | `X-Tenant-Id` | UUID | yes |
-| `X-Teacher-Id` | Long | yes — populates `recorded_by` |
+| `X-User-Reference-Id` | Long | yes — token-derived recording teacher; populates `recorded_by` (GAP-1300, replaces spoofable `X-Teacher-Id`) |
 
 **Body:** [`AttendancePeriodBatchCreateRequest`](#attendanceperiodbatchcreaterequest).
 

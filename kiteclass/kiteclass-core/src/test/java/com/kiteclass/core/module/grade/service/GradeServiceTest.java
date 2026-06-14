@@ -29,6 +29,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import com.kiteclass.core.common.security.AuthorizationBean;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -44,6 +45,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -79,6 +81,13 @@ class GradeServiceTest {
 
     @Mock
     private GradeMapper gradeMapper;
+
+    // GAP-1000/GAP-1301: GradeServiceImpl.validateTeacherPermission now delegates the admin/owner
+    // bypass to AuthorizationBean.isAdmin() (OWNER-inclusive) instead of an inline SecurityContext
+    // check. Unstubbed mock → isAdmin() returns false, so these tests exercise the non-admin
+    // (MAIN_TEACHER-required) path as before.
+    @Mock
+    private AuthorizationBean authz;
 
     @InjectMocks
     private GradeServiceImpl gradeService;
@@ -384,6 +393,42 @@ class GradeServiceTest {
         // Assert
         assertThat(response).isNotNull();
         verify(gradeRepository).save(any(Grade.class));
+    }
+
+    @Test
+    @DisplayName("GAP-1000/GAP-1301 — ADMIN/OWNER bypasses MAIN_TEACHER check (OWNER-inclusive isAdmin)")
+    void shouldBypassMainTeacherCheck_whenAdmin() {
+        // Given — ADMIN/OWNER carries no numeric reference id and has no TeacherClass row;
+        // AuthorizationBean.isAdmin() (now OWNER-inclusive — GAP-1301) lets them bypass the
+        // per-class MAIN_TEACHER check in validateTeacherPermission.
+        GradeComponent component1 = GradeComponent.builder()
+                .grade(testGrade)
+                .componentName("Midterm")
+                .score(BigDecimal.valueOf(85))
+                .maxScore(BigDecimal.valueOf(100))
+                .weightPercent(BigDecimal.valueOf(100))
+                .build();
+        component1.calculateWeightedScore();
+        testGrade.getComponents().add(component1);
+
+        FinalizeGradeRequest request = FinalizeGradeRequest.builder()
+                .comments("Finalized by tenant admin")
+                .build();
+
+        when(gradeRepository.findByIdAndDeletedFalse(anyLong())).thenReturn(Optional.of(testGrade));
+        when(authz.isAdmin()).thenReturn(true);
+        when(gradingScaleRepository.findByInstanceIdAndScoreRange(any(), any()))
+                .thenReturn(Optional.of(testGradingScale));
+        when(gradeRepository.save(any(Grade.class))).thenReturn(testGrade);
+        when(gradeMapper.toResponse(any(Grade.class))).thenReturn(new GradeResponse());
+
+        // When — admin acts with a null teacher reference id
+        GradeResponse response = gradeService.finalizeGrade(1L, request);
+
+        // Then — finalized without consulting TeacherClass (the MAIN_TEACHER check was bypassed)
+        assertThat(response).isNotNull();
+        verify(gradeRepository).save(any(Grade.class));
+        verifyNoInteractions(teacherClassRepository);
     }
 
     @Test

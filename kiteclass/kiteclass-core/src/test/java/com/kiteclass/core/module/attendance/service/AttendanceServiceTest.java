@@ -26,6 +26,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import com.kiteclass.core.common.security.AuthorizationBean;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -48,6 +49,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -80,6 +82,12 @@ class AttendanceServiceTest {
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
+
+    // GAP-1300/GAP-1301: AttendanceServiceImpl now consults AuthorizationBean.isAdmin() to let
+    // ADMIN/OWNER bypass the per-class MAIN_TEACHER check. Unstubbed mock → isAdmin() returns
+    // false, so these tests exercise the non-admin (MAIN_TEACHER-required) path as before.
+    @Mock
+    private AuthorizationBean authz;
 
     @InjectMocks
     private AttendanceServiceImpl attendanceService;
@@ -363,6 +371,36 @@ class AttendanceServiceTest {
         assertThat(result).isNotNull();
         verify(attendanceRepository).save(any(Attendance.class));
         verify(pointService).updateAttendancePoints(eq(1L), eq(1L), eq(0), anyString());
+    }
+
+    @Test
+    @DisplayName("GAP-1301 — ADMIN/OWNER bypasses MAIN_TEACHER check on status update")
+    void shouldUpdateAttendanceStatus_whenAdminBypassesOwnership() {
+        // Given — ADMIN/OWNER carries no numeric reference id (teacherId == null) and has no
+        // TeacherClass row; AuthorizationBean.isAdmin() == true lets them bypass the per-class
+        // MAIN_TEACHER check (GAP-1301).
+        UpdateAttendanceStatusRequest updateRequest =
+                AttendanceTestDataBuilder.createUpdateStatusRequest(AttendanceStatus.EXCUSED);
+
+        when(attendanceRepository.findByIdAndDeletedFalse(1L))
+                .thenReturn(Optional.of(testAttendance));
+        when(enrollmentRepository.findByIdAndDeletedFalse(1L))
+                .thenReturn(Optional.of(testEnrollment));
+        when(classSessionRepository.findByIdAndDeletedFalse(1L))
+                .thenReturn(Optional.of(testSession));
+        when(authz.isAdmin()).thenReturn(true);
+        when(attendanceRepository.save(any(Attendance.class)))
+                .thenReturn(testAttendance);
+        when(attendanceMapper.toResponse(testAttendance))
+                .thenReturn(testResponse);
+
+        // When — admin acts with a null reference id
+        AttendanceResponse result = attendanceService.updateAttendanceStatus(1L, updateRequest, null);
+
+        // Then — updated without consulting TeacherClass (the MAIN_TEACHER check was bypassed)
+        assertThat(result).isNotNull();
+        verify(attendanceRepository).save(any(Attendance.class));
+        verifyNoInteractions(teacherClassRepository);
     }
 
     @Test
