@@ -1,6 +1,6 @@
 # GAP-1309: StorageController confirmUpload + deleteFile thiếu per-resource ownership authz → intra-tenant IDOR
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟠 P1
 **Domain:** Backend
 **Found:** 2026-06-14 (security full audit post wave-p0-closeout-1 — AUDIT-2026-06-14-security-full, F-002)
@@ -28,10 +28,34 @@ Service `StorageServiceImpl` (L151 / L225) làm `uploadedFileRepository.findById
 
 ## Acceptance Criteria
 
-- [ ] User KHÔNG phải uploader (và không phải admin/owner) cùng tenant → confirm/delete file người khác bị từ chối (403).
-- [ ] Uploader (hoặc admin/owner) → confirm/delete bình thường (2xx).
-- [ ] Cross-tenant vẫn 404 (Hibernate filter giữ nguyên).
-- [ ] Regression test (CI-bound `*Test`): non-owner deny, owner allow, admin allow.
+- [x] User KHÔNG phải uploader (và không phải admin/owner) cùng tenant → confirm/delete file người khác bị từ chối (403).
+- [x] Uploader (hoặc admin/owner) → confirm/delete bình thường (2xx).
+- [x] Cross-tenant vẫn 404 (Hibernate filter giữ nguyên — không đụng tới `findByIdAndDeletedFalse`).
+- [x] Regression test (CI-bound `*Test`): non-owner deny, owner allow, admin allow.
+
+## Resolution (2026-06-15, audit-fixB PR)
+
+Đóng per-resource ownership authz (intra-tenant IDOR) cho 2 endpoint mutate:
+
+1. **Controller** (`StorageController.java`): `confirmUpload` + `deleteFile` giờ nhận
+   `@RequestHeader X-User-Id` (Long requesterId, required) + `@RequestHeader X-User-Roles`
+   (optional). Thêm `@PreAuthorize("isAuthenticated()")` làm role gate tối thiểu. Helper
+   `hasAnyRole(...)` tính `privileged` từ X-User-Roles (ADMIN/PLATFORM_ADMIN/OWNER → bỏ qua
+   uploader check).
+2. **Service** (`StorageServiceImpl.java`): thêm `verifyFileOwnership(file, requesterId, privileged)`
+   gọi NGAY sau khi load file (trước status/S3 work). Non-uploader & non-privileged → ném
+   `BusinessException("FILE_ACCESS_DENIED", FORBIDDEN)`. Signature mới:
+   `confirmUpload(fileId, requesterId, privileged)` + `deleteFile(fileId, requesterId, privileged)`
+   (interface `StorageService` cập nhật; chỉ caller là `StorageController`).
+3. **Cross-tenant** vẫn được Hibernate `tenantFilter` chặn (404) — không thay đổi lookup.
+
+**Test:** `StorageServiceAuthzTest` (Mockito, CI-bound `*Test`) 4/4 PASS — non-owner confirm
+deny (verify không chạm S3), non-owner delete deny (verify không `save`), uploader delete allow,
+privileged (admin/owner) delete file người khác allow. `StorageIntegrationTest` 6/6 (cập nhật
+`shouldDeleteFile` thêm header X-User-Id của uploader).
+
+Item 4 (ALLOWED_MIME_TYPES `image/svg+xml` stored-SVG-XSS) là reference-only — ngoài scope gap
+này, theo dõi tại GAP-1037.
 
 ## Related
 

@@ -52,15 +52,23 @@ public interface StorageService {
      * <p>Workflow:
      * <ol>
      *   <li>Find file by ID (must be PENDING, not expired)</li>
+     *   <li>Verify per-resource ownership (uploader or privileged role) — GAP-1309</li>
      *   <li>Verify file exists in S3 (HeadObjectRequest)</li>
      *   <li>Update status = CONFIRMED, expiresAt = null</li>
      *   <li>Update quota usage (+fileSize)</li>
      * </ol>
      *
-     * @param fileId File database ID
+     * <p>GAP-1309: per-resource ownership authz. Tenant isolation (Hibernate filter)
+     * blocks cross-tenant access but NOT intra-tenant IDOR — a non-uploader in the
+     * same tenant could otherwise confirm another user's file by enumerating fileId.
+     *
+     * @param fileId      File database ID
+     * @param requesterId Gateway user ID of the caller (X-User-Id)
+     * @param privileged  true if caller holds a tenant-admin role (ADMIN/OWNER/PLATFORM_ADMIN),
+     *                    bypassing the uploader-only check
      * @return File metadata response
      */
-    FileMetadataResponse confirmUpload(Long fileId);
+    FileMetadataResponse confirmUpload(Long fileId, Long requesterId, boolean privileged);
 
     /**
      * Generates presigned download URL for accessing file from S3.
@@ -85,15 +93,21 @@ public interface StorageService {
      * <p>Workflow:
      * <ol>
      *   <li>Find file by ID</li>
+     *   <li>Verify per-resource ownership (uploader or privileged role) — GAP-1309</li>
      *   <li>Soft delete (deleted=true, deletedAt=now, status=DELETED)</li>
      *   <li>Update quota usage immediately (-fileSize if CONFIRMED)</li>
      * </ol>
      *
      * <p>File remains in S3 for 30 days before cleanup.
      *
-     * @param fileId File database ID
+     * <p>GAP-1309: per-resource ownership authz — see {@link #confirmUpload(Long, Long, boolean)}.
+     *
+     * @param fileId      File database ID
+     * @param requesterId Gateway user ID of the caller (X-User-Id)
+     * @param privileged  true if caller holds a tenant-admin role (ADMIN/OWNER/PLATFORM_ADMIN),
+     *                    bypassing the uploader-only check
      */
-    void deleteFile(Long fileId);
+    void deleteFile(Long fileId, Long requesterId, boolean privileged);
 
     /**
      * Gets storage quota usage for tenant.
