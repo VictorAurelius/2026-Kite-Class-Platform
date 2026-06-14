@@ -268,7 +268,7 @@ public class AuthService {
                                                    String subdomain,
                                                    String ownerEmail,
                                                    String ownerPassword) {
-        log.info("Beta-invite registration: subdomain={} email={}", subdomain, ownerEmail);
+        log.info("Beta-invite registration: subdomain={} email={}", subdomain, maskEmail(ownerEmail));
 
         if (userRepository.existsByEmail(ownerEmail)) {
             throw new IllegalArgumentException("Email already registered");
@@ -443,7 +443,7 @@ public class AuthService {
         // Idempotent path: if already verified (concurrent 2nd request that won the
         // lookup race), just return fresh tokens. No state mutation needed.
         if (user.isEmailVerified()) {
-            log.info("Email already verified for user: {} (idempotent re-verify)", user.getEmail());
+            log.info("Email already verified for user: {} (idempotent re-verify)", maskEmail(user.getEmail()));
             List<InstanceResponse> existingInstances = instanceService.getInstancesByOwner(user.getId());
             String existingAccessToken = generateAccessToken(user.getId(), user.getEmail(), user.getRole());
             String existingRefreshToken = generateRefreshToken(user.getId());
@@ -474,7 +474,7 @@ public class AuthService {
 
         for (Instance instance : pendingInstances) {
             instanceService.activatePendingInstance(instance.getId());
-            log.info("Activated instance: {} for user: {}", instance.getId(), user.getEmail());
+            log.info("Activated instance: {} for user: {}", instance.getId(), maskEmail(user.getEmail()));
         }
 
         // Return login response
@@ -482,7 +482,7 @@ public class AuthService {
         String accessToken = generateAccessToken(user.getId(), user.getEmail(), user.getRole());
         String refreshToken = generateRefreshToken(user.getId());
 
-        log.info("Email verified for user: {}", user.getEmail());
+        log.info("Email verified for user: {}", maskEmail(user.getEmail()));
 
         return LoginResponse.builder()
             .user(LoginResponse.UserInfo.builder()
@@ -518,7 +518,7 @@ public class AuthService {
         userRepository.save(user);
 
         sendVerificationEmail(email, newToken);
-        log.info("Resent verification email to: {}", email);
+        log.info("Resent verification email to: {}", maskEmail(email));
     }
 
     /**
@@ -561,7 +561,7 @@ public class AuthService {
      */
     @Transactional
     public LoginResponse login(LoginRequest request, HttpServletRequest httpRequest) {
-        log.info("Login attempt for: {}", request.getEmail());
+        log.info("Login attempt for: {}", maskEmail(request.getEmail()));
 
         User user = userRepository.findByEmail(request.getEmail())
             .orElseThrow(() -> new IllegalArgumentException("Invalid email or password"));
@@ -741,7 +741,7 @@ public class AuthService {
         if (name != null) user.setName(name);
         if (phone != null) user.setPhone(phone);
         userRepository.save(user);
-        log.info("Profile updated for: {}", email);
+        log.info("Profile updated for: {}", maskEmail(email));
     }
 
     @Transactional
@@ -753,13 +753,13 @@ public class AuthService {
         }
         user.setPasswordHash(passwordEncoder.encode(newPassword));
         userRepository.save(user);
-        log.info("Password changed for: {}", email);
+        log.info("Password changed for: {}", maskEmail(email));
     }
 
     private void sendVerificationEmail(String email, String verificationCode) {
         String param = "token";
         String verifyUrl = verificationBaseUrl + "/verify-email?" + param + "=" + verificationCode;
-        log.info("[EMAIL] Verification link for {}: {}", email, verifyUrl);
+        log.info("[EMAIL] Verification link for {}: {}", maskEmail(email), verifyUrl);
         emailSenderService.sendVerificationEmail(email, verifyUrl);
     }
 
@@ -882,5 +882,26 @@ public class AuthService {
             .expiration(Date.from(now.plus(7, ChronoUnit.DAYS)))
             .signWith(key)
             .compact();
+    }
+
+    /**
+     * Mask an email for logging: first char + {@code ***@} + domain
+     * (per {@code logs-format-standard.md} §3.1). {@code null}/blank → {@code "***"}.
+     *
+     * <p>GAP-1372 quick-mask: email is PII and must not be written plaintext to logs
+     * until the platform-wide scrubber (GAP-116) lands. Mirrors the kiteclass-core
+     * {@code AuthService.maskEmail} (GAP-1013d). Applied to every login/auth-flow log
+     * site in this service (cross-flow-bug-class-sweep) — login attempt, beta-invite
+     * register, email verify, resend, profile update, password change.</p>
+     */
+    static String maskEmail(String email) {
+        if (email == null || email.isBlank()) {
+            return "***";
+        }
+        int at = email.indexOf('@');
+        if (at <= 0) {
+            return email.charAt(0) + "***";
+        }
+        return email.charAt(0) + "***" + email.substring(at);
     }
 }
