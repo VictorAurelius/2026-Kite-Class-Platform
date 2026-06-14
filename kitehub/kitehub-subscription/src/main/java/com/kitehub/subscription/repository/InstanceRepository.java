@@ -30,7 +30,24 @@ public interface InstanceRepository extends JpaRepository<Instance, UUID> {
 
     Optional<Instance> findBySubdomainAndDeletedFalse(String subdomain);
 
-    List<Instance> findByOwnerIdAndDeletedFalse(UUID ownerId);
+    /**
+     * Non-deleted instances owned by {@code ownerId}, ordered DETERMINISTICALLY by
+     * {@code createdAt ASC, id ASC} (GAP-1306). The explicit ORDER BY replaces the prior
+     * derived query whose {@code List} had no defined order — Postgres heap/index scan
+     * order made {@code .stream().findFirst()} callers (JWT {@code tenantId} / {@code tier}
+     * claim resolution in {@link com.kitehub.subscription.service.AuthService} +
+     * {@link com.kitehub.subscription.service.TokenService}) pick a non-deterministic
+     * instance for owners with &gt;1 non-deleted instance → cross-tenant exposure risk.
+     *
+     * <p>Semantic: the OLDEST non-deleted instance wins (created first = primary), with
+     * {@code id} as a stable tiebreaker if two rows share a {@code createdAt}. The method
+     * signature is unchanged so every existing caller becomes deterministic at the source
+     * (repository-level fix; zero blast radius — per
+     * {@code .claude/rules/cross-flow-bug-class-sweep.md}).
+     */
+    @Query("SELECT i FROM Instance i WHERE i.ownerId = :ownerId AND i.deleted = false "
+        + "ORDER BY i.createdAt ASC, i.id ASC")
+    List<Instance> findByOwnerIdAndDeletedFalse(@Param("ownerId") UUID ownerId);
 
     List<Instance> findByStatusAndDeletedFalse(InstanceStatus status);
 
