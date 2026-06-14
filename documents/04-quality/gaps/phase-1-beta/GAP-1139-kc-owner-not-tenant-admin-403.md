@@ -1,6 +1,6 @@
 # GAP-1139: KiteClass OWNER không được công nhận tenant-admin → 403 trên reports/enrollments/payroll
 
-**Status:** 🟡 PARTIAL (90% — code fix shipped, human G2 re-walk pending kc-core rebuild)
+**Status:** 🟡 PARTIAL (95% — code fix shipped #2296, CI regression tests added wave p0-b, human G2 re-walk pending kc-core rebuild)
 **Priority:** 🔴 P0
 **Domain:** Backend
 **Found:** 2026-06-10 (Flow Verification Campaign — owner G2 browser walk KiteClass `:3000`)
@@ -27,7 +27,8 @@ Authz layer viết trước khi RBAC seed role OWNER (RoleSeederService). Lỗi 
 - [x] OWNER `isAdmin()` → true (ROLE_OWNER recognized)
 - [x] ReportController revenue/attendance → `hasAnyRole('ADMIN','OWNER')`
 - [x] PayrollController 3 endpoint → `hasAnyRole('ADMIN','OWNER')`
-- [ ] Re-walk owner: điểm danh load roster + /reports render (200, không 403) — **human G2 re-walk pending sau rebuild kiteclass-core**
+- [x] CI-bound regression tests lock the fix (wave p0-b): `AuthorizationBeanTest` +6 OWNER cases (isAdmin OWNER→true, OWNER bypass class/enrollment/student, non-owner deny preserved); new `ReportControllerAuthzTest` (`*Test`, surefire) — OWNER→200 revenue+attendance, non-owner STUDENT→403, OWNER without `X-Tenant-Id`→400 `TENANT_NOT_SET` (tenant isolation preserved). `ReportControllerIT` was `*IT` = NOT CI-bound + never exercised OWNER.
+- [ ] Re-walk owner: điểm danh load roster + /reports render (200, không 403) — **human G2 re-walk pending sau rebuild kiteclass-core** (code + automated tests done; chỉ còn human browser walk)
 
 ## Cross-flow sweep evidence (per cross-flow-bug-class-sweep.md §3)
 
@@ -54,5 +55,14 @@ grep -rn "@PreAuthorize" kiteclass/kiteclass-core/src/main/java --include=*.java
 
 - Discovered in: Flow Verification Campaign owner G2 walk 2026-06-10
 - Caused-exposed-by: PR #2292 (GAP-1122/1127 tenant-auth login)
-- Follow-up DEFER: GAP-1150 (marketing OWNER access)
+- Follow-up DEFER: GAP-1150 (marketing OWNER access) — note: marketing sites already include OWNER as of #2376
 - Design: RBAC fixed-curated 5 seeded roles (OWNER/STAFF/TEACHER/PARENT/STUDENT)
+
+## Log
+
+- **2026-06-14 — wave `wave-2026-06-14-p0-closeout-1` Bucket B (this PR):** Code fix already on main (commit `c1920b6b8` / #2296 — `AuthorizationBean.isAdmin()` += `ROLE_OWNER`, `ReportController` 2× + `PayrollController` 3× → `hasAnyRole('ADMIN','OWNER')`). This PR adds the **missing CI-bound regression tests**: the prior `ReportControllerIT` is a `*IT` (NOT bound to CI — no failsafe in kiteclass-core) and never exercised the OWNER role. Added:
+  - `AuthorizationBeanTest` (`*Test`, CI-bound) +6 cases — `isAdmin()` recognizes `ROLE_OWNER`; non-owner/non-admin (`ROLE_STUDENT`) → false; unauthenticated → false; OWNER bypass on `hasAccessToClass` / `hasAccessToEnrollment` / `hasAccessToStudent` (no DB query) → covers the enrollment/attendance/grade/assignment fan-out; non-owner non-teacher still denied (per-resource check intact).
+  - `ReportControllerAuthzTest` (`*Test`, `@WebMvcTest` slice mirroring the proven `ReportControllerIT` config) — OWNER → 200 on `/reports/revenue` + `/reports/attendance`; non-owner STUDENT → 403 (service NOT invoked); OWNER without `X-Tenant-Id` → 400 `TENANT_NOT_SET` (OWNER cannot run an unscoped cross-tenant aggregate — tenant isolation preserved).
+  - **Cross-flow sweep re-run (2026-06-14):** 0 behavioral controller site missing OWNER (all tenant-owner-relevant `@PreAuthorize` already grant OWNER). Only residual = `report/package-info.java:17` javadoc `{@code hasRole('ADMIN')}` doc-drift → **DEFER** (cosmetic, no behavior).
+  - **code + automated tests done; the only remaining AC is the human G2 browser re-walk** (cannot be performed by an agent) → gap stays **PARTIAL** (95%).
+  - Tenant data isolation across tenants (tenant A's OWNER sees only tenant A rows) is enforced at the persistence layer by the Hibernate `tenantFilter`/RLS, exercised by tenant-filter integration tests; the controller slice here proves only that OWNER cannot bypass the `X-Tenant-Id` scoping gate.
