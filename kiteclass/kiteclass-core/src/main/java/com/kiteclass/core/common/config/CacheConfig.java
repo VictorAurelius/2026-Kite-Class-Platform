@@ -88,6 +88,10 @@ public class CacheConfig {
 
         return RedisCacheManager.builder(connectionFactory)
                 .cacheDefaults(config)
+                // GAP-1357: enableStatistics() makes RedisCache expose hit/miss
+                // counters so Spring Boot binds cache.gets{result=hit|miss} to
+                // Micrometer → /actuator/prometheus (cache_gets_total).
+                .enableStatistics()
                 .build();
     }
 }

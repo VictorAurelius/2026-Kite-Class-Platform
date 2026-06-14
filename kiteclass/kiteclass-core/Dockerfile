@@ -68,4 +68,10 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:8081/actuator/health || exit 1
 
 # Run application
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# GAP-1358 — container-aware JVM heap tuning (mirrors all 5 kitehub services).
+# Without MaxRAMPercentage the JVM default caps heap at 25% of the cgroup limit;
+# kiteclass-core is the largest/most memory-intensive Java service so heap was
+# under-provisioned → premature GC pressure / OOM risk. UseContainerSupport is
+# default-on in Java 17+ but set explicitly for parity with the kitehub fleet.
+ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

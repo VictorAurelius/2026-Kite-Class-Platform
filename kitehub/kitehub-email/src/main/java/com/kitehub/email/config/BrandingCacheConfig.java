@@ -29,7 +29,10 @@ public class BrandingCacheConfig {
         CaffeineCacheManager manager = new CaffeineCacheManager(TENANT_BRANDING_CACHE);
         manager.setCaffeine(Caffeine.newBuilder()
                 .expireAfterWrite(5, TimeUnit.MINUTES)
-                .maximumSize(5_000));
+                .maximumSize(5_000)
+                // GAP-1357: recordStats() lets Spring Boot CacheMetricsRegistrar
+                // bind cache.gets{result=hit|miss} to Micrometer → /actuator/prometheus.
+                .recordStats());
         return manager;
     }
 }

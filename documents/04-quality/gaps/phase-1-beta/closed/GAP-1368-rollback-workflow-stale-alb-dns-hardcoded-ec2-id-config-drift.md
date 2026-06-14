@@ -1,9 +1,10 @@
 # GAP-1368: rollback.yml config-drift — stale ALB DNS + hardcoded EC2 instance ID (rollback path hỏng post-ALB-elimination)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟠 P1
 **Domain:** DevOps
 **Found:** 2026-06-14 (ops-readiness full audit post wave-p0-closeout-1 — §5.3 rollback drill)
+**Resolved:** 2026-06-15 (branch `fix/audit-fixF-devops-2026-06-14`)
 **Affects:** `.github/workflows/rollback.yml` (+ dead `ALB_DNS` env var trong `deploy-production.yml`)
 
 ## Problem
@@ -24,10 +25,21 @@ Sync `rollback.yml` theo pattern `deploy-production.yml`: (1) bỏ `ALB_DNS`, th
 
 ## Acceptance Criteria
 
-- [ ] `rollback.yml` không còn reference ALB DNS; smoke gate dùng `api.kitehub.me` HTTPS.
-- [ ] `rollback.yml` lookup EC2 instance ID động theo tag (không hardcode).
-- [ ] `deploy-production.yml` bỏ dead `ALB_DNS` env var.
-- [ ] Dry-run `rollback.yml` (dry_run=true) pass plan step không lỗi reference.
+- [x] `rollback.yml` không còn reference ALB DNS; smoke gate dùng `api.kitehub.me` HTTPS (`PROD_HEALTH_URL`).
+- [x] `rollback.yml` lookup EC2 instance ID động theo tag `kitehub-kh-backend` (step `ec2_lookup`, không hardcode).
+- [x] `deploy-production.yml` bỏ dead `ALB_DNS` env var.
+- [x] Dry-run `rollback.yml` (dry_run=true) plan step không còn lỗi reference — static verify: `python3 yaml.safe_load` PASS + grep `ALB_DNS|ROLLBACK_INSTANCE_ID_KH|elb.amazonaws.com` = 0 live refs (chỉ comment). Live dry-run gated trên GitHub Environment `production` reviewer approval (existing gate).
+
+## Resolution (2026-06-15)
+
+Synced `rollback.yml` to the `deploy-production.yml` Cloudflare-Tunnel + dynamic-lookup pattern:
+- Removed `ALB_DNS` + `ROLLBACK_INSTANCE_ID_KH` env vars; added `PROD_HEALTH_URL=https://api.kitehub.me/actuator/health`.
+- New step `Lookup current kh-backend instance ID (dynamic — GAP-1368/GAP-482)` resolves the instance via `aws ec2 describe-instances --filters tag:Name=kitehub-kh-backend,instance-state-name=running`. The rollback IAM role already grants `ec2:DescribeInstances` (`iam.tf` `github_rollback_inline` `Ec2DescribeRead`) — no IAM change needed.
+- Plan/SSM-send/SSM-poll steps now consume `steps.ec2_lookup.outputs.instance_id`.
+- Replaced "Wait for ALB target group health" + "Smoke test (gateway through ALB)" with a "Wait for containers to restart" + Cloudflare-Tunnel smoke (`curl https://api.kitehub.me/actuator/health`).
+- `deploy-production.yml`: removed the dead `ALB_DNS` env var (poll step already smokes `api.kitehub.me`).
+
+Verify: `yaml.safe_load` PASS on both workflows; 0 live `ALB_DNS|ROLLBACK_INSTANCE_ID_KH|elb.amazonaws.com` references (comments only).
 
 ## Related
 

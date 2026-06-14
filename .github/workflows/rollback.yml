@@ -44,8 +44,13 @@ permissions:
 
 env:
   AWS_REGION: ap-southeast-1
-  ROLLBACK_INSTANCE_ID_KH: i-0b65c3947d36cae61   # kh-backend EC2 (same as deploy-production.yml)
-  ALB_DNS: kitehub-alb-224105328.ap-southeast-1.elb.amazonaws.com
+  # ROLLBACK_INSTANCE_ID_KH removed (GAP-1368) — now looked up dynamically by
+  # tag (Name=kitehub-kh-backend), mirroring deploy-production.yml. Hardcoded ID
+  # went stale after EC2 replacement via AMI bump (GAP-482).
+  # ALB_DNS removed (GAP-1368) — ALB decommissioned Wave aws-restore-1; prod
+  # ingress is Cloudflare Tunnel → kitehub-gateway. Smoke now hits api.kitehub.me
+  # (mirrors deploy-production.yml poll step).
+  PROD_HEALTH_URL: https://api.kitehub.me/actuator/health
   ECR_NAMESPACE: kite
 
 jobs:
@@ -111,9 +116,27 @@ jobs:
         run: |
           echo "start_ts=$(date +%s)" >> "$GITHUB_OUTPUT"
 
+      - name: Lookup current kh-backend instance ID (dynamic — survives EC2 replacement, GAP-1368/GAP-482)
+        id: ec2_lookup
+        run: |
+          INSTANCE_ID=$(aws ec2 describe-instances \
+            --region "${AWS_REGION}" \
+            --filters \
+              "Name=tag:Name,Values=kitehub-kh-backend" \
+              "Name=instance-state-name,Values=running" \
+            --query "Reservations[0].Instances[0].InstanceId" \
+            --output text)
+          if [ -z "$INSTANCE_ID" ] || [ "$INSTANCE_ID" = "None" ]; then
+            echo "::error ::No running kitehub-kh-backend instance found"
+            exit 1
+          fi
+          echo "Found kh-backend instance: $INSTANCE_ID"
+          echo "instance_id=$INSTANCE_ID" >> "$GITHUB_OUTPUT"
+
       - name: Plan rollback (always)
         env:
           TARGET_SHA: ${{ needs.validate.outputs.target_sha }}
+          INSTANCE_ID: ${{ steps.ec2_lookup.outputs.instance_id }}
           MODE: ${{ github.event.inputs.dry_run == 'true' && 'DRY-RUN' || 'EXECUTE' }}
         run: |
           {
@@ -122,16 +145,16 @@ jobs:
             echo "| Field | Value |"
             echo "|---|---|"
             echo "| Target SHA | \`${TARGET_SHA}\` |"
-            echo "| Instance | \`${ROLLBACK_INSTANCE_ID_KH}\` |"
+            echo "| Instance (dynamic lookup) | \`${INSTANCE_ID}\` |"
             echo "| ECR namespace | \`${ECR_NAMESPACE}\` |"
-            echo "| ALB | \`${ALB_DNS}\` |"
+            echo "| Health endpoint | \`${PROD_HEALTH_URL}\` |"
             echo "| Mode | **${MODE}** |"
             echo ""
             echo "### Steps (when not dry-run)"
             echo "1. SSM RunCommand → kh-backend EC2: pull image \`${TARGET_SHA}\` via deploy-prod.sh"
             echo "2. Poll SSM command (up to 8 min)"
-            echo "3. Wait 90s for ALB target group health"
-            echo "4. Smoke test gateway via ALB"
+            echo "3. Wait 60s for containers to restart"
+            echo "4. Smoke test gateway via Cloudflare Tunnel (\`${PROD_HEALTH_URL}\`)"
             echo "5. Emit TTR metric to CloudWatch \`KiteHub/Rollback\`"
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -140,7 +163,7 @@ jobs:
         if: ${{ github.event.inputs.dry_run != 'true' }}
         env:
           TARGET_SHA: ${{ needs.validate.outputs.target_sha }}
-          INSTANCE_ID: ${{ env.ROLLBACK_INSTANCE_ID_KH }}
+          INSTANCE_ID: ${{ steps.ec2_lookup.outputs.instance_id }}
         run: |
           echo "Rolling back to ${TARGET_SHA} on ${INSTANCE_ID}..."
           # Mirror deploy-production.yml SSM pattern: deploy-prod.sh accepts
@@ -160,7 +183,7 @@ jobs:
       - name: Poll SSM command status (up to 8 min)
         if: ${{ github.event.inputs.dry_run != 'true' }}
         env:
-          INSTANCE_ID: ${{ env.ROLLBACK_INSTANCE_ID_KH }}
+          INSTANCE_ID: ${{ steps.ec2_lookup.outputs.instance_id }}
           COMMAND_ID: ${{ steps.ssm.outputs.command_id }}
         run: |
           for attempt in $(seq 1 48); do
@@ -195,24 +218,29 @@ jobs:
           echo "::error ::Rollback SSM command timed out after 8 min"
           exit 1
 
-      - name: Wait for ALB target group health
+      - name: Wait for containers to restart
         if: ${{ github.event.inputs.dry_run != 'true' }}
         run: |
-          echo "Waiting 90s for kh-backend target group health check..."
-          sleep 90
+          echo "Waiting 60s for kh-backend containers to restart..."
+          sleep 60
 
-      - name: Smoke test (gateway through ALB)
+      - name: Smoke test (gateway via Cloudflare Tunnel)
         if: ${{ github.event.inputs.dry_run != 'true' }}
         run: |
+          # ALB decommissioned Wave aws-restore-1 (GAP-1368) — prod ingress is
+          # Cloudflare Tunnel → kitehub-gateway. Mirror deploy-production.yml
+          # poll: smoke 200 on the public HTTPS endpoint.
           for attempt in 1 2 3; do
-            if curl -fsS -o /dev/null -w "HTTP %{http_code} (attempt ${attempt})\n" \
-                 "http://${ALB_DNS}/actuator/health"; then
+            SMOKE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 -L \
+              "${PROD_HEALTH_URL}" 2>/dev/null || echo "000")
+            echo "Smoke ${PROD_HEALTH_URL} (attempt ${attempt}) -> HTTP ${SMOKE}"
+            if [ "${SMOKE}" = "200" ]; then
               echo "::notice ::Rollback healthy ✅"
               exit 0
             fi
             sleep 30
           done
-          echo "::error ::ALB health check failed after 3 attempts post-rollback"
+          echo "::error ::Health check failed after 3 attempts post-rollback (${PROD_HEALTH_URL})"
           exit 1
 
       - name: Emit TTR metric to CloudWatch

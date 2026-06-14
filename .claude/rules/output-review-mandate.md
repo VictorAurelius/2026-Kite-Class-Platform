@@ -43,7 +43,7 @@ Mọi artifact tenant, user, dev, hay downstream system consume:
 | **Code** | two-stage-code-review (Stage 1+2+2.5) | Pre-merge | Peer + CI + pattern check | ✅ DONE |
 | **UI screens** | ui-review /128 per-screen | After FE PR | Auditor | ✅ 110.6/128 A (2026-05-19, Wave 98 5-screen sample) — see `audits-index.csv` |
 | **Quality audit reports** | quality-audit 11 categories /110→/100 | Periodic | Auditor | ✅ 90/110 B+ (2026-05-19, Wave 98; PASS Phase 1 BETA ≥80 +10 + PROD MAJOR ≥85 +5 buffer) — see `audits-index.csv` |
-| **Ops readiness** | ops-readiness-audit skill /100 | Post-wave + quarterly | Auditor | ⚠️ 77/100 C+ (2026-05-18, Wave 94c) — see `audits-index.csv`; 3 P0 carry GAP-257/144/612 |
+| **Ops readiness** | ops-readiness-audit skill /100 | Post-wave + quarterly | Auditor | ⚠️ 78/100 C+ PARTIAL FAIL (2026-06-14, ops-readiness full audit) — see `audits-index.csv`; **1 P0 carry GAP-257** (restore drill). GAP-144 alerting (DONE Wave 86) + GAP-612 AWS restore (DONE Wave aws-restore-1) no longer P0 carry (GAP-1371) |
 | **Performance baseline** | performance-audit skill /100 | Post-wave + quarterly | Auditor | ✅ 86/100 B+ (2026-05-15, Wave 85) — see `audits-index.csv` |
 | **Security baseline** | security-audit skill /100 + **v2 audit format mandatory per GAP-564** (per-control evidence block — see `.claude/skills/quality/security-audit/reference/audit-report-template-v2.md`) | Post-wave + quarterly | Auditor | ✅ 93/100 A (2026-05-18, Wave 94c v2 27/27 evidence blocks) — see `audits-index.csv` |
 | **Business logic implementation** | business-logic-audit skill /100 | Post-wave + quarterly | Auditor | ⚠️ 73/100 C+ FAIL (2026-06-12, cadence ui-kits-100+landing-100; delta 0 — path-to-80 cluster GAP-664/666 unexecuted) — see `audits-index.csv` |

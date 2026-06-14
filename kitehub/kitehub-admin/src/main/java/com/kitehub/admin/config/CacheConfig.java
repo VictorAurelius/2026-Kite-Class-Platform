@@ -76,7 +76,10 @@ public class CacheConfig {
                 "instanceSummary"));
         manager.setCaffeine(Caffeine.newBuilder()
                 .expireAfterWrite(maxTtl, TimeUnit.SECONDS)
-                .maximumSize(5_000));
+                .maximumSize(5_000)
+                // GAP-1357: recordStats() lets Spring Boot CacheMetricsRegistrar
+                // bind cache.gets{result=hit|miss} to Micrometer → /actuator/prometheus.
+                .recordStats());
         return manager;
     }
 }

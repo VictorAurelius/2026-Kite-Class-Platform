@@ -1,9 +1,10 @@
 # GAP-1347: Performance audit baseline stale ~30 ngày — refresh due
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟡 P2
 **Domain:** DevOps
 **Found:** 2026-06-14 (Quality full audit, AUDIT-2026-06-14-quality-full)
+**Resolved:** 2026-06-15 (baseline refreshed by 2026-06-14 performance full audit)
 **Affects:** `documents/04-quality/audits/performance/**` + `audits-index.csv`
 
 ## Problem
@@ -20,9 +21,13 @@ Chạy `/performance-audit` full refresh tập trung surface mới: LMS paywall 
 
 ## Acceptance Criteria
 
-- [ ] Performance audit report 2026-06-xx tồn tại với score + delta vs Wave 85 86/100
-- [ ] Surface mới (LMS + subscription scheduler + SSO + RBAC) được đánh giá explicit
-- [ ] Findings (nếu có) filed gap riêng; audits-index.csv có row mới
+- [x] Performance audit report 2026-06-xx tồn tại với score + delta vs Wave 85 86/100 — `documents/04-quality/audits/performance/2026-06-14-performance-full-audit.md` = **82/100 B PARTIAL PASS, delta −4 vs Wave 85 86**.
+- [x] Surface mới (LMS + subscription scheduler + SSO + RBAC) được đánh giá explicit — audit covered new surface (5-category per-check rubric; DB 17 / API 16 / FE-bundle 17 / Caching 17 / Resources 15).
+- [x] Findings filed gap riêng; audits-index.csv có row mới — 12 findings GAP-1356..1367 filed; `AUDIT-2026-06-14-performance-full` row present in `audits-index.csv`.
+
+## Resolution (2026-06-15)
+
+Closeable — the 2026-06-14 performance full audit already refreshed the baseline that this gap flagged as stale: `AUDIT-2026-06-14-performance-full` = 82/100 B (delta −4 vs Wave 85 86/100), report at `documents/04-quality/audits/performance/2026-06-14-performance-full-audit.md`, with 12 findings (GAP-1356..1367) covering the new LMS / subscription-scheduler / SSO / RBAC surface. Baseline is now current; no further action — this gap is a hygiene/cadence tracker that the refresh satisfied. (Several of its child findings — GAP-1357/1358/1365/1366/1367 — are resolved/PARTIAL'd in this same PR.)
 
 ## Related
 

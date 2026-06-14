@@ -32,7 +32,8 @@ env:
   # DEPLOY_INSTANCE_ID_KH removed — now looked up dynamically by tag
   # (GAP-482: hardcoded ID stale after EC2 replacement via AMI bump)
   COMPOSE_FILE: /opt/kite-prod/docker-compose.production.yml
-  ALB_DNS: kitehub-alb-224105328.ap-southeast-1.elb.amazonaws.com
+  # ALB_DNS removed (GAP-1368) — dead var. ALB decommissioned Wave aws-restore-1;
+  # the poll step smokes https://api.kitehub.me (Cloudflare Tunnel → gateway).
 
 jobs:
   validate:
