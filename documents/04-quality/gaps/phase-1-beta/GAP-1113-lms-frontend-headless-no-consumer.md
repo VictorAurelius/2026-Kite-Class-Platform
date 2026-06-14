@@ -46,3 +46,7 @@ Build FE LMS theo 2 increment (tách theo dependency auth):
 - Prereq RLS: **GAP-1121** (enable RLS DB-level cụm LMS) — merge trước production
 - Prereq student-auth: **KC-9** (student-auth flow) — chặn Increment B
 - Outside-in rule: `.claude/rules/outside-in-coverage-trigger.md` (persona audit trước scope)
+
+## G1 runtime walk (2026-06-14) — gateway BE-contract: ✅ PASS (status giữ PARTIAL)
+
+Per `documents/04-quality/audits/rst-html/2026-06-14-g1-runtime-walk-rbac-lms.md`. Increment A teacher authoring: create module/lesson 201, reorder 200, upload-url 201 (presigned MinIO); guest catalog `/courses?status=PUBLISHED` 200 + guest course-structure 200 (trial). Increment B student consumption (sau fix GAP-1297 X-User-Id→X-User-Reference-Id): GET modules/lesson 200, mark-complete 200 (`userId=4 100%`), course-progress 200. Paywall enforcement = GAP-1115/1116; X-Teacher-Id spoof authz = GAP-798 (PoC appended). **Còn lại G2★ human:** browser-walk teacher authoring tab + student lesson-player trên FE `:3000`. KHÔNG flip DONE.

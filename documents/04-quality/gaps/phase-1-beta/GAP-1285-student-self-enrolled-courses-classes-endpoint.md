@@ -57,3 +57,7 @@ FE sau đó đổi `/student/learning` + `/student/assignments` sang endpoint en
 - BE pattern mirrored: `StudentPortalController` `/api/v1/students/me/*` (X-User-Reference-Id self-resolution)
 - BE controllers: `EnrollmentController` (`/me` NEW + `/student/{id}` guarded), `ClassController` (`/api/v1/classes` SHARED READ), `CourseController` (`/api/v1/courses` catalog)
 - Parent shells: GAP-1119 (role-shell), GAP-1113 (LMS FE consumer)
+
+## G1 runtime walk (2026-06-14) — gateway BE-contract: ✅ PASS (status giữ PARTIAL)
+
+Per `documents/04-quality/audits/rst-html/2026-06-14-g1-runtime-walk-rbac-lms.md`. `GET /api/v1/enrollments/me` (@PreAuthorize hasRole STUDENT, resolve X-User-Reference-Id=students.id): student 4 → 200 (class 14 enriched courseId/courseName/className); student 5 → 200 (class 6) — disjoint = cross-student isolation OK; TEACHER → 403 (STUDENT-only). **Còn lại G2★ human:** browser-walk `/student/learning` + `/student/assignments` enrollment-scoped trên FE `:3000` (FE rewire shipped, browser pending). KHÔNG flip DONE.

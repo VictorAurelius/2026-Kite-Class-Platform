@@ -58,3 +58,7 @@ FE LMS wave (GAP-1113) và mọi surface KC khác giả định một **tầng n
 - KC-9 student-auth pending (chặn student-shell Increment B) — memory `project_parent_student_portal_phase2_gated`
 - Design: `documents/01-business/kiteclass/role-hierarchy/` + `tenant-auth/` + `staff-invitation/` + ADR-003-role-hierarchy + rule `kitehub-kiteclass-boundary.md` §2
 - Outside-in audit: `2026-06-10-pre-wave-lms-fe-outside-in.md` (persona lens flagged owner/parent/admin scope)
+
+## G1 runtime walk (2026-06-14) — gateway BE-contract: ✅ PASS (status giữ PARTIAL)
+
+Per `documents/04-quality/audits/rst-html/2026-06-14-g1-runtime-walk-rbac-lms.md`. RoleGuard BE authz verify: cross-role 403 đủ 4 chiều (TEACHER/STUDENT/PARENT→`/roles/templates`=403; TEACHER→`/enrollments/me`=403); role-home BE-area reachable đúng role (OWNER→roles 200, STUDENT→/me 200, TEACHER→lms 200). Bucket D assign/revoke: `GET/POST /roles/assignments` 200/201, revoke 204, invalid-role 400, TEACHER-assign 403 (sau fix GAP-1298 LazyInit 500). **Còn lại G2★ human:** browser-walk role-home redirect (`roles.ts ROLE_HOME`) + `/admin/roles` assign UI trên FE `:3000` (FE image stale, cần rebuild). KHÔNG flip DONE.

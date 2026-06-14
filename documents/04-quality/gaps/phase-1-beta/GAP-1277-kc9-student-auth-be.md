@@ -44,3 +44,7 @@ Mirrors the teacher provisioning path 1:1:
 - Wave auth-1 PR #2186 (parent/teacher KC-native login — pattern mirrored here)
 - Memory `project_parent_student_portal_phase2_gated` (student auth Option B, no OTP)
 - V89 `auth_credentials` (entity_type CHECK already allows STUDENT)
+
+## G1 runtime walk (2026-06-14) — gateway BE-contract: ✅ PASS (status giữ PARTIAL)
+
+Per `documents/04-quality/audits/rst-html/2026-06-14-g1-runtime-walk-rbac-lms.md`. STUDENT token (role=STUDENT, referenceId=students.id) qua gateway `:9000` HS512 chain: `/enrollments/me` 200 (self-scoped); LMS student-area (sau fix GAP-1297) lesson-player + progress 200; cross-role 403 (TEACHER→/me). Cross-student isolation: student 4 (class 14) vs student 5 (class 6) = tập enrollment disjoint. **Còn lại G2★ human:** browser-walk student-shell login + `/student/*` trên FE `:3000` (KC-native login + student-shell FE). KHÔNG flip DONE.

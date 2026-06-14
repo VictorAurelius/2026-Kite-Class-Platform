@@ -204,7 +204,7 @@ class LmsIntegrationTest {
         // Note: getCourseStructureForStudent does NOT verify enrollment (UX decision)
         mockMvc.perform(get("/api/v1/lms/courses/{courseId}/modules", testCourse.getId())
                         .header("X-Tenant-Id", tenantId.toString())
-                        .header("X-User-Id", studentId.toString())
+                        .header("X-User-Reference-Id", studentId.toString())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -238,7 +238,7 @@ class LmsIntegrationTest {
 
         mockMvc.perform(get("/api/v1/lms/lessons/{lessonId}", paidLesson.getId())
                         .header("X-Tenant-Id", tenantId.toString())
-                        .header("X-User-Id", studentId.toString())
+                        .header("X-User-Reference-Id", studentId.toString())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -261,7 +261,7 @@ class LmsIntegrationTest {
 
         mockMvc.perform(get("/api/v1/lms/lessons/{lessonId}", paidLesson.getId())
                         .header("X-Tenant-Id", tenantId.toString())
-                        .header("X-User-Id", studentId.toString())
+                        .header("X-User-Reference-Id", studentId.toString())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.success").value(false));
@@ -292,7 +292,7 @@ class LmsIntegrationTest {
 
         mockMvc.perform(get("/api/v1/lms/lessons/{lessonId}", paidLesson.getId())
                         .header("X-Tenant-Id", tenantId.toString())
-                        .header("X-User-Id", studentId.toString())
+                        .header("X-User-Reference-Id", studentId.toString())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.success").value(false));
