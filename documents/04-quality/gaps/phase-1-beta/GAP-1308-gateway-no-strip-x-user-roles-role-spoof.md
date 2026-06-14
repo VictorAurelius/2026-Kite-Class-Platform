@@ -1,6 +1,6 @@
 # GAP-1308: Gateway default-filters không strip X-User-Roles → role-spoof privilege escalation qua gateway
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (code+config+CI-config-test DONE; runtime forged-header→403 walk pending)
 **Priority:** 🔴 P0
 **Domain:** Backend
 **Found:** 2026-06-14 (security full audit post wave-p0-closeout-1 — AUDIT-2026-06-14-security-full, F-001)
@@ -33,10 +33,19 @@ Cùng class GAP-814 (X-Tenant-Id strip, P0 DONE) — fix đó lẽ ra phải th�
 
 ## Acceptance Criteria
 
-- [ ] `X-User-Roles` + `X-User-Email` có trong gateway `default-filters` RemoveRequestHeader.
-- [ ] Request gửi `X-User-Roles: OWNER` không token → core/sub KHÔNG cấp authority OWNER (403 trên endpoint role-gated).
-- [ ] Request token hợp lệ → X-User-Roles luôn = role từ claim verify (client value bị ghi đè/strip).
-- [ ] Regression test (CI-bound) ở gateway và/hoặc downstream filter: forged X-User-Roles bị từ chối; token-derived role được tôn trọng.
+- [x] `X-User-Roles` + `X-User-Email` có trong gateway `default-filters` RemoveRequestHeader. (`application.yml` — 2 dòng RemoveRequestHeader thêm sau X-Subscription-Tier).
+- [ ] Request gửi `X-User-Roles: OWNER` không token → core/sub KHÔNG cấp authority OWNER (403 trên endpoint role-gated). ⏳ **runtime walk pending** — cần boot gateway + downstream stub, gửi forged header, assert 403. Cơ chế strip đạt được điều này nhưng chưa walk e2e trên stack sống trong session này.
+- [x] Request token hợp lệ → X-User-Roles luôn = role từ claim verify (client value bị strip + JWT filter re-inject ở Order `LOWEST_PRECEDENCE-2`, sau strip — cùng pattern đã proven cho X-User-Id/X-Subscription-Tier).
+- [x] Regression test (CI-bound) ở gateway: `GatewayRoutesIntegrationTest.defaultFiltersStripAllClientIdentityHeaders` assert default-filters chứa cả 6 RemoveRequestHeader (Roles/Email mới + 4 twin). Assertion hành vi forged-header→403 thuộc runtime walk ở AC #2.
+
+## Resolution (PR fix/audit-fixA-gw-2026-06-14, 2026-06-15)
+
+Code-fix PARTIAL — cơ chế anti-spoof đã hoàn tất ở tầng gateway config + CI test; còn chờ runtime walk e2e cho assertion 403.
+
+- **Fix:** thêm `- RemoveRequestHeader=X-User-Roles` (+ `X-User-Email` cho GAP-1310) vào `kitehub/kitehub-gateway/src/main/resources/application.yml` `default-filters`, ngay sau `X-Subscription-Tier`. Đây chính là twin còn thiếu của GAP-814 (X-Tenant-Id).
+- **Vì sao chỉ cần strip:** `JwtAuthenticationGatewayFilter` chạy ở Order `Ordered.LOWEST_PRECEDENCE-2` (GAP-916) — SAU khi default-filters strip (Order ~0). Strip xoá client value trước; filter chỉ re-inject `X-User-Roles` khi claim `role != null`. Request tokenless / role-absent → downstream KHÔNG nhận X-User-Roles = least privilege (không cấp authority). Không cần đổi filter conditional injection.
+- **Test:** `GatewayRoutesIntegrationTest.defaultFiltersStripAllClientIdentityHeaders` (CI-bound `*Test`, YAML-text assertion — pattern repo dùng cho default-filters verify). Gateway module `verify -P strict-warnings` BUILD SUCCESS (75 tests, 0 fail).
+- **Còn lại (PARTIAL):** boot gateway + KC/KH stack, `curl -H 'X-User-Roles: OWNER'` tới endpoint role-gated không token → assert 403. Cần khi stack chạy.
 
 ## Related
 

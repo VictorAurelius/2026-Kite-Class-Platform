@@ -971,6 +971,20 @@ spring:
         # GAP-1020: strip client-supplied subscription tier; JwtAuthenticationGatewayFilter
         # re-injects the verified `tier` claim — anti-spoof for tier-gated AI branding.
         - RemoveRequestHeader=X-Subscription-Tier
+        # GAP-1308 (P0): strip client-supplied X-User-Roles. Downstream services
+        # (kiteclass-core GatewayHeaderAuthenticationFilter, kitehub-subscription
+        # XUserRolesHeaderFilter) build Spring authorities DIRECTLY from this header,
+        # so a client sending `X-User-Roles: OWNER` on a tokenless/role-only-gated
+        # request would otherwise escalate privileges THROUGH the gateway. The strip
+        # was the missing twin of GAP-814 (X-Tenant-Id). JwtAuthenticationGatewayFilter
+        # (Order LOWEST_PRECEDENCE-2, runs AFTER this strip) re-injects the verified
+        # `role` claim ONLY when present → tokenless / role-absent requests reach
+        # downstream with NO X-User-Roles = least privilege (no authority granted).
+        - RemoveRequestHeader=X-User-Roles
+        # GAP-1310 (P2): strip client-supplied X-User-Email (audit-log / notification
+        # poisoning vector — not authz). JwtAuthenticationGatewayFilter re-injects the
+        # verified `email` claim only when present; absent → no header downstream.
+        - RemoveRequestHeader=X-User-Email
         - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
         - AddResponseHeader=X-Gateway-Version, 1.0
 

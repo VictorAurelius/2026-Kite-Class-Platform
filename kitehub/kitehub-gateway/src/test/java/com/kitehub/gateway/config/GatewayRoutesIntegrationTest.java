@@ -84,4 +84,26 @@ class GatewayRoutesIntegrationTest {
                 .as("feedback route must precede instance-apis catch-all so /api/v1/feedback POSTs reach kitehub-subscription, not kiteclass-core")
                 .isLessThan(instanceApisIdx);
     }
+
+    @Test
+    @DisplayName("GAP-1308/1310: default-filters strip ALL client-supplied identity headers (anti-spoof)")
+    void defaultFiltersStripAllClientIdentityHeaders() throws IOException {
+        String yml = yaml();
+        // The default-filters block strips every client-supplied identity header
+        // BEFORE any business filter; JwtAuthenticationGatewayFilter then re-injects
+        // the trusted, JWT-verified value. A missing strip = the spoof vector this
+        // gateway is the sole authority to close.
+        assertThat(yml)
+                .as("X-User-Roles strip (GAP-1308 P0) — without it a client can spoof "
+                        + "`X-User-Roles: OWNER` and downstream builds ROLE_OWNER authority")
+                .contains("RemoveRequestHeader=X-User-Roles");
+        assertThat(yml)
+                .as("X-User-Email strip (GAP-1310) — audit-log / notification poisoning vector")
+                .contains("RemoveRequestHeader=X-User-Email");
+        // Twins that must already be present (GAP-814 / GAP-604 / auth-1 / GAP-1020).
+        assertThat(yml).contains("RemoveRequestHeader=X-Tenant-Id");
+        assertThat(yml).contains("RemoveRequestHeader=X-User-Id");
+        assertThat(yml).contains("RemoveRequestHeader=X-User-Reference-Id");
+        assertThat(yml).contains("RemoveRequestHeader=X-Subscription-Tier");
+    }
 }
