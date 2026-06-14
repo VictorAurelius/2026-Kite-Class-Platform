@@ -1,8 +1,8 @@
 # Attendance — Business Rules
 
 **Domain:** KiteClass Core
-**Version:** 1.0
-**Updated:** 2026-03-24
+**Version:** 1.1
+**Updated:** 2026-06-15
 
 ---
 
@@ -11,16 +11,26 @@
 | ID | Rule | Detail |
 |----|------|--------|
 | BR-ATT-001 | One record per student per session | UNIQUE(student_id, class_session_id) |
-| BR-ATT-002 | Status by check-in time | PRESENT (within grace), LATE (within threshold), ABSENT (beyond or no check-in) |
-| BR-ATT-003 | Grace period | 5 minutes after session start (configurable) |
-| BR-ATT-004 | Late threshold | 15 minutes after session start (configurable) |
+| BR-ATT-002 | **(Planned — Phase 1.5)** Status by check-in time | PRESENT (within grace), LATE (within threshold), ABSENT (beyond or no check-in) — *depends on QR check-in (UC-ATT-03); not yet implemented* |
+| BR-ATT-003 | **(Planned — Phase 1.5)** Grace period | 5 minutes after session start (configurable) — *config key not yet wired (see §4)* |
+| BR-ATT-004 | **(Planned — Phase 1.5)** Late threshold | 15 minutes after session start (configurable) — *config key not yet wired (see §4)* |
 | BR-ATT-005 | EXCUSED requires note | Must have excuse note to set this status |
 | BR-ATT-006 | Teacher can override | MAIN_TEACHER or ASSISTANT can manually set any status |
 | BR-ATT-007 | Admin full access | ADMIN can mark attendance for any class |
 | BR-ATT-008 | Rate calculation | `attendance_rate = (PRESENT + LATE) / total_sessions * 100%` |
 | BR-ATT-009 | Multi-tenant isolation | All queries filtered by `instance_id` |
 
-**Attendance statuses:** PRESENT, LATE, ABSENT, EXCUSED
+**Attendance statuses (5 values — must match `AttendanceStatus` enum):** PRESENT, LATE, ABSENT, EXCUSED, MAKEUP
+
+| Status | Display VI | Short | Points deduction (gamification) | Meaning |
+|--------|-----------|-------|---------------------------------|---------|
+| PRESENT | Có mặt | P | `0` | Student attended on time |
+| LATE | Đi trễ | T | `−5` | Student attended after grace period |
+| ABSENT | Vắng | V | `−10` | Student did not attend |
+| EXCUSED | Có phép | CP | `0` | Approved absence (requires note per BR-ATT-005) |
+| MAKEUP | Học bù | HB | `0` | Student attended a make-up session for a missed class |
+
+> Points-deduction values are the source of truth in `AttendanceStatus.getPointsDeduction()` — MAKEUP carries **no deduction** (same as PRESENT/EXCUSED).
 
 ### Permission Matrix
 
@@ -31,6 +41,8 @@
 | View class report | Yes (own classes) | Yes (own classes) | Yes (all) | No |
 | Override status | Yes | No | Yes | No |
 | Export report | Yes (own classes) | No | Yes (all) | No |
+
+> **Status assignment (current implementation):** All statuses — including `MAKEUP` ("Học bù") — are set **manually** by MAIN_TEACHER / ASSISTANT / ADMIN via UC-ATT-01/02/04/09. There is **no automatic status determination** today; the time-based auto-status path (BR-ATT-002/003/004 + UC-ATT-03 QR check-in) is **(Planned — Phase 1.5)**.
 
 ### BR-ATT-CLASS-BATCH-001: Class-overview batch save cap (GAP-268a)
 
@@ -60,7 +72,10 @@
 3. System saves attendance records
 4. Attendance rate auto-recalculated
 
-### Check-in Flow (QR Code)
+### Check-in Flow (QR Code) — **(Planned — Phase 1.5, not yet implemented)**
+
+> The QR check-in + time-based auto-status flow below describes the planned design only. There is **no QR/check-in/auto-status code** in `module/attendance` today (see UC-ATT-03 + BR-ATT-002/003/004 + §4 config, all marked Planned). The shipped path is manual marking (Manual flow above + UC-ATT-01/02/04/09).
+
 1. Teacher generates QR code for session (valid for session duration)
 2. Student scans QR -> system records check-in time
 3. Status auto-determined by check-in time vs session start:
@@ -89,13 +104,15 @@
 
 ## 4. Config
 
-| Key | Default | Description |
-|-----|---------|-------------|
-| `attendance.grace-period-minutes` | `5` | Minutes after start for PRESENT |
-| `attendance.late-threshold-minutes` | `15` | Minutes after start for LATE |
-| `attendance.qr-code.expiry` | session duration | QR code validity |
-| `attendance.low-warning-threshold` | `70%` | Warn if rate drops below |
-| `attendance.grade-weight` | `10%` | Default weight in grade calculation |
+> **(Planned — Phase 1.5):** The config keys below describe the planned QR check-in + time-based auto-status + attendance-warning features (BR-ATT-002/003/004, UC-ATT-03, §3 Emails). They are **NOT present in any `application*.yml`** and have no effect in the current build (verified `grep` → 0 hits). The shipped manual-marking path (UC-ATT-01/02/04/09) requires none of these. When the feature is built, add the keys to `application.yml` in the same PR per the 3-layer rule.
+
+| Key | Default | Description | Status |
+|-----|---------|-------------|--------|
+| `attendance.grace-period-minutes` | `5` | Minutes after start for PRESENT | Planned — Phase 1.5 |
+| `attendance.late-threshold-minutes` | `15` | Minutes after start for LATE | Planned — Phase 1.5 |
+| `attendance.qr-code.expiry` | session duration | QR code validity | Planned — Phase 1.5 |
+| `attendance.low-warning-threshold` | `70%` | Warn if rate drops below | Planned — Phase 1.5 |
+| `attendance.grade-weight` | `10%` | Default weight in grade calculation | Planned — Phase 1.5 |
 
 ### Database Indexes
 - `uk_attendance_student_session` — Unique (student_id, class_session_id)
@@ -115,4 +132,5 @@ Per-rule attributes (Source / Rationale / Reviewer / Compliance check / Review c
 
 ## Log
 
+- **2026-06-15** (GAP-1321 + GAP-1320, Business Logic audit 2026-06-14): (1) Added `MAKEUP` ("Học bù") to §1 status list + a status/points-deduction table to match `AttendanceStatus` enum (5 values) + Layer-2/3 (`api-contract.md`, `use-cases.md`). Added permission-matrix note clarifying all statuses (incl. MAKEUP) are set manually — no auto-determination today. (2) Doc-honesty: marked BR-ATT-002/003/004 (time-based status), §2 QR Code check-in flow, and §4 config keys as **(Planned — Phase 1.5)** — these describe an unimplemented feature (`grep` → 0 code refs, 0 yml keys, no QR/check-in logic in `module/attendance`). Feature build deferred to a future feature wave; this PR is doc-honesty only.
 - **2026-05-08** Backfill 5-attribute review section per GAP-433 Phase 1 (`business-logic-review.md` §2 standard). Placeholder Reviewer + Quarterly cadence + domain-specific Compliance check. GAP-156 Phase 2 will replace placeholders with stakeholder sign-offs.

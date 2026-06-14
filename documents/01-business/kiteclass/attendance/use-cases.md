@@ -1,8 +1,8 @@
 # Attendance — Use Cases
 
 **Domain:** KiteClass Core
-**Version:** 1.0
-**Updated:** 2026-03-24
+**Version:** 1.1
+**Updated:** 2026-06-15 (GAP-1320: marked UC-ATT-03 QR check-in as Planned — Phase 1.5)
 
 ---
 
@@ -55,7 +55,9 @@
 
 ---
 
-### UC-ATT-03: QR Code Check-in
+### UC-ATT-03: QR Code Check-in — **(Planned — Phase 1.5, not yet implemented)**
+
+> **Doc-honesty marker (GAP-1320):** This use case describes the planned QR check-in + time-based auto-status design only. There is **no QR/check-in/auto-status code** in `module/attendance` and the supporting config keys (BR-ATT-003/004, `attendance.grace-period-minutes`, `attendance.late-threshold-minutes`, `attendance.qr-code.expiry`) are **not wired in any `application*.yml`**. Build is deferred to a future feature wave. The shipped paths are manual marking (UC-ATT-01/02/04/09).
 
 **Actor:** Student (via QR scan)
 **Precondition:** Teacher generated QR code for active session

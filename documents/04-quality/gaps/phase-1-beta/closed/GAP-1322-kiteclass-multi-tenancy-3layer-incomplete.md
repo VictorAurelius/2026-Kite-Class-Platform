@@ -1,6 +1,6 @@
 # GAP-1322: kiteclass/multi-tenancy domain missing use-cases.md + api-contract.md (3-layer incomplete)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟡 P2
 **Domain:** Meta (business docs 3-layer completeness — KiteClass)
 **Found:** 2026-06-14 (Business Logic full audit post wave-p0-closeout-1)
@@ -28,9 +28,18 @@ Cross-ref existing architecture: `ADR-040` (cross-product SSO), `multi-tenant-ar
 
 ## Acceptance Criteria
 
-- [ ] `documents/01-business/kiteclass/multi-tenancy/use-cases.md` tồn tại (UC actor/steps/errors).
-- [ ] `documents/01-business/kiteclass/multi-tenancy/api-contract.md` tồn tại (tenant header + RLS contract).
-- [ ] `bash scripts/verify-business-docs.sh` không còn warn multi-tenancy thiếu layer.
+- [x] `documents/01-business/kiteclass/multi-tenancy/use-cases.md` tồn tại (UC actor/steps/errors).
+- [x] `documents/01-business/kiteclass/multi-tenancy/api-contract.md` tồn tại (tenant header + RLS contract).
+- [x] `bash scripts/verify-business-docs.sh` không còn warn multi-tenancy thiếu layer.
+
+## Resolution
+
+**DONE** 2026-06-15 (PR audit-fixD-bizdocs). Tạo 2 file Layer-2/3 còn thiếu, grounded trực tiếp vào code:
+- **`use-cases.md`** — UC-MT-01 (gateway tenant resolution: subdomain → custom domain → JWT `tenantId` fallback → inject `X-Tenant-Id`), UC-MT-02 (per-request `TenantContext` + Hibernate filter), UC-MT-03 (RLS GUC `app.current_tenant_id` via `SET LOCAL` tại `@Transactional`), UC-MT-04 (cross-tenant denial → 404), UC-MT-05 (fail-closed `TENANT_NOT_SET` cho `/api/v1/reports/`, GAP-1039). References `BR-MULTITENANT-001`.
+- **`api-contract.md`** — header contract (`X-Tenant-Id` gateway-injected / `X-Instance-Subdomain` / `X-User-Id` / `X-User-Reference-Id`), resolution order, RLS GUC contract, error contract (400 Cannot resolve / 404 Instance not found / 503 suspended / 400 TENANT_NOT_SET / 404 cross-tenant). Covers UC-MT-01 → UC-MT-05.
+- Grounded in: `TenantResolverGatewayFilterFactory` (GAP-711), `TenantFilterInterceptor` (GAP-1039 fail-closed), `TenantContext`, `TenantAwareDataSourceInterceptor`, V58 RLS migration.
+
+**Verify:** `bash scripts/verify-business-docs.sh kiteclass` → multi-tenancy: `❌ FAIL Missing 3-layer files` ĐÃ HẾT; giờ `✅ BR→UC PASS` + `✅ UC→API PASS`. Tổng `FAIL: 0` (multi-tenancy không còn FAIL). WARN duy nhất "No endpoints found" = đúng bản chất domain cross-cutting (không có REST endpoint riêng).
 
 ## Related
 
