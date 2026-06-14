@@ -1,0 +1,43 @@
+EVIDENCE-2026-06-14-AUTH-001 — Gateway anti-spoof header strip list (F-001 P0)
+================================================================================
+
+Command run:
+  sed -n '965,975p' kitehub/kitehub-gateway/src/main/resources/application.yml
+  grep -rn "RemoveRequestHeader=X-User-Roles|RemoveRequestHeader=X-User-Email" kitehub/kitehub-gateway/src/main/resources/
+
+Output (default-filters block, application.yml:965-975):
+      default-filters:
+        - RemoveRequestHeader=X-Tenant-Id
+        - RemoveRequestHeader=X-User-Id
+        # Wave auth-1: strip client-supplied reference id; JwtAuthenticationGatewayFilter
+        # re-injects the verified referenceId claim (KC-native tokens) — anti-spoof.
+        - RemoveRequestHeader=X-User-Reference-Id
+        # GAP-1020: strip client-supplied subscription tier; JwtAuthenticationGatewayFilter
+        # re-injects the verified `tier` claim — anti-spoof for tier-gated AI branding.
+        - RemoveRequestHeader=X-Subscription-Tier
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+        - AddResponseHeader=X-Gateway-Version, 1.0
+
+  grep for RemoveRequestHeader=X-User-Roles / X-User-Email → (empty, NOT stripped anywhere)
+
+Analysis:
+- STRIPPED: X-Tenant-Id, X-User-Id, X-User-Reference-Id, X-Subscription-Tier (all re-injected from verified JWT claims = correct anti-spoof pattern).
+- NOT STRIPPED: X-User-Roles, X-User-Email.
+- JwtAuthenticationGatewayFilter.java:219-221 sets X-User-Roles ONLY when role!=null; on tokenless requests it passes through (line 159-161: `if (token == null) return chain.filter(exchange);`) WITHOUT 401 and WITHOUT setting X-User-Roles.
+- Downstream kiteclass-core GatewayHeaderAuthenticationFilter.java:69-90 builds Spring authorities directly from the X-User-Roles header value; kitehub-subscription XUserRolesHeaderFilter (GAP-706/783) does the same.
+- KC SecurityConfig.java:52-53 = `.anyRequest().permitAll()` at URL layer; authorization is method-layer @PreAuthorize hasRole/hasAnyRole only.
+
+Attack path (tokenless role-spoof through the gateway, NOT direct-to-core):
+  curl -H 'X-User-Roles: OWNER' https://<gateway>/api/v1/<role-only-gated-endpoint>
+  → gateway default-filters strip X-User-Id/X-Tenant-Id/X-User-Reference-Id/X-Subscription-Tier
+  → JwtAuthenticationGatewayFilter: no Bearer token → pass-through (no 401, no X-User-Roles set)
+  → core GatewayHeaderAuthenticationFilter: reads forged X-User-Roles=OWNER → grants ROLE_OWNER (principal "gateway-user")
+  → @PreAuthorize("hasAnyRole('ADMIN','OWNER')") PASSES
+
+Mitigating factors:
+- Tenant-scoped endpoints additionally require X-Tenant-Id (stripped) → fail TENANT_CONTEXT_MISSING.
+- Per-resource AuthorizationBean checks use X-User-Reference-Id (stripped) → fail.
+- Exploitable subset = endpoints gated ONLY by hasRole/hasAnyRole with no tenant/resource binding.
+- Same class as GAP-814 (X-Tenant-Id strip, P0 DONE) — that fix should have added X-User-Roles too.
+
+Verdict: ❌ FAIL — incomplete anti-spoof strip list; client-controlled X-User-Roles forwarded to downstream authority bridge. Privilege escalation reachable through the gateway. Filed GAP-1308 (P0). X-User-Email (display/audit) → GAP-1310 (P2).

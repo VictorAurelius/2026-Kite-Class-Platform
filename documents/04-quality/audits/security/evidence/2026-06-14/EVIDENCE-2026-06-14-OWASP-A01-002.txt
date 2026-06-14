@@ -1,0 +1,32 @@
+EVIDENCE-2026-06-14-OWASP-A01-002 — StorageController confirm/delete missing ownership authz (F-002 P1)
+========================================================================================================
+
+Command run:
+  Read kiteclass/.../storage/controller/StorageController.java
+  Read kiteclass/.../storage/service/impl/StorageServiceImpl.java
+  grep "@PreAuthorize" StorageController.java  → (none)
+
+Output (StorageController.java — no @PreAuthorize on class or any method):
+  L108 @PostMapping("/{fileId}/confirm")
+       public ApiResponse<...> confirmUpload(@PathVariable Long fileId)   // only fileId — NO requesterId/tenantId
+  L173 @DeleteMapping("/{fileId}")
+       public ApiResponse<Void> deleteFile(@PathVariable Long fileId)     // only fileId — NO requesterId/tenantId
+
+Output (StorageServiceImpl.java):
+  L151 confirmUpload(Long fileId):
+       file = uploadedFileRepository.findByIdAndDeletedFalse(fileId)...   // no owner/tenant arg → no owner check
+  L225 deleteFile(Long fileId):
+       file = uploadedFileRepository.findByIdAndDeletedFalse(fileId)...   // no owner/tenant arg
+       file.softDelete(); save();                                        // destructive, no owner check
+  L189 generatePresignedDownloadUrl(fileId, requesterId, tenantId):
+       checkAccessPermission(file, requesterId, tenantId)                 // download HAS owner/tenant check (PRIVATE/TENANT)
+
+Analysis:
+- download-url path DOES enforce PRIVATE(uploader-only)/TENANT(same-tenant) (L369-383).
+- confirm + delete paths take ONLY fileId — no owner, no tenant arg → no ownership authorization at controller OR service layer.
+- Cross-tenant: mitigated by Hibernate tenantFilter (UploadedFile extends BaseEntity @Filter instance_id=:tenantId) → cross-tenant findByIdAndDeletedFalse returns empty (404).
+- Intra-tenant: NOT mitigated. Any authenticated user in the tenant (any role — no @PreAuthorize role gate) can confirm OR soft-delete ANY file in the same tenant by enumerating sequential Long fileId (e.g., a STUDENT deletes a TEACHER's uploaded material; quota decremented on victim's instance).
+
+Verdict: ❌ FAIL (P1) — intra-tenant IDOR on destructive (delete) + state-change (confirm) storage operations; missing per-resource ownership + role authz. Distinct from GAP-1307 (download-url enrollment paywall). Filed GAP-1309.
+
+Side note (referenced, not re-filed): StorageServiceImpl ALLOWED_MIME_TYPES (L74-90) includes "image/svg+xml" → stored-SVG-XSS class, same as GAP-1037 (logo upload). Recommend extending GAP-1037 scope to the generic storage path.

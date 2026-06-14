@@ -1,0 +1,17 @@
+EVIDENCE-2026-06-14-AUTH-005 — Gateway JWT validation (HS512, strip+re-inject) — PASS
+=======================================================================================
+
+Command run:
+  Read kitehub/kitehub-gateway/src/main/java/com/kitehub/gateway/filter/JwtAuthenticationGatewayFilter.java
+  grep "RequestRateLimiter|replenishRate|burstCapacity" kitehub-gateway/.../application.yml
+
+Output (key facts):
+  - JWT_SECRET required; rejects if <64 bytes (HS512) (lines 98-107).
+  - Keys.hmacShaKeyFor(jwtSecret) — HS512 access tokens; separate HS256 challenge-secret key.
+  - Dual-secret parse (GAP-705): access key first; challenge key ONLY on /api/v1/auth/2fa/** paths;
+    challenge token must self-declare type=challenge (defense-in-depth vs token-confusion).
+  - Invalid JWT on non-public path → 401 short-circuit (lines 185-186).
+  - Re-injects X-User-Id/X-User-Roles/X-User-Email/X-Subscription-Tier/X-User-Reference-Id from VERIFIED claims.
+  - Per-endpoint RequestRateLimiter (Redis) on auth routes (GAP-514): replenishRate 1-10, burstCapacity 2-20.
+
+Verdict: ✅ PASS — strong JWT validation (HS512 ≥512-bit), separate-namespace challenge tokens, public-path allowlist explicit, per-endpoint gateway rate limiting present. (Caveat: X-User-Roles/X-User-Email re-injection NOT paired with a strip — see EVIDENCE-...-AUTH-001 F-001.)
