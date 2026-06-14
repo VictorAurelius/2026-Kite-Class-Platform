@@ -15,6 +15,8 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -138,6 +140,24 @@ class InstanceControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"reason\":\"\"}"))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void list_returns_bounded_page_as_array() throws Exception {
+        // GAP-1359: status == null path goes through findAll(Pageable) (hard cap), not the
+        // unbounded findAll(). Response shape stays a JSON array.
+        when(repository.findAll(any(Pageable.class)))
+                .thenReturn(new PageImpl<>(java.util.List.of(
+                        fakeInstance(1L, FrontendInstanceStatus.DEPLOYED),
+                        fakeInstance(2L, FrontendInstanceStatus.INITIALIZING))));
+
+        mockMvc.perform(get("/api/v1/instances"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data.length()").value(2));
+
+        Mockito.verify(repository).findAll(any(Pageable.class));
+        Mockito.verify(repository, Mockito.never()).findAll();
     }
 
     @Test

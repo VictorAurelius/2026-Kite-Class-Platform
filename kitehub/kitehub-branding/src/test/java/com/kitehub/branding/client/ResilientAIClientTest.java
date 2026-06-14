@@ -1,6 +1,7 @@
 package com.kitehub.branding.client;
 
 import com.kitehub.branding.dto.LogoAnalysis;
+import io.github.resilience4j.bulkhead.annotation.Bulkhead;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -138,5 +139,29 @@ class ResilientAIClientTest {
     @DisplayName("CB_NAME constant matches application.yml instance key")
     void cbNameConstant_matchesYmlKey() {
         assertThat(ResilientAIClient.CB_NAME).isEqualTo("ai-provider");
+    }
+
+    // ---- GAP-1356: @Bulkhead bounds concurrent AI calls -----------------------
+
+    @Test
+    @DisplayName("GAP-1356: every external AI call method carries @Bulkhead(ai-provider)")
+    void externalAiMethods_haveBulkhead() throws Exception {
+        for (String method : new String[]{"analyzeLogo", "generateImage", "generateText"}) {
+            Bulkhead bulkhead = ResilientAIClient.class
+                    .getDeclaredMethod(method, method.equals("generateText")
+                            ? new Class[]{String.class}
+                            : new Class[]{String.class, String.class})
+                    .getAnnotation(Bulkhead.class);
+            assertThat(bulkhead)
+                    .as("%s must be @Bulkhead-annotated", method)
+                    .isNotNull();
+            assertThat(bulkhead.name()).isEqualTo(ResilientAIClient.CB_NAME);
+        }
+        // strict image-gen path (no CB fallback) must also be bulkheaded
+        Bulkhead strict = ResilientAIClient.class
+                .getDeclaredMethod("generateImageStrict", String.class, String.class)
+                .getAnnotation(Bulkhead.class);
+        assertThat(strict).isNotNull();
+        assertThat(strict.name()).isEqualTo(ResilientAIClient.CB_NAME);
     }
 }

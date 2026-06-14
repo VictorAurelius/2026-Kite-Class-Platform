@@ -6,6 +6,8 @@ import com.kiteclass.core.module.academicyear.entity.Holiday;
 import com.kiteclass.core.module.academicyear.repository.AcademicYearRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -107,11 +109,20 @@ public class AcademicYearService {
         return academicYearRepository.findById(id);
     }
 
+    /** GAP-1362: defensive hard cap — academic years accumulate ~1/year but never load unbounded. */
+    static final int LIST_ALL_MAX = 200;
+
     /**
-     * List all academic years (paginated in real controller — list here for service).
+     * List recent academic years (newest first), bounded to {@link #LIST_ALL_MAX}.
+     *
+     * <p>GAP-1362: previously {@code findAll()} materialised every row unbounded. The set is
+     * small (one per academic year) but bounding it removes the unbounded-pattern cliff;
+     * callers needing full pagination should add a {@code Pageable} overload.
      */
     public List<AcademicYear> listAll() {
-        return academicYearRepository.findAll();
+        return academicYearRepository
+                .findAll(PageRequest.of(0, LIST_ALL_MAX, Sort.by(Sort.Direction.DESC, "startDate")))
+                .getContent();
     }
 
     /**

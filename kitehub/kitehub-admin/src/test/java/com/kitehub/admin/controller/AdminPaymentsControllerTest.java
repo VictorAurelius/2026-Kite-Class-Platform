@@ -5,6 +5,9 @@ import com.kitehub.subscription.dto.PaymentResponse;
 import com.kitehub.subscription.service.PaymentService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -12,6 +15,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -36,8 +40,11 @@ class AdminPaymentsControllerTest {
 
     @Test
     void listPendingPayments_returnsHttp200AndList() {
+        // GAP-1360: controller now pages through pending payments (bounded) but keeps the
+        // List array shape for the FE caller.
         PaymentResponse payment = PaymentResponse.builder().build();
-        when(paymentService.getPendingPayments()).thenReturn(List.of(payment));
+        Page<PaymentResponse> page = new PageImpl<>(List.of(payment));
+        when(paymentService.getPendingPayments(any(Pageable.class))).thenReturn(page);
 
         ResponseEntity<List<PaymentResponse>> response = controller.listPendingPayments();
 
@@ -47,7 +54,8 @@ class AdminPaymentsControllerTest {
 
     @Test
     void listPendingPayments_emptyResult_returnsHttp200WithEmptyList() {
-        when(paymentService.getPendingPayments()).thenReturn(Collections.emptyList());
+        when(paymentService.getPendingPayments(any(Pageable.class)))
+                .thenReturn(new PageImpl<>(Collections.emptyList()));
 
         ResponseEntity<List<PaymentResponse>> response = controller.listPendingPayments();
 

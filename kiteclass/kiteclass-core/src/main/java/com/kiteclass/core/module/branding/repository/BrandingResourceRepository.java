@@ -4,6 +4,7 @@ import com.kiteclass.core.module.branding.entity.BrandingResource;
 import com.kiteclass.core.module.branding.entity.ResourceCategory;
 import com.kiteclass.core.module.branding.entity.ResourceType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -37,4 +38,22 @@ public interface BrandingResourceRepository extends JpaRepository<BrandingResour
      * @since 4.5.0 (GAP-129 fix)
      */
     List<BrandingResource> findByInstanceIdAndDeletedFalse(UUID instanceId);
+
+    /**
+     * GAP-1362: count active (non-deleted) branding resources. Lets the asset-URL quality
+     * check compute its ratio with a COUNT query instead of materialising every row via
+     * {@code findAll()}. Matches the prior {@code !Boolean.TRUE.equals(deleted)} semantics
+     * (a null {@code deleted} flag counts as active).
+     */
+    @Query("SELECT COUNT(r) FROM BrandingResource r WHERE r.deleted = false OR r.deleted IS NULL")
+    long countActiveResources();
+
+    /**
+     * GAP-1362: count active resources whose {@code storageUrl} is null or blank — i.e. the
+     * "broken" set the asset-URL quality check reports on.
+     */
+    @Query("SELECT COUNT(r) FROM BrandingResource r "
+            + "WHERE (r.deleted = false OR r.deleted IS NULL) "
+            + "AND (r.storageUrl IS NULL OR TRIM(r.storageUrl) = '')")
+    long countActiveResourcesMissingStorageUrl();
 }

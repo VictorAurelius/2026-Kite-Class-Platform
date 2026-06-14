@@ -3,7 +3,10 @@ package com.kitehub.admin.config;
 import org.junit.jupiter.api.Test;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
+import org.springframework.cache.caffeine.CaffeineCache;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
+
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -54,5 +57,28 @@ class CacheConfigTest {
         cache.clear();
 
         assertThat(cache.get("revenue:2026-Q1")).isNull();
+    }
+
+    @Test
+    void dashboardCache_hasShorterTtlThanRevenue() {
+        // GAP-1363: dashboard cache must keep its own short TTL (300s) and NOT inherit the
+        // longer revenue TTL (3600s) — the prior single-max-TTL config made the dashboard
+        // stale for up to an hour.
+        CacheManager manager = new CacheConfig(300, 3600).cacheManager();
+
+        assertThat(expireAfterWriteSeconds(manager, CacheConfig.ADMIN_DASHBOARD_CACHE))
+                .isEqualTo(300L);
+        assertThat(expireAfterWriteSeconds(manager, CacheConfig.ADMIN_REVENUE_REPORT_CACHE))
+                .isEqualTo(3600L);
+    }
+
+    private static long expireAfterWriteSeconds(CacheManager manager, String cacheName) {
+        Cache cache = manager.getCache(cacheName);
+        assertThat(cache).isNotNull();
+        com.github.benmanes.caffeine.cache.Cache<Object, Object> native_ =
+                ((CaffeineCache) cache).getNativeCache();
+        return native_.policy().expireAfterWrite()
+                .orElseThrow(() -> new AssertionError("expireAfterWrite not configured"))
+                .getExpiresAfter(TimeUnit.SECONDS);
     }
 }
