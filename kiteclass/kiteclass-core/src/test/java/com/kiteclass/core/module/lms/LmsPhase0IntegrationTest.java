@@ -105,7 +105,7 @@ class LmsPhase0IntegrationTest {
 
         mockMvc.perform(put("/api/v1/lms/courses/{courseId}/modules/reorder", course.getId())
                         .header("X-Tenant-Id", tenantId.toString())
-                        .header("X-Teacher-Id", teacherId.toString())
+                        .header("X-User-Reference-Id", teacherId.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isOk())
@@ -127,7 +127,7 @@ class LmsPhase0IntegrationTest {
 
         mockMvc.perform(put("/api/v1/lms/modules/{moduleId}/lessons/reorder", moduleA.getId())
                         .header("X-Tenant-Id", tenantId.toString())
-                        .header("X-Teacher-Id", teacherId.toString())
+                        .header("X-User-Reference-Id", teacherId.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isOk())
@@ -146,7 +146,7 @@ class LmsPhase0IntegrationTest {
 
         mockMvc.perform(put("/api/v1/lms/courses/{courseId}/modules/reorder", course.getId())
                         .header("X-Tenant-Id", tenantId.toString())
-                        .header("X-Teacher-Id", teacherId.toString())
+                        .header("X-User-Reference-Id", teacherId.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isBadRequest())
@@ -162,7 +162,7 @@ class LmsPhase0IntegrationTest {
 
         mockMvc.perform(put("/api/v1/lms/courses/{courseId}/modules/reorder", course.getId())
                         .header("X-Tenant-Id", tenantId.toString())
-                        .header("X-Teacher-Id", "999")  // not the owner
+                        .header("X-User-Reference-Id", "999")  // not the owner
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isForbidden())
@@ -180,7 +180,7 @@ class LmsPhase0IntegrationTest {
 
         mockMvc.perform(get("/api/v1/lms/courses/{courseId}/completion-roster", course.getId())
                         .header("X-Tenant-Id", tenantId.toString())
-                        .header("X-Teacher-Id", teacherId.toString())
+                        .header("X-User-Reference-Id", teacherId.toString())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
