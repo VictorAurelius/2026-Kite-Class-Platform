@@ -51,7 +51,7 @@ sequenceDiagram
     KHFE->>SUB: POST /api/v1/auth/sso/issue-code (Bearer KH-JWT)
     SUB-->>KHFE: { code, expiresIn 60s } (one-time, single-use)
     KHFE->>KCFE: redirect :3000/sso/callback?code=...
-    KCFE->>GW: POST /api/v1/tenant-auth/sso/exchange { code }
+    KCFE->>GW: POST /api/v1/auth/sso/exchange { code }
     GW->>SUB: verify code (single-use consume)
     SUB-->>GW: KH-JWT (HS512 shared secret, claims role+tenantId)
     GW->>KC: inject X-Tenant-Id + role headers
@@ -61,6 +61,8 @@ sequenceDiagram
 
 - **Pros:** chạy cả dev (localhost khác port) lẫn prod (subdomain khác); không phụ thuộc shared cookie domain; JWT thô không lộ trên URL; single-use code chống replay.
 - **Cons:** cần 1 store ngắn hạn cho one-time code (Redis TTL); thêm 2 endpoint (issue-code + exchange) + 1 route FE.
+
+> **Reconcile endpoint path (2026-06-14, GAP-1138 shipped):** sơ đồ trên dùng `POST /api/v1/auth/sso/exchange` — đúng với `SsoController` đã ship trong `kitehub-subscription` (`@RequestMapping("/api/v1/auth/sso")`). Bản nháp design ban đầu ghi `tenant-auth/sso/exchange` (giả định KiteClass owns endpoint); thực tế cả `issue-code` lẫn `exchange` đều thuộc namespace `kitehub-subscription` (auth surface đã whitelist `/api/v1/auth/**`), KHÔNG phải `kiteclass-core` tenant-auth. Đã sửa sơ đồ cho khớp impl.
 
 ### Option B — Shared parent-domain HttpOnly cookie
 
