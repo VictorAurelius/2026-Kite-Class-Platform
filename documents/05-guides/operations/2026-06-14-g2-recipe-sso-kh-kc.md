@@ -24,7 +24,7 @@ references:
 
 **Prereq:**
 - Stack UP (rebuild `kitehub-frontend` + `kitehub-subscription` + `kiteclass-frontend` + gateway).
-- Owner account KiteHub (đã login được `:3001`). KC tenant tương ứng đã provisioned.
+- **KiteHub owner credential SSO walk** (GAP-1305) đã seed — xem §2.1. KC tenant `skytest` (aaaabbbb) đã provisioned (data từ `seed-toan10a1-demo.sql`).
 
 **Thời lượng:** ~8-10 phút.
 
@@ -37,6 +37,34 @@ bash kitehub/scripts/up.sh && bash kitehub/scripts/status.sh
 
 - Browser + DevTools → Network (filter `sso`) + Console + tab Application (Local Storage cả 2 origin).
 - URL: KiteHub portal `http://localhost:3001` · KiteClass `http://localhost:3000`
+
+### 2.1 Provision KiteHub owner credential (GAP-1305)
+
+SSO bắt đầu bằng login **KiteHub `:3001`** (`kitehub-subscription` auth, bảng `users` DB `kitehub`) — TÁCH BIỆT với KiteClass tenant-auth. Owner phải sở hữu **đúng 1 instance** (per invariant "1 user → 1 tenant", `AuthService.java:838`) thì JWT `tenantId` claim mới deterministic. Seed owner SSO riêng (sở hữu duy nhất tenant `skytest`/aaaabbbb có KC data):
+
+```bash
+docker exec -i kite-postgres psql -U kitehub -d kitehub < kitehub/scripts/seed-kh-owner-sso.sql
+```
+
+**Credential walk:**
+
+| Field | Value |
+|---|---|
+| Email | `sso.owner@skytest.test` |
+| Password | `Test@1234` |
+| Tenant (JWT `tenantId`) | `aaaabbbb-0000-0000-0000-000000000001` (subdomain `skytest`, có KC data) |
+
+**Verify trước khi browser-walk (cả 2 phải HTTP 200, `tenantId=aaaabbbb`):**
+
+```bash
+RESP=$(curl -s -X POST http://localhost:9000/api/auth/login -H 'Content-Type: application/json' \
+  -d '{"email":"sso.owner@skytest.test","password":"Test@1234"}')
+echo "$RESP" | python3 -c "import sys,json,base64;t=json.load(sys.stdin)['accessToken'];p=t.split('.')[1];p+='='*(-len(p)%4);print('tenantId=',json.loads(base64.urlsafe_b64decode(p))['tenantId'])"
+TOK=$(echo "$RESP" | python3 -c "import sys,json;print(json.load(sys.stdin)['accessToken'])")
+curl -s -o /dev/null -w "issue-code HTTP %{http_code}\n" -X POST http://localhost:9000/api/v1/auth/sso/issue-code -H "Authorization: Bearer $TOK"
+```
+
+> ⚠️ KHÔNG dùng `owner.test@test.vn` cho SSO walk — owner đó sở hữu 2 instance (sky-test BASIC + skytest FREE) → `tenantId` claim non-deterministic (có thể land vào sky-test rỗng). Owner SSO riêng `sso.owner@skytest.test` sở hữu duy nhất `skytest` → land đúng tenant có data.
 
 ### Luồng SSO (tham khảo)
 
@@ -62,7 +90,7 @@ sequenceDiagram
 ## 3. Các bước (browser-walk — KH `:3001` → KC `:3000`)
 
 ### Bước 1 — Owner login KiteHub `:3001`
-- **Hành động:** Mở browser `http://localhost:3001` → login owner (account KH owner).
+- **Hành động:** Mở browser `http://localhost:3001` → login `sso.owner@skytest.test` / `Test@1234` (account KH owner SSO walk, §2.1).
 - **✅ Kỳ vọng (PASS):** Vào KiteHub customer dashboard `:3001` (KH portal — KHÔNG phải KC). Thấy nút **"Mở quản lý trường"** (component `OpenSchoolManagementButton`, có icon external-link).
 - **⚠️ Sad path:** Không thấy nút → component chưa render trên dashboard `:3001` (báo). Login fail → 401.
 - **🔍 Verify:** URL = `localhost:3001/dashboard` (KH); DevTools Local Storage `localhost:3001` có session KH.
