@@ -1,0 +1,25 @@
+EVIDENCE-2026-06-14-INFRA-006 — uploaded_files not in DB RLS sweep (F-004 P2)
+==============================================================================
+
+Command run:
+  grep -rln "uploaded_files" kiteclass/.../db/migration/V58*.sql V78*.sql V84*.sql   → (empty)
+  grep -ln "ENABLE ROW LEVEL SECURITY|CREATE POLICY" kiteclass/.../db/migration/*.sql
+  grep "@Filter|@FilterDef|instance_id" common/entity/BaseEntity.java
+
+Output:
+  RLS migrations present: V58 (enable_rls_tenant_scoped_tables), V59 (admin_bypass_null_force_fail),
+    V78 (rls_sweep), V81, V83, V84 (denormalize_instance_id_rls).
+  uploaded_files / storage_quota → NOT found in any RLS-enabling migration.
+  BaseEntity.java:43-44:
+    @FilterDef(name="tenantFilter", parameters=@ParamDef(name="tenantId", type=UUID.class))
+    @Filter(name="tenantFilter", condition="instance_id = :tenantId")
+  UploadedFile extends BaseEntity → Hibernate filter applies.
+  TenantFilterInterceptor enables session.enableFilter("tenantFilter") per request from X-Tenant-Id.
+
+Analysis:
+- uploaded_files (+ storage_quota) tenant isolation relies SOLELY on the application-layer Hibernate @Filter.
+- No Postgres row-level-security policy backstop (unlike tables in V58/V78/V84 sweep).
+- If the Hibernate filter is not enabled (native query path, a future repository using @Query nativeQuery, filter-exempt path, or a code path that forgets enableFilter), there is NO DB-level defense-in-depth → cross-tenant read/write possible.
+- Existing pattern (V58/V78/V84) is "Hibernate @Filter AND DB RLS policy" — uploaded_files breaks that pattern.
+
+Verdict: ⚠️ PARTIAL / FAIL (P2) — single-layer tenant isolation for storage tables; missing DB RLS backstop present on peer tenant-scoped tables. Filed GAP-1311. Cross-references GAP-825 (tenant-isolation hardening, OPEN).

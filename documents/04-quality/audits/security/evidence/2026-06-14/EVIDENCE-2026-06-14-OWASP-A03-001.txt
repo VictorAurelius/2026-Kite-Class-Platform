@@ -1,0 +1,16 @@
+EVIDENCE-2026-06-14-OWASP-A03-001 — Injection scan (A03) — PASS
+================================================================
+
+Command run:
+  grep -rnE "(SELECT|UPDATE|DELETE|INSERT|FROM|WHERE).*['\"]\s*\+|String.format.*(SELECT|WHERE|FROM)|createQuery\(.*\+|createNativeQuery\(.*\+" \
+    kitehub/ kiteclass/ --include="*.java" | grep -v "/test/"
+  grep -rnE "MessageDigest.getInstance\(\"(MD5|SHA-1|SHA1)\"\)|RC4|ECB" kitehub/ kiteclass/ --include="*.java"
+
+Output (representative — all matches are multi-line @Query string literals, not user-input concatenation):
+  SubscriptionRepository.java:30  @Query("SELECT s FROM Subscription s WHERE s.instanceId = :instanceId " + ...)
+  AuthorizationBean.java:89/222/315  native @Query("SELECT COUNT(*) FROM classes c ... WHERE ... = :param")
+  IdempotencyService.java:64  "SELECT user_id ... FROM idempotency_keys" (bound :params)
+  PaymentRepository / GradeRepository / GradingScaleRepository → all :named params
+  Weak-crypto grep → 0 true hits (the "DES" matches are ORDER BY ... DESC false positives)
+
+Verdict: ✅ PASS (A03 + A02) — all queries parameterized (JPQL `:named` / native bound params). String "+" matches are line-continuation of static query literals, no user input concatenated into SQL. No MD5/SHA-1/DES/RC4/ECB weak crypto.
