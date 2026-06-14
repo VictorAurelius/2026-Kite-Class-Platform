@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { apiClient } from '@/lib/api/client';
 import { LogoAnalysis } from '@/types/branding';
 import { ThemeConfig } from '@/types/theme';
 
@@ -23,19 +24,13 @@ export function useThemeGeneration(): UseThemeGenerationResult {
     setError(null);
 
     try {
-      const response = await fetch('/api/platform/branding/ai/generate-theme', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(analysis),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to generate theme: ${response.statusText}`);
-      }
-
-      const config: ThemeConfig = await response.json();
+      // GAP-1336: generate-theme is a POST (@PostMapping("/generate-theme")) on the
+      // OWNER-gated AI branding service. Use the shared apiClient so the request
+      // carries the Authorization + X-Tenant-Id headers the endpoint requires
+      // (the prior raw fetch sent neither, and the multi-line `method` option also
+      // read as GET in the static FE↔BE contract check → 405/401 drift).
+      const response = await apiClient.post('/api/platform/branding/ai/generate-theme', analysis);
+      const config = response.data as ThemeConfig;
       setThemeConfig(config);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown error occurred';

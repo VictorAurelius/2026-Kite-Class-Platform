@@ -48,5 +48,17 @@ List instances by status (admin dashboard).
 | 404 | Instance not found |
 | 409 | Invalid state transition OR MAX_RETRIES |
 
+## Planned: GET /api/v1/instance/config (GAP-1334 — feature gap, chưa implement)
+
+FE feature-detection hook `kiteclass-frontend/src/hooks/useFeatureDetection.ts` query
+`GET /api/v1/instance/config` (số **ít**) để lấy `InstanceConfig { tier, features }` cho feature-gating theo subscription tier. **Endpoint này CHƯA tồn tại** trên `InstanceController` (base `/api/v1/instances`, số **nhiều** — không có sub-path `/config`) → 404 → hook fallback im lặng (`hasFeature` luôn `false`).
+
+**Trạng thái:** GAP-1334 **PARTIAL** — đây là **feature gap** (cần implement BE endpoint), không phải FE call-site sai. Không có endpoint BE hiện hữu nào trả đúng shape `{ tier, features }` để FE chuyển hướng tới. Phương án (deferred):
+- (a) Implement `GET /api/v1/instance/config` trên kiteclass-core (hoặc gateway proxy) trả `InstanceConfig` (tier + feature flags) — tier có thể đọc từ gateway header `X-Subscription-Tier` (ADR-039); HOẶC
+- (b) FE đọc tier từ JWT claim / gateway header thay vì gọi endpoint riêng.
+
+Khi implement xong: document shape `InstanceConfig` tại đây + `check-fe-be-api-contract.sh` sẽ hết flag path này.
+
 ## Log
+- 2026-06-14 — GAP-1334: ghi nhận planned `GET /api/v1/instance/config` (feature gap, PARTIAL).
 - 2026-04-14 — Initial API contract

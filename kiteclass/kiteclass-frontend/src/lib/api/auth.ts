@@ -112,16 +112,24 @@ export const authApi = {
 
   /**
    * Request password reset email.
+   *
+   * GAP-1335: path matches kitehub-subscription `PasswordResetController`
+   * `POST /api/auth/password-reset-request` (always 202, anti-enumeration).
+   * kiteclass-core has no native reset endpoint; owner/staff credentials live
+   * in the KiteHub `users` table, reached through the gateway `/api/auth/**`.
    */
   forgotPassword: async (email: string): Promise<void> => {
-    await apiClient.post('/api/auth/forgot-password', { email });
+    await apiClient.post('/api/auth/password-reset-request', { email });
   },
 
   /**
    * Reset password with token from email.
+   *
+   * GAP-1335: path matches kitehub-subscription `PasswordResetController`
+   * `POST /api/auth/password-reset-confirm` (body `{ token, newPassword }`).
    */
   resetPassword: async (token: string, newPassword: string): Promise<void> => {
-    await apiClient.post('/api/auth/reset-password', { token, newPassword });
+    await apiClient.post('/api/auth/password-reset-confirm', { token, newPassword });
   },
 
   /**

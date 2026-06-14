@@ -1,5 +1,50 @@
 # Subscription & Billing — API Contract
 
+## API conventions (cross-service)
+
+> Hai section dưới là **convention cấp service** (không riêng subscription-billing) — đặt ở đây vì subscription-billing là surface API chính của kitehub-subscription. Áp dụng cho mọi domain doc kitehub.
+
+### API versioning convention (GAP-1338)
+
+Hai product surface dùng convention version khác nhau — **chủ ý**, không phải lỗi:
+
+| Surface | Base path | Versioned? | Ví dụ |
+|---|---|---|---|
+| **kiteclass-core** | `/api/v1/**` | ✅ URL-versioned | `/api/v1/instances`, `/api/v1/tenant-auth/login` |
+| **kitehub-subscription** | `/api/platform/**` + `/api/auth/**` | ❌ namespace (unversioned) | `/api/platform/subscriptions`, `/api/auth/login`, `/api/auth/password-reset-request` |
+| **kitehub cross-product auth** | `/api/v1/auth/**` | ✅ versioned | `/api/v1/auth/sso/issue-code`, `/api/v1/auth/2fa/*` |
+
+**Decision (Phase 1 BETA — GAP-1338 PARTIAL):** **GIỮ namespace `/api/platform/**`** cho kitehub (intentional product-namespace, consumer nội bộ stable), KHÔNG migrate sang `/api/v1/platform/**` trong Phase 1. Lý do: re-versioning URL là **breaking change** cho mọi consumer (FE + mobile + partner) — chi phí > lợi ích khi chưa có external API consumer.
+
+**Evolution strategy cho namespace unversioned:** breaking change tương lai trên `/api/platform/**` evolve bằng **additive field + header-version** (vd `Accept: application/vnd.kitehub.v2+json`) hoặc tạo path mới `/api/platform/v2/**` khi thật cần — KHÔNG đổi nghĩa path hiện có. Versioning-awareness đã có tiền lệ: `TwoFactorController` expose dual-path `/api/v1/auth/2fa/*` + `/api/auth/2fa/*` (GAP-547). Migrate toàn bộ sang URL-versioned = scope wave riêng (deferred).
+
+### Error envelope (cross-service contract — GAP-1337)
+
+Hai service trả error body theo **2 shape khác nhau** (drift Cat 3.3). Tới khi hợp nhất, consumer parse theo per-service contract dưới đây:
+
+| Service | Envelope | Content-Type | DTO/handler |
+|---|---|---|---|
+| **kitehub-subscription** | RFC 7807 `ProblemDetail` | `application/problem+json` | `GlobalExceptionHandler` → `ProblemDetail.forStatusAndDetail(...)` + `setProperty("errorCode"/"error", ...)` |
+| **kiteclass-core** | custom `ErrorResponse` DTO | `application/json` | `GlobalExceptionHandler` → `ErrorResponse.of(code, message, path)` |
+
+**kitehub ProblemDetail** (vd 409):
+```json
+{ "type": "about:blank", "title": "Conflict", "status": 409,
+  "detail": "...", "errorCode": "SUBSCRIPTION_PENDING_CONFLICT" }
+```
+**kiteclass ErrorResponse** (vd 400 validation):
+```json
+{ "success": false, "code": "VALIDATION_ERROR", "message": "...",
+  "path": "/api/v1/...", "timestamp": "2026-06-14T08:00:00Z",
+  "fieldErrors": { "email": ["must be a valid email"] } }
+```
+
+> **Ngoại lệ trong kitehub:** `SsoController` (xem `sso/api-contract.md`) trả 401 dưới dạng map custom `{ "error", "message" }` — KHÔNG phải ProblemDetail; cần đưa về chuẩn khi hợp nhất.
+
+**Canonical target + plan (GAP-1337 PARTIAL):** target canonical = **RFC 7807 `ProblemDetail`** cho cả 2 service (kitehub đã đúng; kiteclass + SsoController cần migrate). Migration KHÔNG làm trong wave này vì là **breaking change** cho FE error-handling (kiteclass FE đang parse `code`/`message`/`fieldErrors`) → cần wave riêng + FE adapt đồng thời; cân nhắc ADR error-contract standard. Phase 1 BETA: document drift (above) để consumer parse đúng per-service, defer code-level unification. Xem GAP-1337 §Resolution cho alignment plan.
+
+---
+
 ## Enums
 
 ### PaymentMethod (canonical — kitehub subscription billing domain)
