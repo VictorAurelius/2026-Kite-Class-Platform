@@ -28,13 +28,20 @@ Thêm `UPDATE attendance SET status = UPPER(status) WHERE status IS NOT NULL AND
 
 ## Acceptance Criteria
 
-- [x] V87 source thêm normalization UPDATE trước ADD CONSTRAINT
-- [ ] kiteclass-core rebuild + boot healthy (Flyway V87+V88 applied, không crash-loop)
-- [ ] `chk_attendance_status` tồn tại trên `kiteclass_shared.attendance`; 0 row vi phạm
-- [ ] Re-walk KC-5 attendance scope spot-check (per `pre-handoff-self-test-completeness.md` §3) — không regress
+- [x] V87 source thêm normalization UPDATE trước ADD CONSTRAINT (đã landed PR #2274, commit `cda3a40b4`)
+- [x] kiteclass-core rebuild + boot healthy (Flyway V87+V88 applied, không crash-loop) — chứng minh qua Testcontainers full-chain migrate (production-equivalent boot path): seed 4 row lowercase ở V86 → migrate V87..V98 sạch (không SQLSTATE 23514) → `flyway_schema_history` V87+V88 `success=true`. Literal container health-check còn cần human/CI Docker rebuild.
+- [x] `chk_attendance_status` tồn tại trên `attendance`; 0 row vi phạm — verified trên Testcontainers schema đã giữ row lowercase (reproduce kiteclass_shared): constraint UPPERCASE-only (cho phép MAKEUP, cấm lowercase), 0 row `status <> UPPER(status)`. Literal `kiteclass_shared` instance là live-DB confirmation.
+- [ ] Re-walk KC-5 attendance scope spot-check (per `pre-handoff-self-test-completeness.md` §3) — không regress — **còn pending**: PR này chỉ thêm test (không đổi app-code attendance → không regress KC-5), nhưng live re-walk qua full Docker stack + browser vẫn cần human/CI.
+
+## Resolution (Wave wave-2026-06-14-p0-closeout-1 Bucket C — 2026-06-14)
+
+- **Phát hiện:** normalize UPDATE đã có sẵn trong V87 (lines 22-28, landed PR #2274 2026-06-09). Empirical Flyway config check: `validate-on-migrate` default true, `baseline-on-migrate: true`, không out-of-order/repair — nhưng V87 chưa apply ở đâu nên sửa V87 không gây checksum risk (confirms gap §23). Không cần forward-migration V99.
+- **Bucket scope:** thêm regression test bảo vệ fix (gap thiếu automated guard). CI-bound `*Test` (surefire gate), KHÔNG `*IT`.
+- **Test:** `kiteclass-core/src/test/java/com/kiteclass/core/module/attendance/migration/V87AttendanceStatusNormalizeTest.java` — Testcontainers 2-phase: (1) `Flyway.target("86")` rồi seed 4 row lowercase (`session_replication_role=replica` để skip FK chain attendance→class_sessions→classes→courses; CHECK/NOT NULL vẫn enforce); (2) migrate V87..V98 → assert: rows → UPPERCASE; 0 row vi phạm; constraint UPPERCASE-only + MAKEUP; lowercase bị reject; UPPERCASE/MAKEUP được chấp nhận; normalize UPDATE idempotent (re-run = 0 row). 6/6 PASS dưới `-P strict-warnings`.
 
 ## Related
 
+- Resolved in: PR #<this PR>, branch `fix/wave-p0-c-attendance-normalize` (Wave wave-2026-06-14-p0-closeout-1 Bucket C)
 - Discovered in: fix branch `fix/v87-attendance-status-normalize-kc5` (G2 readiness check 2026-06-08)
 - GAP-996 (V87 original — schema drift fix, incomplete: missing data normalization)
 - Flow Verification Campaign KC-5 row (V87 P0 schema drift)
