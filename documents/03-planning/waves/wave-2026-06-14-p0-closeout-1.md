@@ -1,6 +1,6 @@
 ---
 title: Wave P0-Closeout 1 — autonomous-fixable Phase 1 BETA P0 cluster
-status: in-progress
+status: complete
 created: 2026-06-14
 updated: 2026-06-14
 tag_primary: p0-closeout
@@ -72,3 +72,15 @@ waves: [p0-closeout-1]
 ## 8. Log
 
 - **2026-06-14:** Wave tạo. Membership = autonomous-fixable P0 cluster (1306/1115/1116/1139/1066) tách từ Phase 1 BETA P0 backlog sau rà `gap-status.csv`. Bucket 0 (GAP-1306) đã in-flight từ SSO closeout. Đợt 1 spawn Bucket A song song (concurrency ≤2). Outside-in N/A (gap-fix có root cause). Gated P0s (AWS/deploy/vendor — GAP-612 dependency) loại khỏi scope, chờ AWS restore. Plan ship qua PR docs-only per `feedback_wave_plan_through_pr.md`.
+- **2026-06-14 — CLOSURE (`status: complete`):** Cả 5 bucket PR merged (auto-merge khi CI CLEAN, user-authorized). Reconcile bucket↔gap per `wave-closure-scope-completeness.md`:
+
+  | Bucket | Gap | PR | Kết quả |
+  |---|---|---|---|
+  | 0 | GAP-1306 | #2400 | ✅ **DONE** — repo-level `ORDER BY` 6-site cross-flow + Testcontainers test (986 pass) |
+  | A | GAP-1115/1116 | #2403 | 🟡 PARTIAL 85% — shared `LessonAccessGuard` dedup + sweep + 38 test pass; **human runtime-walk AC pending** |
+  | B | GAP-1139 | #2402 | 🟡 PARTIAL 95% — CI-bound regression test (`*Test`, 1749 pass); production fix đã ở main #2296; **human G2 walk pending** |
+  | C | GAP-1066 | #2404 | 🟡 PARTIAL 90% — `V87AttendanceStatusNormalizeTest` Testcontainers 2-phase (6 pass); normalize đã trong V87 #2274; **Docker boot re-walk pending** |
+
+  **Pattern phát hiện:** 4/5 gap (1115/1116/1139/1066) production fix đã land wave trước; kẹt PARTIAL vì thiếu **CI-bound regression test** + **human walk** — không phải phase-mislabeled mà **status-stale** (code xong, gap chưa đóng). Wave này lock chúng bằng test → eliminate silent-regression. Gaps giữ PARTIAL đúng `gap-done-discipline.md` (human-walk AC chưa xong) — KHÔNG tính incomplete wave per `wave-closure-scope-completeness.md` §closure-note exception.
+  **Discovery filed:** GAP-1307 (P1) — StorageController download-url enrollment paywall bypass (Bucket A cross-flow sweep DEFER, coordinator-allocated ID per `multi-session-concurrency-coordination.md`).
+  **Follow-up (post-wave):** (1) human G2★ walks cho 1115/1116/1139 + Docker boot 1066 → flip DONE; (2) phase re-triage 49 mislabeled + 27 n/a gaps (user-deferred to post-wave); (3) post-wave audit cadence (security/business-logic surface touched) ≤3 ngày per `post-wave-audit-mandate.md`.
