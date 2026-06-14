@@ -56,6 +56,7 @@ class LmsPhase0ServiceTest {
     @Mock private CourseRepository courseRepository;
     @Mock private StorageService storageService;
     @Mock private LmsMapper lmsMapper;
+    @Mock private com.kiteclass.core.common.security.AuthorizationBean authz;
 
     @InjectMocks
     private LmsServiceImpl lmsService;

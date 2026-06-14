@@ -41,7 +41,7 @@
   - `DELETE /api/v1/lms/modules/{moduleId}` — Delete
   - `GET /api/v1/lms/modules/{moduleId}` — Get detail
 - **Steps (Create):**
-  1. Verify teacher is course owner via `X-Teacher-Id` (BR-LMS-006)
+  1. Role gate `TEACHER`/`OWNER`/`ADMIN`, then verify the acting teacher (gateway `X-User-Reference-Id`, NOT client `X-Teacher-Id` — GAP-1299) is the course owner; OWNER/ADMIN bypass ownership (BR-LMS-006)
   2. Validate `title` required, `orderNumber` unique within course (BR-LMS-004, BR-LMS-005)
   3. Create module under course — module belongs to exactly one course (BR-LMS-003), return `CourseModuleResponse`
 - **Steps (Update):**

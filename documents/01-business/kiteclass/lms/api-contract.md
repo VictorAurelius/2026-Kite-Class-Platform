@@ -5,11 +5,30 @@
 
 ---
 
+## Authorization (GAP-1299)
+
+All **authoring / mutation** endpoints (module, lesson, resource, reorder, upload-url,
+completion-roster) are protected by two layers:
+
+1. **Role gate** — `@PreAuthorize("hasAnyRole('TEACHER','OWNER','ADMIN')")`. STUDENT / PARENT
+   are blocked with `403` before any handler logic runs.
+2. **Identity from token** — the acting teacher id is the gateway-injected
+   `X-User-Reference-Id` (= `teachers.id`), read into `UserContext`. The legacy client
+   `X-Teacher-Id` request header is **no longer read** as an identity source: the gateway
+   does not control it (spoofable per GAP-814), so a caller cannot act as another teacher by
+   setting it. Course ownership is enforced server-side (owner-only); **OWNER / ADMIN bypass**
+   per-course ownership (they carry no numeric reference id).
+
+Guest / student read endpoints use the optional gateway-injected `X-User-Reference-Id`
+(numeric student id; GAP-1297) — omit for guest mode.
+
+---
+
 ## Public / Student Endpoints
 
 ### GET `/courses/{courseId}/modules` — UC-LMS-01
 
-- **Headers:** `X-User-Id` (optional — omit for guest mode)
+- **Headers:** `X-User-Reference-Id` (optional — omit for guest mode; gateway-injected numeric student id, GAP-1297)
 - **Response:** `ApiResponse<List<CourseModuleDetailResponse>>`
 
 ```json
@@ -23,7 +42,7 @@
 
 ### GET `/lessons/{lessonId}` — UC-LMS-02
 
-- **Headers:** `X-User-Id` (optional)
+- **Headers:** `X-User-Reference-Id` (optional; gateway-injected numeric student id, GAP-1297)
 - **Response:** `ApiResponse<LessonDetailResponse>`
 
 ```json
@@ -42,7 +61,7 @@
 
 ### POST `/courses/{courseId}/modules`
 
-- **Headers:** `X-Teacher-Id` (required)
+- **Auth:** TEACHER/OWNER/ADMIN role gate; acting teacher from gateway `X-User-Reference-Id` (course-owner-only, OWNER/ADMIN bypass) — see Authorization (GAP-1299)
 - **Request:** `CreateCourseModuleRequest`
   ```json
   { "title": "string (required, max 200)",
@@ -53,7 +72,7 @@
 
 ### PUT `/modules/{moduleId}`
 
-- **Headers:** `X-Teacher-Id` (required)
+- **Auth:** TEACHER/OWNER/ADMIN role gate; acting teacher from gateway `X-User-Reference-Id` (course-owner-only, OWNER/ADMIN bypass) — see Authorization (GAP-1299)
 - **Request:** `UpdateCourseModuleRequest` (all fields optional)
   ```json
   { "title": "string (max 200)",
@@ -64,13 +83,13 @@
 
 ### DELETE `/modules/{moduleId}`
 
-- **Headers:** `X-Teacher-Id` (required)
+- **Auth:** TEACHER/OWNER/ADMIN role gate; acting teacher from gateway `X-User-Reference-Id` (course-owner-only, OWNER/ADMIN bypass) — see Authorization (GAP-1299)
 - **Response:** `204` `ApiResponse<Void>`
 - **Error:** `400` if module has lessons (BR-LMS-007)
 
 ### GET `/modules/{moduleId}`
 
-- **Headers:** `X-Teacher-Id` (required)
+- **Auth:** TEACHER/OWNER/ADMIN role gate; acting teacher from gateway `X-User-Reference-Id` (course-owner-only, OWNER/ADMIN bypass) — see Authorization (GAP-1299)
 - **Response:** `200` `ApiResponse<CourseModuleDetailResponse>`
 
 ---
@@ -79,7 +98,7 @@
 
 ### POST `/modules/{moduleId}/lessons`
 
-- **Headers:** `X-Teacher-Id` (required)
+- **Auth:** TEACHER/OWNER/ADMIN role gate; acting teacher from gateway `X-User-Reference-Id` (course-owner-only, OWNER/ADMIN bypass) — see Authorization (GAP-1299)
 - **Request:** `CreateLessonRequest`
   ```json
   { "title": "string (required, max 200)",
@@ -93,18 +112,18 @@
 
 ### PUT `/lessons/{lessonId}/manage`
 
-- **Headers:** `X-Teacher-Id` (required)
+- **Auth:** TEACHER/OWNER/ADMIN role gate; acting teacher from gateway `X-User-Reference-Id` (course-owner-only, OWNER/ADMIN bypass) — see Authorization (GAP-1299)
 - **Request:** `UpdateLessonRequest` (all fields optional)
 - **Response:** `200` `ApiResponse<LessonResponse>`
 
 ### DELETE `/lessons/{lessonId}/manage`
 
-- **Headers:** `X-Teacher-Id` (required)
+- **Auth:** TEACHER/OWNER/ADMIN role gate; acting teacher from gateway `X-User-Reference-Id` (course-owner-only, OWNER/ADMIN bypass) — see Authorization (GAP-1299)
 - **Response:** `204` `ApiResponse<Void>`
 
 ### GET `/lessons/{lessonId}/manage`
 
-- **Headers:** `X-Teacher-Id` (required)
+- **Auth:** TEACHER/OWNER/ADMIN role gate; acting teacher from gateway `X-User-Reference-Id` (course-owner-only, OWNER/ADMIN bypass) — see Authorization (GAP-1299)
 - **Response:** `200` `ApiResponse<LessonDetailResponse>`
 
 ---
@@ -113,7 +132,7 @@
 
 ### POST `/lessons/{lessonId}/resources`
 
-- **Headers:** `X-Teacher-Id` (required)
+- **Auth:** TEACHER/OWNER/ADMIN role gate; acting teacher from gateway `X-User-Reference-Id` (course-owner-only, OWNER/ADMIN bypass) — see Authorization (GAP-1299)
 - **Request:** `CreateLearningResourceRequest`
   ```json
   { "type": "VIDEO|PDF|SLIDE|AUDIO|LINK|CODE|OTHER (required)",
@@ -125,7 +144,7 @@
 
 ### DELETE `/resources/{resourceId}`
 
-- **Headers:** `X-Teacher-Id` (required)
+- **Auth:** TEACHER/OWNER/ADMIN role gate; acting teacher from gateway `X-User-Reference-Id` (course-owner-only, OWNER/ADMIN bypass) — see Authorization (GAP-1299)
 - **Response:** `204` `ApiResponse<Void>`
 
 ---
@@ -134,7 +153,7 @@
 
 ### POST `/progress/lessons/{lessonId}/complete` — UC-LMS-06
 
-- **Headers:** `X-User-Id` (required)
+- **Headers:** `X-User-Reference-Id` (required; gateway-injected numeric student id, GAP-1297)
 - **Response:** `200` `ApiResponse<LessonProgressResponse>`
 
 ```json
@@ -145,7 +164,7 @@
 
 ### GET `/progress/courses/{courseId}` — UC-LMS-07
 
-- **Headers:** `X-User-Id` (required)
+- **Headers:** `X-User-Reference-Id` (required; gateway-injected numeric student id, GAP-1297)
 - **Response:** `200` `ApiResponse<CourseProgressResponse>`
 
 ```json
@@ -155,7 +174,7 @@
 
 ### GET `/progress/lessons/{lessonId}` — UC-LMS-08
 
-- **Headers:** `X-User-Id` (required)
+- **Headers:** `X-User-Reference-Id` (required; gateway-injected numeric student id, GAP-1297)
 - **Response:** `200` `ApiResponse<LessonProgressResponse>` (or `null` body if no record)
 
 ---
@@ -169,7 +188,7 @@
 
 ### PUT `/courses/{courseId}/modules/reorder`
 
-- **Headers:** `X-Teacher-Id` (required, must be course owner)
+- **Auth:** TEACHER/OWNER/ADMIN role gate; acting teacher from gateway `X-User-Reference-Id` (course-owner-only, OWNER/ADMIN bypass) — see Authorization (GAP-1299)
 - **Request:** `ReorderRequest`
   ```json
   { "items": [ { "id": 10, "orderNumber": 2 }, { "id": 11, "orderNumber": 1 } ] }
@@ -179,7 +198,7 @@
 
 ### PUT `/modules/{moduleId}/lessons/reorder`
 
-- **Headers:** `X-Teacher-Id` (required, must be course owner)
+- **Auth:** TEACHER/OWNER/ADMIN role gate; acting teacher from gateway `X-User-Reference-Id` (course-owner-only, OWNER/ADMIN bypass) — see Authorization (GAP-1299)
 - **Request:** `ReorderRequest` (same shape — `items[].id` = lesson IDs)
 - **Response:** `200` `ApiResponse<List<LessonResponse>>` (ascending `orderNumber`)
 - **Errors:** as above
@@ -195,7 +214,7 @@
 
 ### POST `/lessons/{lessonId}/resources/upload-url`
 
-- **Headers:** `X-Teacher-Id` (required, must be course owner)
+- **Auth:** TEACHER/OWNER/ADMIN role gate; acting teacher from gateway `X-User-Reference-Id` (course-owner-only, OWNER/ADMIN bypass) — see Authorization (GAP-1299)
 - **Request:** `PresignedUploadRequest`
   ```json
   { "fileName": "slides.pdf", "fileSize": 1048576,
@@ -214,7 +233,7 @@
 
 ### GET `/courses/{courseId}/completion-roster`
 
-- **Headers:** `X-Teacher-Id` (required, must be course owner)
+- **Auth:** TEACHER/OWNER/ADMIN role gate; acting teacher from gateway `X-User-Reference-Id` (course-owner-only, OWNER/ADMIN bypass) — see Authorization (GAP-1299)
 - **Response:** `200` `ApiResponse<CompletionRosterResponse>`
   ```json
   { "courseId": 10, "totalLessons": 20,
