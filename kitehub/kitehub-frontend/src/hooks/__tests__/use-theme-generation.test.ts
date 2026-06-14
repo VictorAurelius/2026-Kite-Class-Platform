@@ -1,16 +1,19 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { useThemeGeneration } from '../use-theme-generation';
+import { apiClient } from '@/lib/api/client';
 import type { LogoAnalysis } from '@/types/branding';
 import type { ThemeConfig } from '@/types/theme';
 
-// Mock fetch globally.
-// Wave 34 Bucket D activated MSW (`server.listen()` patches global.fetch
-// during `beforeAll` in `src/test/setup.ts`). Re-assign `global.fetch`
-// to a fresh `vi.fn()` per test below in `beforeEach` so this test's
-// fine-grained `mockResolvedValueOnce` / `mockRejectedValueOnce` calls
-// keep working independently of MSW.
-global.fetch = vi.fn();
+// GAP-1336: the hook now calls `apiClient.post` (shared axios client) instead of
+// raw `fetch`, so the request carries Authorization + X-Tenant-Id and is a real
+// POST. Mock the apiClient module here (was: global.fetch) so each test drives
+// `apiClient.post` resolution/rejection directly.
+vi.mock('@/lib/api/client', () => ({
+  apiClient: { post: vi.fn() },
+}));
+
+const mockPost = vi.mocked(apiClient.post);
 
 describe('useThemeGeneration', () => {
   const mockLogoAnalysis: LogoAnalysis = {
@@ -127,11 +130,7 @@ describe('useThemeGeneration', () => {
   };
 
   beforeEach(() => {
-    // Re-install vi.fn() each test so MSW's interceptor (installed once
-    // in `beforeAll` via setup.ts) does not steal the fetch slot for
-    // unhandled routes. MSW's `onUnhandledRequest: 'bypass'` would
-    // otherwise let the request hit the real network.
-    global.fetch = vi.fn();
+    mockPost.mockReset();
   });
 
   afterEach(() => {
@@ -147,83 +146,62 @@ describe('useThemeGeneration', () => {
   });
 
   it('should generate theme successfully', async () => {
-    // Mock successful API response
-    (global.fetch as any).mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockThemeConfig,
-    });
+    // apiClient.post resolves with an axios-shaped response ({ data }).
+    mockPost.mockResolvedValueOnce({ data: mockThemeConfig } as any);
 
     const { result } = renderHook(() => useThemeGeneration());
 
-    // Call generateTheme
     await result.current.generateTheme(mockLogoAnalysis);
 
-    // Wait for completion
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
       expect(result.current.themeConfig).toEqual(mockThemeConfig);
     });
 
-    // Should have theme config and no error
     expect(result.current.error).toBeNull();
 
-    // Verify fetch was called correctly
-    expect(global.fetch).toHaveBeenCalledWith(
+    // POST to the AI branding endpoint with the analysis as the body; apiClient
+    // attaches Authorization + X-Tenant-Id headers automatically.
+    expect(mockPost).toHaveBeenCalledWith(
       '/api/platform/branding/ai/generate-theme',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(mockLogoAnalysis),
-      }
+      mockLogoAnalysis
     );
   });
 
   it('should handle API error', async () => {
-    // Mock failed API response
-    (global.fetch as any).mockResolvedValueOnce({
-      ok: false,
-      statusText: 'Internal Server Error',
-    });
+    // axios rejects on non-2xx; the hook surfaces err.message.
+    mockPost.mockRejectedValueOnce(new Error('Request failed with status code 500'));
 
     const { result } = renderHook(() => useThemeGeneration());
 
-    // Call generateTheme and wait
     await result.current.generateTheme(mockLogoAnalysis);
 
-    // Wait for state update
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
-      expect(result.current.error).toContain('Failed to generate theme');
+      expect(result.current.error).toBe('Request failed with status code 500');
     });
 
-    // Should have error
     expect(result.current.themeConfig).toBeNull();
   });
 
   it('should handle network error', async () => {
-    // Mock network error
-    (global.fetch as any).mockRejectedValueOnce(new Error('Network error'));
+    mockPost.mockRejectedValueOnce(new Error('Network error'));
 
     const { result } = renderHook(() => useThemeGeneration());
 
-    // Call generateTheme and wait
     await result.current.generateTheme(mockLogoAnalysis);
 
-    // Wait for state update
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
       expect(result.current.error).toBe('Network error');
     });
 
-    // Should have error
     expect(result.current.themeConfig).toBeNull();
   });
 
   it('should clear error on new generation attempt', async () => {
     // First call fails
-    (global.fetch as any).mockRejectedValueOnce(new Error('First error'));
+    mockPost.mockRejectedValueOnce(new Error('First error'));
 
     const { result } = renderHook(() => useThemeGeneration());
 
@@ -234,10 +212,7 @@ describe('useThemeGeneration', () => {
     });
 
     // Second call succeeds
-    (global.fetch as any).mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockThemeConfig,
-    });
+    mockPost.mockResolvedValueOnce({ data: mockThemeConfig } as any);
 
     result.current.generateTheme(mockLogoAnalysis);
 
