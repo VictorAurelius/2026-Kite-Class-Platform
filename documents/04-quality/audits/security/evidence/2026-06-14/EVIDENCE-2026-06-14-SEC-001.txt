@@ -1,0 +1,20 @@
+EVIDENCE-2026-06-14-SEC-001 — Hardcoded-secret grep (broad scope, GAP-564 mandate) — Cat 2 PASS
+=================================================================================================
+
+Command run:
+  grep -rnE "(password|secret|api[_-]?key|token)\s*[:=]\s*['\"][a-zA-Z0-9_/+-]{8,}" \
+    --include="*.java" --include="*.ts" --include="*.tsx" --include="*.yml" --include="*.yaml" \
+    kitehub/ kiteclass/ scripts/ infrastructure/ \
+    | grep -vE "(test|fixture|example|template|.md:|noreply@|localhost|change-me|placeholder|your-|<|\$\{|process.env|System.getenv|getProperty)"
+  grep -rnE "(PASSWORD|SECRET|API_KEY|TOKEN|_KEY)[:=]" kitehub/docker-compose*.yml kiteclass/docker-compose*.yml | grep -vE "\$\{|change|placeholder"
+  git ls-files | grep -E "\.env" | grep -vE "(template|example|sample|.md)"
+
+Output (only non-excluded hits — all classified non-leak):
+  kitehub/.../DomainService.java:99  String token = "kitehub-verify=" + UUID.randomUUID();  → DNS verification token, not a secret
+  infrastructure/k8s/kitehub/secrets.yaml:14,24,33  password: "REPLACE_WITH_BASE64"           → placeholder
+  infrastructure/k8s/kitehub/secrets.yaml:42  api-key: "REPLACE_WITH_BASE64"                  → placeholder
+  infrastructure/k8s/kitehub/secrets.yaml:61  secret: "REPLACE_WITH_BASE64"                   → placeholder
+  docker-compose secret grep → all values are ${VAR:?required} env-substitution, no literals
+  committed .env (non-template) → (empty)
+
+Verdict: ✅ PASS — 0 real hardcoded secrets across kitehub/ kiteclass/ scripts/ infrastructure/ + docker-compose. JWT_SECRET injected via ${JWT_SECRET:?required}; AuthService validates ≥32 chars, gateway validates ≥64 bytes (HS512). Only k8s placeholders + a DNS verification token remain.
