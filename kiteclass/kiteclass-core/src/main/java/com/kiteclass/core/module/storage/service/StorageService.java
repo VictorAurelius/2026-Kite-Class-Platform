@@ -77,18 +77,15 @@ public interface StorageService {
      * <ol>
      *   <li>Find file by ID (must be CONFIRMED)</li>
      *   <li>Check access control (PUBLIC/PRIVATE/TENANT)</li>
-     *   <li>Enforce LMS enrollment paywall when the file is paid-lesson material — GAP-1307</li>
      *   <li>Generate presigned GET URL (5min TTL)</li>
      * </ol>
      *
-     * @param fileId       File database ID
-     * @param requesterId  User requesting download
-     * @param tenantId     Tenant instance ID
-     * @param elevatedRole true if caller is staff (TEACHER/OWNER/ADMIN/PLATFORM_ADMIN), which
-     *                     exempts them from the student enrollment paywall (GAP-1307)
+     * @param fileId      File database ID
+     * @param requesterId User requesting download
+     * @param tenantId    Tenant instance ID
      * @return Presigned download URL
      */
-    String generatePresignedDownloadUrl(Long fileId, Long requesterId, UUID tenantId, boolean elevatedRole);
+    String generatePresignedDownloadUrl(Long fileId, Long requesterId, UUID tenantId);
 
     /**
      * Soft deletes a file.

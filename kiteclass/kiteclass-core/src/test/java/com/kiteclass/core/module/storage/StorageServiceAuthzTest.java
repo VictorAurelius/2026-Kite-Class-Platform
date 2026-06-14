@@ -9,7 +9,6 @@ import com.kiteclass.core.module.storage.entity.UploadedFile;
 import com.kiteclass.core.module.storage.mapper.StorageMapper;
 import com.kiteclass.core.module.storage.repository.StorageQuotaRepository;
 import com.kiteclass.core.module.storage.repository.UploadedFileRepository;
-import com.kiteclass.core.module.storage.service.LessonMaterialAccessGuard;
 import com.kiteclass.core.module.storage.service.impl.StorageServiceImpl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -54,7 +53,6 @@ class StorageServiceAuthzTest {
     @Mock private S3Client s3Client;
     @Mock private S3Presigner s3Presigner;
     @Mock private StorageProperties storageProperties;
-    @Mock private LessonMaterialAccessGuard lessonMaterialAccessGuard;
 
     @InjectMocks private StorageServiceImpl storageService;
 

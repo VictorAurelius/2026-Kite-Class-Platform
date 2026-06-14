@@ -14,7 +14,6 @@ import com.kiteclass.core.module.storage.entity.UploadedFile;
 import com.kiteclass.core.module.storage.mapper.StorageMapper;
 import com.kiteclass.core.module.storage.repository.StorageQuotaRepository;
 import com.kiteclass.core.module.storage.repository.UploadedFileRepository;
-import com.kiteclass.core.module.storage.service.LessonMaterialAccessGuard;
 import com.kiteclass.core.module.storage.service.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -62,7 +61,6 @@ public class StorageServiceImpl implements StorageService {
     private final S3Client s3Client;
     private final S3Presigner s3Presigner;
     private final StorageProperties storageProperties;
-    private final LessonMaterialAccessGuard lessonMaterialAccessGuard;
 
     // Constants
     private static final Duration UPLOAD_URL_TTL = Duration.ofMinutes(30);
@@ -193,7 +191,7 @@ public class StorageServiceImpl implements StorageService {
 
     @Override
     @Transactional(readOnly = true)
-    public String generatePresignedDownloadUrl(Long fileId, Long requesterId, UUID tenantId, boolean elevatedRole) {
+    public String generatePresignedDownloadUrl(Long fileId, Long requesterId, UUID tenantId) {
         log.info("Generating presigned download URL for file: {}, requester: {}", fileId, requesterId);
 
         // Find file (must be CONFIRMED)
@@ -205,13 +203,8 @@ public class StorageServiceImpl implements StorageService {
             throw new BusinessException("FILE_NOT_CONFIRMED", HttpStatus.CONFLICT, fileId);
         }
 
-        // Check access control (visibility model: PUBLIC / PRIVATE / TENANT)
+        // Check access control
         checkAccessPermission(file, requesterId, tenantId);
-
-        // GAP-1307: LMS enrollment paywall — when the file backs a paid (non-trial) lesson,
-        // a non-enrolled student must not bypass the paywall via the TENANT-scoped storage path.
-        lessonMaterialAccessGuard.verifyLessonMaterialDownloadAccess(
-            file.getStoragePath(), file.getUploaderId(), requesterId, elevatedRole);
 
         // Generate presigned GET URL
         software.amazon.awssdk.services.s3.model.GetObjectRequest getObjectRequest =

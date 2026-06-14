@@ -62,9 +62,6 @@ public class StorageController {
     /** Tenant-admin roles that may confirm/delete ANY file in the tenant (GAP-1309). */
     private static final Set<String> PRIVILEGED_ROLES = Set.of("ADMIN", "PLATFORM_ADMIN", "OWNER");
 
-    /** Staff roles exempt from the student download paywall (GAP-1307). */
-    private static final Set<String> STAFF_ROLES = Set.of("TEACHER", "OWNER", "ADMIN", "PLATFORM_ADMIN");
-
     /**
      * Returns true if the gateway-forwarded {@code X-User-Roles} header contains any of the
      * given roles. Values are trimmed, upper-cased, and stripped of a {@code ROLE_} prefix to
@@ -182,16 +179,13 @@ public class StorageController {
         @Parameter(description = "User ID (from Gateway)")
         @RequestHeader(value = "X-User-Id", required = true) Long requesterId,
         @Parameter(description = "Tenant instance ID")
-        @RequestHeader(value = "X-Tenant-Id", required = true) UUID tenantId,
-        @Parameter(description = "User roles (from Gateway)")
-        @RequestHeader(value = "X-User-Roles", required = false) String roles
+        @RequestHeader(value = "X-Tenant-Id", required = true) UUID tenantId
     ) {
         log.info("REST request to generate download URL for file: {}, requester: {}",
             fileId, requesterId);
 
-        // GAP-1307: staff (teacher/owner/admin) bypass the student enrollment paywall.
         String downloadUrl = storageService.generatePresignedDownloadUrl(
-            fileId, requesterId, tenantId, hasAnyRole(roles, STAFF_ROLES)
+            fileId, requesterId, tenantId
         );
 
         return ApiResponse.success(downloadUrl, "Presigned download URL generated successfully");
