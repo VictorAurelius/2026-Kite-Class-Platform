@@ -179,6 +179,85 @@ Khi action ∈ sensitive list nhưng caller không cung cấp `beforeState` + `a
 
 ---
 
+## Impersonation endpoints (GAP-1333)
+
+**Source-of-truth controller:** `kitehub/kitehub-subscription/src/main/java/com/kitehub/subscription/impersonation/ImpersonationController.java` (`@RequestMapping("/api/v1/admin/impersonate")`)
+**Auth:** mọi endpoint `@PreAuthorize("hasRole('PLATFORM_ADMIN')")`. Identity admin lấy từ gateway header `X-User-Id` (→ principal UUID) + `X-User-Roles` (→ `ROLE_PLATFORM_ADMIN`). Non-admin → 403.
+**Tests:** package `com.kitehub.subscription.impersonation` (controller + service).
+
+Admin "View as tenant" (GAP-040): mint **scoped read-only JWT** TTL 30 giây mang claim `tenant_id` + `impersonated_by`. Mỗi start/end ghi 1 row audit (action-type `IMPERSONATE` ở bảng "Sensitive actions list" phía trên) — audit row insert **cùng transaction** với token mint (persist fail → không trả token).
+
+### POST /api/v1/admin/impersonate/{tenantSlug}
+
+**Use case:** Admin bắt đầu phiên xem-như-tenant.
+**Path param:** `tenantSlug` — slug tenant cần xem.
+**Request body:** không. IP + User-Agent lấy từ `X-Forwarded-For` (first hop) / `User-Agent` để ghi audit.
+
+**Response 200 OK** — `ImpersonationStartResponse`:
+```json
+{
+  "sessionId": 1024,
+  "impersonationToken": "<HS512 JWT, 30s TTL>",
+  "tenantId": "uuid",
+  "tenantSlug": "truong-abc",
+  "expiresAt": "2026-06-14T08:30:30+07:00"
+}
+```
+
+| Field | Type | Mô tả |
+|---|---|---|
+| `sessionId` | number | id row audit-log; FE dùng để gọi `/end`. |
+| `impersonationToken` | string | JWT scoped read-only, TTL 30s, claim `tenant_id` + `impersonated_by`. |
+| `tenantId` | UUID | Tenant đang xem. |
+| `tenantSlug` | string | Echo slug. |
+| `expiresAt` | ISO-8601 (OffsetDateTime) | Mốc tuyệt đối token + session hết hạn. |
+
+**Error:** 403 (không phải PLATFORM_ADMIN); 400 (tenantSlug không hợp lệ — `IllegalArgumentException` → ProblemDetail RFC 7807).
+
+### POST /api/v1/admin/impersonate/end
+
+**Use case:** Admin chủ động thoát phiên.
+**Request body:** không (admin xác định qua principal).
+
+**Response 200 OK** — `ImpersonationEndResponse`:
+```json
+{ "sessionId": 1024, "endedAt": "2026-06-14T08:25:10+07:00", "endedReason": "MANUAL_EXIT" }
+```
+
+| Field | Type | Mô tả |
+|---|---|---|
+| `sessionId` | number | Row audit được đóng. |
+| `endedAt` | ISO-8601 | Thời điểm đóng. |
+| `endedReason` | enum | `MANUAL_EXIT` \| `AUTO_TIMEOUT` \| `NEVER` (`ImpersonationAuditEntry.EndedReason`). |
+
+**Error:** 404 nếu không có phiên active của caller; 403 nếu không phải PLATFORM_ADMIN.
+
+### GET /api/v1/admin/impersonate/audit-log
+
+**Use case:** Panel audit admin xem lịch sử impersonation (newest-first).
+**Query params:** `page` (default `0`), `size` (default `20`, clamp `[1..100]`).
+
+**Response 200 OK** — `Page<ImpersonationAuditEntryDto>` (Spring Page wrapper). Mỗi entry:
+```json
+{
+  "id": 1024,
+  "adminUserId": "uuid",
+  "tenantId": "uuid",
+  "tenantSlug": "truong-abc",
+  "startedAt": "2026-06-14T08:25:00+07:00",
+  "endedAt": "2026-06-14T08:25:10+07:00",
+  "endedReason": "MANUAL_EXIT",
+  "requestIp": "203.0.113.7",
+  "userAgent": "Mozilla/5.0 ..."
+}
+```
+
+**Error:** 403 nếu không phải PLATFORM_ADMIN.
+
+**Cross-ref:** mỗi start/end tạo 1 `IMPERSONATE` audit row (bảng "Sensitive actions list" phía trên — `beforeState`/`afterState` capture snapshot target user).
+
+---
+
 ## Cross-layer dependencies
 
 Per `contract-first-for-cross-layer.md` §3 — contract này là source-of-truth cho:

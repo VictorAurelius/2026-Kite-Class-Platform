@@ -1,6 +1,6 @@
 # GAP-1333: ImpersonationController 3 endpoint chưa có api-contract.md
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟠 P1
 **Domain:** Backend
 **Found:** 2026-06-14 (API-contract full audit, AUDIT-2026-06-14-api-contract-full)
@@ -25,6 +25,12 @@ Thêm section impersonation vào `admin-audit/api-contract.md` (hoặc tạo `do
 - [ ] 3 endpoint impersonate documented (path/method/request/response/error-codes)
 - [ ] RBAC + scoped read-only token semantics documented
 - [ ] Cross-ref audit-log capture (IMPERSONATE action row)
+
+## Resolution
+
+🟢 DONE (2026-06-15, branch `fix/audit-fixC-apidocs-2026-06-14`). Thêm section "Impersonation endpoints (GAP-1333)" vào `documents/01-business/kitehub/admin-audit/api-contract.md`: document 3 endpoint `POST /api/v1/admin/impersonate/{tenantSlug}` + `POST /end` + `GET /audit-log` (path/method/request/response/error 403/404/400). Đã ghi: RBAC `@PreAuthorize(hasRole('PLATFORM_ADMIN'))` + gateway `X-User-Id`/`X-User-Roles`, scoped read-only JWT 30s TTL (claim `tenant_id` + `impersonated_by`), response shapes (`ImpersonationStartResponse`/`EndResponse`/`AuditEntryDto`), cross-ref `IMPERSONATE` audit-row (sensitive-actions table).
+
+AC: cả 3 ✅.
 
 ## Related
 

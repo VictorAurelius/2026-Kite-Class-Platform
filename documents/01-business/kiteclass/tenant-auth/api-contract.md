@@ -124,6 +124,23 @@ Provision/UPSERT credential `auth_credentials` (entity_type=STUDENT, entity_id=s
 
 ---
 
+## 4.5 Error envelope (GAP-1337 cross-service)
+
+kiteclass-core trả lỗi theo DTO custom `ErrorResponse` (`application/json`) — **khác** kitehub-subscription dùng RFC 7807 `ProblemDetail` (`application/problem+json`). FE phải parse 2 shape tùy service được gọi.
+
+**kiteclass `ErrorResponse` shape** (`GlobalExceptionHandler` → `ErrorResponse.of(code, message, path)`):
+```json
+{ "success": false, "code": "VALIDATION_ERROR", "message": "...",
+  "path": "/api/v1/...", "timestamp": "2026-06-14T08:00:00Z",
+  "fieldErrors": { "email": ["must be a valid email"] } }
+```
+
+`code` ổn định cho FE branch (vd `TENANT_NOT_SET`, `ACCESS_DENIED`, `RESOURCE_NOT_FOUND`, `METHOD_NOT_ALLOWED`, `VALIDATION_ERROR`). `fieldErrors` chỉ có ở validation 400.
+
+Quyết định canonical + lộ trình hợp nhất (target RFC 7807, migration deferred Phase 1): xem `kitehub/subscription-billing/api-contract.md` §"Error envelope (cross-service contract)" + GAP-1337 (PARTIAL).
+
+---
+
 ## 5. Related
 
 - `tenant-auth/rules.md` — BR-AUTH-* (credential / JWT / login / provisioning / anti-spoof).

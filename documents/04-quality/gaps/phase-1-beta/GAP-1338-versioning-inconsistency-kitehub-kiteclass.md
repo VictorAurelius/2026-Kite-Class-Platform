@@ -1,6 +1,6 @@
 # GAP-1338: Versioning inconsistency — kitehub `/api/platform/**` + `/api/auth/**` unversioned vs kiteclass `/api/v1/**`
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL
 **Priority:** 🟡 P2
 **Domain:** Backend
 **Found:** 2026-06-14 (API-contract full audit, AUDIT-2026-06-14-api-contract-full)
@@ -28,6 +28,16 @@ Bằng chứng versioning-awareness có tồn tại: `TwoFactorController.java:1
 - [ ] Versioning policy documented (ADR/rules) bắc cầu 2 convention + evolution strategy
 - [ ] api-contract.md preamble nêu convention per-service
 - [ ] Decision: giữ namespace hay migrate versioned — recorded
+
+## Resolution
+
+🟡 PARTIAL (2026-06-15, branch `fix/audit-fixC-apidocs-2026-06-14`). DOCUMENT convention + decision (URL re-versioning = breaking → defer migration):
+- `kitehub/subscription-billing/api-contract.md` §"API versioning convention": bảng 3 surface (kiteclass `/api/v1/**` versioned; kitehub `/api/platform/**`+`/api/auth/**` namespace unversioned — chủ ý; cross-product auth `/api/v1/auth/**` versioned) + rationale + evolution strategy (additive field / header-version `Accept: vnd.kitehub.v2+json` / `/api/platform/v2/**` khi cần) + tiền lệ `TwoFactorController` dual-path (GAP-547).
+- Decision: GIỮ namespace `/api/platform/**`, KHÔNG migrate URL-versioned Phase 1 (breaking cho mọi consumer; lợi ích < chi phí khi chưa có external consumer).
+
+AC #1 ✅ (policy documented bắc cầu 2 convention + evolution strategy); AC #2 ✅ (preamble nêu convention per-service); AC #3 ✅ (decision recorded: giữ namespace).
+
+PARTIAL (không DONE): cross-service URL inconsistency vẫn tồn tại ở code theo quyết định "giữ namespace Phase 1"; migrate toàn bộ URL-versioned (option khi có external API consumer) = wave riêng, deferred Phase 2.
 
 ## Related
 
