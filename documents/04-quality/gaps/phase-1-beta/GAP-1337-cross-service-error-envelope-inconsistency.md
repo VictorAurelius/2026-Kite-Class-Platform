@@ -1,6 +1,6 @@
 # GAP-1337: Cross-service error envelope inconsistency — kiteclass ErrorResponse vs kitehub RFC 7807 ProblemDetail
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL
 **Priority:** 🟠 P1
 **Domain:** Backend
 **Found:** 2026-06-14 (API-contract full audit, AUDIT-2026-06-14-api-contract-full)
@@ -28,6 +28,18 @@ api-contract.md không mô tả thống nhất envelope nào áp dụng cho serv
 - [ ] Canonical error envelope quyết định (ADR hoặc rules.md) — 1 shape, hoặc 2 shape documented rõ per-service
 - [ ] api-contract.md (cả kitehub + kiteclass) có section "Error envelope" mô tả body schema
 - [ ] FE error-handling thống nhất parse theo contract documented
+
+## Resolution
+
+🟡 PARTIAL (2026-06-15, branch `fix/audit-fixC-apidocs-2026-06-14`). DOCUMENT canonical + drift (code migration = breaking change → defer):
+- `kitehub/subscription-billing/api-contract.md` §"Error envelope (cross-service contract)": kitehub = RFC 7807 `ProblemDetail` (`application/problem+json`); kiteclass = custom `ErrorResponse` (`code/message/path/fieldErrors`); ví dụ JSON cả 2 + ngoại lệ `SsoController` (map custom `{error,message}`).
+- `kiteclass/tenant-auth/api-contract.md` §4.5: shape `ErrorResponse` cho FE parse.
+- `kitehub/sso/api-contract.md` §Error envelope: ghi nhận ngoại lệ SsoController.
+- Canonical target = RFC 7807 cho cả 2 service.
+
+Plan (defer — wave riêng): migrate kiteclass `ErrorResponse` → `ProblemDetail` + SsoController map → ProblemDetail; FE adapt đồng thời (breaking cho FE error-handling đang parse `code/message/fieldErrors`); cân nhắc ADR error-contract standard.
+
+AC #2 ✅ (api-contract.md cả 2 service + SSO có section Error envelope); AC #1 PARTIAL (canonical decided + recorded, code chưa unify); AC #3 deferred (FE parse vẫn per-service). PARTIAL vì code-level unification chưa thực hiện (chỉ document + decision).
 
 ## Related
 

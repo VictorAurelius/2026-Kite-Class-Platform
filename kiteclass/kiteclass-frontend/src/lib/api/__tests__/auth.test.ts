@@ -161,7 +161,7 @@ describe('authApi', () => {
 
       await authApi.forgotPassword(email);
 
-      expect(apiClient.post).toHaveBeenCalledWith('/api/auth/forgot-password', { email });
+      expect(apiClient.post).toHaveBeenCalledWith('/api/auth/password-reset-request', { email });
     });
 
     it('should handle forgot password error', async () => {
@@ -182,7 +182,7 @@ describe('authApi', () => {
 
       await authApi.resetPassword(token, newPassword);
 
-      expect(apiClient.post).toHaveBeenCalledWith('/api/auth/reset-password', {
+      expect(apiClient.post).toHaveBeenCalledWith('/api/auth/password-reset-confirm', {
         token,
         newPassword,
       });

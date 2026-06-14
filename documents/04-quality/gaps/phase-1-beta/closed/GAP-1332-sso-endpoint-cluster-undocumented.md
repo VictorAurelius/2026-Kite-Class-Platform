@@ -1,6 +1,6 @@
 # GAP-1332: SSO endpoint cluster undocumented — không có api-contract.md cho `/api/v1/auth/sso/**`
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🔴 P0
 **Domain:** Backend
 **Found:** 2026-06-14 (API-contract full audit, AUDIT-2026-06-14-api-contract-full)
@@ -26,6 +26,16 @@ Tạo 3-layer doc `documents/01-business/kitehub/sso/` (rules.md + use-cases.md 
 - [ ] `documents/01-business/kitehub/sso/api-contract.md` document cả 2 endpoint (path/method/request/response/error-codes)
 - [ ] rules.md + use-cases.md đi kèm (3-layer per CLAUDE.md business-docs mandate)
 - [ ] Verification chain: BR → UC → endpoint → `SsoController` mapping → `SsoControllerTest`
+
+## Resolution
+
+🟢 DONE (2026-06-15, branch `fix/audit-fixC-apidocs-2026-06-14` — audit Fix-C). Tạo 3-layer doc `documents/01-business/kitehub/sso/`:
+- **api-contract.md** — document cả 2 endpoint `POST /api/v1/auth/sso/issue-code` + `POST /api/v1/auth/sso/exchange` (path/method/request/response/error-codes + 401 cases + 415 CSRF guard + config key `kitehub.sso.code-ttl-seconds`).
+- **rules.md** — BR-SSO-001..009 (single-use GETDEL, TTL ≤60s clamp, 256-bit entropy, no-raw-JWT-stored, refresh-reject, fail-loud Redis, shared-secret HS512).
+- **use-cases.md** — UC-SSO-001..005 (happy path + replay + bad-token + CSRF + Redis outage fallback).
+- Verification chain BR→UC→endpoint→`SsoController`→`SsoControllerTest` established. Source-of-truth = `SsoController` + `SsoCodeService` + ADR-040.
+
+AC: cả 3 ✅.
 
 ## Related
 

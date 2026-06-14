@@ -1,6 +1,6 @@
 # GAP-1336: FE→BE method drift — generate-theme FE GET vs BE POST (405)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟡 P2
 **Domain:** Mixed
 **Found:** 2026-06-14 (API-contract full audit, AUDIT-2026-06-14-api-contract-full)
@@ -25,6 +25,14 @@ Sửa FE `use-theme-generation.ts` dùng `apiClient.post` với body (logo/brand
 - [ ] FE generate-theme dùng POST khớp BE — không 405
 - [ ] Endpoint documented trong `ai-branding/api-contract.md` (request/response)
 - [ ] `check-fe-be-api-contract.sh` không còn flag
+
+## Resolution
+
+🟢 DONE (2026-06-15, branch `fix/audit-fixC-apidocs-2026-06-14`). Root cause kép: (1) raw `fetch` với `method: 'POST'` ở dòng KHÁC dòng `fetch(` → static detector đọc default GET → flag GET-vs-POST; (2) raw fetch KHÔNG gắn `Authorization`/`X-Tenant-Id` → endpoint `@PreAuthorize(OWNER_AUTHZ)` sẽ 401 runtime.
+
+Sửa FE `kitehub-frontend/src/hooks/use-theme-generation.ts`: chuyển sang `apiClient.post('/api/platform/branding/ai/generate-theme', analysis)` (shared client tự gắn `Authorization` + `X-Tenant-Id`; khớp BE `@PostMapping("/generate-theme")`).
+
+Verify: `check-fe-be-api-contract.sh` hết flag (POST khớp BE POST); `pnpm --filter kitehub-frontend build` PASS. AC: cả 3 ✅.
 
 ## Related
 
