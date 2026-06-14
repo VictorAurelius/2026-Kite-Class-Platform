@@ -1,0 +1,16 @@
+EVIDENCE-2026-06-14-DEPS-001 — Frontend pnpm audit (both apps) — PASS
+=====================================================================
+
+Command run:
+  cd kitehub/kitehub-frontend  && pnpm audit --audit-level=high
+  cd kiteclass/kiteclass-frontend && pnpm audit --audit-level=high
+
+Output:
+  kitehub-frontend:   1 vulnerabilities found — Severity: 1 moderate   (exit 0)
+  kiteclass-frontend: 1 vulnerabilities found — Severity: 1 moderate   (exit 0)
+
+Backend dependency versions (root poms):
+  spring-boot-starter-parent 3.5.14 (current), Java 17
+  jjwt 0.13.0 (current), postgresql 42.7.11 (current)
+
+Verdict: ✅ PASS — 0 HIGH/CRITICAL across both FE apps (1 moderate each, accepted). Backend on current Spring Boot 3.5.14 + recent jjwt/postgresql; no known HIGH/CRIT CVE for pinned versions. Not run this session (time/offline): `mvn dependency-check`, Trivy image scan → marked ❓ UNCHECKED, not PASS-by-default.
