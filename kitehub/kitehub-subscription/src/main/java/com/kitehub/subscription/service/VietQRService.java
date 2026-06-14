@@ -2,6 +2,7 @@ package com.kitehub.subscription.service;
 
 import com.kitehub.subscription.dto.vietqr.VietQRRequest;
 import com.kitehub.subscription.dto.vietqr.VietQRResponse;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +24,9 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class VietQRService {
+
+    /** Circuit breaker instance name — must match {@code resilience4j.circuitbreaker.instances} in application.yml. */
+    public static final String CB_NAME = "vietqr";
 
     private final RestTemplate restTemplate;
 
@@ -70,6 +74,13 @@ public class VietQRService {
         return generateQRCode(paymentId, amountVnd, generatePaymentContent(subscriptionId));
     }
 
+    /**
+     * GAP-1361: wrapped in a Resilience4j circuit breaker so repeated VietQR API failures
+     * fail fast (open circuit) instead of every request blocking on the HTTP timeout, and any
+     * uncaught error (e.g. the error-code {@link RuntimeException} below) degrades to the public
+     * fallback image URL via {@link #generateQRCodeFallback} rather than surfacing a 5xx.
+     */
+    @CircuitBreaker(name = CB_NAME, fallbackMethod = "generateQRCodeFallback")
     public String generateQRCode(UUID paymentId, Long amountVnd, String memo) {
         log.info("Generating VietQR code for payment: {} (amount: {} VND, memo: {})", paymentId, amountVnd, memo);
 
@@ -144,6 +155,27 @@ public class VietQRService {
             log.warn("Using fallback QR URL: {}", fallbackUrl);
             return fallbackUrl;
         }
+    }
+
+    /**
+     * Circuit-breaker fallback (GAP-1361). Invoked when the breaker is OPEN or an uncaught
+     * exception escapes {@link #generateQRCode(UUID, Long, String)} — returns the public
+     * VietQR image URL (same shape as the in-method {@code RestClientException} fallback) so
+     * the payment flow always has a usable QR rather than a 5xx.
+     *
+     * @param paymentId payment UUID
+     * @param amountVnd amount in VND
+     * @param memo      transfer memo
+     * @param cause     failure that triggered the fallback
+     * @return public fallback QR image URL
+     */
+    @SuppressWarnings("unused")
+    private String generateQRCodeFallback(UUID paymentId, Long amountVnd, String memo, Throwable cause) {
+        log.warn("[resilience][{}] generateQRCode fallback for payment {} → public image URL, cause={}:{}",
+            CB_NAME, paymentId, cause.getClass().getSimpleName(), cause.getMessage());
+        return String.format(
+            "https://img.vietqr.io/image/%s-%s-%s.jpg?amount=%d&addInfo=%s",
+            bankCode, accountNumber, defaultTemplate, amountVnd, memo);
     }
 
     /**

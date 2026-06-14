@@ -1,6 +1,6 @@
 # GAP-1359: InstanceController.list() unbounded findAll() (no Pageable)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟠 P1
 **Domain:** Backend
 **Found:** 2026-06-14 (Performance full audit post wave-p0-closeout-1, sub-check 1.1/2.2)
@@ -18,8 +18,17 @@ Thêm `Pageable` param + trả `Page<InstanceResponse>` (hoặc cursor paginatio
 
 ## Acceptance Criteria
 
-- [ ] `InstanceController.list()` nhận `Pageable` HOẶC có hard cap + documented exemption
-- [ ] Không còn `repository.findAll()` không bounded trong path này
+- [x] `InstanceController.list()` nhận `Pageable` HOẶC có hard cap + documented exemption
+- [x] Không còn `repository.findAll()` không bounded trong path này
+
+## Resolution (2026-06-15, branch fix/audit-fixE-perf-2026-06-14)
+
+- `status == null` branch giờ gọi `repository.findAll(PageRequest.of(0, 500, Sort id DESC))`
+  thay cho `findAll()` unbounded — hard cap `INSTANCE_LIST_MAX = 500` + documented exemption.
+- Giữ nguyên response shape `List<InstanceResponse>` (JSON array) — FE consumers
+  (`branding-wizard-api.ts`) tiêu thụ array, nên KHÔNG đổi sang `Page<>` envelope (tránh break caller).
+- Test: `InstanceControllerTest.list_returns_bounded_page_as_array` (verify `findAll(Pageable)`
+  được gọi, `findAll()` no-arg KHÔNG). Full kiteclass-core surefire 1763 tests PASS.
 
 ## Related
 

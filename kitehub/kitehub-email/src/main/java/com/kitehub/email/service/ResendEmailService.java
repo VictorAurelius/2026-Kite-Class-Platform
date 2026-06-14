@@ -40,6 +40,12 @@ import java.util.UUID;
  * call via {@link RestTemplate} sufficient for v1.0.0 deliverability
  * hardening.</p>
  *
+ * <p><b>GAP-1361 — external-call resilience.</b> No {@code @CircuitBreaker}: this sender is
+ * invoked off the RabbitMQ {@code EmailConsumer} (async broker = bulkhead-style isolation, not
+ * a user-facing request thread), the Resend HTTP call is bounded by the {@link RestTemplate}
+ * timeout, and any failure is caught locally and returned as a {@code FAILED}/{@code MOCK}
+ * {@link EmailResponse} (the broker retry/DLQ path provides redelivery).</p>
+ *
  * @since Wave 98 Bucket B1 (GAP-657)
  */
 @Slf4j

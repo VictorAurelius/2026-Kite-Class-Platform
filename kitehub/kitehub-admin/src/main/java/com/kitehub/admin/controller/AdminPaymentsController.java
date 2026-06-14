@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,10 +39,20 @@ import java.util.List;
 @Tag(name = "Admin v1 - Payments", description = "Admin payments listing + summary (Wave 92 Bucket D — Wave 90 404 fix)")
 public class AdminPaymentsController {
 
+    /**
+     * GAP-1360: hard cap on the pending-payment listing. The queue can accumulate when admins
+     * fall behind on confirmation; without a bound the endpoint materialised + serialised the
+     * whole queue. The {@code List<PaymentResponse>} response shape is retained because the
+     * frontend ({@code useAdminPendingPayments}) consumes a JSON array — emitting a {@code Page}
+     * envelope would break that caller. A full {@code Page<>} envelope + FE consumption is
+     * deferred to a frontend-coordinated change (gap stays PARTIAL).
+     */
+    static final int PENDING_PAYMENTS_MAX = 500;
+
     private final PaymentService paymentService;
 
     /**
-     * Get list of pending payments.
+     * Get list of pending payments (bounded to {@link #PENDING_PAYMENTS_MAX}).
      *
      * @return list of pending payments
      */
@@ -49,7 +60,9 @@ public class AdminPaymentsController {
     @Operation(summary = "List pending payments", description = "Payments awaiting admin confirmation")
     public ResponseEntity<List<PaymentResponse>> listPendingPayments() {
         log.info("Admin v1 list pending payments");
-        List<PaymentResponse> payments = paymentService.getPendingPayments();
+        List<PaymentResponse> payments = paymentService
+                .getPendingPayments(PageRequest.of(0, PENDING_PAYMENTS_MAX))
+                .getContent();
         return ResponseEntity.ok(payments);
     }
 

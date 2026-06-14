@@ -1,6 +1,6 @@
 # GAP-1363: kitehub-admin cache single-max-TTL → dashboard cache stale 1h
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟢 P3
 **Domain:** Backend
 **Found:** 2026-06-14 (Performance full audit post wave-p0-closeout-1, sub-check 4.2)
@@ -18,8 +18,18 @@ Dùng per-cache TTL: `CaffeineCacheManager` registerCustomCache(name, individual
 
 ## Acceptance Criteria
 
-- [ ] Dashboard cache TTL = 300s (không bị nâng theo revenue)
-- [ ] Revenue cache TTL = 3600s độc lập
+- [x] Dashboard cache TTL = 300s (không bị nâng theo revenue)
+- [x] Revenue cache TTL = 3600s độc lập
+
+## Resolution (2026-06-15, branch fix/audit-fixE-perf-2026-06-14)
+
+- `AdminCacheConfig.cacheManager()`: bỏ `max(dashboardTtl, revenueTtl)` single-TTL. Default
+  Caffeine builder = `revenueTtlSeconds` (3600s) áp cho revenue + transitive caches
+  (`subscriptionByInstance`, `instanceSummary`); dashboard cache đăng ký riêng qua
+  `registerCustomCache(ADMIN_DASHBOARD_CACHE, Caffeine.expireAfterWrite(dashboardTtlSeconds=300s))`
+  — đăng ký SAU `setCacheNames` để không bị ghi đè. `getCacheNames()` vẫn trả đủ 4 cache.
+- Test: `CacheConfigTest.dashboardCache_hasShorterTtlThanRevenue` (assert native Caffeine
+  `policy().expireAfterWrite()` = 300s dashboard vs 3600s revenue). Full admin surefire 64 tests PASS.
 
 ## Related
 

@@ -303,3 +303,16 @@ storage:
 backup:
   retention-count: ${BACKUP_RETENTION_COUNT:7}
   pg-dump-path: ${PG_DUMP_PATH:pg_dump}
+
+# GAP-1361: circuit breaker around the synchronous VietQR external API. Opens after a 50%
+# failure rate over a 10-call window so repeated VietQR outages fail fast (degrade to the
+# public fallback image URL) instead of blocking request threads on the HTTP timeout.
+resilience4j:
+  circuitbreaker:
+    instances:
+      vietqr:
+        failureRateThreshold: 50
+        waitDurationInOpenState: 30s
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3

@@ -2,6 +2,7 @@ package com.kitehub.subscription.service;
 
 import com.kitehub.subscription.dto.vietqr.VietQRRequest;
 import com.kitehub.subscription.dto.vietqr.VietQRResponse;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -287,5 +288,40 @@ class VietQRServiceTest {
         assertThat(bankInfo).contains(BANK_CODE);
         assertThat(bankInfo).contains(ACCOUNT_NUMBER);
         assertThat(bankInfo).contains(ACCOUNT_NAME);
+    }
+
+    // ---- GAP-1361: circuit breaker wiring -------------------------------------
+
+    @Test
+    @DisplayName("GAP-1361: generateQRCode is @CircuitBreaker-protected with a fallback")
+    void generateQRCode_hasCircuitBreaker() throws Exception {
+        CircuitBreaker cb = VietQRService.class
+                .getDeclaredMethod("generateQRCode", UUID.class, Long.class, String.class)
+                .getAnnotation(CircuitBreaker.class);
+
+        assertThat(cb).as("generateQRCode(UUID,Long,String) must be @CircuitBreaker-annotated")
+                .isNotNull();
+        assertThat(cb.name()).isEqualTo(VietQRService.CB_NAME);
+        assertThat(cb.fallbackMethod()).isEqualTo("generateQRCodeFallback");
+    }
+
+    @Test
+    @DisplayName("GAP-1361: fallback returns the public VietQR image URL")
+    void generateQRCodeFallback_returnsPublicImageUrl() throws Exception {
+        UUID paymentId = UUID.randomUUID();
+        Long amount = 100000L;
+
+        var method = VietQRService.class.getDeclaredMethod(
+                "generateQRCodeFallback", UUID.class, Long.class, String.class, Throwable.class);
+        method.setAccessible(true);
+
+        String url = (String) method.invoke(
+                vietQRService, paymentId, amount, "KITECLASS TEST",
+                new RuntimeException("circuit open"));
+
+        assertThat(url).contains("https://img.vietqr.io/image/");
+        assertThat(url).contains(BANK_CODE);
+        assertThat(url).contains(ACCOUNT_NUMBER);
+        assertThat(url).contains("amount=" + amount);
     }
 }

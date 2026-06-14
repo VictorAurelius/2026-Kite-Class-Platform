@@ -13,6 +13,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -190,9 +192,13 @@ class AcademicYearServiceTest {
     @Test
     void getById_and_listAll_delegate_to_repository() {
         when(academicYearRepository.findById(1L)).thenReturn(Optional.of(validYear));
-        when(academicYearRepository.findAll()).thenReturn(List.of(validYear));
+        // GAP-1362: listAll() is now bounded — delegates to findAll(Pageable), never the
+        // unbounded findAll().
+        when(academicYearRepository.findAll(any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(validYear)));
 
         assertThat(service.getById(1L)).isPresent();
         assertThat(service.listAll()).hasSize(1);
+        verify(academicYearRepository).findAll(any(Pageable.class));
     }
 }

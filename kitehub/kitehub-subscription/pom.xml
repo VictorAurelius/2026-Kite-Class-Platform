@@ -115,6 +115,15 @@
             <artifactId>caffeine</artifactId>
         </dependency>
 
+        <!-- GAP-1361: Resilience4j circuit breaker around the synchronous VietQR external call.
+             Version pinned to match kitehub-branding (not BOM-managed). AOP starter already
+             present, so the @CircuitBreaker aspect wires automatically. -->
+        <dependency>
+            <groupId>io.github.resilience4j</groupId>
+            <artifactId>resilience4j-spring-boot3</artifactId>
+            <version>2.4.0</version>
+        </dependency>
+
         <!-- Redis (GAP-1075 — refresh-token blacklist; design-canonical per
              service-catalog-and-auth-flow.md). Lettuce connects lazily so a Redis
              outage at startup does not block boot; the blacklist fails open. -->

@@ -33,6 +33,13 @@ import java.util.UUID;
  * Includes idempotency check (alreadySentToday) to prevent duplicate emails per day.
  * The dedup check runs BEFORE publishing/sending regardless of mode.
  *
+ * <p><b>GAP-1361 — external-call resilience.</b> No {@code @CircuitBreaker} is needed here:
+ * in the default queue mode the email is handed to RabbitMQ via the outbox (the broker hop is
+ * the bulkhead-style isolation — a slow/down kitehub-email never blocks this caller), and the
+ * direct-HTTP fallback ({@link #sendEmailRequestDirect}) is dev/test only with a bounded
+ * {@link RestTemplate} timeout. Synchronous fail-fast circuit-breaking is reserved for the
+ * user-facing VietQR payment path ({@code VietQRService}).</p>
+ *
  * @author KiteHub Team
  * @since 1.0.0
  */

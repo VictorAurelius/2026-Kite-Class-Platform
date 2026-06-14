@@ -61,22 +61,29 @@ public class CacheConfig {
     @Primary
     @Bean(name = "adminCacheManager")
     public CacheManager cacheManager() {
-        // Use max TTL for the Caffeine builder; per-cache finer-grained TTL differentiation
-        // would require a dedicated CaffeineCacheManager subclass. For baseline GAP-132 we
-        // accept single-TTL configuration — the dashboard cache evicts naturally before the
-        // revenue cache because it is touched far more frequently.
-        long maxTtl = Math.max(dashboardTtlSeconds, revenueTtlSeconds);
-
+        // GAP-1363: per-cache TTL. Previously a single max(dashboard, revenue) TTL applied to
+        // ALL caches, so the dashboard cache (meant to be ~5min fresh) actually went stale for
+        // up to the 1h revenue TTL. We register the dashboard cache with its own short TTL and
+        // let the revenue + transitively-required subscription caches use the longer default.
         CaffeineCacheManager manager = new CaffeineCacheManager();
+
+        // Default builder (longer TTL) — applies to revenue + transitive subscription caches.
+        manager.setCaffeine(Caffeine.newBuilder()
+                .expireAfterWrite(revenueTtlSeconds, TimeUnit.SECONDS)
+                .maximumSize(5_000));
         manager.setCacheNames(List.of(
-                ADMIN_DASHBOARD_CACHE,
                 ADMIN_REVENUE_REPORT_CACHE,
                 // Transitively required by kitehub-subscription components in this context.
                 "subscriptionByInstance",
                 "instanceSummary"));
-        manager.setCaffeine(Caffeine.newBuilder()
-                .expireAfterWrite(maxTtl, TimeUnit.SECONDS)
-                .maximumSize(5_000));
+
+        // Dashboard cache: dedicated short TTL, independent of revenue. Registered last so it
+        // is never overwritten by the default-builder caches above.
+        manager.registerCustomCache(ADMIN_DASHBOARD_CACHE,
+                Caffeine.newBuilder()
+                        .expireAfterWrite(dashboardTtlSeconds, TimeUnit.SECONDS)
+                        .maximumSize(5_000)
+                        .build());
         return manager;
     }
 }

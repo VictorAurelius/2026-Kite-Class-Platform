@@ -29,6 +29,13 @@ import java.util.Map;
  * <p>Caches per {@code (instanceId, tenantId)} pair for 5 minutes via Caffeine.
  * Cache is evicted eagerly when {@code branding.updated} events arrive.
  *
+ * <p><b>GAP-1361 — external-call resilience.</b> No {@code @CircuitBreaker} is added: this
+ * client is already fail-safe by construction — an explicit Netty connect timeout (5s) +
+ * response timeout (GAP-131) bound the call, and any failure degrades to
+ * {@link TenantBranding#defaultBranding()} inside the {@code try/catch} below rather than
+ * propagating. Email itself flows through the RabbitMQ broker (async isolation), so this
+ * lookup never sits on a user-facing request thread.
+ *
  * @since Wave 4 (GAP-021 — email branding propagation)
  */
 @Slf4j

@@ -424,6 +424,22 @@ public class PaymentService {
     }
 
     /**
+     * Get pending payments (Admin), bounded by {@link Pageable}.
+     *
+     * <p>GAP-1360: the pending-payment queue can accumulate when admins fall behind on
+     * confirmation; this overload pages through it instead of returning the whole queue
+     * in one unbounded response.
+     *
+     * @param pageable page request (size/sort)
+     * @return page of pending payment responses
+     */
+    @Transactional(readOnly = true)
+    public Page<PaymentResponse> getPendingPayments(Pageable pageable) {
+        log.info("Admin fetching pending payments (paged: {})", pageable);
+        return paymentRepository.findPendingPayments(pageable).map(PaymentResponse::fromEntity);
+    }
+
+    /**
      * Confirm payment manually (Admin).
      *
      * @param paymentId Payment UUID

@@ -14,6 +14,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -42,6 +44,16 @@ import java.util.List;
 @Tag(name = "FrontendInstance", description = "Frontend instance provisioning lifecycle APIs")
 public class InstanceController {
 
+    /**
+     * GAP-1359: hard cap on the unfiltered list response. {@code FrontendInstance} is a
+     * platform-level table that grows with the number of provisioned instances; without a
+     * bound the {@code status == null} branch materialised + serialised the whole table in a
+     * single response. The list shape is retained (FE consumers expect a JSON array) — this is
+     * the "hard cap + documented exemption" path of GAP-1359's AC. A full {@code Pageable}
+     * envelope is deferred to avoid breaking the array contract.
+     */
+    static final int INSTANCE_LIST_MAX = 500;
+
     private final InstanceLifecycleService lifecycle;
     private final FrontendInstanceRepository repository;
 
@@ -67,7 +79,8 @@ public class InstanceController {
     public ApiResponse<List<InstanceResponse>> list(
             @RequestParam(required = false) FrontendInstanceStatus status) {
         List<FrontendInstance> all = (status == null)
-                ? repository.findAll()
+                ? repository.findAll(PageRequest.of(0, INSTANCE_LIST_MAX,
+                        Sort.by(Sort.Direction.DESC, "id"))).getContent()
                 : repository.findByStatusAndDeletedFalse(status);
         return ApiResponse.success(all.stream().map(InstanceResponse::from).toList());
     }

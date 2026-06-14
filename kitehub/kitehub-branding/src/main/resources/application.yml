@@ -163,6 +163,14 @@ resilience4j:
         waitDurationInOpenState: 30s
         slidingWindowSize: 20
         minimumNumberOfCalls: 10
+  # GAP-1356: bound concurrent AI image-generation calls (10-30s each) so a branding
+  # request burst can't exhaust the Tomcat thread pool. Mirrors kiteclass-core `ai`
+  # bulkhead. maxWaitDuration 0 = reject immediately when full (CB fallback handles it).
+  bulkhead:
+    instances:
+      ai-provider:
+        maxConcurrentCalls: 10
+        maxWaitDuration: 0
 
 # OpenAI Configuration (used when ai.provider=openai)
 openai:

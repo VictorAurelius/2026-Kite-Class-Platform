@@ -1,6 +1,7 @@
 package com.kitehub.branding.client;
 
 import com.kitehub.branding.dto.LogoAnalysis;
+import io.github.resilience4j.bulkhead.annotation.Bulkhead;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -56,12 +57,14 @@ public class ResilientAIClient implements AIClient {
     }
 
     @CircuitBreaker(name = CB_NAME, fallbackMethod = "analyzeLogoFallback")
+    @Bulkhead(name = CB_NAME)
     @Override
     public Mono<LogoAnalysis> analyzeLogo(String imageUrl, String organizationName) {
         return delegate.analyzeLogo(imageUrl, organizationName);
     }
 
     @CircuitBreaker(name = CB_NAME, fallbackMethod = "generateImageFallback")
+    @Bulkhead(name = CB_NAME)
     @Override
     public Mono<String> generateImage(String prompt, String size) {
         return delegate.generateImage(prompt, size);
@@ -75,11 +78,13 @@ public class ResilientAIClient implements AIClient {
      * KHÔNG charge.
      */
     @CircuitBreaker(name = CB_NAME)
+    @Bulkhead(name = CB_NAME)
     public Mono<String> generateImageStrict(String prompt, String size) {
         return delegate.generateImage(prompt, size);
     }
 
     @CircuitBreaker(name = CB_NAME, fallbackMethod = "generateTextFallback")
+    @Bulkhead(name = CB_NAME)
     @Override
     public Mono<String> generateText(String prompt) {
         return delegate.generateText(prompt);

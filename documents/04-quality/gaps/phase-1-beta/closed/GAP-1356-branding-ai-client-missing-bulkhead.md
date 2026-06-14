@@ -1,6 +1,6 @@
 # GAP-1356: kitehub-branding ResilientAIClient thiếu @Bulkhead
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟠 P1
 **Domain:** Backend
 **Found:** 2026-06-14 (Performance full audit post wave-p0-closeout-1, sub-check 5.2)
@@ -20,9 +20,19 @@ Thêm `@Bulkhead(name="ai-provider")` lên các method AI của branding Resilie
 
 ## Acceptance Criteria
 
-- [ ] Mỗi method external AI call trong branding ResilientAIClient có `@Bulkhead`
-- [ ] `resilience4j.bulkhead.instances.<name>` khai báo trong branding application.yml
-- [ ] grep `@Bulkhead` count khớp số external AI call site trong branding
+- [x] Mỗi method external AI call trong branding ResilientAIClient có `@Bulkhead`
+- [x] `resilience4j.bulkhead.instances.<name>` khai báo trong branding application.yml
+- [x] grep `@Bulkhead` count khớp số external AI call site trong branding
+
+## Resolution (2026-06-15, branch fix/audit-fixE-perf-2026-06-14)
+
+- Thêm `@Bulkhead(name = CB_NAME)` lên cả 4 method AI call của `ResilientAIClient`
+  (`analyzeLogo`, `generateImage`, `generateImageStrict`, `generateText`) — khớp số CB site.
+- Thêm khối `resilience4j.bulkhead.instances.ai-provider` (`maxConcurrentCalls: 10`,
+  `maxWaitDuration: 0`) vào `kitehub-branding/application.yml`, mirror `kiteclass-core` `ai`.
+- Bulkhead là innermost aspect; khi đầy → reject → CB `fallbackMethod` xử lý graceful.
+- Test: `ResilientAIClientTest.externalAiMethods_haveBulkhead` (reflection assert annotation).
+  Full branding surefire 355 tests PASS.
 
 ## Related
 

@@ -48,6 +48,17 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
     @Query("SELECT p FROM Payment p WHERE p.status = 'PENDING' AND p.deleted = false ORDER BY p.createdAt ASC")
     List<Payment> findPendingPayments();
 
+    /**
+     * GAP-1360: bounded variant of {@link #findPendingPayments()} — the admin pending-payment
+     * queue can accumulate, so the admin listing pages through it instead of materialising the
+     * whole queue. Soft-delete + status filter pushed into the WHERE clause.
+     */
+    @Query(
+        value = "SELECT p FROM Payment p WHERE p.status = 'PENDING' AND p.deleted = false ORDER BY p.createdAt ASC",
+        countQuery = "SELECT COUNT(p) FROM Payment p WHERE p.status = 'PENDING' AND p.deleted = false"
+    )
+    Page<Payment> findPendingPayments(Pageable pageable);
+
     // =========================================================
     // GAP-432 Wave 41 Bucket C: bounded admin payment listing
     // (replace prior unbounded findAll() in PaymentService.getAllPayments).
