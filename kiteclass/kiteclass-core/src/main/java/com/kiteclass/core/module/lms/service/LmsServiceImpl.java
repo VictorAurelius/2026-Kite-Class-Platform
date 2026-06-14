@@ -65,8 +65,7 @@ public class LmsServiceImpl implements LmsService {
     private final LearningResourceRepository learningResourceRepository;
     private final LessonProgressRepository lessonProgressRepository;
     private final CourseRepository courseRepository;
-    private final com.kiteclass.core.module.enrollment.repository.EnrollmentRepository enrollmentRepository;
-    private final com.kiteclass.core.module.clazz.repository.ClassRepository classRepository;
+    private final LessonAccessGuard lessonAccessGuard;
     private final StorageService storageService;
     private final LmsMapper lmsMapper;
     private final com.kiteclass.core.common.security.AuthorizationBean authz;
@@ -157,7 +156,7 @@ public class LmsServiceImpl implements LmsService {
         // metadata only for paid lessons; trial lessons always include full body.
         // GAP-1115: previously ALL lessons were returned with full content, leaking
         // paid material to non-enrolled students.
-        boolean enrolled = isStudentEnrolledInCourse(userId, courseId);
+        boolean enrolled = lessonAccessGuard.isStudentEnrolledInCourse(userId, courseId);
 
         // Fetch modules + ALL lessons (outline visible regardless of enrollment)
         List<CourseModule> modules = courseModuleRepository
@@ -189,7 +188,7 @@ public class LmsServiceImpl implements LmsService {
         // If not trial, verify enrollment (BR-LMS-002)
         CourseModule module = courseModuleRepository.findByIdAndDeletedFalse(lesson.getModuleId())
                 .orElseThrow(() -> new EntityNotFoundException("MODULE_NOT_FOUND", (Object) lesson.getModuleId()));
-        verifyStudentEnrollment(userId, module.getCourseId());
+        lessonAccessGuard.verifyStudentEnrollment(userId, module.getCourseId());
 
         return buildLessonDetailResponse(lesson);
     }
@@ -649,57 +648,6 @@ public class LmsServiceImpl implements LmsService {
         }
 
         return course;
-    }
-
-    /**
-     * Verifies that student has ACTIVE enrollment in ANY class of the course.
-     * BR-LMS-002: Student must have active enrollment to access paid lessons.
-     *
-     * @param studentId the student user ID
-     * @param courseId the course ID
-     * @throws PermissionDeniedException if student not enrolled in any class
-     */
-    private void verifyStudentEnrollment(Long studentId, Long courseId) {
-        log.debug("Verifying enrollment for student {} in course {}", studentId, courseId);
-
-        if (!isStudentEnrolledInCourse(studentId, courseId)) {
-            log.warn("Student {} not enrolled in course {}", studentId, courseId);
-            throw new PermissionDeniedException("STUDENT_NOT_ENROLLED_IN_COURSE");
-        }
-
-        log.debug("Student {} has active enrollment in course {}", studentId, courseId);
-    }
-
-    /**
-     * Checks (without throwing) whether a student has an ACTIVE enrollment in ANY class
-     * of the course. BR-LMS-002. Used both by {@link #verifyStudentEnrollment} (which
-     * throws on false) and by paywall content-stripping in
-     * {@link #getCourseStructureForStudent}.
-     *
-     * @param studentId the student user ID
-     * @param courseId the course ID
-     * @return true if student has an ACTIVE enrollment in at least one class of the course
-     */
-    private boolean isStudentEnrolledInCourse(Long studentId, Long courseId) {
-        // Find all classes for this course
-        List<com.kiteclass.core.module.clazz.entity.Class> courseClasses = classRepository
-                .findByCourseIdAndDeletedFalse(courseId, org.springframework.data.domain.Pageable.unpaged())
-                .getContent();
-
-        if (courseClasses.isEmpty()) {
-            return false;
-        }
-
-        // Extract class IDs
-        List<Long> classIds = courseClasses.stream()
-                .map(com.kiteclass.core.module.clazz.entity.Class::getId)
-                .toList();
-
-        // Check if student has ACTIVE enrollment in ANY class
-        return classIds.stream()
-                .anyMatch(classId -> enrollmentRepository
-                    .existsByStudentIdAndClassIdAndStatusAndDeletedFalse(
-                        studentId, classId, com.kiteclass.core.common.constant.EnrollmentStatus.ACTIVE));
     }
 
     /**
