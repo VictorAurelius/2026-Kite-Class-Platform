@@ -182,6 +182,7 @@ public class RoleService {
      *
      * @return per-user assignment summary (first-seen order preserved)
      */
+    @Transactional(readOnly = true)
     public List<UserRoleAssignmentResponse> listAssignments() {
         return userRoleRepository.findByDeletedFalse().stream()
                 .collect(Collectors.groupingBy(
@@ -199,6 +200,7 @@ public class RoleService {
      * @param userId the user's numeric reference id
      * @return assignment summary (empty role list if none)
      */
+    @Transactional(readOnly = true)
     public UserRoleAssignmentResponse getAssignmentForUser(Long userId) {
         List<String> roles = getUserRoles(userId).stream()
                 .map(Role::getName)

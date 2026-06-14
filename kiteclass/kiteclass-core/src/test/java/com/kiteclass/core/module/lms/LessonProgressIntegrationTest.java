@@ -136,7 +136,7 @@ class LessonProgressIntegrationTest {
     void completeLesson_shouldCreateNewProgressRecord() throws Exception {
         mockMvc.perform(post("/api/v1/lms/progress/lessons/{lessonId}/complete", lesson1.getId())
                         .header("X-Tenant-Id", tenantId.toString())
-                        .header("X-User-Id", studentId.toString())
+                        .header("X-User-Reference-Id", studentId.toString())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -162,7 +162,7 @@ class LessonProgressIntegrationTest {
         // Complete lesson first time
         mockMvc.perform(post("/api/v1/lms/progress/lessons/{lessonId}/complete", lesson1.getId())
                         .header("X-Tenant-Id", tenantId.toString())
-                        .header("X-User-Id", studentId.toString())
+                        .header("X-User-Reference-Id", studentId.toString())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
 
@@ -171,7 +171,7 @@ class LessonProgressIntegrationTest {
         // Complete lesson second time (should be idempotent - BR-LMS-010)
         mockMvc.perform(post("/api/v1/lms/progress/lessons/{lessonId}/complete", lesson1.getId())
                         .header("X-Tenant-Id", tenantId.toString())
-                        .header("X-User-Id", studentId.toString())
+                        .header("X-User-Reference-Id", studentId.toString())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -188,7 +188,7 @@ class LessonProgressIntegrationTest {
     void completeLesson_nonExistentLesson_shouldReturn404() throws Exception {
         mockMvc.perform(post("/api/v1/lms/progress/lessons/{lessonId}/complete", 99999L)
                         .header("X-Tenant-Id", tenantId.toString())
-                        .header("X-User-Id", studentId.toString())
+                        .header("X-User-Reference-Id", studentId.toString())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.success").value(false));
@@ -201,7 +201,7 @@ class LessonProgressIntegrationTest {
     void getCourseProgress_noLessonsCompleted_shouldReturn0Percent() throws Exception {
         mockMvc.perform(get("/api/v1/lms/progress/courses/{courseId}", testCourse.getId())
                         .header("X-Tenant-Id", tenantId.toString())
-                        .header("X-User-Id", studentId.toString())
+                        .header("X-User-Reference-Id", studentId.toString())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -221,7 +221,7 @@ class LessonProgressIntegrationTest {
 
         mockMvc.perform(get("/api/v1/lms/progress/courses/{courseId}", testCourse.getId())
                         .header("X-Tenant-Id", tenantId.toString())
-                        .header("X-User-Id", studentId.toString())
+                        .header("X-User-Reference-Id", studentId.toString())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -240,7 +240,7 @@ class LessonProgressIntegrationTest {
 
         mockMvc.perform(get("/api/v1/lms/progress/courses/{courseId}", testCourse.getId())
                         .header("X-Tenant-Id", tenantId.toString())
-                        .header("X-User-Id", studentId.toString())
+                        .header("X-User-Reference-Id", studentId.toString())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -264,7 +264,7 @@ class LessonProgressIntegrationTest {
         // Check student 1 progress
         mockMvc.perform(get("/api/v1/lms/progress/courses/{courseId}", testCourse.getId())
                         .header("X-Tenant-Id", tenantId.toString())
-                        .header("X-User-Id", studentId.toString())
+                        .header("X-User-Reference-Id", studentId.toString())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.completedLessons").value(2))
@@ -273,7 +273,7 @@ class LessonProgressIntegrationTest {
         // Check student 2 progress
         mockMvc.perform(get("/api/v1/lms/progress/courses/{courseId}", testCourse.getId())
                         .header("X-Tenant-Id", tenantId.toString())
-                        .header("X-User-Id", otherStudentId.toString())
+                        .header("X-User-Reference-Id", otherStudentId.toString())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.completedLessons").value(1))
@@ -287,7 +287,7 @@ class LessonProgressIntegrationTest {
     void getLessonProgress_noProgress_shouldReturnNull() throws Exception {
         mockMvc.perform(get("/api/v1/lms/progress/lessons/{lessonId}", lesson1.getId())
                         .header("X-Tenant-Id", tenantId.toString())
-                        .header("X-User-Id", studentId.toString())
+                        .header("X-User-Reference-Id", studentId.toString())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -302,7 +302,7 @@ class LessonProgressIntegrationTest {
 
         mockMvc.perform(get("/api/v1/lms/progress/lessons/{lessonId}", lesson1.getId())
                         .header("X-Tenant-Id", tenantId.toString())
-                        .header("X-User-Id", studentId.toString())
+                        .header("X-User-Reference-Id", studentId.toString())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))

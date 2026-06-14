@@ -46,3 +46,7 @@ Wave RBAC-SSO 1 đã ship code + unit tests cho cả 4 surface:
 Endpoints under `/api/v1/auth/sso/**` đã public sẵn ở gateway (`JwtAuthenticationGatewayFilter.isPublicPath`) + subscription SecurityConfig (`/api/v1/auth/** permitAll`) → không cần đổi gateway/security config. Gateway route `kitehub-auth-v1` (`Path=/api/v1/auth/**`) đã trỏ subscription.
 
 Còn lại: runtime G2 walk (human) trên stack production-equivalent + paired re-walk evidence per `feature-ship-runtime-walk-mandate.md` §3 trước khi flip DONE.
+
+## G1 runtime walk (2026-06-14) — gateway BE-contract: ✅ FULL PASS (status giữ PARTIAL)
+
+Per `documents/04-quality/audits/rst-html/2026-06-14-g1-runtime-walk-rbac-lms.md`. SSO full chain qua gateway `:9000`: `POST /api/v1/auth/sso/issue-code` (KH access token) → 200 `{code, expiresIn:60}`; `POST /api/v1/auth/sso/exchange {code}` → 200 (accessToken+refreshToken+user, no re-login); replay code lần 2 → 401 (single-use GETDEL); CSRF non-JSON → 415; no-token issue → 401. Toàn bộ AC BE PASS (TTL 60s, single-use, CSRF JSON-guard). **Còn lại G2★ human:** browser-walk nút "Mở quản lý trường" KH `:3001` → KC `:3000` callback cross-origin (FE image stale). KHÔNG flip DONE.
