@@ -48,3 +48,7 @@ Mirrors the teacher provisioning path 1:1:
 ## G1 runtime walk (2026-06-14) — gateway BE-contract: ✅ PASS (status giữ PARTIAL)
 
 Per `documents/04-quality/audits/rst-html/2026-06-14-g1-runtime-walk-rbac-lms.md`. STUDENT token (role=STUDENT, referenceId=students.id) qua gateway `:9000` HS512 chain: `/enrollments/me` 200 (self-scoped); LMS student-area (sau fix GAP-1297) lesson-player + progress 200; cross-role 403 (TEACHER→/me). Cross-student isolation: student 4 (class 14) vs student 5 (class 6) = tập enrollment disjoint. **Còn lại G2★ human:** browser-walk student-shell login + `/student/*` trên FE `:3000` (KC-native login + student-shell FE). KHÔNG flip DONE.
+
+## G1-FE browser walk note (2026-06-14)
+
+G1-FE PASS: STUDENT login `/api/v1/tenant-auth/login` → JWT role=STUDENT → redirect `/student/today` (student-shell render). Provision student credential (entity_id=164 skytest) verified. — verified qua Playwright headless trên FE thật `skytest.127.0.0.1.nip.io:3000` (rebuild kiteclass-frontend). Evidence: `documents/04-quality/audits/rst-html/2026-06-14-g1-fe-browser-walk.md`. **Giữ PARTIAL** — human G2★ vẫn bắt buộc (mutation deep-interaction chưa walk).

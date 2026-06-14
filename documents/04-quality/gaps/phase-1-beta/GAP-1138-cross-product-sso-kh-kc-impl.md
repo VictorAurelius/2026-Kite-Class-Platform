@@ -50,3 +50,7 @@ Còn lại: runtime G2 walk (human) trên stack production-equivalent + paired r
 ## G1 runtime walk (2026-06-14) — gateway BE-contract: ✅ FULL PASS (status giữ PARTIAL)
 
 Per `documents/04-quality/audits/rst-html/2026-06-14-g1-runtime-walk-rbac-lms.md`. SSO full chain qua gateway `:9000`: `POST /api/v1/auth/sso/issue-code` (KH access token) → 200 `{code, expiresIn:60}`; `POST /api/v1/auth/sso/exchange {code}` → 200 (accessToken+refreshToken+user, no re-login); replay code lần 2 → 401 (single-use GETDEL); CSRF non-JSON → 415; no-token issue → 401. Toàn bộ AC BE PASS (TTL 60s, single-use, CSRF JSON-guard). **Còn lại G2★ human:** browser-walk nút "Mở quản lý trường" KH `:3001` → KC `:3000` callback cross-origin (FE image stale). KHÔNG flip DONE.
+
+## G1-FE browser walk note (2026-06-14)
+
+G1-FE BLOCKED: SSO KH→KC không browser-walk được local — thiếu KiteHub owner credential (KH auth = kitehub-subscription tách biệt KC tenant-auth). KH `:3001/dashboard` đá `/login`. Filed **GAP-1305** (seed KH owner cred). BE-contract walk 2026-06-14 đã verify SSO issue→exchange→replay-401. — verified qua Playwright headless trên FE thật `skytest.127.0.0.1.nip.io:3000` (rebuild kiteclass-frontend). Evidence: `documents/04-quality/audits/rst-html/2026-06-14-g1-fe-browser-walk.md`. **Giữ PARTIAL** — human G2★ vẫn bắt buộc (mutation deep-interaction chưa walk).

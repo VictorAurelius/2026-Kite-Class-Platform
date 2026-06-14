@@ -50,3 +50,7 @@ Build FE LMS theo 2 increment (tách theo dependency auth):
 ## G1 runtime walk (2026-06-14) — gateway BE-contract: ✅ PASS (status giữ PARTIAL)
 
 Per `documents/04-quality/audits/rst-html/2026-06-14-g1-runtime-walk-rbac-lms.md`. Increment A teacher authoring: create module/lesson 201, reorder 200, upload-url 201 (presigned MinIO); guest catalog `/courses?status=PUBLISHED` 200 + guest course-structure 200 (trial). Increment B student consumption (sau fix GAP-1297 X-User-Id→X-User-Reference-Id): GET modules/lesson 200, mark-complete 200 (`userId=4 100%`), course-progress 200. Paywall enforcement = GAP-1115/1116; X-Teacher-Id spoof authz = GAP-798 (PoC appended). **Còn lại G2★ human:** browser-walk teacher authoring tab + student lesson-player trên FE `:3000`. KHÔNG flip DONE.
+
+## G1-FE browser walk note (2026-06-14)
+
+G1-FE PASS: Increment A teacher `/courses/1` content-tab render + guest `/catalog` (Test Course + paywall CTA) render; Increment B student `/student/learning` (enrolled course card) + `/student/assignments` render. CRUD content + lesson-player mark-complete + submit chưa walk (mutation, G2★). — verified qua Playwright headless trên FE thật `skytest.127.0.0.1.nip.io:3000` (rebuild kiteclass-frontend). Evidence: `documents/04-quality/audits/rst-html/2026-06-14-g1-fe-browser-walk.md`. **Giữ PARTIAL** — human G2★ vẫn bắt buộc (mutation deep-interaction chưa walk).

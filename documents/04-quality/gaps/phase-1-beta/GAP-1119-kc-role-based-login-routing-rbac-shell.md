@@ -62,3 +62,7 @@ FE LMS wave (GAP-1113) và mọi surface KC khác giả định một **tầng n
 ## G1 runtime walk (2026-06-14) — gateway BE-contract: ✅ PASS (status giữ PARTIAL)
 
 Per `documents/04-quality/audits/rst-html/2026-06-14-g1-runtime-walk-rbac-lms.md`. RoleGuard BE authz verify: cross-role 403 đủ 4 chiều (TEACHER/STUDENT/PARENT→`/roles/templates`=403; TEACHER→`/enrollments/me`=403); role-home BE-area reachable đúng role (OWNER→roles 200, STUDENT→/me 200, TEACHER→lms 200). Bucket D assign/revoke: `GET/POST /roles/assignments` 200/201, revoke 204, invalid-role 400, TEACHER-assign 403 (sau fix GAP-1298 LazyInit 500). **Còn lại G2★ human:** browser-walk role-home redirect (`roles.ts ROLE_HOME`) + `/admin/roles` assign UI trên FE `:3000` (FE image stale, cần rebuild). KHÔNG flip DONE.
+
+## G1-FE browser walk note (2026-06-14)
+
+G1-FE PASS: role-redirect 4 role (ADMIN/TEACHER/STUDENT/PARENT) đúng role-home + RoleGuard cross-role chặn 3 hướng + `/admin/roles` render 5 mẫu vai trò cố định. Mutation assign/revoke role chưa walk (cần seed templates + G2★). — verified qua Playwright headless trên FE thật `skytest.127.0.0.1.nip.io:3000` (rebuild kiteclass-frontend). Evidence: `documents/04-quality/audits/rst-html/2026-06-14-g1-fe-browser-walk.md`. **Giữ PARTIAL** — human G2★ vẫn bắt buộc (mutation deep-interaction chưa walk).
