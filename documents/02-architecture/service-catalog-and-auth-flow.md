@@ -69,6 +69,8 @@ Mỗi service = một row. Cột bao gồm: name + repo path + port (host:contai
 
 ## 2. Dependency Graph (Mermaid flowchart)
 
+> **Routing SLO:** mỗi route qua gateway có ngân sách latency theo lớp endpoint (auth / read / write / heavy-gen / health) — xem [`slo.md`](slo.md) §1 bảng per-endpoint-class + §2 alert threshold (GAP-1366).
+
 Phụ thuộc inter-service HTTP + RabbitMQ + DB + S3. Đã grep-verify qua usage `@FeignClient` / `RestTemplate` / `WebClient` / `@RabbitListener` / `rabbitTemplate.convertAndSend` trong source.
 
 ```mermaid

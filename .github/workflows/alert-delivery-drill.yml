@@ -1,0 +1,159 @@
+name: Ops — Alert Delivery Drill (monthly)
+
+# =============================================================================
+# GAP-1370 (ops-readiness audit 2026-06-14, OPS-005) — establishes the monthly
+# cadence that exercises the alert-delivery path end-to-end:
+#
+#     CloudWatch alarm  ->  SNS topic kitehub-production-alerts  ->  email
+#
+# Why: GAP-144 shipped 8 P0 CloudWatch alarms + SNS topic + 2 email subscriptions
+# (production-alerts.tf), but the SNS->email leg was never exercised. An SNS
+# subscription that is unconfirmed, an SES identity that bounces, or an alarm
+# action mis-wired stays SILENT until the first real incident. This drill forces
+# a synthetic alarm transition so we discover a broken delivery path BEFORE it
+# matters.
+#
+# Cadence: 1st of every month at 04:00 UTC + manual workflow_dispatch.
+# (restore-drill.yml runs 03:00 — stagger so they don't collide.)
+#
+# Behavior (mirrors restore-drill.yml gate pattern so it never fails on a
+# stopped/unwired stack):
+#   1. verify-config (ALWAYS): assert the cadence runbook exists + the SNS
+#      delivery path is declared in terraform. Keeps the drill honest even when
+#      the live body is gated off.
+#   2. fire-drill (GATED on vars.ALERT_DRILL_ENABLED == 'true' OR force input):
+#      set a benign alarm to ALARM then back to OK via the OIDC drill role,
+#      so SNS fires a real email to the subscribers; record a drill log summary.
+#
+# Gate flip: enable in repo Settings -> Variables -> ALERT_DRILL_ENABLED=true
+# once the AWS stack is restored + the drill IAM role exists.
+#
+# Required repo secrets (when enabled):
+#   - AWS_ALERT_DRILL_ROLE_ARN  (OIDC role with cloudwatch:SetAlarmState on the
+#                                kitehub-* alarms; least-priv — NO PutMetricData,
+#                                NO alarm create/delete)
+#
+# Required repo vars (when enabled):
+#   - ALERT_DRILL_ENABLED  ('true' to run real drill; default unset = skip)
+#   - ALERT_DRILL_ALARM    (alarm name to toggle; default kitehub-rds-cpu-high —
+#                           a real alarm wired to the SNS topic; toggling it
+#                           ALARM->OK delivers a synthetic email then self-heals)
+#
+# Procedure + drill-log template: documents/05-guides/operations/runbooks/
+#   alert-delivery-drill-cadence.md
+# =============================================================================
+
+on:
+  schedule:
+    # 04:00 UTC on the 1st of every month
+    - cron: '0 4 1 * *'
+  workflow_dispatch:
+    inputs:
+      force_real_drill:
+        description: 'Force real drill body even if ALERT_DRILL_ENABLED unset'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  # OIDC for AWS role assumption (only used when the real drill body runs)
+  id-token: write
+
+env:
+  AWS_REGION: ap-southeast-1
+
+jobs:
+  verify-config:
+    name: Verify alert-delivery cadence config
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Assert cadence runbook + SNS delivery path declared
+        run: |
+          set -euo pipefail
+          RUNBOOK="documents/05-guides/operations/runbooks/alert-delivery-drill-cadence.md"
+          if [ ! -f "$RUNBOOK" ]; then
+            echo "::error ::Cadence runbook missing: $RUNBOOK (GAP-1370)"
+            exit 1
+          fi
+          echo "::notice ::Cadence runbook present: $RUNBOOK"
+
+          # SNS delivery path must be declared in terraform (alarm -> SNS -> email)
+          if ! grep -rq "aws_sns_topic" infrastructure/terraform-aws/production-alerts.tf; then
+            echo "::error ::SNS topic not declared in production-alerts.tf"
+            exit 1
+          fi
+          if ! grep -rq "aws_sns_topic_subscription" infrastructure/terraform-aws/production-alerts.tf; then
+            echo "::error ::SNS email subscription not declared in production-alerts.tf"
+            exit 1
+          fi
+          echo "::notice ::SNS topic + email subscription declared ✅"
+
+  fire-drill:
+    name: Fire synthetic alarm + verify delivery
+    runs-on: ubuntu-latest
+    needs: verify-config
+    steps:
+      - name: Decide if real drill should run
+        id: gate
+        run: |
+          ENABLED='${{ vars.ALERT_DRILL_ENABLED }}'
+          FORCE='${{ inputs.force_real_drill }}'
+          if [ "$ENABLED" = "true" ] || [ "$FORCE" = "true" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            echo "Real drill body will run."
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Real drill gated off (ALERT_DRILL_ENABLED!=true and force=false). Skipping body."
+            echo "Set repo var ALERT_DRILL_ENABLED=true once the AWS stack + drill role are wired."
+          fi
+
+      - name: Configure AWS credentials (OIDC)
+        if: steps.gate.outputs.run == 'true'
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ secrets.AWS_ALERT_DRILL_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Fire synthetic ALARM transition (delivers SNS email)
+        if: steps.gate.outputs.run == 'true'
+        env:
+          ALARM_NAME: ${{ vars.ALERT_DRILL_ALARM || 'kitehub-rds-cpu-high' }}
+        run: |
+          set -euo pipefail
+          echo "Drill: forcing '${ALARM_NAME}' -> ALARM (SNS email should fire)..."
+          aws cloudwatch set-alarm-state \
+            --region "${AWS_REGION}" \
+            --alarm-name "${ALARM_NAME}" \
+            --state-value ALARM \
+            --state-reason "GAP-1370 monthly alert-delivery drill ${GITHUB_RUN_ID}"
+          sleep 30
+          echo "Drill: resetting '${ALARM_NAME}' -> OK (self-heal)..."
+          aws cloudwatch set-alarm-state \
+            --region "${AWS_REGION}" \
+            --alarm-name "${ALARM_NAME}" \
+            --state-value OK \
+            --state-reason "GAP-1370 drill reset ${GITHUB_RUN_ID}"
+          echo "::notice ::Synthetic alarm fired. VERIFY both SNS subscribers received the email, then record the drill log per the cadence runbook."
+
+      - name: Drill summary + reminder to record log
+        if: steps.gate.outputs.run == 'true' && always()
+        run: |
+          {
+            echo "## Alert Delivery Drill — ${GITHUB_RUN_ID}"
+            echo ""
+            echo "- Alarm toggled: \`${{ vars.ALERT_DRILL_ALARM || 'kitehub-rds-cpu-high' }}\` (ALARM -> OK)"
+            echo "- Next step (manual): confirm email reached BOTH SNS subscribers."
+            echo "- Record the drill log at \`documents/04-quality/audits/ops-readiness/\` per"
+            echo "  \`runbooks/alert-delivery-drill-cadence.md\` (template §4)."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Drill skipped notice
+        if: steps.gate.outputs.run != 'true'
+        run: |
+          echo "::notice::Alert delivery drill body skipped — ALERT_DRILL_ENABLED!=true."
+          echo "Config sanity (verify-config job) still ran."
+          echo "Enable real drill: Settings → Variables → ALERT_DRILL_ENABLED=true"

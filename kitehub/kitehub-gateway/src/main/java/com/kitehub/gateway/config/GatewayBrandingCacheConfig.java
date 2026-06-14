@@ -26,7 +26,10 @@ public class GatewayBrandingCacheConfig {
         CaffeineCacheManager manager = new CaffeineCacheManager(GATEWAY_BRANDING_CACHE);
         manager.setCaffeine(Caffeine.newBuilder()
                 .expireAfterWrite(5, TimeUnit.MINUTES)
-                .maximumSize(2_000));
+                .maximumSize(2_000)
+                // GAP-1357: recordStats() lets Spring Boot CacheMetricsRegistrar
+                // bind cache.gets{result=hit|miss} to Micrometer (when a registry is present).
+                .recordStats());
         return manager;
     }
 }

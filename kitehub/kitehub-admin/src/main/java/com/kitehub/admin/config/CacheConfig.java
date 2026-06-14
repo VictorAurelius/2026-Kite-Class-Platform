@@ -70,7 +70,10 @@ public class CacheConfig {
         // Default builder (longer TTL) — applies to revenue + transitive subscription caches.
         manager.setCaffeine(Caffeine.newBuilder()
                 .expireAfterWrite(revenueTtlSeconds, TimeUnit.SECONDS)
-                .maximumSize(5_000));
+                .maximumSize(5_000)
+                // GAP-1357: recordStats() lets Spring Boot CacheMetricsRegistrar bind
+                // cache.gets{result=hit|miss} to Micrometer → /actuator/prometheus.
+                .recordStats());
         manager.setCacheNames(List.of(
                 ADMIN_REVENUE_REPORT_CACHE,
                 // Transitively required by kitehub-subscription components in this context.
@@ -79,10 +82,13 @@ public class CacheConfig {
 
         // Dashboard cache: dedicated short TTL, independent of revenue. Registered last so it
         // is never overwritten by the default-builder caches above.
+        // GAP-1357: recordStats() on the builder → CacheMetricsRegistrar binds dashboard
+        // cache.gets{result=hit|miss} to Micrometer → /actuator/prometheus.
         manager.registerCustomCache(ADMIN_DASHBOARD_CACHE,
                 Caffeine.newBuilder()
                         .expireAfterWrite(dashboardTtlSeconds, TimeUnit.SECONDS)
                         .maximumSize(5_000)
+                        .recordStats()
                         .build());
         return manager;
     }

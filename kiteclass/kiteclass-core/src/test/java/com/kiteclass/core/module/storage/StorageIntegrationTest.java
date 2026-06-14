@@ -239,8 +239,10 @@ class StorageIntegrationTest {
 
         Long fileId = objectMapper.readTree(createResponse).get("data").get("fileId").asLong();
 
-        // When & Then - Delete the file
-        mockMvc.perform(delete("/api/v1/storage/" + fileId))
+        // When & Then - Delete the file (GAP-1309: must be the uploader; X-User-Id now required)
+        mockMvc.perform(delete("/api/v1/storage/" + fileId)
+                .header("X-User-Id", userId)
+                .header("X-Tenant-Id", tenantId.toString()))
             .andExpect(status().isNoContent());
     }
 
