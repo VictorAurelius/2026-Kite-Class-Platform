@@ -60,10 +60,7 @@ class LmsServiceTest {
     private CourseRepository courseRepository;
 
     @Mock
-    private com.kiteclass.core.module.enrollment.repository.EnrollmentRepository enrollmentRepository;
-
-    @Mock
-    private com.kiteclass.core.module.clazz.repository.ClassRepository classRepository;
+    private LessonAccessGuard lessonAccessGuard;
 
     @Mock
     private LmsMapper lmsMapper;
@@ -238,20 +235,12 @@ class LmsServiceTest {
     void getCourseStructureForStudent_enrolled_shouldReturnFullContent() {
         // Given - student IS enrolled in a class of the course
         Long userId = 200L;
-        Long classId = 1000L;
-        com.kiteclass.core.module.clazz.entity.Class testClass =
-                com.kiteclass.core.module.clazz.entity.Class.builder().courseId(1L).name("Class").build();
-        testClass.setId(classId);
 
         when(courseModuleRepository.findByCourseIdAndDeletedFalseOrderByOrderNumber(1L))
                 .thenReturn(List.of(testModule));
         when(lessonRepository.findByModuleIdAndDeletedFalseOrderByOrderNumber(1L))
                 .thenReturn(List.of(trialLesson, testLesson));
-        when(classRepository.findByCourseIdAndDeletedFalse(eq(1L), any()))
-                .thenReturn(new org.springframework.data.domain.PageImpl<>(List.of(testClass)));
-        when(enrollmentRepository.existsByStudentIdAndClassIdAndStatusAndDeletedFalse(
-                userId, classId, com.kiteclass.core.common.constant.EnrollmentStatus.ACTIVE))
-                .thenReturn(true);
+        when(lessonAccessGuard.isStudentEnrolledInCourse(userId, 1L)).thenReturn(true);
         when(lmsMapper.toLessonResponse(trialLesson)).thenReturn(
                 LessonResponse.builder().id(1L).title("Trial").isTrial(true).content("Trial body").build());
         when(lmsMapper.toLessonResponse(testLesson)).thenReturn(
@@ -273,14 +262,13 @@ class LmsServiceTest {
     @Test
     @DisplayName("getCourseStructureForStudent - non-enrolled student gets paid content stripped, trial intact (GAP-1115)")
     void getCourseStructureForStudent_notEnrolled_shouldStripPaidContent() {
-        // Given - course has NO classes → student is not enrolled
+        // Given - student is NOT enrolled in the course
         Long userId = 200L;
         when(courseModuleRepository.findByCourseIdAndDeletedFalseOrderByOrderNumber(1L))
                 .thenReturn(List.of(testModule));
         when(lessonRepository.findByModuleIdAndDeletedFalseOrderByOrderNumber(1L))
                 .thenReturn(List.of(trialLesson, testLesson));
-        when(classRepository.findByCourseIdAndDeletedFalse(eq(1L), any()))
-                .thenReturn(new org.springframework.data.domain.PageImpl<>(List.of()));
+        when(lessonAccessGuard.isStudentEnrolledInCourse(userId, 1L)).thenReturn(false);
         when(lmsMapper.toLessonResponse(trialLesson)).thenReturn(
                 LessonResponse.builder().id(1L).title("Trial").isTrial(true).content("Trial body").build());
         when(lmsMapper.toLessonResponse(testLesson)).thenReturn(
@@ -310,23 +298,12 @@ class LmsServiceTest {
     @Test
     @DisplayName("getLessonForStudent - should allow access when enrolled")
     void getLessonForStudent_enrolled_shouldAllowAccess() {
-        // Setup: Student has ACTIVE enrollment in class
+        // Setup: Student has ACTIVE enrollment (guard does not throw)
         Long userId = 200L;
-        Long classId = 1000L;
-
-        com.kiteclass.core.module.clazz.entity.Class testClass = com.kiteclass.core.module.clazz.entity.Class.builder()
-                .courseId(1L)
-                .name("Test Class")
-                .build();
-        testClass.setId(classId);
 
         when(lessonRepository.findByIdAndDeletedFalse(2L)).thenReturn(Optional.of(testLesson));
         when(courseModuleRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testModule));
-        when(classRepository.findByCourseIdAndDeletedFalse(eq(1L), any()))
-                .thenReturn(new org.springframework.data.domain.PageImpl<>(List.of(testClass)));
-        when(enrollmentRepository.existsByStudentIdAndClassIdAndStatusAndDeletedFalse(
-                userId, classId, com.kiteclass.core.common.constant.EnrollmentStatus.ACTIVE))
-                .thenReturn(true);
+        // guard.verifyStudentEnrollment is void → default mock does nothing (= enrolled)
         when(learningResourceRepository.findByLessonIdAndDeletedFalse(2L)).thenReturn(List.of());
         when(lmsMapper.toResourceResponseList(anyList())).thenReturn(List.of());
 
@@ -335,30 +312,19 @@ class LmsServiceTest {
 
         // Then
         assertThat(result).isNotNull();
-        verify(enrollmentRepository).existsByStudentIdAndClassIdAndStatusAndDeletedFalse(
-                userId, classId, com.kiteclass.core.common.constant.EnrollmentStatus.ACTIVE);
+        verify(lessonAccessGuard).verifyStudentEnrollment(userId, 1L);
     }
 
     @Test
     @DisplayName("getLessonForStudent - should deny access when not enrolled")
     void getLessonForStudent_notEnrolled_shouldDenyAccess() {
-        // Setup: Student has NO enrollment
+        // Setup: guard rejects (student has NO active enrollment)
         Long userId = 200L;
-        Long classId = 1000L;
-
-        com.kiteclass.core.module.clazz.entity.Class testClass = com.kiteclass.core.module.clazz.entity.Class.builder()
-                .courseId(1L)
-                .name("Test Class")
-                .build();
-        testClass.setId(classId);
 
         when(lessonRepository.findByIdAndDeletedFalse(2L)).thenReturn(Optional.of(testLesson));
         when(courseModuleRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testModule));
-        when(classRepository.findByCourseIdAndDeletedFalse(eq(1L), any()))
-                .thenReturn(new org.springframework.data.domain.PageImpl<>(List.of(testClass)));
-        when(enrollmentRepository.existsByStudentIdAndClassIdAndStatusAndDeletedFalse(
-                userId, classId, com.kiteclass.core.common.constant.EnrollmentStatus.ACTIVE))
-                .thenReturn(false);
+        doThrow(new PermissionDeniedException("STUDENT_NOT_ENROLLED_IN_COURSE"))
+                .when(lessonAccessGuard).verifyStudentEnrollment(userId, 1L);
 
         // When & Then
         assertThatThrownBy(() -> lmsService.getLessonForStudent(2L, userId))
@@ -378,27 +344,9 @@ class LmsServiceTest {
         // When
         LessonDetailResponse result = lmsService.getLessonForStudent(1L, userId);
 
-        // Then
+        // Then - trial lesson must NOT consult the paywall guard at all
         assertThat(result).isNotNull();
-        verify(enrollmentRepository, never()).existsByStudentIdAndClassIdAndStatusAndDeletedFalse(
-                anyLong(), anyLong(), any());
-    }
-
-    @Test
-    @DisplayName("getLessonForStudent - should deny when course has no classes")
-    void getLessonForStudent_noCourseClasses_shouldDenyAccess() {
-        // Setup: Course exists but has no classes
-        Long userId = 200L;
-
-        when(lessonRepository.findByIdAndDeletedFalse(2L)).thenReturn(Optional.of(testLesson));
-        when(courseModuleRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testModule));
-        when(classRepository.findByCourseIdAndDeletedFalse(eq(1L), any()))
-                .thenReturn(new org.springframework.data.domain.PageImpl<>(List.of()));
-
-        // When & Then
-        assertThatThrownBy(() -> lmsService.getLessonForStudent(2L, userId))
-                .isInstanceOf(PermissionDeniedException.class)
-                .hasMessageContaining("STUDENT_NOT_ENROLLED_IN_COURSE");
+        verify(lessonAccessGuard, never()).verifyStudentEnrollment(anyLong(), anyLong());
     }
 
     // ==================== Teacher CRUD Tests ====================

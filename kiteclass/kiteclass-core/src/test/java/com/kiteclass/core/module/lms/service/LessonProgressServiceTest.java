@@ -54,10 +54,7 @@ class LessonProgressServiceTest {
     private CourseRepository courseRepository;
 
     @Mock
-    private com.kiteclass.core.module.enrollment.repository.EnrollmentRepository enrollmentRepository;
-
-    @Mock
-    private com.kiteclass.core.module.clazz.repository.ClassRepository classRepository;
+    private LessonAccessGuard lessonAccessGuard;
 
     @Mock
     private LmsMapper lmsMapper;
@@ -67,22 +64,6 @@ class LessonProgressServiceTest {
 
     @InjectMocks
     private LessonProgressServiceImpl lessonProgressService;
-
-    /**
-     * Stubs the class + enrollment repositories so that the student (id 200) has an
-     * ACTIVE enrollment in course 1 — used by the paid-lesson completeLesson happy paths.
-     */
-    private void stubActiveEnrollment() {
-        Long classId = 1000L;
-        com.kiteclass.core.module.clazz.entity.Class testClass =
-                com.kiteclass.core.module.clazz.entity.Class.builder().courseId(1L).name("Class").build();
-        testClass.setId(classId);
-        when(classRepository.findByCourseIdAndDeletedFalse(eq(1L), any()))
-                .thenReturn(new org.springframework.data.domain.PageImpl<>(java.util.List.of(testClass)));
-        when(enrollmentRepository.existsByStudentIdAndClassIdAndStatusAndDeletedFalse(
-                200L, classId, com.kiteclass.core.common.constant.EnrollmentStatus.ACTIVE))
-                .thenReturn(true);
-    }
 
     private Lesson testLesson;
     private CourseModule testModule;
@@ -137,7 +118,7 @@ class LessonProgressServiceTest {
         Long userId = 200L;
         when(lessonRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testLesson));
         when(courseModuleRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testModule));
-        stubActiveEnrollment();  // GAP-1116: paid lesson now requires enrollment
+        // GAP-1116: paid lesson requires enrollment; guard mock (void) defaults to "enrolled".
         when(lessonProgressRepository.findByUserIdAndLessonIdAndDeletedFalse(userId, 1L))
                 .thenReturn(Optional.empty());
         when(lessonProgressRepository.save(any(LessonProgress.class))).thenReturn(testProgress);
@@ -178,7 +159,7 @@ class LessonProgressServiceTest {
         Long userId = 200L;
         when(lessonRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testLesson));
         when(courseModuleRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testModule));
-        stubActiveEnrollment();  // GAP-1116: paid lesson now requires enrollment
+        // GAP-1116: paid lesson requires enrollment; guard mock (void) defaults to "enrolled".
         when(lessonProgressRepository.findByUserIdAndLessonIdAndDeletedFalse(userId, 1L))
                 .thenReturn(Optional.of(testProgress));
         when(lessonProgressRepository.save(any(LessonProgress.class))).thenReturn(testProgress);
@@ -210,7 +191,7 @@ class LessonProgressServiceTest {
 
         when(lessonRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testLesson));
         when(courseModuleRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testModule));
-        stubActiveEnrollment();  // GAP-1116: paid lesson now requires enrollment
+        // GAP-1116: paid lesson requires enrollment; guard mock (void) defaults to "enrolled".
         when(lessonProgressRepository.findByUserIdAndLessonIdAndDeletedFalse(userId, 1L))
                 .thenReturn(Optional.of(testProgress));
         when(lmsMapper.toProgressResponse(any())).thenReturn(
@@ -250,12 +231,12 @@ class LessonProgressServiceTest {
     @Test
     @DisplayName("completeLesson - should deny completing a paid lesson when not enrolled (GAP-1116)")
     void completeLesson_shouldDenyPaidLesson_whenNotEnrolled() {
-        // Given - paid lesson, course has no classes → student not enrolled
+        // Given - paid lesson, guard rejects (student not enrolled)
         Long userId = 200L;
         when(lessonRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testLesson));
         when(courseModuleRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testModule));
-        when(classRepository.findByCourseIdAndDeletedFalse(eq(1L), any()))
-                .thenReturn(new org.springframework.data.domain.PageImpl<>(java.util.List.of()));
+        doThrow(new com.kiteclass.core.common.exception.PermissionDeniedException("STUDENT_NOT_ENROLLED_IN_COURSE"))
+                .when(lessonAccessGuard).verifyStudentEnrollment(userId, 1L);
 
         // When & Then
         assertThatThrownBy(() -> lessonProgressService.completeLesson(1L, userId))
@@ -288,12 +269,10 @@ class LessonProgressServiceTest {
         // When
         LessonProgressResponse result = lessonProgressService.completeLesson(5L, userId);
 
-        // Then - allowed; enrollment repositories never consulted for trial content
+        // Then - allowed; paywall guard never consulted for trial content
         assertThat(result).isNotNull();
         verify(lessonProgressRepository).save(any(LessonProgress.class));
-        verify(classRepository, never()).findByCourseIdAndDeletedFalse(any(), any());
-        verify(enrollmentRepository, never())
-                .existsByStudentIdAndClassIdAndStatusAndDeletedFalse(any(), any(), any());
+        verify(lessonAccessGuard, never()).verifyStudentEnrollment(any(), any());
     }
 
     // ==================== Course Progress Tests ====================
