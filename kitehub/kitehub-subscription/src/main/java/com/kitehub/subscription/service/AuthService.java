@@ -835,9 +835,12 @@ public class AuthService {
      *       (staff invitations + parent/student logins ship in later waves).</li>
      * </ul>
      *
-     * <p>Phase 1 BETA constraint: 1 user → 1 tenant (per GAP-704 AC §6). If an owner has
-     * &gt;1 non-deleted instance the first one wins, which is safe because beta-signup is
-     * gated to a single tenant per owner.
+     * <p>Multi-instance determinism (GAP-1306): {@code findByOwnerIdAndDeletedFalse}
+     * now returns instances ordered by {@code createdAt ASC, id ASC}, so for an owner with
+     * &gt;1 non-deleted instance the OLDEST non-deleted instance is selected
+     * DETERMINISTICALLY. This no longer relies on the prior "beta-signup gates a single
+     * tenant per owner" assumption (which was never DB-enforced); the {@code tenantId} claim
+     * is now stable across repeated mints regardless of how many instances an owner holds.
      *
      * @param userId user UUID (JWT subject)
      * @param role uppercase role string ({@code PLATFORM_ADMIN} / {@code OWNER} / etc.)
