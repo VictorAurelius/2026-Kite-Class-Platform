@@ -311,7 +311,7 @@ class LmsIntegrationTest {
 
         mockMvc.perform(post("/api/v1/lms/courses/{courseId}/modules", testCourse.getId())
                         .header("X-Tenant-Id", tenantId.toString())
-                        .header("X-Teacher-Id", teacherId.toString())
+                        .header("X-User-Reference-Id", teacherId.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -333,7 +333,7 @@ class LmsIntegrationTest {
 
         mockMvc.perform(post("/api/v1/lms/courses/{courseId}/modules", testCourse.getId())
                         .header("X-Tenant-Id", tenantId.toString())
-                        .header("X-Teacher-Id", nonOwnerTeacherId.toString())
+                        .header("X-User-Reference-Id", nonOwnerTeacherId.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isForbidden())
@@ -351,7 +351,7 @@ class LmsIntegrationTest {
 
         mockMvc.perform(post("/api/v1/lms/courses/{courseId}/modules", testCourse.getId())
                         .header("X-Tenant-Id", tenantId.toString())
-                        .header("X-Teacher-Id", teacherId.toString())
+                        .header("X-User-Reference-Id", teacherId.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -372,7 +372,7 @@ class LmsIntegrationTest {
 
         mockMvc.perform(post("/api/v1/lms/modules/{moduleId}/lessons", testModule.getId())
                         .header("X-Tenant-Id", tenantId.toString())
-                        .header("X-Teacher-Id", teacherId.toString())
+                        .header("X-User-Reference-Id", teacherId.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -387,7 +387,7 @@ class LmsIntegrationTest {
     void deleteModule_teacher_hasLessons_shouldReturn400() throws Exception {
         mockMvc.perform(delete("/api/v1/lms/modules/{moduleId}", testModule.getId())
                         .header("X-Tenant-Id", tenantId.toString())
-                        .header("X-Teacher-Id", teacherId.toString())
+                        .header("X-User-Reference-Id", teacherId.toString())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false));
@@ -407,7 +407,7 @@ class LmsIntegrationTest {
 
         mockMvc.perform(delete("/api/v1/lms/modules/{moduleId}", emptyModule.getId())
                         .header("X-Tenant-Id", tenantId.toString())
-                        .header("X-Teacher-Id", teacherId.toString())
+                        .header("X-User-Reference-Id", teacherId.toString())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent())
                 .andExpect(jsonPath("$.success").value(true));

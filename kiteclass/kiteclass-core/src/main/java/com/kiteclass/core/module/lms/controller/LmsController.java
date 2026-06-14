@@ -1,5 +1,6 @@
 package com.kiteclass.core.module.lms.controller;
 
+import com.kiteclass.core.common.context.UserContext;
 import com.kiteclass.core.common.dto.ApiResponse;
 import com.kiteclass.core.module.lms.dto.request.CreateCourseModuleRequest;
 import com.kiteclass.core.module.lms.dto.request.CreateLearningResourceRequest;
@@ -23,6 +24,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -42,10 +44,21 @@ import java.util.List;
  *
  * <p>Supports three access levels:
  * <ul>
- *   <li>Guest: View course structure + trial lessons (NO X-User-Id header)</li>
- *   <li>Student: View all lessons + track progress (X-User-Id header)</li>
- *   <li>Teacher: Full CRUD on modules/lessons (X-Teacher-Id header)</li>
+ *   <li>Guest: View course structure + trial lessons (no identity header)</li>
+ *   <li>Student: View all lessons + track progress ({@code X-User-Reference-Id})</li>
+ *   <li>Teacher / Owner / Admin: Full CRUD on modules/lessons —
+ *       role-gated by {@code @PreAuthorize("hasAnyRole('TEACHER','OWNER','ADMIN')")}</li>
  * </ul>
+ *
+ * <p><strong>GAP-1299 — authoring authz hardening.</strong> Every authoring/mutation
+ * endpoint is (1) role-gated so STUDENT/PARENT are blocked entirely, and (2) derives
+ * the acting teacher id from the authenticated principal (gateway-injected
+ * {@code X-User-Reference-Id} → {@link UserContext#getCurrentReferenceId()}). The former
+ * client-supplied {@code X-Teacher-Id} request header — which the gateway does NOT control
+ * (per GAP-814) and which was therefore spoofable — is no longer read as an identity source:
+ * a teacher cannot act as another teacher by setting it, and a STUDENT cannot impersonate a
+ * teacher at all. ADMIN/OWNER (no numeric reference id) bypass per-course ownership at the
+ * service layer ({@code LmsServiceImpl.verifyCourseOwnership}).
  *
  * @author KiteClass Team
  * @since 2.9.0
@@ -59,14 +72,26 @@ public class LmsController {
 
     private final LmsService lmsService;
 
+    /**
+     * Resolve the acting teacher's numeric id from the authenticated principal
+     * (gateway-injected {@code X-User-Reference-Id} → {@link UserContext}), NOT from any
+     * client-supplied header (GAP-1299). Returns {@code null} for ADMIN/OWNER, who carry no
+     * numeric reference id; the service layer bypasses per-course ownership for them.
+     *
+     * @return the authenticated teacher's reference id, or {@code null} for admin/owner
+     */
+    private Long actingTeacherId() {
+        return UserContext.getCurrentReferenceId();
+    }
+
     // ==================== Public/Student Endpoints ====================
 
     /**
      * Get course structure (modules + lessons).
-     * Dual-mode: guest (X-User-Id missing) vs student (X-User-Id present).
+     * Dual-mode: guest (X-User-Reference-Id missing) vs student (present).
      *
      * @param courseId the course ID
-     * @param userId optional student user ID (null for guest access)
+     * @param userId optional student reference ID (null for guest access)
      * @return list of modules with lessons
      */
     @GetMapping("/courses/{courseId}/modules")
@@ -74,7 +99,7 @@ public class LmsController {
                description = "Guest: returns trial lessons only. Student: returns all lessons (requires enrollment).")
     public ApiResponse<List<CourseModuleDetailResponse>> getCourseStructure(
             @PathVariable Long courseId,
-            @Parameter(description = "Student user ID (optional for guest access)")
+            @Parameter(description = "Student reference ID (optional for guest access)")
             @RequestHeader(value = "X-User-Reference-Id", required = false) Long userId) {
 
         log.info("GET /api/v1/lms/courses/{}/modules - userId: {}", courseId, userId);
@@ -90,10 +115,10 @@ public class LmsController {
 
     /**
      * Get lesson detail.
-     * Dual-mode: guest (X-User-Id missing) vs student (X-User-Id present).
+     * Dual-mode: guest (X-User-Reference-Id missing) vs student (present).
      *
      * @param lessonId the lesson ID
-     * @param userId optional student user ID (null for guest access)
+     * @param userId optional student reference ID (null for guest access)
      * @return lesson detail with resources
      */
     @GetMapping("/lessons/{lessonId}")
@@ -101,7 +126,7 @@ public class LmsController {
                description = "Guest: trial lessons only. Student: all lessons (requires enrollment for paid lessons).")
     public ApiResponse<LessonDetailResponse> getLesson(
             @PathVariable Long lessonId,
-            @Parameter(description = "Student user ID (optional for guest access)")
+            @Parameter(description = "Student reference ID (optional for guest access)")
             @RequestHeader(value = "X-User-Reference-Id", required = false) Long userId) {
 
         log.info("GET /api/v1/lms/lessons/{} - userId: {}", lessonId, userId);
@@ -118,84 +143,82 @@ public class LmsController {
     // ==================== Teacher Endpoints - Module CRUD ====================
 
     /**
-     * Create a new module for a course (teacher only).
+     * Create a new module for a course (teacher/owner/admin only).
      *
      * @param courseId the course ID
      * @param request create module request
-     * @param teacherId teacher user ID (must be course owner)
      * @return created module response
      */
     @PostMapping("/courses/{courseId}/modules")
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasAnyRole('TEACHER','OWNER','ADMIN')")
     @Operation(summary = "Create course module (teacher only)",
-               description = "Only course owner can create modules. Order number must be unique within course.")
+               description = "Only the course owner (or owner/admin) can create modules. "
+                       + "Order number must be unique within course.")
     public ApiResponse<CourseModuleResponse> createModule(
             @PathVariable Long courseId,
-            @Valid @RequestBody CreateCourseModuleRequest request,
-            @Parameter(description = "Teacher user ID (must be course owner)", required = true)
-            @RequestHeader("X-Teacher-Id") Long teacherId) {
+            @Valid @RequestBody CreateCourseModuleRequest request) {
 
+        Long teacherId = actingTeacherId();
         log.info("POST /api/v1/lms/courses/{}/modules - teacherId: {}", courseId, teacherId);
         return ApiResponse.success(lmsService.createModule(courseId, request, teacherId));
     }
 
     /**
-     * Update an existing module (teacher only).
+     * Update an existing module (teacher/owner/admin only).
      *
      * @param moduleId the module ID
      * @param request update module request
-     * @param teacherId teacher user ID (must be course owner)
      * @return updated module response
      */
     @PutMapping("/modules/{moduleId}")
+    @PreAuthorize("hasAnyRole('TEACHER','OWNER','ADMIN')")
     @Operation(summary = "Update course module (teacher only)",
-               description = "Only course owner can update modules.")
+               description = "Only the course owner (or owner/admin) can update modules.")
     public ApiResponse<CourseModuleResponse> updateModule(
             @PathVariable Long moduleId,
-            @Valid @RequestBody UpdateCourseModuleRequest request,
-            @Parameter(description = "Teacher user ID (must be course owner)", required = true)
-            @RequestHeader("X-Teacher-Id") Long teacherId) {
+            @Valid @RequestBody UpdateCourseModuleRequest request) {
 
+        Long teacherId = actingTeacherId();
         log.info("PUT /api/v1/lms/modules/{} - teacherId: {}", moduleId, teacherId);
         return ApiResponse.success(lmsService.updateModule(moduleId, request, teacherId));
     }
 
     /**
-     * Delete a module (teacher only).
+     * Delete a module (teacher/owner/admin only).
      *
      * @param moduleId the module ID
-     * @param teacherId teacher user ID (must be course owner)
      * @return success response
      */
     @DeleteMapping("/modules/{moduleId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasAnyRole('TEACHER','OWNER','ADMIN')")
     @Operation(summary = "Delete course module (teacher only)",
-               description = "Only course owner can delete modules. Cannot delete if module has lessons.")
+               description = "Only the course owner (or owner/admin) can delete modules. "
+                       + "Cannot delete if module has lessons.")
     public ApiResponse<Void> deleteModule(
-            @PathVariable Long moduleId,
-            @Parameter(description = "Teacher user ID (must be course owner)", required = true)
-            @RequestHeader("X-Teacher-Id") Long teacherId) {
+            @PathVariable Long moduleId) {
 
+        Long teacherId = actingTeacherId();
         log.info("DELETE /api/v1/lms/modules/{} - teacherId: {}", moduleId, teacherId);
         lmsService.deleteModule(moduleId, teacherId);
         return ApiResponse.success(null);
     }
 
     /**
-     * Get module detail (teacher only).
+     * Get module detail (teacher/owner/admin only).
      *
      * @param moduleId the module ID
-     * @param teacherId teacher user ID (must be course owner)
      * @return module detail with all lessons
      */
     @GetMapping("/modules/{moduleId}")
+    @PreAuthorize("hasAnyRole('TEACHER','OWNER','ADMIN')")
     @Operation(summary = "Get module detail (teacher only)",
-               description = "Only course owner can view module details.")
+               description = "Only the course owner (or owner/admin) can view module details.")
     public ApiResponse<CourseModuleDetailResponse> getModule(
-            @PathVariable Long moduleId,
-            @Parameter(description = "Teacher user ID (must be course owner)", required = true)
-            @RequestHeader("X-Teacher-Id") Long teacherId) {
+            @PathVariable Long moduleId) {
 
+        Long teacherId = actingTeacherId();
         log.info("GET /api/v1/lms/modules/{} - teacherId: {}", moduleId, teacherId);
         return ApiResponse.success(lmsService.getModule(moduleId, teacherId));
     }
@@ -203,84 +226,81 @@ public class LmsController {
     // ==================== Teacher Endpoints - Lesson CRUD ====================
 
     /**
-     * Create a new lesson for a module (teacher only).
+     * Create a new lesson for a module (teacher/owner/admin only).
      *
      * @param moduleId the module ID
      * @param request create lesson request
-     * @param teacherId teacher user ID (must be course owner)
      * @return created lesson response
      */
     @PostMapping("/modules/{moduleId}/lessons")
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasAnyRole('TEACHER','OWNER','ADMIN')")
     @Operation(summary = "Create lesson (teacher only)",
-               description = "Only course owner can create lessons. Order number must be unique within module.")
+               description = "Only the course owner (or owner/admin) can create lessons. "
+                       + "Order number must be unique within module.")
     public ApiResponse<LessonResponse> createLesson(
             @PathVariable Long moduleId,
-            @Valid @RequestBody CreateLessonRequest request,
-            @Parameter(description = "Teacher user ID (must be course owner)", required = true)
-            @RequestHeader("X-Teacher-Id") Long teacherId) {
+            @Valid @RequestBody CreateLessonRequest request) {
 
+        Long teacherId = actingTeacherId();
         log.info("POST /api/v1/lms/modules/{}/lessons - teacherId: {}", moduleId, teacherId);
         return ApiResponse.success(lmsService.createLesson(moduleId, request, teacherId));
     }
 
     /**
-     * Update an existing lesson (teacher only).
+     * Update an existing lesson (teacher/owner/admin only).
      *
      * @param lessonId the lesson ID
      * @param request update lesson request
-     * @param teacherId teacher user ID (must be course owner)
      * @return updated lesson response
      */
     @PutMapping("/lessons/{lessonId}/manage")
+    @PreAuthorize("hasAnyRole('TEACHER','OWNER','ADMIN')")
     @Operation(summary = "Update lesson (teacher only)",
-               description = "Only course owner can update lessons.")
+               description = "Only the course owner (or owner/admin) can update lessons.")
     public ApiResponse<LessonResponse> updateLesson(
             @PathVariable Long lessonId,
-            @Valid @RequestBody UpdateLessonRequest request,
-            @Parameter(description = "Teacher user ID (must be course owner)", required = true)
-            @RequestHeader("X-Teacher-Id") Long teacherId) {
+            @Valid @RequestBody UpdateLessonRequest request) {
 
+        Long teacherId = actingTeacherId();
         log.info("PUT /api/v1/lms/lessons/{}/manage - teacherId: {}", lessonId, teacherId);
         return ApiResponse.success(lmsService.updateLesson(lessonId, request, teacherId));
     }
 
     /**
-     * Delete a lesson (teacher only).
+     * Delete a lesson (teacher/owner/admin only).
      *
      * @param lessonId the lesson ID
-     * @param teacherId teacher user ID (must be course owner)
      * @return success response
      */
     @DeleteMapping("/lessons/{lessonId}/manage")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasAnyRole('TEACHER','OWNER','ADMIN')")
     @Operation(summary = "Delete lesson (teacher only)",
-               description = "Only course owner can delete lessons.")
+               description = "Only the course owner (or owner/admin) can delete lessons.")
     public ApiResponse<Void> deleteLesson(
-            @PathVariable Long lessonId,
-            @Parameter(description = "Teacher user ID (must be course owner)", required = true)
-            @RequestHeader("X-Teacher-Id") Long teacherId) {
+            @PathVariable Long lessonId) {
 
+        Long teacherId = actingTeacherId();
         log.info("DELETE /api/v1/lms/lessons/{}/manage - teacherId: {}", lessonId, teacherId);
         lmsService.deleteLesson(lessonId, teacherId);
         return ApiResponse.success(null);
     }
 
     /**
-     * Get lesson detail for teacher.
+     * Get lesson detail for teacher (teacher/owner/admin only).
      *
      * @param lessonId the lesson ID
-     * @param teacherId teacher user ID (must be course owner)
      * @return lesson detail with resources
      */
     @GetMapping("/lessons/{lessonId}/manage")
+    @PreAuthorize("hasAnyRole('TEACHER','OWNER','ADMIN')")
     @Operation(summary = "Get lesson detail (teacher only)",
-               description = "Only course owner can view lesson management details.")
+               description = "Only the course owner (or owner/admin) can view lesson management details.")
     public ApiResponse<LessonDetailResponse> getLessonForTeacher(
-            @PathVariable Long lessonId,
-            @Parameter(description = "Teacher user ID (must be course owner)", required = true)
-            @RequestHeader("X-Teacher-Id") Long teacherId) {
+            @PathVariable Long lessonId) {
 
+        Long teacherId = actingTeacherId();
         log.info("GET /api/v1/lms/lessons/{}/manage - teacherId: {}", lessonId, teacherId);
         return ApiResponse.success(lmsService.getLessonForTeacher(lessonId, teacherId));
     }
@@ -288,43 +308,41 @@ public class LmsController {
     // ==================== Teacher Endpoints - Learning Resource CRUD ====================
 
     /**
-     * Add a learning resource to a lesson (teacher only).
+     * Add a learning resource to a lesson (teacher/owner/admin only).
      *
      * @param lessonId the lesson ID
      * @param request create resource request
-     * @param teacherId teacher user ID (must be course owner)
      * @return created resource response
      */
     @PostMapping("/lessons/{lessonId}/resources")
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasAnyRole('TEACHER','OWNER','ADMIN')")
     @Operation(summary = "Add learning resource (teacher only)",
-               description = "Only course owner can add resources to lessons.")
+               description = "Only the course owner (or owner/admin) can add resources to lessons.")
     public ApiResponse<LearningResourceResponse> addResource(
             @PathVariable Long lessonId,
-            @Valid @RequestBody CreateLearningResourceRequest request,
-            @Parameter(description = "Teacher user ID (must be course owner)", required = true)
-            @RequestHeader("X-Teacher-Id") Long teacherId) {
+            @Valid @RequestBody CreateLearningResourceRequest request) {
 
+        Long teacherId = actingTeacherId();
         log.info("POST /api/v1/lms/lessons/{}/resources - teacherId: {}", lessonId, teacherId);
         return ApiResponse.success(lmsService.addResource(lessonId, request, teacherId));
     }
 
     /**
-     * Delete a learning resource (teacher only).
+     * Delete a learning resource (teacher/owner/admin only).
      *
      * @param resourceId the resource ID
-     * @param teacherId teacher user ID (must be course owner)
      * @return success response
      */
     @DeleteMapping("/resources/{resourceId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasAnyRole('TEACHER','OWNER','ADMIN')")
     @Operation(summary = "Delete learning resource (teacher only)",
-               description = "Only course owner can delete resources.")
+               description = "Only the course owner (or owner/admin) can delete resources.")
     public ApiResponse<Void> deleteResource(
-            @PathVariable Long resourceId,
-            @Parameter(description = "Teacher user ID (must be course owner)", required = true)
-            @RequestHeader("X-Teacher-Id") Long teacherId) {
+            @PathVariable Long resourceId) {
 
+        Long teacherId = actingTeacherId();
         log.info("DELETE /api/v1/lms/resources/{} - teacherId: {}", resourceId, teacherId);
         lmsService.deleteResource(resourceId, teacherId);
         return ApiResponse.success(null);
@@ -333,46 +351,44 @@ public class LmsController {
     // ==================== Teacher Endpoints - Reorder (drag-drop) ====================
 
     /**
-     * Reorder all modules of a course atomically (teacher only).
+     * Reorder all modules of a course atomically (teacher/owner/admin only).
      * Send the FULL ordered set of the course's modules with their new order numbers.
      *
      * @param courseId the course ID
      * @param request full ordered set of modules with new order numbers
-     * @param teacherId teacher user ID (must be course owner)
      * @return reordered modules (ascending)
      */
     @PutMapping("/courses/{courseId}/modules/reorder")
+    @PreAuthorize("hasAnyRole('TEACHER','OWNER','ADMIN')")
     @Operation(summary = "Reorder course modules (teacher only)",
                description = "Atomic batch update of module order numbers. Send the FULL ordered set of modules.")
     public ApiResponse<List<CourseModuleResponse>> reorderModules(
             @PathVariable Long courseId,
-            @Valid @RequestBody ReorderRequest request,
-            @Parameter(description = "Teacher user ID (must be course owner)", required = true)
-            @RequestHeader("X-Teacher-Id") Long teacherId) {
+            @Valid @RequestBody ReorderRequest request) {
 
+        Long teacherId = actingTeacherId();
         log.info("PUT /api/v1/lms/courses/{}/modules/reorder - teacherId: {}", courseId, teacherId);
         return ApiResponse.success(
                 lmsService.reorderModules(courseId, request, teacherId), "Modules reordered successfully");
     }
 
     /**
-     * Reorder all lessons within a module atomically (teacher only).
+     * Reorder all lessons within a module atomically (teacher/owner/admin only).
      * Send the FULL ordered set of the module's lessons with their new order numbers.
      *
      * @param moduleId the module ID
      * @param request full ordered set of lessons with new order numbers
-     * @param teacherId teacher user ID (must be course owner)
      * @return reordered lessons (ascending)
      */
     @PutMapping("/modules/{moduleId}/lessons/reorder")
+    @PreAuthorize("hasAnyRole('TEACHER','OWNER','ADMIN')")
     @Operation(summary = "Reorder lessons within a module (teacher only)",
                description = "Atomic batch update of lesson order numbers. Send the FULL ordered set of lessons.")
     public ApiResponse<List<LessonResponse>> reorderLessons(
             @PathVariable Long moduleId,
-            @Valid @RequestBody ReorderRequest request,
-            @Parameter(description = "Teacher user ID (must be course owner)", required = true)
-            @RequestHeader("X-Teacher-Id") Long teacherId) {
+            @Valid @RequestBody ReorderRequest request) {
 
+        Long teacherId = actingTeacherId();
         log.info("PUT /api/v1/lms/modules/{}/lessons/reorder - teacherId: {}", moduleId, teacherId);
         return ApiResponse.success(
                 lmsService.reorderLessons(moduleId, request, teacherId), "Lessons reordered successfully");
@@ -381,7 +397,7 @@ public class LmsController {
     // ==================== Teacher Endpoints - Resource Upload (presigned) ====================
 
     /**
-     * Request a presigned upload URL for a lesson learning-resource file (teacher only).
+     * Request a presigned upload URL for a lesson learning-resource file (teacher/owner/admin only).
      *
      * <p>Reuses the central storage pipeline (MinIO/S3). Client PUTs the file to the
      * returned URL, confirms via the storage API, then calls
@@ -389,20 +405,19 @@ public class LmsController {
      *
      * @param lessonId the lesson the resource will belong to
      * @param request file metadata (name, size, mime, type, access level)
-     * @param teacherId teacher user ID (must be course owner)
      * @return presigned upload response (fileId + uploadUrl + expiresAt)
      */
     @PostMapping("/lessons/{lessonId}/resources/upload-url")
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasAnyRole('TEACHER','OWNER','ADMIN')")
     @Operation(summary = "Request presigned upload URL for a lesson resource (teacher only)",
                description = "Returns a presigned PUT URL (MinIO/S3). Client uploads the file, confirms, "
                        + "then POST /lessons/{lessonId}/resources to persist the resource metadata.")
     public ApiResponse<PresignedUploadResponse> requestResourceUploadUrl(
             @PathVariable Long lessonId,
-            @Valid @RequestBody PresignedUploadRequest request,
-            @Parameter(description = "Teacher user ID (must be course owner)", required = true)
-            @RequestHeader("X-Teacher-Id") Long teacherId) {
+            @Valid @RequestBody PresignedUploadRequest request) {
 
+        Long teacherId = actingTeacherId();
         log.info("POST /api/v1/lms/lessons/{}/resources/upload-url - teacherId: {}", lessonId, teacherId);
         return ApiResponse.success(lmsService.generateResourceUploadUrl(lessonId, request, teacherId));
     }
@@ -410,21 +425,20 @@ public class LmsController {
     // ==================== Teacher Endpoints - Completion Roster ====================
 
     /**
-     * Get the completion roster for a course (teacher only).
+     * Get the completion roster for a course (teacher/owner/admin only).
      * Returns per-student lesson-completion summary. Only the course owner can view.
      *
      * @param courseId the course ID
-     * @param teacherId teacher user ID (must be course owner)
      * @return completion roster
      */
     @GetMapping("/courses/{courseId}/completion-roster")
+    @PreAuthorize("hasAnyRole('TEACHER','OWNER','ADMIN')")
     @Operation(summary = "Get completion roster for a course (teacher only)",
-               description = "Per-student lesson-completion summary. Only the course owner can view it.")
+               description = "Per-student lesson-completion summary. Only the course owner (or owner/admin) can view it.")
     public ApiResponse<CompletionRosterResponse> getCompletionRoster(
-            @PathVariable Long courseId,
-            @Parameter(description = "Teacher user ID (must be course owner)", required = true)
-            @RequestHeader("X-Teacher-Id") Long teacherId) {
+            @PathVariable Long courseId) {
 
+        Long teacherId = actingTeacherId();
         log.info("GET /api/v1/lms/courses/{}/completion-roster - teacherId: {}", courseId, teacherId);
         return ApiResponse.success(lmsService.getCompletionRoster(courseId, teacherId));
     }

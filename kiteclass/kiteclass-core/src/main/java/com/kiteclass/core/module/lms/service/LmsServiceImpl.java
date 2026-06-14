@@ -69,6 +69,7 @@ public class LmsServiceImpl implements LmsService {
     private final com.kiteclass.core.module.clazz.repository.ClassRepository classRepository;
     private final StorageService storageService;
     private final LmsMapper lmsMapper;
+    private final com.kiteclass.core.common.security.AuthorizationBean authz;
 
     // ==================== Public Endpoints (Guest Access) ====================
 
@@ -630,7 +631,18 @@ public class LmsServiceImpl implements LmsService {
         Course course = courseRepository.findByIdAndDeletedFalse(courseId)
                 .orElseThrow(() -> new EntityNotFoundException("COURSE_NOT_FOUND", (Object) courseId));
 
-        if (!course.getTeacherId().equals(teacherId)) {
+        // GAP-1299: ADMIN / OWNER (tenant-admin) bypass per-course ownership. They are not
+        // domain teachers and carry no numeric reference id (teacherId == null), so the
+        // equality check below would always deny them. Mirrors AuthorizationBean.isAdmin()
+        // (ROLE_PLATFORM_ADMIN / ROLE_ADMIN / ROLE_OWNER) used across the per-resource authz beans.
+        if (authz.isAdmin()) {
+            return course;
+        }
+
+        // teacherId is the AUTHENTICATED acting teacher (X-User-Reference-Id via UserContext),
+        // resolved by the controller — NOT a client-supplied header. A non-owner (or a teacher
+        // who tried to impersonate another via the removed X-Teacher-Id header) is denied.
+        if (teacherId == null || !course.getTeacherId().equals(teacherId)) {
             log.warn("Teacher {} is not owner of course {} (owner: {})",
                     teacherId, courseId, course.getTeacherId());
             throw new PermissionDeniedException("COURSE_OWNER_ONLY", teacherId, courseId);

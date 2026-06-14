@@ -384,10 +384,14 @@ public class AuthorizationBean {
      * tenant filter), so an owner gets full access within their own tenant.
      * {@code ROLE_PLATFORM_ADMIN} / {@code ROLE_ADMIN} are platform-level.</p>
      *
+     * <p>Exposed {@code public} so service-layer ownership checks can reuse the
+     * same admin/owner bypass (e.g. {@code LmsServiceImpl.verifyCourseOwnership},
+     * GAP-1299) instead of duplicating SecurityContext role inspection.
+     *
      * @return true if current authentication holds {@code ROLE_PLATFORM_ADMIN},
      *         {@code ROLE_ADMIN}, or {@code ROLE_OWNER}
      */
-    private boolean isAdmin() {
+    public boolean isAdmin() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
             return false;

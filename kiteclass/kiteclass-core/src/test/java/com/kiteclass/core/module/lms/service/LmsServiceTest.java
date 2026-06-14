@@ -68,6 +68,9 @@ class LmsServiceTest {
     @Mock
     private LmsMapper lmsMapper;
 
+    @Mock
+    private com.kiteclass.core.common.security.AuthorizationBean authz;
+
     @InjectMocks
     private LmsServiceImpl lmsService;
 
@@ -436,6 +439,48 @@ class LmsServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> lmsService.createModule(1L, request, nonOwnerTeacherId))
+                .isInstanceOf(PermissionDeniedException.class)
+                .hasMessageContaining("COURSE_OWNER_ONLY");
+    }
+
+    @Test
+    @DisplayName("createModule - ADMIN/OWNER bypasses per-course ownership (GAP-1299)")
+    void createModule_shouldBypassOwnership_whenAdminOrOwner() {
+        // Given: actor is ADMIN/OWNER → no numeric reference id (teacherId == null) and
+        // not the course owner (testCourse.teacherId == 100L). The ownership check must be
+        // bypassed via authz.isAdmin() per GAP-1299.
+        CreateCourseModuleRequest request = new CreateCourseModuleRequest(
+                "New Module", "Description", 2);
+
+        when(authz.isAdmin()).thenReturn(true);
+        when(courseRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testCourse));
+        when(courseModuleRepository.existsByCourseIdAndOrderNumberAndDeletedFalse(1L, 2))
+                .thenReturn(false);
+        when(lmsMapper.toModuleEntity(request)).thenReturn(testModule);
+        when(courseModuleRepository.save(any(CourseModule.class))).thenReturn(testModule);
+        when(lmsMapper.toModuleResponse(testModule)).thenReturn(
+                CourseModuleResponse.builder().id(1L).build());
+
+        // When: admin acts with null teacherId (no reference id)
+        CourseModuleResponse result = lmsService.createModule(1L, request, null);
+
+        // Then: succeeds (ownership bypassed)
+        assertThat(result).isNotNull();
+        verify(courseModuleRepository).save(any(CourseModule.class));
+    }
+
+    @Test
+    @DisplayName("createModule - should deny when teacherId is null and not admin (GAP-1299)")
+    void createModule_shouldDeny_whenTeacherIdNullAndNotAdmin() {
+        // Given: no authenticated reference id (e.g. STUDENT/PARENT slipped past role gate
+        // in a misconfigured deployment) and not admin → must be denied, never attributed.
+        CreateCourseModuleRequest request = new CreateCourseModuleRequest(
+                "New Module", "Description", 2);
+
+        when(courseRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testCourse));
+
+        // When & Then
+        assertThatThrownBy(() -> lmsService.createModule(1L, request, null))
                 .isInstanceOf(PermissionDeniedException.class)
                 .hasMessageContaining("COURSE_OWNER_ONLY");
     }
