@@ -43,7 +43,7 @@ Cập nhật javadoc `AuthService.java:838` cho khớp behavior đã chọn. Câ
 
 ## Related
 
-- Discovered in: PR `feature/sso-hardening-e2e` (GAP-1138 SSO hardening — Bucket C); root-cause investigation từ GAP-1305 §State-check finding.
+- Discovered in: PR #2398 `feature/sso-hardening-e2e` (GAP-1138 SSO hardening — Bucket C); root-cause investigation từ GAP-1305 §State-check finding.
 - GAP-1305 (workaround đã ship — single-instance dedicated owner seed cho SSO walk determinism).
 - GAP-1138 (cross-product SSO KH→KC — consumer của JWT `tenantId` claim qua exchange).
 - GAP-531 (follow-up per-role tenant lookup — STAFF/TEACHER/PARENT/STUDENT; cùng `resolveTenantIdForRole` scope).
