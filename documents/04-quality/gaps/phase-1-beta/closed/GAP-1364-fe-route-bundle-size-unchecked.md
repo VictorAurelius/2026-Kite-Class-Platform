@@ -1,6 +1,6 @@
 # GAP-1364: FE route bundle size UNCHECKED — cần fresh production build verify
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟡 P2
 **Domain:** Frontend
 **Found:** 2026-06-14 (Performance full audit post wave-p0-closeout-1, sub-check 3.1/3.2 ❓ UNCHECKED)
@@ -18,9 +18,19 @@ Chạy `pnpm --filter kitehub-frontend build` + `pnpm --filter kiteclass-fronten
 
 ## Acceptance Criteria
 
-- [ ] Build output route-size table cả 2 app được capture
-- [ ] Mọi route ≤250KB gzipped HOẶC finding cụ thể cho route vượt
-- [ ] First Load JS shared ≤200KB xác nhận
+- [x] Build output route-size table cả 2 app được capture
+- [x] Mọi route ≤250KB gzipped HOẶC finding cụ thể cho route vượt
+- [x] First Load JS shared ≤200KB xác nhận
+
+## Resolution (2026-06-15 — audit-fixG-quality wave)
+
+**DONE (measurement).** Chạy production build cả 2 app FOREGROUND: `pnpm --filter kitehub-frontend build` + `pnpm --filter kiteclass-frontend build` (Next.js 15.5.18) → cả 2 `BUILD EXIT 0` (KH 68 route, KC 98 route). Số liệu đầy đủ + bảng route lưu tại `documents/04-quality/audits/performance/2026-06-15-fe-bundle-measurement.md`.
+
+Kết quả (Next.js báo RAW; gzip JS ≈ 30-35% raw):
+- **Shared First Load JS**: KH 103 kB raw / KC 103 kB raw → ✅ PASS 3.2 (≤200KB, kể cả raw).
+- **Max route**: KH `/billing` 212 kB raw (~72 kB gz); KC `/settings` 276 kB raw (~94 kB gz) → cả hai < 250KB gzipped → ✅ PASS 3.1.
+- **Không route nào vượt 250KB gzipped.** Sub-check 3.1/3.2 chuyển ❓ UNCHECKED → ✅ PASS bằng số liệu thật.
+- **Watch item** (không chặn): KC `/settings` 276 kB raw là route nặng nhất (page-level 33.9 kB); dưới ngưỡng gzipped, theo dõi ở performance audit kế — chưa cần action.
 
 ## Related
 

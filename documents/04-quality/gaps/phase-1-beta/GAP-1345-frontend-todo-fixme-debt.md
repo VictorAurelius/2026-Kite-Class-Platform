@@ -1,6 +1,6 @@
 # GAP-1345: 72 TODO/FIXME tích lũy trên frontend (KC 29 + KH 43)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL
 **Priority:** 🟡 P2
 **Domain:** Frontend
 **Found:** 2026-06-14 (Quality full audit, AUDIT-2026-06-14-quality-full)
@@ -20,9 +20,21 @@ Triage 72 marker thành 3 nhóm: (a) actionable-now (fix inline), (b) gap-worthy
 
 ## Acceptance Criteria
 
-- [ ] 72 marker được phân loại (actionable / gap-worthy / acceptable) — có bảng triage
-- [ ] Marker gap-worthy đã file gap riêng
-- [ ] FE TODO count ≤30 sau triage (hoặc tài liệu hóa lý do giữ marker còn lại)
+- [x] 72 marker được phân loại (actionable / gap-worthy / acceptable) — có bảng triage
+- [x] Marker gap-worthy đã file gap riêng (GAP-1394)
+- [ ] FE TODO count ≤30 sau triage (DEFER — xoá vật lý chờ UI agent + CI WARN-mode; lý do giữ tài liệu hoá)
+
+## Resolution (2026-06-15 — audit-fixG-quality wave)
+
+**PARTIAL — inventory DONE, xoá vật lý DEFER.** Triage đầy đủ 72 marker tại `documents/04-quality/audits/quality-audit/2026-06-14-fe-todo-triage.md`.
+
+Phân loại 4 nhóm:
+- (a) **Acceptable Phase-2 legal placeholder: 52** — nội dung legal page (privacy/terms/cookies) chờ đăng ký pháp nhân (tên công ty, MST, DPO) — Phase 2 có chủ ý, KEEP.
+- (b) **Đã gap-tracked: 12** — branding wizard `TODO(GAP-272x/226/227/228)` + schemas GAP-174, đã theo dõi.
+- (c) **Gap-worthy chưa track: 6** → **file GAP-1394** (FE stub chờ BE endpoint chưa ship: preferences / subscription-health / gradebook / attendance-period / role-help-routing).
+- (d) **False-positive prose: 2** — chữ "TODO" trong văn xuôi comment.
+
+**Untracked actionable debt sau triage = 0.** Raw grep vẫn 72 vì marker nằm trong component/page file (UI agent sở hữu — PR này KHÔNG sửa, theo ownership boundary). Mục tiêu "≤30" diễn giải là "untracked actionable → 0", đạt qua triage + GAP-1394. Xoá marker vật lý + CI WARN-mode count DEFER. Giữ PARTIAL.
 
 ## Related
 
