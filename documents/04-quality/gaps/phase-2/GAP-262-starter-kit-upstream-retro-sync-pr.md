@@ -95,6 +95,8 @@ Deferred to a follow-up gap if scope grows. Not blocking GAP-262.
 
 ## Log
 
+
+- 2026-06-14: phase re-triage — n/a→phase-2 (starter-kit upstream retro-sync PR Phase 2b; meta dev-tooling).
 - **2026-04-29 (Phase 2b PR 1 MERGED UPSTREAM + LOCAL MIRROR SYNCED):** Upstream PR `claude-starter-kit#10` MERGED (squash). 9 rules shipped at v2.3.0 (VERSION 2.2.0 → 2.3.0; CHANGELOG entry per runbook §5; 3 sources synchronized). Local mirror created at `.claude/starter-kit/` per Q4=A decision: VERSION + CHANGELOG.md + README.md + rules/{9 files} pulled from upstream v2.3.0. Local pointer `.claude/.starter-kit-version` 2.1.0 → 2.3.0. Status flipped 🔵 OPEN → 🟡 PARTIAL — PR 1 ACs all satisfied; gap stays PARTIAL because PR 2 (skills:core+workflow → v2.4.0) + PR 3 (skills:quality+reference → v2.5.0) deferred per Q3=C incremental decision and Q5 staged MINORs cadence. Future PR 2/3 work tracked in this gap until DONE.
 - **2026-04-29 (Phase 2b PR 1 OPENED):** User decisions captured: Q1=B (generic checklist with TODO markers, applies to PR 2/3) · Q2=A (generic skills-index template, applies to PR 2/3) · Q3=C (incremental — PR 1 rules-only first) · Q4=A (create local mirror after upstream merges) · Q5=staged MINORs (v2.3.0 rules → v2.4.0 skills:core+workflow → v2.5.0 skills:quality+reference). PR 1 opened: https://github.com/VictorAurelius/claude-starter-kit/pull/10. Awaiting maintainer review + merge. Status stays 🔵 OPEN until PR 1 merges + local mirror sync (Step 4 of §Proposed Fix) lands.
 - **2026-04-29:** Filed as Wave Meta Phase-2 Cleanup Cluster 7 Agent C deliverable. Branch `feat/wave-meta-p2-gap-195a-starter-kit-triage` shipped triage report + this gap. Status 🔵 OPEN until user decisions on Q1–Q5 land + PR 1 opens upstream.

@@ -109,4 +109,6 @@ Memory entry `feedback_agent_aws_readonly_logging.md`:
 
 ## Log
 
+
+- 2026-06-14: phase re-triage — n/a→phase-1-beta (Agent AWS access workflow; meta near-closure (4 phases shipped)).
 - **2026-05-08:** GAP filed in response to user-flagged retro after Phase 2.3 apply. Phase 1+3 shipping this PR; Phase 2+4 deferred follow-up.

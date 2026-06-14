@@ -72,5 +72,7 @@ Complements GAP-090 (producer-side DONE) with consumer-side guarantee. Pact, Spr
 
 ## Log
 
+
+- 2026-06-14: phase re-triage — n/a→phase-2 (FE-BE decoupled mock contract tests; quality hardening post-launch (FLAGGED beta-vs-2)).
 - 2026-04-20 — Created from action-1 §15.I.
 - 2026-04-20 — Phase 1 closed (Wave 8b-F): ADR-016 accepted (OpenAPI schema-diff via `oasdiff` for Phase 1; Pact deferred to Phase 2 re-evaluation). Pilot plan scopes 3 endpoints (login, class list, attendance submit) with CI workflow design + api-contract-audit skill integration hook. Producer-side already DONE via GAP-090 `InstanceApiContractTest`. Files: `documents/02-architecture/adr/ADR-016-fe-be-contract-strategy.md`, `documents/04-quality/contract-tests-pilot-plan.md`.

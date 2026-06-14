@@ -65,4 +65,6 @@ Patch + security advisories still flow through normally — only minor bumps blo
 
 ## Log
 
+
+- 2026-06-14: phase re-triage — n/a→phase-2 (Dependabot resume minor bumps Post-MVP; dependency cadence post-launch).
 - **2026-04-30** — Created at pre-MVP dependency lock decision. Trigger: 4 Dependabot PRs (#715/#716/#717/#718) failed simultaneously after rebase, real breakage emerged (not just flaky), solo-dev capacity insufficient for weekly triage cycle pre-MVP. Conservative lock chosen over surgical per-package pins because: (a) MVP focus on feature/governance not dep triage, (b) patch-tier covers security advisories, (c) easier to restore single config flag post-MVP than maintain growing pin list. Resume estimate: post-MVP soft launch (~4-6 weeks).

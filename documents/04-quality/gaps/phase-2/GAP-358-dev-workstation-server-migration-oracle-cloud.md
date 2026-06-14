@@ -145,4 +145,6 @@ Three viable architectures (decision required at design phase):
 
 ## Log
 
+
+- 2026-06-14: phase re-triage — n/a→phase-2 (migrate WSL2 dev workstation to Oracle Cloud; DX/infra post-launch).
 - **2026-05-05** Filed after WSL stop incident (3 background agents killed mid-Wave-19) + PATH-leak debugging session. Root cause analysis revealed `eval \"$(fnm env)\"` broken-quote was the actual error, not Windows PATH directly — but pattern of incidents (stop + restart + state loss) motivates moving dev workstation to a stable server. Existing `terraform-oracle/` is production-targeted; this gap proposes separate dev VM. Wave-eligibility: NOT during Wave 19. Per `meta-gap-priority.md` Feature P2 (DX) — runs after Wave 19 LEGAL P0 + post-Wave-19 audit suite + GAP-357 deprecation sweep.

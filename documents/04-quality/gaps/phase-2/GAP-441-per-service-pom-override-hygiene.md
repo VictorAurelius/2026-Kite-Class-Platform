@@ -36,4 +36,6 @@ Maven multi-module project: each service has own pom.xml. `<dependencyManagement
 
 ## Log
 
+
+- 2026-06-14: phase re-triage — n/a→phase-2 (per-service pom dep override hygiene; quality tech-debt).
 - **2026-05-08** Filed during Phase 3 staging retro. Quality gap, not deploy-blocking.

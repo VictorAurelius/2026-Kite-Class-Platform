@@ -82,4 +82,6 @@ Current state:
 
 ## Log
 
+
+- 2026-06-14: phase re-triage — n/a→phase-1-beta (memory architecture multi-WSL sync; meta design).
 - **2026-05-12:** Filed at user request during Wave 64 close. 3 design questions surfaced. Design discussion phase before implementation.

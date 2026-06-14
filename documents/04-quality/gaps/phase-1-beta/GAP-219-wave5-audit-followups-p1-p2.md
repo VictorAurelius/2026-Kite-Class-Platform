@@ -65,4 +65,6 @@ When a maintenance PR is opened that touches one of these areas, split the relev
 
 ## Log
 
+
+- 2026-06-14: phase re-triage — n/a→phase-1-beta (Wave 5 audit follow-up umbrella backlog; meta).
 - **2026-04-25:** Filed as umbrella from Wave 5 audit suite. 5 P1 + 8 P2/P3 sub-bullets. Per `audit-to-gap-pipeline.md` exception for tracking-only gaps; sub-bullets split out only when scheduled into a PR.

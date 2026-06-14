@@ -118,4 +118,6 @@ Per email "rejected" — account may be flagged for ~6-12 month cooldown. Don't 
 
 ## Log
 
+
+- 2026-06-14: phase re-triage — n/a→phase-2 (AWS credits strategy post-Activate rejection; cost optimization not blocking beta (FLAGGED)).
 - **2026-05-12:** Filed after 2nd AWS Activate rejection. AWS Educate researched + ruled out (learning platform only). Strategy: Free Tier covers Phase 1 BETA $0 net; apply Microsoft Founders Hub as backup Phase 1.5; AWS Activate reapply Phase 2 post legal entity + traction.

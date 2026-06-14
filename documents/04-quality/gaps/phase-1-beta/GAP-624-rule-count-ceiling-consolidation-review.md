@@ -85,4 +85,6 @@ Per `rule-change-process.md` §6.1 Deprecation lifecycle:
 
 ## Log
 
+
+- 2026-06-14: phase re-triage — n/a→phase-1-beta (rule count ceiling consolidation review; meta).
 - **2026-05-18 (filed):** Filed by Wave 92 closure meta-improvements audit. Top 3 improvement areas surfaced 2026-05-18 session: rule count ceiling consolidation review = #1 priority (P2 — preventive, soft deadline 90-day quarterly). Per user 2026-05-18 decision "File 3 gap files TOP 3 + defer execution" — execution defer Wave 94+ post-release-2-plan-lock. Tracking-only filing này tránh silent loss per `wave-closure-scope-completeness.md` recursion. Counter trajectory: pre-session 63 → post-session 68 → projected next sessions 73-78 (WARN tier) nếu không consolidate.

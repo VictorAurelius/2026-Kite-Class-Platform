@@ -66,4 +66,6 @@ Update `gap-architecture-v2.md` §4 Phase 2 description to explicitly state "act
 
 ## Log
 
+
+- 2026-06-14: phase re-triage — n/a→phase-1-beta (gap-status.csv closed-folder bulk migrate; meta data hygiene).
 - **2026-05-12:** Filed during Wave 66 closure verification. CSV coverage audit found 194/200 closed gaps missing rows. Backfill scope ~190 rows. Concurrent hotfix adds GAP-372 row manually to unblock current path-to-invite update.

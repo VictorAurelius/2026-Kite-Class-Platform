@@ -236,6 +236,8 @@ International (if scale):
 
 ## Log
 
+
+- 2026-06-14: phase re-triage — n/a→phase-1-beta (P0 business-logic correctness framework; meta/process beta-critical (Phase 2 audit split GAP-156)).
 - **2026-05-11:** PR# backfill (Wave 60 Bucket D-2). Verified shipped work cross-references:
   - PR #652 — `docs(rules): GAP-049 Phase 1 — business-logic-review rule + matrix-row flip` (merged 2026-04-29) — created `.claude/rules/business-logic-review.md` v1.0.0 + flipped `output-review-mandate.md` §3 matrix row ❌ → ⚠️ PARTIAL (v1.1.2 → v1.1.3) + filed GAP-156 as Phase 2 follow-up.
 

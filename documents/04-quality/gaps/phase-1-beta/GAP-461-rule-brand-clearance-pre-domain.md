@@ -91,6 +91,8 @@ Counterfactual with rule applied: Step 5 Google search would have surfaced kiteh
 
 ## Log
 
+
+- 2026-06-14: phase re-triage — n/a→phase-1-beta (meta-rule brand-clearance pre-domain; rule file missing).
 - 2026-06-01 — **Wave meta-8 Bucket B SCOPE-REVISE:** SCOPE-REVISE: rule file genuinely missing. Either ship `.claude/rules/brand-clearance-pre-domain.md` next wave OR re-frame gap as "deferred — solo-dev no brand-clearance flow pre-Phase-2". CSV completion_pct adjusted to 0%; gap body Status/AC reflect documented scope BEFORE Wave meta-7 audit — re-read audit artifact for current empirical reality. Source: `documents/04-quality/audits/meta/2026-06-01-wave-meta-7-bucket-c-p1-open-2.md`.
 
 - **2026-05-10**: Filed at GAP-460 decision time per `incident-to-rule-pipeline.md` Stage 3 (Rule + Enforce). Rule itself deferred to follow-up wave (Wave 53+ when current Wave 50/51/52 closure load reduces); meta-priority P1 per `meta-gap-priority.md` §3 (rule fix has 1 to N future-PR leverage). Detector wiring (audit-gate.py AUDIT_RULES) deferred to 2nd recurrence per premature-rule guard.

@@ -104,4 +104,6 @@ In a feature branch, deliberately introduce a deprecated import (e.g. `@MockBean
 
 ## Log
 
+
+- 2026-06-14: phase re-triage — n/a→phase-2 (Werror flip-day post-warning-burndown; CI future enforcement).
 - **2026-04-29** — Filed alongside GAP-245 Phase 1 (Maven `strict-warnings` profile + CI profile activation). Phase 2 = warnings burndown + `-Werror` flip-day. Tracked as P2 because Phase 1 already provides visibility (warnings now appear prominently in CI compile logs); flip-day is hardening, not blocker. Re-check priority when Spring Boot 3.5+ deprecation pressure increases.

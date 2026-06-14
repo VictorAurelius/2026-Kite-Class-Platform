@@ -78,4 +78,6 @@ If criteria miss → uninstall, document why, file follow-up gap.
 
 ## Log
 
+
+- 2026-06-14: phase re-triage — n/a→phase-2 (GitNexus MCP pilot evaluation; tooling eval not beta-blocking).
 - 2026-04-25 — Gap created after session B' research surfaced GitNexus as trending MCP code-intelligence tool. User noted "tìm hiểu về gitnexus" in `documents/action-2.md`. Pilot template lifted from RTK pilot (PR #531) for consistency.

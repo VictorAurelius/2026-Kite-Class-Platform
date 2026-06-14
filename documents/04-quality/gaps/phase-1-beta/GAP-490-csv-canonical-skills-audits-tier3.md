@@ -76,4 +76,6 @@ Wave 65 Bucket C budget (~2.5h Tier 1+2) consumed the available time; Tier 3 mus
 
 ## Log
 
+
+- 2026-06-14: phase re-triage — n/a→phase-1-beta (CSV-canonical Tier 3 skills+audits; meta tooling).
 - **2026-05-12:** Filed as PARTIAL exit ramp for GAP-485 Tier 3 deferral per `gap-done-discipline.md` §3. Tier 1+2 shipped same wave; Tier 3 deferred to maintain quality + state-check rigor for ~50-skill + heterogeneous-audit indexes.

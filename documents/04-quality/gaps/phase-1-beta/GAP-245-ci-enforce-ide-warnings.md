@@ -69,5 +69,7 @@ See `documents/04-quality/gaps/GAP-261-werror-flipday.md` for the full burndown 
 
 ## Log
 
+
+- 2026-06-14: phase re-triage — n/a→phase-1-beta (CI enforce IDE warnings; meta CI hardening active).
 - **2026-04-29** — Phase 1 shipped (Wave Meta-Gov 2 Cluster 6 — Agent A). Maven `strict-warnings` profile added to 3 root POMs (`kitehub/pom.xml`, `kiteclass-core/pom.xml`, `kiteclass-gateway/pom.xml`) with `-Xlint:deprecation -Xlint:unchecked -Xlint:rawtypes -Xlint:cast -Xlint:overrides`. CI workflows (`kitehub-ci.yml` 6 mvn steps, `core-ci.yml` 2 steps, `gateway-ci.yml` 2 steps) updated to pass `-P strict-warnings`. No `-Werror` in Phase 1 by design (would break CI on pre-existing warnings). Status flips 🔵 OPEN → 🟡 PARTIAL per `gap-done-discipline.md` §3 — Phase 2 (warnings burndown + `-Werror` flip) mapped to GAP-261-werror-flipday. Verification: XML well-formed via `xml.etree.ElementTree`; YAML well-formed via `yaml.safe_load`; grep confirms `-Werror` only present in code comments (not in compilerArgs).
 - **2026-04-28** — Filed after PR #605 closed 8 shipped IDE warnings. State check confirmed no existing CI lint enforcement (workflows + POMs grepped). Memory rule alone is insufficient per `feedback_incident_to_rule_pipeline.md` 5-stage pipeline.

@@ -82,4 +82,6 @@ PR description must quote the comparison. (For initial pilot, baseline can be qu
 
 ## Log
 
+
+- 2026-06-14: phase re-triage — n/a→phase-1-beta (meta rule — AI read README before grep; process).
 - **2026-04-28** Filed during ecosystem audit (Wave Meta-Gov 1, Phase 1E follow-up). User asked: "có rules là không greps mà đọc readme trước chưa?" — answer was no. Conditional on GAP-255 to avoid premature-rule incident pattern.

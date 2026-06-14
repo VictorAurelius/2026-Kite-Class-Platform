@@ -116,5 +116,7 @@ User's framing: *"BRD là điểm khởi đầu quan trọng nhất của dự �
 
 ## Log
 
+
+- 2026-06-14: phase re-triage — n/a→phase-1-beta (P0 BRD scope expansion 22 docs; business-doc meta (FLAGGED beta-vs-1.5)).
 - 2026-04-20 (later session) — Phase 1 FILED. 7 P0 sub-gap files created (GAP-180..186). Wave 8 master plan updated to include these gaps. Phase 2 P1 sub-gaps (GAP-187..193) still reserved for future session.
 - 2026-04-20 — Umbrella created. Simulation surfaced 22 missing BRD docs. Phase 0 artifacts shipped in this PR. Phase 1 P0 sub-gaps (GAP-180..186) reserved for next session.

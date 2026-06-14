@@ -93,6 +93,8 @@ Hiểu lầm thường gặp: developers tạo file "why-rabbitmq.md" ở `05-gu
 
 ## Log
 
+
+- 2026-06-14: phase re-triage — n/a→phase-1-beta (05-guides docs completion + ADR kickoff; docs/meta active).
 - **2026-05-11:** PR# backfill (Wave 60 Bucket D-2). Verified shipped work cross-references:
   - PR #346 — `docs(gaps): GAP-101/102/103 docs folder governance + generic docs-folder-structure rule` (2026-04-18) — initial governance scaffold.
   - PR #348 — Part 2 ADR shipped (ADR-014 async jobs queue over batch + ADR README backfill 5 → 14 ADRs).

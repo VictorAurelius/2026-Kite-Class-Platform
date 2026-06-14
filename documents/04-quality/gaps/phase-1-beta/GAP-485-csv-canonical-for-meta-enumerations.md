@@ -102,6 +102,8 @@ number,title,status,decision_summary,date,file
 
 ## Log
 
+
+- 2026-06-14: phase re-triage — n/a→phase-1-beta (CSV-canonical meta-enumerations pattern (Tier 1+2 shipped); meta tooling).
 - **2026-05-12 Wave 65 Bucket C — Tier 1+2 SHIPPED (PARTIAL).** Files added:
   - `.claude/rules/meta-csv-index-pattern.md` v1.0.0 (codifies CSV-canonical pattern + trigger conditions + schema + 4 paired artifacts mandate)
   - `documents/02-architecture/adr/adrs-index.csv` (28 rows, 100% ADR coverage)
