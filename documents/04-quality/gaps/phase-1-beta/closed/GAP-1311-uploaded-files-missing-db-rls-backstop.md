@@ -1,6 +1,6 @@
 # GAP-1311: uploaded_files + storage_quota thiếu DB-level RLS — chỉ dựa Hibernate @Filter (thiếu defense-in-depth)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟡 P2
 **Domain:** Backend
 **Found:** 2026-06-14 (security full audit post wave-p0-closeout-1 — AUDIT-2026-06-14-security-full, F-004)
@@ -20,9 +20,24 @@ Thêm migration enable RLS + `CREATE POLICY` cho `uploaded_files` + `storage_quo
 
 ## Acceptance Criteria
 
-- [ ] Migration mới enable ROW LEVEL SECURITY + policy cho `uploaded_files` + `storage_quota`.
-- [ ] Test: query 2 bảng này với tenant GUC = tenant khác → 0 row (DB-level), độc lập với Hibernate filter.
-- [ ] Tenant GUC NULL → force-fail (không leak), khớp V59 pattern.
+- [x] Migration mới enable ROW LEVEL SECURITY + policy cho `uploaded_files` + `storage_quotas`.
+- [x] Test: query 2 bảng này với tenant GUC = tenant khác → 0 row (DB-level), độc lập với Hibernate filter.
+- [x] Tenant GUC NULL → force-fail (không leak), khớp V59 pattern.
+
+## Resolution (2026-06-15, audit-fixB PR)
+
+Thêm migration **`V99__uploaded_files_storage_quotas_rls.sql`** (V98 là max trước đó):
+`ENABLE` + `FORCE ROW LEVEL SECURITY` + policy `tenant_isolation` theo đúng shape V59-hardened
+(admin-bypass `app.is_platform_admin` + NULL force-fail `NULLIF(...,'')::uuid`) cho cả 2 bảng.
+Migration dùng `DO $$` block idempotent (`DROP POLICY IF EXISTS` + defensive `information_schema`
+guard mirror V58/V84). Cả 2 bảng được tạo trong V79 (`uploaded_files`, `storage_quotas` — tên
+thật số nhiều, gap title viết tắt `storage_quota`) nên `ALTER TABLE` an toàn trên schema Flyway.
+
+**Test:** `UploadedFilesRlsIsolationTest` (CI-bound `*Test`, mirror `LmsRlsIsolationIT`) 3/3 PASS.
+Vì test profile tắt Flyway + `ddl-auto: create-drop`, test áp cùng policy SQL programmatically +
+provision role `NOSUPERUSER NOBYPASSRLS` để RLS thực sự kích hoạt (DB Testcontainers là superuser
+bypass RLS). Cover: cross-tenant isolation cho từng bảng (tenant A không thấy row tenant B kể cả
+lookup theo id) + NULL force-fail (GUC unset → 0 row).
 
 ## Related
 

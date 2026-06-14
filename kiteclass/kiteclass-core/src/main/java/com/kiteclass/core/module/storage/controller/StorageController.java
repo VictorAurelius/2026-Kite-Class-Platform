@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,6 +24,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Arrays;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -55,6 +58,24 @@ import java.util.UUID;
 public class StorageController {
 
     private final StorageService storageService;
+
+    /** Tenant-admin roles that may confirm/delete ANY file in the tenant (GAP-1309). */
+    private static final Set<String> PRIVILEGED_ROLES = Set.of("ADMIN", "PLATFORM_ADMIN", "OWNER");
+
+    /**
+     * Returns true if the gateway-forwarded {@code X-User-Roles} header contains any of the
+     * given roles. Values are trimmed, upper-cased, and stripped of a {@code ROLE_} prefix to
+     * match the Gateway forwarding convention.
+     */
+    private static boolean hasAnyRole(String rolesHeader, Set<String> roles) {
+        if (rolesHeader == null || rolesHeader.isBlank()) {
+            return false;
+        }
+        return Arrays.stream(rolesHeader.split(","))
+            .map(r -> r.trim().toUpperCase())
+            .map(r -> r.startsWith("ROLE_") ? r.substring("ROLE_".length()) : r)
+            .anyMatch(roles::contains);
+    }
 
     /**
      * Generates presigned upload URL for client to upload file to S3.
@@ -102,22 +123,31 @@ public class StorageController {
      * <p>Call this endpoint after uploading file to S3 via presigned URL.
      * This marks the file as CONFIRMED and updates quota usage.
      *
-     * @param fileId File database ID
+     * @param fileId    File database ID
+     * @param requesterId User ID from X-User-Id header (must be the uploader, unless privileged)
+     * @param roles     User roles from X-User-Roles header (tenant-admin bypasses uploader check)
      * @return ApiResponse with file metadata
      */
     @PostMapping("/{fileId}/confirm")
+    @PreAuthorize("isAuthenticated()")
     @Operation(
         summary = "Confirm file upload",
         description = "Confirms that file was successfully uploaded to S3. " +
-                      "Marks file as CONFIRMED and updates storage quota."
+                      "Marks file as CONFIRMED and updates storage quota. " +
+                      "Only the uploader (or a tenant admin/owner) may confirm the file."
     )
     public ApiResponse<FileMetadataResponse> confirmUpload(
         @Parameter(description = "File ID")
-        @PathVariable Long fileId
+        @PathVariable Long fileId,
+        @Parameter(description = "User ID (from Gateway)")
+        @RequestHeader(value = "X-User-Id", required = true) Long requesterId,
+        @Parameter(description = "User roles (from Gateway)")
+        @RequestHeader(value = "X-User-Roles", required = false) String roles
     ) {
-        log.info("REST request to confirm upload for file ID: {}", fileId);
+        log.info("REST request to confirm upload for file ID: {} by user: {}", fileId, requesterId);
 
-        FileMetadataResponse response = storageService.confirmUpload(fileId);
+        FileMetadataResponse response = storageService.confirmUpload(
+            fileId, requesterId, hasAnyRole(roles, PRIVILEGED_ROLES));
 
         return ApiResponse.success(response, "File upload confirmed successfully");
     }
@@ -167,22 +197,30 @@ public class StorageController {
      * <p>File is marked as deleted and scheduled for S3 cleanup after 30 days.
      * Quota usage is updated immediately.
      *
-     * @param fileId File database ID
+     * @param fileId      File database ID
+     * @param requesterId User ID from X-User-Id header (must be the uploader, unless privileged)
+     * @param roles       User roles from X-User-Roles header (tenant-admin bypasses uploader check)
      * @return ApiResponse with success message
      */
     @DeleteMapping("/{fileId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("isAuthenticated()")
     @Operation(
         summary = "Delete file",
-        description = "Soft deletes file. File is marked as deleted and will be removed from S3 after 30 days."
+        description = "Soft deletes file. File is marked as deleted and will be removed from S3 after 30 days. " +
+                      "Only the uploader (or a tenant admin/owner) may delete the file."
     )
     public ApiResponse<Void> deleteFile(
         @Parameter(description = "File ID")
-        @PathVariable Long fileId
+        @PathVariable Long fileId,
+        @Parameter(description = "User ID (from Gateway)")
+        @RequestHeader(value = "X-User-Id", required = true) Long requesterId,
+        @Parameter(description = "User roles (from Gateway)")
+        @RequestHeader(value = "X-User-Roles", required = false) String roles
     ) {
-        log.info("REST request to delete file ID: {}", fileId);
+        log.info("REST request to delete file ID: {} by user: {}", fileId, requesterId);
 
-        storageService.deleteFile(fileId);
+        storageService.deleteFile(fileId, requesterId, hasAnyRole(roles, PRIVILEGED_ROLES));
 
         return ApiResponse.success(null, "File deleted successfully");
     }
