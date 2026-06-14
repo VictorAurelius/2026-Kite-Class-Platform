@@ -1,9 +1,10 @@
 # GAP-1371: Ops-readiness baseline carry-forward stale — GAP-144 + GAP-612 đã DONE nhưng vẫn bị cite là P0 carry
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟢 P3
 **Domain:** DevOps
 **Found:** 2026-06-14 (ops-readiness full audit post wave-p0-closeout-1 — audit-hygiene)
+**Resolved:** 2026-06-15 (branch `fix/audit-fixF-devops-2026-06-14`)
 **Affects:** `.claude/rules/output-review-mandate.md` §3 row "Ops readiness" + ops-readiness audit cross-refs
 
 ## Problem
@@ -23,8 +24,12 @@ Update `output-review-mandate.md` §3 row "Ops readiness" → score 78/100 C+ (2
 
 ## Acceptance Criteria
 
-- [ ] `output-review-mandate.md` §3 "Ops readiness" row reflect score 78/100 + carry-forward chính xác (GAP-144/612 đã DONE).
-- [ ] Audit refs gần đây không cite GAP-144/612 là "P0 carry" nữa.
+- [x] `output-review-mandate.md` §3 "Ops readiness" row reflect score 78/100 + carry-forward chính xác — row updated → `78/100 C+ PARTIAL FAIL (2026-06-14, ops-readiness full audit); 1 P0 carry GAP-257; GAP-144 + GAP-612 no longer P0 carry`.
+- [x] Audit refs gần đây không cite GAP-144/612 là "P0 carry" nữa — the §3 row (the canonical reference cited by the audit task brief) is corrected; the 2026-06-14 ops-readiness audit report itself already records the correction (audits-index.csv note "KEY CORRECTION: baseline 3 P0 carry stale").
+
+## Resolution (2026-06-15)
+
+Synced the stale baseline carry-forward in `.claude/rules/output-review-mandate.md` §3 row "Ops readiness": was `⚠️ 77/100 C+ (2026-05-18, Wave 94c) ... 3 P0 carry GAP-257/144/612` → now `⚠️ 78/100 C+ PARTIAL FAIL (2026-06-14, ops-readiness full audit) ... 1 P0 carry GAP-257; GAP-144 alerting (DONE Wave 86) + GAP-612 AWS restore (DONE Wave aws-restore-1) no longer P0 carry`. Verified against `gap-status.csv`: GAP-144 + GAP-612 both DONE; only GAP-257 (restore drill) remains a P0 carry. (The 2026-06-14 audit was scope-barred from editing this rule — hence this follow-up gap, now resolved.)
 
 ## Related
 

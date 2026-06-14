@@ -180,14 +180,61 @@ resource "aws_cloudwatch_metric_alarm" "kc_app_status_check_failed" {
   }
 }
 
-# ----------------- Alarm 6: Nginx 5xx rate spike (ALB substitute) -----------------
-# Wave aws-restore-1 eliminated ALB. Nginx access logs piped to CloudWatch
-# Logs (log group `/kite/nginx/access`); metric filter `Nginx5xxCount`
-# extracts `status >= 500` events to namespace `KiteHub/Nginx`.
+# =============================================================================
+# Metric SOURCE for Alarm 6 (Nginx 5xx) — GAP-1369 static IaC half
+# =============================================================================
+# Wave aws-restore-1 eliminated the ALB; the edge nginx (infrastructure/fe-host/
+# nginx-fe.conf `fe_proxy` log_format) is now the closest 5xx signal. This block
+# ships the static IaC half of GAP-1369: a CloudWatch Logs group + metric filter
+# so the `Nginx5xxCount` metric (namespace KiteHub/Nginx) Alarm 6 reads has a
+# DEFINED source instead of relying on an un-declared filter. Mirrors the
+# cloudwatch-provisioning-alarms.tf log-group + filter pattern.
 #
-# If metric filter not yet wired post Wave aws-restore-1, alarm stays
-# INSUFFICIENT_DATA - itself a useful Phase 1 BETA observability gap signal
-# until log-pipeline shipped (track follow-up gap).
+# fe_proxy log_format (nginx-fe.conf:112):
+#   $remote_addr - $remote_user [$time_local] "$request" $status $body_bytes_sent ...
+# CloudWatch space-delimited tokens (bracket [..] / quote ".." each = 1 token):
+#   1=remote_addr 2=ident(-) 3=user 4=[timestamp] 5="request" 6=status 7..=rest
+# Pattern matches token 6 (status) >= 500. default_value=0 keeps the metric out
+# of INSUFFICIENT_DATA whenever access-log lines flow (non-5xx lines emit 0).
+#
+# LIVE-APPLY DEFERRED (AWS-gated per GAP-612 history): the kh-backend CloudWatch
+# agent must tail /var/log/nginx/*access*.log into this log group before the
+# filter produces data points; then `terraform apply`. Until shipped + applied,
+# Alarm 6 stays INSUFFICIENT_DATA. Follow-up = GAP-1369 live half (CWAgent log
+# config + apply + verify alarm leaves INSUFFICIENT_DATA).
+resource "aws_cloudwatch_log_group" "nginx_access" {
+  name              = "/kite/nginx/access"
+  retention_in_days = 30
+
+  tags = {
+    Name    = "${var.project_name}-nginx-access-logs"
+    Purpose = "nginx edge access logs -> Nginx5xxCount metric filter (GAP-1369 / Alarm 6)"
+    Gap     = "GAP-1369"
+  }
+}
+
+resource "aws_cloudwatch_log_metric_filter" "nginx_5xx" {
+  name           = "${var.project_name}-nginx-5xx-count"
+  log_group_name = aws_cloudwatch_log_group.nginx_access.name
+  # fe_proxy token 6 = $status; match server-error responses (>= 500).
+  pattern = "[remote_addr, ident, user, timestamp, request, status_code>=500, ...]"
+
+  metric_transformation {
+    name          = "Nginx5xxCount"
+    namespace     = "KiteHub/Nginx"
+    value         = "1"
+    default_value = "0"
+    unit          = "Count"
+  }
+}
+
+# ----------------- Alarm 6: Nginx 5xx rate spike (ALB substitute) -----------------
+# Metric SOURCE now declared above (GAP-1369): log group `/kite/nginx/access` +
+# metric filter `Nginx5xxCount` (status >= 500) -> namespace `KiteHub/Nginx`.
+#
+# Until the kh-backend CloudWatch agent ships nginx access logs into the group +
+# `terraform apply` runs (AWS-gated, GAP-1369 live half), this alarm stays
+# INSUFFICIENT_DATA - itself a useful Phase 1 BETA observability gap signal.
 #
 # Threshold: > 10 5xx responses in 5min - moderate burst tolerance for
 # Phase 1 BETA traffic baseline; tune after first week of beta cohort live.
@@ -223,6 +270,12 @@ resource "aws_cloudwatch_metric_alarm" "nginx_5xx_rate_high" {
 # Metric source: RabbitMQ Prometheus exporter emits queue depth to
 # namespace `KiteHub/RabbitMQ` dimension `Queue`. If exporter not yet
 # scraped by CWAgent, alarm INSUFFICIENT_DATA (gap signal).
+#
+# GAP-1369 NOTE: unlike the nginx 5xx filter above, the QueueDepth source is NOT
+# pure-terraform — it requires a rabbitmq-exporter (or CWAgent custom-metric
+# script) running on the kh-backend EC2 emitting `QueueDepth` for
+# `kitehub.outbox.dlq`. That deploy-side wiring + live apply is AWS-gated
+# (GAP-1369 PARTIAL — live half). Until shipped, this alarm stays INSUFFICIENT_DATA.
 resource "aws_cloudwatch_metric_alarm" "outbox_dlq_non_empty" {
   alarm_name          = "${var.project_name}-outbox-dlq-non-empty"
   alarm_description   = "RabbitMQ outbox DLQ depth > 0 - dispatcher retries exhausted. Action: SSH check rabbitmqctl list_queues; inspect message payload; manual replay or discard."
