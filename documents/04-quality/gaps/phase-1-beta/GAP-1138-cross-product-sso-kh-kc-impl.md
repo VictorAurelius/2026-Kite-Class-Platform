@@ -54,3 +54,12 @@ Per `documents/04-quality/audits/rst-html/2026-06-14-g1-runtime-walk-rbac-lms.md
 ## G1-FE browser walk note (2026-06-14)
 
 G1-FE BLOCKED: SSO KH→KC không browser-walk được local — thiếu KiteHub owner credential (KH auth = kitehub-subscription tách biệt KC tenant-auth). KH `:3001/dashboard` đá `/login`. Filed **GAP-1305** (seed KH owner cred). BE-contract walk 2026-06-14 đã verify SSO issue→exchange→replay-401. — verified qua Playwright headless trên FE thật `skytest.127.0.0.1.nip.io:3000` (rebuild kiteclass-frontend). Evidence: `documents/04-quality/audits/rst-html/2026-06-14-g1-fe-browser-walk.md`. **Giữ PARTIAL** — human G2★ vẫn bắt buộc (mutation deep-interaction chưa walk).
+
+## SSO hardening — E2E regression guard shipped (PR #2398, 2026-06-14)
+
+Hardening landed cho 70%-shipped SSO chain (status giữ **PARTIAL** — human G2★ vẫn pending):
+- **E2E regression guard:** `kiteclass-frontend/e2e/sso/sso-callback-regression.spec.ts` (6 test: happy opaque-code→exchange-once→role-home no-relogin + replay/expired/missing/empty-code sad paths + StrictMode single-exchange + opaque-code-NOT-JWT + CSRF guard) + `kitehub-frontend/e2e/sso/sso-issue-redirect.spec.ts` (3 test: redirect carries opaque code not JWT + 401→/login + 500→inline alert). Wired vào `test:e2e:gates` → CI Playwright gate PASS (9/9).
+- **ADR-040 doc-drift fix:** mermaid line 54 `tenant-auth/sso/exchange` → `/api/v1/auth/sso/exchange` (khớp endpoint đã ship).
+- **Determinism root-cause filed:** **GAP-1306** (P1) — `AuthService.resolveTenantIdForRole` `findFirst()` không `ORDER BY` → tenantId JWT non-deterministic cho owner >1 instance; GAP-1305 single-instance seed chỉ là workaround.
+
+Per `feature-ship-runtime-walk-mandate.md` §3: code + automated guard verified; chỉ còn human G2★ cross-origin browser walk để flip DONE.
