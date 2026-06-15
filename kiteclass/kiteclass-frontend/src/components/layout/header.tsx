@@ -103,10 +103,21 @@ export function Header({
             </DropdownMenuContent>
           </DropdownMenu>
 
+          {/* Visible role chip (GAP — role was hidden inside dropdown only; show
+              signed-in role at-a-glance so users/walkers see OWNER/TEACHER/STUDENT). */}
+          <div className="hidden flex-col items-end leading-tight sm:flex">
+            <span className="text-sm font-medium">{roleLabel}</span>
+            <span className="text-xs text-muted-foreground">{displayEmail}</span>
+          </div>
+
           {/* User Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+              <Button
+                variant="ghost"
+                className="relative h-10 w-10 rounded-full"
+                aria-label={`Tài khoản: ${roleLabel} (${displayEmail})`}
+              >
                 <Avatar>
                   <AvatarFallback>{avatarText}</AvatarFallback>
                 </Avatar>
