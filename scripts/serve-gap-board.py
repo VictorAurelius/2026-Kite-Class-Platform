@@ -38,11 +38,22 @@ GAP_PAGE = """<!DOCTYPE html><html lang="vi"><head><meta charset="utf-8">
 </style></head><body><a class="back" href="/">← Gap Board</a>/*BODY*/</body></html>"""
 
 
+def _md_link(m: "re.Match") -> str:
+    text, href = m.group(1), m.group(2)
+    gm = re.search(r"(GAP-\d+)", href)
+    if href.endswith(".md") and gm:          # gap-file link → in-app /gap/<id>
+        href = "/gap/" + gm.group(1)
+    return f'<a href="{href}">{text}</a>'
+
+
 def _inline(s: str) -> str:
     s = _html.escape(s)
     s = re.sub(r"`([^`]+)`", r"<code>\1</code>", s)
     s = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", s)
-    s = re.sub(r"\[([^\]]+)\]\(([^)\s]+)\)", r'<a href="\2">\1</a>', s)
+    s = re.sub(r"\[([^\]]+)\]\(([^)\s]+)\)", _md_link, s)
+    # Bare GAP-NNN references → clickable. Lookbehind skips ids already inside an
+    # href (/gap/…), link text (>…<) or <code> so we never nest/double-link.
+    s = re.sub(r"(?<![/>\w-])(GAP-\d+)\b", r'<a href="/gap/\1">\1</a>', s)
     return s
 
 
