@@ -75,35 +75,47 @@ def render_markdown(md: str) -> str:
         out.append("<table>" + "".join(html_rows) + "</table>")
         table = []
 
+    def close_ul():
+        nonlocal in_ul
+        if in_ul:
+            out.append("</ul>")
+            in_ul = False
+
     for ln in md.split("\n"):
         if ln.strip().startswith("```"):
             if in_code:
-                out.append("</code></pre>"); in_code = False
+                out.append("</code></pre>")
+                in_code = False
             else:
-                if in_ul:
-                    out.append("</ul>"); in_ul = False
-                flush_table(); out.append("<pre><code>"); in_code = True
+                close_ul()
+                flush_table()
+                out.append("<pre><code>")
+                in_code = True
             continue
         if in_code:
-            out.append(_html.escape(ln)); continue
+            out.append(_html.escape(ln))
+            continue
         if ln.strip().startswith("|"):
-            if in_ul:
-                out.append("</ul>"); in_ul = False
-            table.append(ln); continue
+            close_ul()
+            table.append(ln)
+            continue
         flush_table()
         m = re.match(r"^(#{1,4})\s+(.*)", ln)
         if m:
-            if in_ul:
-                out.append("</ul>"); in_ul = False
-            out.append(f"<h{len(m.group(1))}>{_inline(m.group(2))}</h{len(m.group(1))}>"); continue
+            close_ul()
+            lvl = len(m.group(1))
+            out.append(f"<h{lvl}>{_inline(m.group(2))}</h{lvl}>")
+            continue
         if re.match(r"^\s*[-*]\s+", ln):
             if not in_ul:
-                out.append("<ul>"); in_ul = True
-            out.append("<li>" + _inline(re.sub(r"^\s*[-*]\s+", "", ln)) + "</li>"); continue
-        if in_ul:
-            out.append("</ul>"); in_ul = False
+                out.append("<ul>")
+                in_ul = True
+            out.append("<li>" + _inline(re.sub(r"^\s*[-*]\s+", "", ln)) + "</li>")
+            continue
+        close_ul()
         if re.match(r"^\s*---+\s*$", ln):
-            out.append("<hr>"); continue
+            out.append("<hr>")
+            continue
         out.append("<p>" + _inline(ln) + "</p>" if ln.strip() else "")
     if in_ul:
         out.append("</ul>")
