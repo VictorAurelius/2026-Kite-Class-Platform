@@ -14,9 +14,11 @@ import com.kiteclass.core.module.storage.entity.UploadedFile;
 import com.kiteclass.core.module.storage.mapper.StorageMapper;
 import com.kiteclass.core.module.storage.repository.StorageQuotaRepository;
 import com.kiteclass.core.module.storage.repository.UploadedFileRepository;
+import com.kiteclass.core.module.storage.service.LessonMaterialAccessGuard;
 import com.kiteclass.core.module.storage.service.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -61,6 +63,16 @@ public class StorageServiceImpl implements StorageService {
     private final S3Client s3Client;
     private final S3Presigner s3Presigner;
     private final StorageProperties storageProperties;
+
+    /**
+     * GAP-1307 cross-module LMS enrollment paywall hook, injected OPTIONALLY via
+     * {@link ObjectProvider}. A sliced Spring context that scans storage but not LMS (no
+     * provider value) still loads and simply skips the paywall — unlike the reverted #2416
+     * attempt which hard-required the bean and broke full/sliced context loads
+     * (e.g. {@code OpenApiSpecExportTest}). Production full context resolves the LMS-side
+     * {@code LessonMaterialAccessGuardImpl} → paywall enforced.
+     */
+    private final ObjectProvider<LessonMaterialAccessGuard> lessonMaterialAccessGuardProvider;
 
     // Constants
     private static final Duration UPLOAD_URL_TTL = Duration.ofMinutes(30);
@@ -191,7 +203,7 @@ public class StorageServiceImpl implements StorageService {
 
     @Override
     @Transactional(readOnly = true)
-    public String generatePresignedDownloadUrl(Long fileId, Long requesterId, UUID tenantId) {
+    public String generatePresignedDownloadUrl(Long fileId, Long requesterId, UUID tenantId, boolean elevatedRole) {
         log.info("Generating presigned download URL for file: {}, requester: {}", fileId, requesterId);
 
         // Find file (must be CONFIRMED)
@@ -203,8 +215,18 @@ public class StorageServiceImpl implements StorageService {
             throw new BusinessException("FILE_NOT_CONFIRMED", HttpStatus.CONFLICT, fileId);
         }
 
-        // Check access control
+        // Check access control (visibility model: PUBLIC / PRIVATE / TENANT)
         checkAccessPermission(file, requesterId, tenantId);
+
+        // GAP-1307: LMS enrollment paywall — when the file backs a paid (non-trial) lesson,
+        // a non-enrolled student must not bypass the paywall via the TENANT-scoped storage path.
+        // Guard is OPTIONAL (ObjectProvider): absent in a sliced context lacking LMS → allow
+        // (no paywall in that context); present in production full context → enforced.
+        LessonMaterialAccessGuard guard = lessonMaterialAccessGuardProvider.getIfAvailable();
+        if (guard != null) {
+            guard.verifyLessonMaterialDownloadAccess(
+                file.getId(), file.getUploaderId(), requesterId, elevatedRole);
+        }
 
         // Generate presigned GET URL
         software.amazon.awssdk.services.s3.model.GetObjectRequest getObjectRequest =

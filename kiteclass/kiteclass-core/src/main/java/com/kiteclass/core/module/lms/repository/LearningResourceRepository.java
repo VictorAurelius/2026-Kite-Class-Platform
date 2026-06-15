@@ -50,4 +50,16 @@ public interface LearningResourceRepository extends JpaRepository<LearningResour
      * @return count of resources
      */
     long countByLessonIdAndDeletedFalse(Long lessonId);
+
+    /**
+     * Find non-deleted resources backed by the given uploaded file (GAP-1307 deterministic
+     * FK link). The storage download paywall uses this to resolve which lesson(s) a stored
+     * file backs via the {@code uploaded_file_id} FK — replacing the earlier (#2416, reverted)
+     * {@code url}-substring heuristic. An empty result means the file is not recognised as
+     * lesson material and is NOT paywalled (visibility-only, behaviour unchanged).
+     *
+     * @param uploadedFileId the {@code uploaded_files.id} backing the resource
+     * @return matching non-deleted learning resources
+     */
+    List<LearningResource> findByUploadedFileIdAndDeletedFalse(Long uploadedFileId);
 }
