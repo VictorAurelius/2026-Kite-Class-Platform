@@ -152,7 +152,7 @@ function match(d){
 function card(d){
   const c=el('div','card '+d.priority);
   const top=el('div','top');
-  const a=el('a','id'); a.href=d.file; a.textContent=d.id; a.title=d.file;
+  const a=el('a','id'); a.href='/gap/'+d.id; a.target='_blank'; a.textContent=d.id; a.title=d.file;
   const b=el('span','badge '+d.priority); b.textContent=d.priority;
   top.append(a,b); c.appendChild(top);
   const t=el('div','title'); t.textContent=d.title; c.appendChild(t);
@@ -189,7 +189,7 @@ function renderTable(rows){
   const tb=$('#tbody'); tb.innerHTML='';
   for(const d of rows){
     const tr=el('tr',d.priority);
-    const cells=[`<a href="${d.file}" style="color:#1565c0;text-decoration:none">${d.id}</a>`,d.priority,d.status,d.domain,d.phase,d.pct+'%',null,d.verified];
+    const cells=[`<a href="/gap/${d.id}" target="_blank" style="color:#1565c0;text-decoration:none">${d.id}</a>`,d.priority,d.status,d.domain,d.phase,d.pct+'%',null,d.verified];
     cells.forEach((v,i)=>{ const td=el('td'); if(i===0||i===6){ if(i===0) td.innerHTML=v; else td.textContent=d.title; } else td.textContent=v; tr.appendChild(td); });
     tb.appendChild(tr);
   }

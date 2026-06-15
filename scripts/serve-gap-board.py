@@ -15,13 +15,91 @@ Routes:
   GET /<relative-gap-path>.md → raw gap markdown (so card links open)
 """
 import argparse
+import html as _html
 import importlib.util
+import re
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import unquote
 
 ROOT = Path(__file__).resolve().parent.parent
 GAPS_DIR = ROOT / "documents/04-quality/gaps"
+
+GAP_PAGE = """<!DOCTYPE html><html lang="vi"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1"><title>/*TITLE*/</title>
+<style>
+ body{max-width:900px;margin:0 auto;padding:24px;font:14px/1.6 -apple-system,Segoe UI,Roboto,sans-serif;color:#1f2933}
+ a.back{display:inline-block;margin-bottom:16px;color:#1565c0;text-decoration:none}
+ h1{font-size:22px;border-bottom:2px solid #eceff1;padding-bottom:8px} h2{font-size:17px;margin-top:24px}
+ h3{font-size:15px} code{background:#eef1f4;padding:1px 5px;border-radius:4px;font-size:.9em}
+ pre{background:#1f2933;color:#e6edf3;padding:12px;border-radius:8px;overflow:auto} pre code{background:none;color:inherit}
+ table{border-collapse:collapse;width:100%;margin:12px 0;font-size:13px} th,td{border:1px solid #dfe3e8;padding:6px 9px;text-align:left;vertical-align:top}
+ th{background:#eceff1} hr{border:none;border-top:1px solid #dfe3e8;margin:18px 0} li{margin:2px 0}
+</style></head><body><a class="back" href="/">← Gap Board</a>/*BODY*/</body></html>"""
+
+
+def _inline(s: str) -> str:
+    s = _html.escape(s)
+    s = re.sub(r"`([^`]+)`", r"<code>\1</code>", s)
+    s = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", s)
+    s = re.sub(r"\[([^\]]+)\]\(([^)\s]+)\)", r'<a href="\2">\1</a>', s)
+    return s
+
+
+def render_markdown(md: str) -> str:
+    """Minimal, safe markdown→HTML for gap files (headings/bold/code/lists/tables/hr/links)."""
+    out, table = [], []
+    in_code = in_ul = False
+
+    def flush_table():
+        nonlocal table
+        if not table:
+            return
+        rows = [r for r in table if not re.match(r"^\s*\|?[\s:|-]+\|?\s*$", r)]
+        html_rows = []
+        for idx, r in enumerate(rows):
+            cells = [c.strip() for c in r.strip().strip("|").split("|")]
+            tag = "th" if idx == 0 else "td"
+            html_rows.append("<tr>" + "".join(f"<{tag}>{_inline(c)}</{tag}>" for c in cells) + "</tr>")
+        out.append("<table>" + "".join(html_rows) + "</table>")
+        table = []
+
+    for ln in md.split("\n"):
+        if ln.strip().startswith("```"):
+            if in_code:
+                out.append("</code></pre>"); in_code = False
+            else:
+                if in_ul:
+                    out.append("</ul>"); in_ul = False
+                flush_table(); out.append("<pre><code>"); in_code = True
+            continue
+        if in_code:
+            out.append(_html.escape(ln)); continue
+        if ln.strip().startswith("|"):
+            if in_ul:
+                out.append("</ul>"); in_ul = False
+            table.append(ln); continue
+        flush_table()
+        m = re.match(r"^(#{1,4})\s+(.*)", ln)
+        if m:
+            if in_ul:
+                out.append("</ul>"); in_ul = False
+            out.append(f"<h{len(m.group(1))}>{_inline(m.group(2))}</h{len(m.group(1))}>"); continue
+        if re.match(r"^\s*[-*]\s+", ln):
+            if not in_ul:
+                out.append("<ul>"); in_ul = True
+            out.append("<li>" + _inline(re.sub(r"^\s*[-*]\s+", "", ln)) + "</li>"); continue
+        if in_ul:
+            out.append("</ul>"); in_ul = False
+        if re.match(r"^\s*---+\s*$", ln):
+            out.append("<hr>"); continue
+        out.append("<p>" + _inline(ln) + "</p>" if ln.strip() else "")
+    if in_ul:
+        out.append("</ul>")
+    if in_code:
+        out.append("</code></pre>")
+    flush_table()
+    return "\n".join(out)
 
 # render-gap-board.py has a hyphen → not import-able by name; load via importlib.
 _spec = importlib.util.spec_from_file_location(
@@ -49,14 +127,25 @@ class Handler(BaseHTTPRequestHandler):
             except Exception as exc:  # noqa: BLE001 — surface render errors to browser
                 self._send(500, f"<pre>render error: {exc}</pre>")
             return
-        # Serve gap .md files (card links). Confine to the gaps dir (no path escape).
+        # Card link → resolve gap by ID (robust to subfolder/moves), render to HTML.
+        if path.startswith("gap/"):
+            gid = path[4:].strip("/")
+            if re.match(r"^GAP-\d+$", gid):
+                matches = sorted(GAPS_DIR.rglob(f"{gid}-*.md"))
+                if matches:
+                    body = render_markdown(matches[0].read_text(encoding="utf-8"))
+                    page = GAP_PAGE.replace("/*TITLE*/", _html.escape(gid)).replace("/*BODY*/", body)
+                    self._send(200, page)
+                    return
+            self._send(404, f"<a href='/'>← Gap Board</a><h1>404 — {_html.escape(gid)} not found</h1>")
+            return
+        # Back-compat: raw .md path (confined to gaps dir).
         if path.endswith(".md"):
             target = (GAPS_DIR / path).resolve()
             if str(target).startswith(str(GAPS_DIR.resolve())) and target.is_file():
-                self._send(200, target.read_text(encoding="utf-8"),
-                           "text/markdown; charset=utf-8")
+                self._send(200, render_markdown(target.read_text(encoding="utf-8")))
                 return
-        self._send(404, "<h1>404</h1>")
+        self._send(404, "<a href='/'>← Gap Board</a><h1>404</h1>")
 
     def log_message(self, *_args):  # quiet — no per-request stderr spam
         pass
