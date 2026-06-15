@@ -12,6 +12,7 @@ import com.kiteclass.core.testutil.LandingPageTestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -81,6 +82,22 @@ class LandingPageServiceTest {
         assertThat(result).isNotNull();
         verify(landingPageRepository).save(any(LandingPage.class));
         verify(landingPageMapper).toResponse(any(LandingPage.class));
+    }
+
+    @Test
+    void getLandingPage_notExists_createdDefaultHasNonNullTemplateType_GAP1422() {
+        // template_type is NOT NULL in the DB; a created default with a null
+        // templateType makes Hibernate INSERT explicit NULL → constraint violation
+        // → 500 on every request for the tenant (getOrCreateDefault runs per-request).
+        when(landingPageRepository.findByInstanceIdAndDeletedFalse(tenantId)).thenReturn(Optional.empty());
+        when(landingPageRepository.save(any(LandingPage.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(landingPageMapper.toResponse(any(LandingPage.class))).thenReturn(landingPageResponse);
+
+        landingPageService.getLandingPage(tenantId);
+
+        ArgumentCaptor<LandingPage> captor = ArgumentCaptor.forClass(LandingPage.class);
+        verify(landingPageRepository).save(captor.capture());
+        assertThat(captor.getValue().getTemplateType()).isNotBlank();
     }
 
     @Test

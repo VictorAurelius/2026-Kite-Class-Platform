@@ -162,6 +162,12 @@ public class LandingPageServiceImpl implements LandingPageService {
 
                     LandingPage newLandingPage = new LandingPage();
                     newLandingPage.setInstanceId(tenantId);
+                    // GAP-1422: template_type is NOT NULL in the DB but the entity field has
+                    // no Java default — leaving it null makes Hibernate INSERT an explicit
+                    // NULL → constraint violation → 500 on EVERY request for any tenant
+                    // without a landing page (getOrCreateDefault runs per-request via
+                    // TenantAwareDataSourceInterceptor). Default to the org (center) template.
+                    newLandingPage.setTemplateType("organization");
                     // Inherit tenant branding (settings.Branding) so the public homepage
                     // reflects the owner's customised theme/logo/name instead of the
                     // generic KiteClass default. Falls back to entity @Column defaults
