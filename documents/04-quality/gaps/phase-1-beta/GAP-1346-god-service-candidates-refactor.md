@@ -1,6 +1,6 @@
 # GAP-1346: 11 backend service class >20KB — God Service refactor candidate
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL
 **Priority:** 🟡 P2
 **Domain:** Backend
 **Found:** 2026-06-14 (Quality full audit, AUDIT-2026-06-14-quality-full)
@@ -25,9 +25,22 @@ Audit từng class (line + method count); với class thật sự vi phạm SRP,
 
 ## Acceptance Criteria
 
-- [ ] Đo line + method count cho 11 class; xác nhận class nào thật sự God Service (>500 dòng OR >15 method)
-- [ ] ≥3 class lớn nhất có kế hoạch tách (hoặc đã tách) collaborator theo design-patterns.md §3
-- [ ] Quality audit Cat 9 sub-check "No God Services" verify lại sau refactor
+- [x] Đo line + method count cho 11 class; xác nhận class nào thật sự God Service (>500 dòng OR >15 method)
+- [x] ≥3 class lớn nhất có kế hoạch tách (hoặc đã tách) collaborator theo design-patterns.md §3
+- [ ] Quality audit Cat 9 sub-check "No God Services" verify lại sau refactor (DEFER — chờ refactor wave)
+
+## Resolution (2026-06-15 — audit-fixG-quality wave)
+
+**PARTIAL — triage DONE, refactor DEFER.** Đo line + method count đầy đủ 11 class; triage + kế hoạch tách top-3 tại `documents/04-quality/audits/quality-audit/2026-06-14-god-service-triage.md`.
+
+Kết quả đo: **10/11 vi phạm rõ (>500 dòng)**, `AttendanceServiceImpl` biên (500 dòng/8 method). Lớn nhất: `EmailServiceClient` 1105, `AuthService` 907, `LmsServiceImpl` 796.
+
+Kế hoạch tách top-3 (per design-patterns.md §3):
+- `EmailServiceClient` → tách theo domain email (lifecycle / DSAR / onboarding) + core `TemplatedEmailSender`; rủi ro THẤP (fan-out wrapper).
+- `AuthService` → `RegistrationService` + `AuthenticationService` + `AccountProfileService`; rủi ro TRUNG BÌNH (auth path nhạy cảm, cần re-walk).
+- `LmsServiceImpl` → `LmsModuleService` + `LmsLessonService` + `LearningResourceService` + `LmsCompletionService`; rủi ro TRUNG BÌNH.
+
+**Refactor DEFER** sang wave chuyên biệt (mỗi service-cluster 1 wave) — tách 11 class là MAJOR refactor đa-module rủi ro regression cao trên auth/payment/LMS; vượt scope PR build-config/triage này. Giữ PARTIAL.
 
 ## Related
 
