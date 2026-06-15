@@ -49,6 +49,8 @@ public class BrandingWizardController {
 
     private final SlugAvailabilityService slugService;
     private final RegenerateQuotaService quotaService;
+    /** GAP-1020 (Part 2) — authoritative server-side tier (instances.tier), not client header. */
+    private final com.kitehub.branding.tenant.SubscriptionTierResolver tierResolver;
 
     /**
      * GAP-562/562b Wave 101 Bucket B — OWNER-only write authorization.
@@ -59,6 +61,18 @@ public class BrandingWizardController {
 
     private static final String OWNER_OR_STAFF_AUTHZ =
             "hasAnyRole('OWNER','MANAGER','TEACHER','ACCOUNTANT','PLATFORM_ADMIN','ADMIN','STAFF')";
+
+    /** Parse a gateway-trusted header UUID, or {@code null} when absent / malformed. */
+    private static UUID parseUuid(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        try {
+            return UUID.fromString(value.trim());
+        } catch (IllegalArgumentException ex) {
+            return null;
+        }
+    }
 
     // ---------------------------------------------------------------------
     // GET /api/v1/branding/slug-availability  (sub-GAP-272i)
@@ -98,9 +112,13 @@ public class BrandingWizardController {
     public ResponseEntity<RegenerateQuotaResponse> getQuota(
             @RequestHeader(value = "X-User-Id", required = false, defaultValue = "anonymous")
             String userId,
+            @RequestHeader(value = "X-Tenant-Id", required = false) String tenantHeader,
             @RequestHeader(value = "X-Subscription-Tier", required = false, defaultValue = "FREE")
             String tier) {
-        return ResponseEntity.ok(quotaService.getQuota(userId, tier));
+        // GAP-1020 (Part 2) — tier resolved server-side from the gateway-trusted instance
+        // (X-Tenant-Id), not the client X-Subscription-Tier header.
+        String effectiveTier = tierResolver.resolveEffectiveTier(parseUuid(tenantHeader), tier);
+        return ResponseEntity.ok(quotaService.getQuota(userId, effectiveTier));
     }
 
     // ---------------------------------------------------------------------
@@ -130,8 +148,12 @@ public class BrandingWizardController {
             return ResponseEntity.badRequest().body(body);
         }
 
+        // GAP-1020 (Part 2) — tier resolved server-side from the gateway-trusted instance id,
+        // not the client X-Subscription-Tier header.
+        String effectiveTier = tierResolver.resolveEffectiveTier(instanceId, tier);
+
         try {
-            BrandingJob job = quotaService.regenerate(jobId, instanceId, userId, tier, idempotencyKey);
+            BrandingJob job = quotaService.regenerate(jobId, instanceId, userId, effectiveTier, idempotencyKey);
             return ResponseEntity.ok(job);
         } catch (QuotaExceededException ex) {
             Map<String, Object> body = new LinkedHashMap<>();

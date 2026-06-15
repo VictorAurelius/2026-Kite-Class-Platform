@@ -38,6 +38,17 @@ class BrandingWizardControllerTest {
     @MockitoBean
     private RegenerateQuotaService quotaService;
 
+    @MockitoBean
+    private com.kitehub.branding.tenant.SubscriptionTierResolver tierResolver;
+
+    @org.junit.jupiter.api.BeforeEach
+    void stubTierResolver() {
+        // GAP-1020: resolver passes the gateway-trusted header through when no DB tier is found
+        // (the @WebMvcTest context has no DB) — preserves the routing/error-envelope assertions.
+        when(tierResolver.resolveEffectiveTier(any(), anyString()))
+                .thenAnswer(inv -> inv.getArgument(1));
+    }
+
     // -------------------- slug-availability --------------------
 
     @Test
