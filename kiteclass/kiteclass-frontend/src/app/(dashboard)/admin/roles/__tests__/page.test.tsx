@@ -74,7 +74,10 @@ describe('RoleAssignmentPage — searchable user picker', () => {
     fireEvent.click(screen.getByRole('button', { name: /^Gán vai trò$/i }));
 
     expect(assignMutate).toHaveBeenCalledTimes(1);
-    expect(assignMutate.mock.calls[0][0]).toMatchObject({ userId: 14, roleName: 'TEACHER' });
+    expect(assignMutate).toHaveBeenCalledWith(
+      expect.objectContaining({ userId: 14, roleName: 'TEACHER' }),
+      expect.anything(),
+    );
   });
 
   it('resolves the assignment roster userId to a human name when known', () => {
