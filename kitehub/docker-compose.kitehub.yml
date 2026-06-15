@@ -132,6 +132,32 @@ services:
         reservations:
           memory: 64m
 
+  # Gap board — Redmine-like kanban host over canonical gap-status.csv.
+  # No build: python:3.12-slim + stdlib serve-gap-board.py. Mounts repo subset
+  # read-only so it serves LIVE gaps (re-reads CSV per request, no image rebuild).
+  # → http://localhost:8787  (per scripts/serve-gap-board.py)
+  kite-gap-board:
+    image: python:3.12-slim
+    container_name: kite-gap-board
+    profiles: ["infra-only", "full"]
+    working_dir: /app
+    command: python3 scripts/serve-gap-board.py --host 0.0.0.0 -p 8787
+    volumes:
+      - ../scripts:/app/scripts:ro
+      - ../documents/04-quality/gaps:/app/documents/04-quality/gaps:ro
+    ports:
+      - "8787:8787"   # Gap board kanban UI
+    networks:
+      - kite-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 128m
+          cpus: '0.25'
+        reservations:
+          memory: 32m
+
   kite-minio-setup:
     image: minio/mc:latest
     container_name: kite-minio-setup
