@@ -9,6 +9,8 @@ scope: Flow Verification Campaign G2 handoff cho luồng KC-4 (Owner ghi danh h�
 
 # G2 Recipe — KC-4 Student enrollment + bulk import
 
+> **✅ Đã re-walk verify 2026-06-15** (API qua gateway production-accurate nip.io + owner JWT): Bước 1→200, 2→201, 3→409, 4 preview valid xlsx→200, 5 csv→415 / corrupt→400 / empty→400, 6 CANCELLED→400, 7 cross-tenant→404. FE→BE contract 9/9 GET endpoint (classes/class-detail/sessions/students/enrollment-list/2 template/courses)→200, không drift. 1 gap robustness fix inline (GAP-1424: malformed upload→400/415 thay vì 500). Data sẵn cho dev walk: student 173/174 chưa ghi danh class 31. Còn lại = browser-walk thật của dev.
+
 ## 1. Mục tiêu + prereq + thời lượng
 
 **Mục tiêu:** Owner ghi danh học sinh vào lớp (đơn lẻ) + import hàng loạt học sinh từ file **XLSX**, verify capacity/duplicate/cross-tenant + 2 fix vừa ship (GAP-988 bulk-import bad-format, GAP-989 enroll lớp đã đóng).
