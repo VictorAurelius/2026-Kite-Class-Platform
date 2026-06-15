@@ -43,6 +43,8 @@ class CacheConfigSerializationTest {
         return c;
     }
 
+
+
     @Test
     @DisplayName("configured cache serializer round-trips a Course (no SerializationException)")
     void courseRoundTripsThroughCacheSerializer() {
