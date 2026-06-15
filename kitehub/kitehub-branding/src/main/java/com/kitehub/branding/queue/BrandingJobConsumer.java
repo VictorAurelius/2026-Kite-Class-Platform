@@ -5,6 +5,7 @@ import com.kitehub.branding.domain.enums.JobStatus;
 import com.kitehub.branding.dto.BrandingJobMessage;
 import com.kitehub.branding.service.AIBrandingProcessor;
 import com.kitehub.branding.service.BrandingJobService;
+import com.kitehub.branding.tenant.TenantContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -37,6 +38,13 @@ public class BrandingJobConsumer {
     public void processJob(BrandingJobMessage message) {
         log.info("Received branding job: {}", message.getJobId());
 
+        // GAP-1020 (Part 1) — background consumers carry no HTTP request, so bind the tenant from
+        // the job's instanceId. Without it the TenantAwareDataSourceInterceptor would leave the RLS
+        // GUC unset → default-deny under a non-superuser DB role (latent today: owner role bypasses).
+        if (message.getInstanceId() != null) {
+            TenantContext.setCurrentTenant(message.getInstanceId());
+        }
+
         try {
             // Update status to PROCESSING
             jobService.updateJobProgress(
@@ -67,6 +75,9 @@ public class BrandingJobConsumer {
 
             // Re-throw to trigger DLQ routing
             throw new RuntimeException("Job processing failed: " + e.getMessage(), e);
+        } finally {
+            // GAP-1020 (Part 1) — clear so a pooled consumer thread never leaks tenant to next job.
+            TenantContext.clear();
         }
     }
 

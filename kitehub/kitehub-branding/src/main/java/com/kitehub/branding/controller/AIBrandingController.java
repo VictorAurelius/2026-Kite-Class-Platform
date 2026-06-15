@@ -3,6 +3,7 @@ package com.kitehub.branding.controller;
 import com.kitehub.branding.dto.LogoAnalysis;
 import com.kitehub.branding.dto.ThemeConfig;
 import com.kitehub.branding.security.TenantOwnershipGuard;
+import com.kitehub.branding.tenant.SubscriptionTierResolver;
 import com.kitehub.branding.service.AIBrandingService;
 import com.kitehub.branding.service.AIInputCapService;
 import com.kitehub.branding.service.AIRateLimitService;
@@ -54,6 +55,8 @@ public class AIBrandingController {
     private final ThemeGenerationService themeGenerationService;
     private final AIRateLimitService aiRateLimitService;
     private final AIInputCapService aiInputCapService;
+    /** GAP-1020 (Part 2) — authoritative server-side tier (instances.tier), not client header. */
+    private final SubscriptionTierResolver tierResolver;
 
     /**
      * GAP-562/562b Wave 101 Bucket B — OWNER-only write authorization.
@@ -80,6 +83,10 @@ public class AIBrandingController {
     ) {
         // GAP-1019: non-admin caller's X-Instance-Id must match the gateway-trusted X-Tenant-Id.
         TenantOwnershipGuard.requireInstanceOwnershipIfPresent(instanceId, tenantHeader);
+        // GAP-1020 (Part 2) — entitlement tier resolved server-side from instances.tier; the
+        // client-supplied X-Subscription-Tier is NOT trusted (gateway-injected value used only as
+        // fallback when no instance scope is available).
+        tier = tierResolver.resolveEffectiveTier(parseInstanceUuid(instanceId), tier);
         ResponseEntity<Object> rateLimitResponse = checkRateLimit(instanceId, tier);
         if (rateLimitResponse != null) {
             return Mono.just(rateLimitResponse);
@@ -114,6 +121,10 @@ public class AIBrandingController {
             @RequestHeader(value = "X-Subscription-Tier", required = false, defaultValue = "FREE") String tier
     ) {
         TenantOwnershipGuard.requireInstanceOwnershipIfPresent(instanceId, tenantHeader);
+        // GAP-1020 (Part 2) — entitlement tier resolved server-side from instances.tier; the
+        // client-supplied X-Subscription-Tier is NOT trusted (gateway-injected value used only as
+        // fallback when no instance scope is available).
+        tier = tierResolver.resolveEffectiveTier(parseInstanceUuid(instanceId), tier);
         ResponseEntity<Object> rateLimitResponse = checkRateLimit(instanceId, tier);
         if (rateLimitResponse != null) {
             return Mono.just(rateLimitResponse);
@@ -152,6 +163,10 @@ public class AIBrandingController {
             @RequestHeader(value = "X-Subscription-Tier", required = false, defaultValue = "FREE") String tier
     ) {
         TenantOwnershipGuard.requireInstanceOwnershipIfPresent(instanceId, tenantHeader);
+        // GAP-1020 (Part 2) — entitlement tier resolved server-side from instances.tier; the
+        // client-supplied X-Subscription-Tier is NOT trusted (gateway-injected value used only as
+        // fallback when no instance scope is available).
+        tier = tierResolver.resolveEffectiveTier(parseInstanceUuid(instanceId), tier);
         ResponseEntity<Object> rateLimitResponse = checkRateLimit(instanceId, tier);
         if (rateLimitResponse != null) {
             return Mono.just(rateLimitResponse);
@@ -191,6 +206,10 @@ public class AIBrandingController {
             @RequestHeader(value = "X-Subscription-Tier", required = false, defaultValue = "FREE") String tier
     ) {
         TenantOwnershipGuard.requireInstanceOwnershipIfPresent(instanceId, tenantHeader);
+        // GAP-1020 (Part 2) — entitlement tier resolved server-side from instances.tier; the
+        // client-supplied X-Subscription-Tier is NOT trusted (gateway-injected value used only as
+        // fallback when no instance scope is available).
+        tier = tierResolver.resolveEffectiveTier(parseInstanceUuid(instanceId), tier);
         ResponseEntity<Object> rateLimitResponse = checkRateLimit(instanceId, tier);
         if (rateLimitResponse != null) {
             return rateLimitResponse;
@@ -208,6 +227,21 @@ public class AIBrandingController {
 
         ThemeConfig themeConfig = themeGenerationService.generateThemeConfig(analysis);
         return ResponseEntity.ok(themeConfig);
+    }
+
+    /**
+     * Parse the gateway-trusted {@code X-Instance-Id} into a UUID, or {@code null} when absent /
+     * malformed (server-side tier lookup then falls back to the gateway-trusted header / FREE).
+     */
+    private static UUID parseInstanceUuid(String instanceId) {
+        if (instanceId == null || instanceId.isBlank()) {
+            return null;
+        }
+        try {
+            return UUID.fromString(instanceId.trim());
+        } catch (IllegalArgumentException ex) {
+            return null;
+        }
     }
 
     /**

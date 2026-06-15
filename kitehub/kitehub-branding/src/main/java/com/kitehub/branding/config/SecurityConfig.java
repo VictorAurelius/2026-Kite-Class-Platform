@@ -96,6 +96,12 @@ public class SecurityConfig {
                         new com.kitehub.branding.wizard.sse.SseQueryTokenAuthFilter(sseTokenService),
                         UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(new XUserRolesHeaderFilter(),
+                        UsernamePasswordAuthenticationFilter.class)
+                // GAP-1020 (Part 1) — bind TenantContext from gateway-trusted X-Tenant-Id so the
+                // TenantAwareDataSourceInterceptor sets the Postgres RLS GUC app.current_tenant_id
+                // at every @Transactional boundary. Runs after XUserRolesHeaderFilter so the
+                // X-User-Roles platform-admin signal is consistent.
+                .addFilterBefore(new com.kitehub.branding.tenant.TenantContextFilter(),
                         UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
