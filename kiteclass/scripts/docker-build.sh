@@ -82,7 +82,6 @@ Commit Msg:    $COMMIT_MSG
 
 Services Built:
 - kiteclass-core:${BUILD_TAG}
-- kiteclass-gateway:${BUILD_TAG}
 - kiteclass-frontend:${BUILD_TAG}
 
 To rebuild this exact version, checkout commit: $COMMIT_HASH
@@ -106,13 +105,11 @@ echo ""
 # Tag images with version
 echo -e "${YELLOW}🏷️  Tagging images with version: ${BUILD_TAG}${NC}"
 docker tag kiteclass-core "kiteclass-core:${BUILD_TAG}"
-docker tag kiteclass-gateway "kiteclass-gateway:${BUILD_TAG}"
 docker tag kiteclass-frontend "kiteclass-frontend:${BUILD_TAG}"
 
 echo ""
 echo -e "${GREEN}📦 Images tagged:${NC}"
 echo -e "  - kiteclass-core:${BUILD_TAG}"
-echo -e "  - kiteclass-gateway:${BUILD_TAG}"
 echo -e "  - kiteclass-frontend:${BUILD_TAG}"
 echo ""
 

@@ -10,8 +10,3 @@ scrape_configs:
     metrics_path: /actuator/prometheus
     static_configs:
       - targets: ["core:8081"]
-
-  - job_name: "kiteclass-gateway"
-    metrics_path: /actuator/prometheus
-    static_configs:
-      - targets: ["gateway:8080"]
