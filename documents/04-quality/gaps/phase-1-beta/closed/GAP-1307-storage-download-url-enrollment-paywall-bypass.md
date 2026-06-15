@@ -40,3 +40,4 @@ Khác với attempt #2416 (heuristic `url CONTAINS storage_path` + hard-require 
 - GAP-1115 / GAP-1116 (LMS paywall read+write path — service-layer, đã hardened qua `LessonAccessGuard` #2403).
 - `cross-flow-bug-class-sweep.md` §3 — sweep evidence nguồn.
 - #2416 (split-out, reverted heuristic) — bài học: deterministic FK + ObjectProvider thay cho substring heuristic + hard-require bean.
+- GAP-1405 (follow-up P2) — create-path chưa tự set `uploaded_file_id`: material trả phí MỚI tạo sau V100 cần create-path set FK để được paywall (V100 chỉ backfill row cũ). Residual đã track, không silent.
