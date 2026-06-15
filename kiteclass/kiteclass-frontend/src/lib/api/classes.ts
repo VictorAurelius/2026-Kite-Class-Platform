@@ -201,9 +201,22 @@ export const classesApi = {
     id: number,
     rule: RecurrenceRule
   ): Promise<ClassSession[]> => {
+    // BE RecurrenceRuleDto binds snake_case keys via explicit @JsonProperty
+    // (by_day / start_time / end_time / exclude_dates) — camelCase keys arrive as
+    // null and fail @NotNull/@NotEmpty (400). Map to the wire contract here.
+    const body = {
+      freq: rule.freq,
+      by_day: rule.byDay,
+      start_time: rule.startTime,
+      end_time: rule.endTime,
+      until: rule.until,
+      ...(rule.excludeDates && rule.excludeDates.length > 0
+        ? { exclude_dates: rule.excludeDates }
+        : {}),
+    };
     const response = await apiClient.post<ApiResponse<ClassSession[]>>(
       `/api/v1/classes/${id}/sessions/generate-from-recurrence`,
-      rule
+      body
     );
     return response.data.data!;
   },
