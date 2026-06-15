@@ -126,6 +126,7 @@ class BrandingWizardControllerTest {
 
         mockMvc.perform(post("/api/v1/branding/jobs/{jobId}/regenerate", jobId)
                         .header("X-Instance-Id", instanceId.toString())
+                        .header("X-Tenant-Id", instanceId.toString())
                         .header("X-User-Id", "usr-1")
                         .header("X-Subscription-Tier", "FREE")
                         .header("Idempotency-Key", "key-1"))
@@ -145,6 +146,7 @@ class BrandingWizardControllerTest {
 
         mockMvc.perform(post("/api/v1/branding/jobs/{jobId}/regenerate", jobId)
                         .header("X-Instance-Id", instanceId.toString())
+                        .header("X-Tenant-Id", instanceId.toString())
                         .header("Idempotency-Key", "key-1"))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.error").value("INVALID_JOB_STATE"))
@@ -168,6 +170,7 @@ class BrandingWizardControllerTest {
 
         mockMvc.perform(post("/api/v1/branding/jobs/{jobId}/regenerate", jobId)
                         .header("X-Instance-Id", instanceId.toString())
+                        .header("X-Tenant-Id", instanceId.toString())
                         .header("Idempotency-Key", "key-1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(jobId.toString()))

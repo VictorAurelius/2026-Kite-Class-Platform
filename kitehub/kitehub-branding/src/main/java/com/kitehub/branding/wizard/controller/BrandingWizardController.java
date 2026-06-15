@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import com.kitehub.branding.security.TenantOwnershipGuard;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -129,6 +130,7 @@ public class BrandingWizardController {
     public ResponseEntity<Object> regenerate(
             @PathVariable UUID jobId,
             @RequestHeader(value = "X-Instance-Id", required = false) UUID instanceId,
+            @RequestHeader(value = "X-Tenant-Id", required = false) String tenantHeader,
             @RequestHeader(value = "X-User-Id", required = false, defaultValue = "anonymous")
             String userId,
             @RequestHeader(value = "X-Subscription-Tier", required = false, defaultValue = "FREE")
@@ -147,6 +149,10 @@ public class BrandingWizardController {
             body.put("message", "X-Instance-Id header is required");
             return ResponseEntity.badRequest().body(body);
         }
+        // GAP-1420 (GAP-1019 sweep miss): bind client X-Instance-Id to the
+        // gateway-trusted X-Tenant-Id so an OWNER cannot regenerate against
+        // another tenant's instance quota/job. Mirrors BrandingJobController.
+        TenantOwnershipGuard.requireInstanceOwnership(instanceId, tenantHeader);
 
         // GAP-1020 (Part 2) — tier resolved server-side from the gateway-trusted instance id,
         // not the client X-Subscription-Tier header.
