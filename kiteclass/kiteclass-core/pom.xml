@@ -515,6 +515,33 @@
             </plugin>
 
             <!--
+              Surefire: GAP-1393 insurance against the CI-only OpenApiSpecExportTest
+              context-load flake (root cause fixed in application-test.yml Hikari
+              sizing). Belt-and-suspenders for residual CI-resource nondeterminism:
+                - rerunFailingTestsCount=2 retries a failing test method in-fork. A
+                  rerun that passes is reported as flaky (build stays green).
+                - spring.test.context.failure.threshold=5: Spring 6.1+ caches context
+                  LOAD FAILURES and fail-fasts after `threshold` (default 1) failures,
+                  so a plain rerun would re-hit the cached failure instantly (the
+                  0.003s symptom). Raising the threshold lets the rerun actually
+                  REBUILD the context, which is what makes the retry effective for a
+                  transient context-load flake.
+              Only adds these two elements — argLine (JaCoCo prepare-agent, default
+              propertyName=argLine) is inherited from spring-boot-starter-parent and
+              left untouched so unit coverage is preserved.
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <rerunFailingTestsCount>2</rerunFailingTestsCount>
+                    <systemPropertyVariables>
+                        <spring.test.context.failure.threshold>5</spring.test.context.failure.threshold>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+
+            <!--
               Failsafe: explicitly declare so the prepare-agent-integration argLine
               is wired in. Spring Boot's parent inherits a failsafe binding to
               integration-test + verify phases, but does NOT wire the JaCoCo
