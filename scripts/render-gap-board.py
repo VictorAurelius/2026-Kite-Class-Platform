@@ -204,13 +204,21 @@ counts(); render();
 """
 
 
-def main():
-    out = Path(sys.argv[sys.argv.index("-o") + 1]) if "-o" in sys.argv else DEFAULT_OUT
-    rows = load_rows(CSV_PATH)
-    html = (HTML
+def build_html(rows) -> str:
+    """Render the full self-contained board HTML from parsed gap rows.
+
+    Shared by the static renderer (main) and the live server (serve-gap-board.py).
+    """
+    return (HTML
             .replace("/*DATA*/", json.dumps(rows, ensure_ascii=False))
             .replace("/*STATUS*/", json.dumps(STATUS_ORDER))
             .replace("/*ACTIVE*/", json.dumps(ACTIVE_STATUSES)))
+
+
+def main():
+    out = Path(sys.argv[sys.argv.index("-o") + 1]) if "-o" in sys.argv else DEFAULT_OUT
+    rows = load_rows(CSV_PATH)
+    html = build_html(rows)
     out.write_text(html, encoding="utf-8")
     by_status = {}
     for r in rows:
