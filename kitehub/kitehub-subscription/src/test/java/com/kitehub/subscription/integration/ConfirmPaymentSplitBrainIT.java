@@ -115,6 +115,7 @@ class ConfirmPaymentSplitBrainIT {
 
     @Test
     @DisplayName("NULL contact_email upgrade confirm → tier-flip COMMITS (payment COMPLETED + sub ACTIVE/PREMIUM + instance PREMIUM)")
+    @SuppressWarnings("unchecked")  // intentional untyped postForEntity stub keeps package-private EmailResponse out of test scope
     void adminConfirmDoesNotSplitBrainWhenContactEmailNull() {
         // The email-service HTTP call "succeeds" (200) so the email path runs through to the
         // EmailSentLog INSERT — which has a NULL recipient (the trigger). Untyped doReturn keeps the
