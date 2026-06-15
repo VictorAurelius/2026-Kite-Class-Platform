@@ -160,16 +160,7 @@ echo "$CORE_PID" >> "$PIDS_FILE"
 echo -e "${GREEN}Core PID: $CORE_PID${NC}"
 wait_for_http "http://localhost:8081/actuator/health" "Core Service"
 
-# 5. Start Gateway Service
-echo -e "\n${BLUE}🌐 Khởi động Gateway Service (port 8080)...${NC}"
-cd "$PROJECT_ROOT/kiteclass-gateway"
-./mvnw spring-boot:run > "$LOGS_DIR/gateway.log" 2>&1 &
-GATEWAY_PID=$!
-echo "$GATEWAY_PID" >> "$PIDS_FILE"
-echo -e "${GREEN}Gateway PID: $GATEWAY_PID${NC}"
-wait_for_http "http://localhost:8080/actuator/health" "Gateway Service"
-
-# 6. Setup frontend environment
+# 5. Setup frontend environment
 echo -e "\n${BLUE}⚛️  Setup Frontend...${NC}"
 cd "$PROJECT_ROOT/kiteclass-frontend"
 

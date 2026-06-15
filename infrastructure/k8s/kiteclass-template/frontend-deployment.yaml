@@ -48,7 +48,7 @@ spec:
         env:
         - name: NODE_ENV
           value: "production"
-        # kiteclass-gateway removed per ADR-032 / GAP-001; direct to core.
+        # Dedicated gateway removed per ADR-032 / GAP-001; direct to core.
         # Phase 2 EKS may revisit (add shared kite-gateway).
         - name: NEXT_PUBLIC_API_URL
           value: "http://kiteclass-core:8081"

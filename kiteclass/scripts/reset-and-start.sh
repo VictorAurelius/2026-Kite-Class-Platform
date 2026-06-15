@@ -42,22 +42,8 @@ echo -e "${YELLOW}⊙${NC} Starting infrastructure services..."
 docker-compose -f docker-compose.dev.yml up -d postgres redis rabbitmq minio minio-init
 sleep 10
 
-# Step 5: Start Gateway (to run Flyway migrations)
-echo -e "${YELLOW}⊙${NC} Starting Gateway (running Flyway migrations)..."
-docker-compose -f docker-compose.dev.yml up -d gateway
-echo -e "${BLUE}ℹ ${NC} Waiting for Gateway to complete migrations (60 seconds)..."
-sleep 60
-
-# Check Gateway health
-if docker ps | grep -q "kiteclass-gateway.*healthy"; then
-    echo -e "${GREEN}✓${NC} Gateway is healthy"
-else
-    echo -e "${RED}✗${NC} Gateway failed to start. Checking logs..."
-    docker logs --tail 50 kiteclass-gateway
-    exit 1
-fi
-
-# Step 6: Start Core service
+# Step 5: Start Core service (runs Flyway migrations directly — dedicated gateway
+# removed per ADR-032 / GAP-001; routing handled by shared kite-gateway per ADR-023)
 echo -e "${YELLOW}⊙${NC} Starting Core service..."
 docker-compose -f docker-compose.dev.yml up -d core
 echo -e "${BLUE}ℹ ${NC} Waiting for Core to be healthy (30 seconds)..."

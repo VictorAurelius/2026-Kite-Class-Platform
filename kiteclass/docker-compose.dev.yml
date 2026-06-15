@@ -146,7 +146,7 @@ services:
       - kiteclass-network
     restart: unless-stopped
 
-  # Gateway service (kiteclass-gateway) removed Wave 96 per ADR-032.
+  # Dedicated gateway service removed Wave 96 per ADR-032.
   # Routing handled by shared kite-gateway (per ADR-023); auth/JWT/migrations moved into kiteclass-core.
 
   # Nginx Reverse Proxy (CORS workaround)

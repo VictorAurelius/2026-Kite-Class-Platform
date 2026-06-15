@@ -524,7 +524,7 @@ resource "aws_iam_role_policy" "github_ecr_push_inline" {
         ]
         # All ECR repos under kite/ namespace (per ecr.tf locals.ecr_services).
         # Repo naming convention: kite/<service> (CLAUDE.md Docker Naming) — e.g.
-        # kite/kitehub-subscription, kite/kiteclass-gateway. Wildcard pattern
+        # kite/kitehub-subscription, kite/kiteclass-core. Wildcard pattern
         # `repository/${var.project_name}-*` (project_name="kitehub") would expand
         # to `repository/kitehub-*` which does NOT match `repository/kite/...`.
         # Phase 3 first OIDC trigger 2026-05-07 (run #25527705091, retry #25528087813)

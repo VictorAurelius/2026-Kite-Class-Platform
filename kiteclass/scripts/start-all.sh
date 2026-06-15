@@ -106,7 +106,6 @@ check_service "kiteclass-minio" "9000/9001" "MinIO"
 
 if [ "$START_MODE" = "all" ] || [ "$START_MODE" = "backend" ] || [ "$START_MODE" = "core" ]; then
     check_service "kiteclass-core" "8081" "Backend (Core)"
-    check_service "kiteclass-gateway" "8080" "API Gateway"
 fi
 
 if [ "$START_MODE" = "all" ] || [ "$START_MODE" = "frontend" ]; then

@@ -19,6 +19,3 @@ flags:
   core-service:
     paths:
       - kiteclass/kiteclass-core/src/
-  gateway-service:
-    paths:
-      - kiteclass/kiteclass-gateway/src/

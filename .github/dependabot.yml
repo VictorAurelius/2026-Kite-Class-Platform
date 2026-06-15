@@ -99,8 +99,6 @@ updates:
       - dependency-name: "ognl:ognl"
         versions: [">=3.4.0"]
 
-  # Note: kiteclass-gateway maven block removed per ADR-032 / GAP-001 (Wave 96)
-
   # ==========================================================================
   # NPM — 2 frontends
   # ==========================================================================
@@ -265,8 +263,6 @@ updates:
         update-types:
           - "version-update:semver-major"
           - "version-update:semver-minor"
-
-  # Note: kiteclass-gateway docker block removed per ADR-032 / GAP-001 (Wave 96)
 
   - package-ecosystem: docker
     directory: "/kitehub/kitehub-admin"

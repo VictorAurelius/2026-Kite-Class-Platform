@@ -30,13 +30,6 @@ $MVN compile -q
 echo "✅ Core Service: OK"
 echo ""
 
-# Backend - Gateway Service
-echo "📦 Checking Gateway Service (Java + Checkstyle)..."
-cd ../kiteclass-gateway
-$MVN compile -q
-echo "✅ Gateway Service: OK"
-echo ""
-
 # Frontend
 echo "📦 Checking Frontend (TypeScript + ESLint)..."
 cd ../kiteclass-frontend
