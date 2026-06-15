@@ -3,8 +3,10 @@
  *
  * Maps to 6 prototype states: default / marking / saving / saved / error /
  * empty / loading. Hosts the controlled G2 component + handles save dispatch
- * via existing kc-core endpoints (TODO: wire `attendance-period` API in
- * follow-up gap; UI ships state machine + optimistic updates here).
+ * via existing kc-core endpoints (TODO(GAP-1394): wire `attendance-period` API
+ * for the overview-by-class shape; UI ships state machine + optimistic updates
+ * here). The per-period route already wires attendancePeriodApi.upsertBatch;
+ * the overview-by-class shape needs a kc-core endpoint not yet shipped.
  *
  * @since Wave 49 Bucket B (GAP-268)
  */
@@ -76,10 +78,10 @@ export default function TeacherAttendanceClassPage() {
     setState('saving');
     setErrorMessage(undefined);
     try {
-      // TODO Wave 49+ follow-up: wire kc-core attendance-period API.
-      // The (teacher)/attendance/period/[classId]/[periodNo]/[date] route
-      // already calls `attendancePeriodApi.upsertBatch` — extending to the
-      // overview-by-class shape is tracked under a follow-up sub-gap.
+      // TODO(GAP-1394): pending BE kc-core attendance-period overview-by-class
+      // shape. The (teacher)/attendance/period/[classId]/[periodNo]/[date] route
+      // already calls `attendancePeriodApi.upsertBatch`; extending to the
+      // overview-by-class shape needs a kc-core endpoint not yet shipped.
       await new Promise((resolve) => setTimeout(resolve, 600));
       setState('saved');
     } catch (err) {
