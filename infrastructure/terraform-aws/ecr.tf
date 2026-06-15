@@ -14,9 +14,10 @@ locals {
     "kite/kitehub-email",
     "kite/kitehub-platform",
     "kite/kitehub-frontend",
+    "kite/kitehub-banner-renderer", # GAP-1407 — Playwright banner sidecar (deploys on kc-app EC2)
     # KiteClass services
     "kite/kiteclass-core",
-    "kite/kiteclass-gateway",
+    # kiteclass-gateway removed per ADR-032 (GAP-1408) — shared kite-gateway handles routing (ADR-023)
     "kite/kiteclass-frontend",
   ]
 }

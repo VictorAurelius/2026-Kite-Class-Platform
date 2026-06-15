@@ -137,6 +137,10 @@ services:
       # GAP-510 P0 — force Spring to bind 8080 to match gateway-routed URIs;
       # application.yml default (8083) breaks cross-service routing.
       SERVER_PORT: 8080
+      # GAP-1407 — banner-renderer co-located on kc-app EC2 (8GB); branding reaches
+      # it cross-VPC. BANNER_RENDERER_URL set in /etc/kite/.env to
+      # http://<kc-app-private-ip>:3000/render. Blank → StubBannerRenderer fallback.
+      BANNER_RENDERER_URL: ${BANNER_RENDERER_URL:-}
     depends_on:
       redis:
         condition: service_healthy

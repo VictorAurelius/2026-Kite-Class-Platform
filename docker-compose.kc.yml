@@ -1,19 +1,23 @@
 # KC stack production compose — Phase 1 BETA per ADR-025
 #
 # Deploys to kc-app EC2 (i-04f65503ace7febe4) m7i-flex.large 8GB.
-# Frontend served by Vercel (kiteclass.vercel.app) — KC stack here =
-# backend services only.
+# Frontend self-hosted on this EC2 (2 Next.js standalone per ADR-031 / ec2-kc-app.tf);
+# KC backend services deferred Phase 7 (GAP-445) — this compose ships them deploy-ready.
 #
 # Stack:
 #   redis (256MB cap) — KC session/cache
 #   rabbitmq (256MB cap) — KC events
 #   kiteclass-core: 8081 internal — business logic
-#   kiteclass-gateway: 8080 internal → host 3000 (ALB target group kc_app:3000)
+#   kitehub-banner-renderer: 3000 — Playwright HTML→WebP sidecar (GAP-1407;
+#     co-located here for 8GB headroom; kh-backend branding calls cross-VPC via
+#     BANNER_RENDERER_URL → this EC2 private IP:3000)
+#
+# kiteclass-gateway REMOVED per ADR-032 (GAP-1408) — shared kite-gateway routes (ADR-023).
 #
 # RAM budget m7i-flex.large 8GB:
 #   redis ~150MB, rabbitmq ~512MB
 #   kiteclass-core ~768MB peak (384 heap + native)
-#   kiteclass-gateway ~512MB peak
+#   kitehub-banner-renderer ~512MB peak (Node + Chromium)
 #   OS + Docker ~512MB
 #   Total ~2.5GB → 5.5GB headroom
 #
@@ -83,28 +87,27 @@ services:
         limits:
           memory: 768M
 
-  kiteclass-gateway:
-    <<: *kc-service-defaults
-    image: 906286017800.dkr.ecr.ap-southeast-1.amazonaws.com/kite/kiteclass-gateway:${KITE_VERSION}
-    container_name: kiteclass-gateway
-    environment:
-      JAVA_OPTS: "-Xmx256m -Xms128m -XX:+UseSerialGC"
-      SPRING_PROFILES_ACTIVE: production
-      SERVER_PORT: 8080
+  # GAP-1407 — Playwright banner-renderer sidecar, co-located here (kc-app 8GB
+  # headroom) because kh-backend t3.medium 4GB is full. kitehub-branding on
+  # kh-backend reaches this via BANNER_RENDERER_URL=http://<kc-app-private-ip>:3000/render
+  # (cross-VPC; SG rule in security-groups.tf allows kh-backend → kc-app:3000).
+  kitehub-banner-renderer:
+    image: 906286017800.dkr.ecr.ap-southeast-1.amazonaws.com/kite/kitehub-banner-renderer:${KITE_VERSION}
+    container_name: kitehub-banner-renderer
+    restart: unless-stopped
+    networks: [kite-net]
     ports:
-      - "3000:8080"  # ALB target group kc_app:3000 → container :8080
-    depends_on:
-      kiteclass-core: { condition: service_started }
+      - "3000:3000"  # exposed to VPC for cross-EC2 branding calls
     healthcheck:
-      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:8080/actuator/health"]
-      interval: 30s
-      timeout: 5s
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"]
+      interval: 15s
+      timeout: 4s
       retries: 5
-      start_period: 90s
+      start_period: 15s
     deploy:
       resources:
         limits:
-          memory: 512M
+          memory: 600M
 
 networks:
   kite-net:

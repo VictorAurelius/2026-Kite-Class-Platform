@@ -110,6 +110,11 @@ jobs:
             context: .
             dockerfile: kitehub/kitehub-frontend/Dockerfile
             optional: 'true'
+          # KiteHub banner-renderer — Node/Playwright sidecar (GAP-1407; deploys on kc-app EC2)
+          - service: kitehub-banner-renderer
+            ecr_repo: kite/kitehub-banner-renderer
+            context: kitehub/kitehub-banner-renderer
+            dockerfile: kitehub/kitehub-banner-renderer/Dockerfile
 
     steps:
       - name: Checkout code
@@ -233,6 +238,11 @@ jobs:
             context: .
             dockerfile: kitehub/kitehub-frontend/Dockerfile
             optional: 'true'
+          # KiteHub banner-renderer — Node/Playwright sidecar (GAP-1407; deploys on kc-app EC2)
+          - service: kitehub-banner-renderer
+            ecr_repo: kite/kitehub-banner-renderer
+            context: kitehub/kitehub-banner-renderer
+            dockerfile: kitehub/kitehub-banner-renderer/Dockerfile
 
     steps:
       - name: Checkout code
