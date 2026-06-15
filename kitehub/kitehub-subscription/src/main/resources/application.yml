@@ -129,12 +129,6 @@ jwt:
 
 # Email verification
 kitehub:
-  # GAP-1414 — canonical public app base-url for email + owner-notification + domain-backup
-  # links. Was previously ~25 hardcoded literals across 3 conflicting domains
-  # (kitehub.com / kitehub.me / kitehub.vn). Real Phase 1 BETA domain = kitehub.me.
-  # Tenant subdomain links interpolate {subdomain} into this host (https://{sub}.kitehub.me).
-  app:
-    base-url: ${APP_BASE_URL:https://kitehub.me}
   # GAP-938 (Wave flow-kh3) — kitehub.admin.api-key removed. Admin auth now via
   # Spring Security @PreAuthorize("hasRole('PLATFORM_ADMIN')") + gateway-forwarded
   # X-User-Id + X-User-Roles JWT claims. The legacy X-Admin-Key mechanism was dead

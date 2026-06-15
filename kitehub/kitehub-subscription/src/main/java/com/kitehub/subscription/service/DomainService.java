@@ -7,7 +7,6 @@ import com.kitehub.subscription.repository.InstanceRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,14 +39,6 @@ public class DomainService {
     private final DomainVerificationConfig domainVerificationConfig;
     private final DnsTxtLookupService dnsTxtLookupService;
     private final CertProvisioningService certProvisioningService;
-
-    /**
-     * GAP-1414: canonical public app base-url. The tenant backup URL (BR-DOMAIN-007) is the
-     * subdomain landing on the platform domain; host is derived from this config instead of a
-     * hardcoded {@code kitehub.me} literal so it stays in sync with email/notification links.
-     */
-    @Value("${kitehub.app.base-url:https://kitehub.me}")
-    private String appBaseUrl;
 
     // KH-7 FM-5: a tenant must not be able to claim the platform's own domains as their
     // custom domain (no denylist previously — `kitehub.me` was accepted). Block the
@@ -291,9 +282,7 @@ public class DomainService {
             );
         }
 
-        // GAP-1414: derive host from configured base-url; interpolate tenant subdomain.
-        // e.g. https://kitehub.me → https://{subdomain}.kitehub.me
-        String backupUrl = appBaseUrl.replaceFirst("://", "://" + instance.getSubdomain() + ".");
+        String backupUrl = "https://" + instance.getSubdomain() + ".kitehub.me";
 
         return DomainVerifyResponse.builder()
             .customDomain(customDomain)

@@ -70,15 +70,6 @@ public class EmailServiceClient {
     @Value("${kitehub.email.use-queue:true}")
     private boolean useQueue;
 
-    /**
-     * GAP-1414: canonical public app base-url for email/notification links. Was previously
-     * hardcoded across ~25 literals with 3 conflicting domains (kitehub.com / kitehub.me /
-     * kitehub.vn). The real Phase 1 BETA domain is kitehub.me. Path is appended per link;
-     * tenant subdomain links interpolate {subdomain} into the base-url host via {@link #tenantUrl}.
-     */
-    @Value("${kitehub.app.base-url:https://kitehub.me}")
-    private String appBaseUrl;
-
     public EmailServiceClient(RestTemplate restTemplate,
                               EmailSentLogRepository emailSentLogRepository,
                               RabbitTemplate rabbitTemplate,
@@ -130,7 +121,7 @@ public class EmailServiceClient {
                 .variables(Map.of(
                     "organizationName", organizationName,
                     "daysRemaining", daysRemaining,
-                    "upgradeUrl", appBaseUrl + "/pricing"
+                    "upgradeUrl", "https://kitehub.com/pricing"
                 ))
                 .build();
 
@@ -172,7 +163,7 @@ public class EmailServiceClient {
                 .templateName("trial-expired")
                 .variables(Map.of(
                     "organizationName", organizationName,
-                    "upgradeUrl", appBaseUrl + "/pricing"
+                    "upgradeUrl", "https://kitehub.com/pricing"
                 ))
                 .build();
 
@@ -226,7 +217,7 @@ public class EmailServiceClient {
                     "daysUntilExpiration", daysUntilExpiration,
                     "tier", tier,
                     "amountVnd", String.format("%,d", amountVnd),
-                    "paymentUrl", appBaseUrl + "/subscription/payment"
+                    "paymentUrl", "https://kitehub.com/subscription/payment"
                 ))
                 .build();
 
@@ -268,7 +259,7 @@ public class EmailServiceClient {
                 .templateName("subscription-suspended")
                 .variables(Map.of(
                     "organizationName", organizationName,
-                    "renewUrl", appBaseUrl + "/subscription/renew"
+                    "renewUrl", "https://kitehub.com/subscription/renew"
                 ))
                 .build();
 
@@ -304,7 +295,7 @@ public class EmailServiceClient {
                 .variables(Map.of(
                     "organizationName", organizationName,
                     "daysLeft", daysLeft,
-                    "renewUrl", appBaseUrl + "/subscription/renew"
+                    "renewUrl", "https://kitehub.com/subscription/renew"
                 ))
                 .build();
 
@@ -338,8 +329,8 @@ public class EmailServiceClient {
                 .variables(Map.of(
                     "subdomain", subdomain,
                     "instanceName", subdomain,
-                    "upgradeUrl", appBaseUrl + "/pricing",
-                    "dashboardUrl", tenantUrl(subdomain, "/dashboard")
+                    "upgradeUrl", "https://kitehub.com/pricing",
+                    "dashboardUrl", String.format("https://%s.kitehub.me/dashboard", subdomain)
                 ))
                 .build();
 
@@ -373,7 +364,7 @@ public class EmailServiceClient {
                 .variables(Map.of(
                     "subdomain", subdomain,
                     "instanceName", subdomain,
-                    "dashboardUrl", tenantUrl(subdomain, "/dashboard")
+                    "dashboardUrl", String.format("https://%s.kitehub.me/dashboard", subdomain)
                 ))
                 .build();
 
@@ -407,7 +398,7 @@ public class EmailServiceClient {
                 .variables(Map.of(
                     "subdomain", subdomain,
                     "instanceName", subdomain,
-                    "renewUrl", appBaseUrl + "/subscription/renew"
+                    "renewUrl", "https://kitehub.com/subscription/renew"
                 ))
                 .build();
 
@@ -441,7 +432,7 @@ public class EmailServiceClient {
                 .variables(Map.of(
                     "subdomain", subdomain,
                     "instanceName", subdomain,
-                    "renewUrl", appBaseUrl + "/subscription/renew"
+                    "renewUrl", "https://kitehub.com/subscription/renew"
                 ))
                 .build();
 
@@ -474,7 +465,7 @@ public class EmailServiceClient {
                 .templateName("data-deleted")
                 .variables(Map.of(
                     "organizationName", organizationName,
-                    "contactUrl", appBaseUrl + "/contact"
+                    "contactUrl", "https://kitehub.com/contact"
                 ))
                 .build();
 
@@ -516,9 +507,9 @@ public class EmailServiceClient {
                     "organizationName", organizationName,
                     "trialDays", trialDays,
                     "expiryDate", expiryDate,
-                    "loginUrl", appBaseUrl + "/login",
-                    "docsUrl", appBaseUrl + "/help",
-                    "unsubscribeUrl", appBaseUrl + "/unsubscribe"
+                    "loginUrl", "https://kitehub.vn/login",
+                    "docsUrl", "https://kitehub.me/help",
+                    "unsubscribeUrl", "https://kitehub.me/unsubscribe"
                 ))
                 .build();
 
@@ -566,10 +557,10 @@ public class EmailServiceClient {
                     "recipientName", organizationName == null ? "bạn" : organizationName,
                     "organizationName", organizationName == null ? "" : organizationName,
                     "subdomain", safeSubdomain,
-                    "dashboardUrl", tenantUrl(safeSubdomain, "/dashboard"),
-                    "onboardingChecklistUrl", appBaseUrl + "/help/onboarding",
-                    "supportUrl", appBaseUrl + "/support",
-                    "unsubscribeUrl", appBaseUrl + "/unsubscribe"
+                    "dashboardUrl", String.format("https://%s.kitehub.me/dashboard", safeSubdomain),
+                    "onboardingChecklistUrl", "https://kitehub.me/help/onboarding",
+                    "supportUrl", "https://kitehub.me/support",
+                    "unsubscribeUrl", "https://kitehub.me/unsubscribe"
                 ))
                 .build();
 
@@ -616,7 +607,7 @@ public class EmailServiceClient {
                     "organizationName", organizationName,
                     "tier", tier,
                     "billingCycle", billingCycle,
-                    "dashboardUrl", appBaseUrl + "/dashboard"
+                    "dashboardUrl", "https://kitehub.me/dashboard"
                 ))
                 .build();
 
@@ -662,7 +653,7 @@ public class EmailServiceClient {
                     "tier", tier,
                     "expiresAt", expiresAt == null ? "" : expiresAt,
                     // GAP-1086 sweep: sister of subscription-created — kitehub.vn → kitehub.me.
-                    "supportUrl", appBaseUrl + "/dashboard"
+                    "supportUrl", "https://kitehub.me/dashboard"
                 ))
                 .build();
 
@@ -707,7 +698,7 @@ public class EmailServiceClient {
                     "rightType", rightType,
                     "requesterEmail", requesterEmail,
                     "slaDeadline", slaDeadline.toString(),
-                    "dpoQueueUrl", appBaseUrl + "/admin/dsar"
+                    "dpoQueueUrl", "https://kitehub.vn/admin/dsar"
                 ))
                 .build();
 
@@ -752,7 +743,7 @@ public class EmailServiceClient {
                     "rightType", rightType,
                     "slaDeadline", slaDeadline.toString(),
                     "statusCheckUrl",
-                        appBaseUrl + "/legal/data-rights/status?id=" + ticketUuid
+                        String.format("https://kitehub.vn/legal/data-rights/status?id=%s", ticketUuid)
                 ))
                 .build();
 
@@ -792,7 +783,7 @@ public class EmailServiceClient {
                     "ip", ip == null ? "unknown" : ip,
                     "userAgent", userAgent == null ? "unknown" : userAgent,
                     "loginAt", loginAt == null ? "" : loginAt.toString(),
-                    "supportUrl", appBaseUrl + "/support"
+                    "supportUrl", "https://kitehub.me/support"
                 ))
                 .build();
 
@@ -853,7 +844,7 @@ public class EmailServiceClient {
                     "claimCode", claimCode == null ? "" : claimCode,
                     "inviteUrl", signupUrl == null ? "" : signupUrl,
                     "expiresAt", expiresAt == null ? "" : expiresAt,
-                    "unsubscribeUrl", appBaseUrl + "/unsubscribe"
+                    "unsubscribeUrl", "https://kitehub.me/unsubscribe"
                 ))
                 .build();
 
@@ -938,19 +929,6 @@ public class EmailServiceClient {
         } catch (Exception e) {
             log.warn("Failed to send templated email '{}' to {}: {}", emailType, to, e.getMessage());
         }
-    }
-
-    /**
-     * Build a tenant subdomain URL by interpolating {@code subdomain} into the configured
-     * {@link #appBaseUrl} host (GAP-1414). E.g. base {@code https://kitehub.me} + subdomain
-     * {@code acme} + path {@code /dashboard} → {@code https://acme.kitehub.me/dashboard}.
-     *
-     * @param subdomain tenant subdomain (already validated upstream)
-     * @param path      leading-slash path appended after the host
-     * @return tenant subdomain URL derived from the configured base-url
-     */
-    private String tenantUrl(String subdomain, String path) {
-        return appBaseUrl.replaceFirst("://", "://" + subdomain + ".") + path;
     }
 
     /**

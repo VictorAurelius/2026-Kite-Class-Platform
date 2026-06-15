@@ -73,10 +73,3 @@ captcha:
 email:
   verification:
     enabled: ${EMAIL_VERIFICATION_ENABLED:true}
-
-# GAP-1414 — canonical public app base-url for email/notification/domain-backup links.
-# Default already points at the real Phase 1 BETA domain (kitehub.me); pinned here in the
-# production profile for clarity + env override via APP_BASE_URL.
-kitehub:
-  app:
-    base-url: ${APP_BASE_URL:https://kitehub.me}
