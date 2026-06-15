@@ -16,16 +16,33 @@ spring:
     hibernate:
       ddl-auto: create-drop
 
-  # Increased pool size for concurrent integration tests.
-  # EnrollmentCapacityConcurrentTest runs 20 threads × up to 3 concurrent
-  # transactions per thread (enrollment TX + GradeEventListener REQUIRES_NEW
-  # + EnrollmentEventListener REQUIRES_NEW). 50 connections avoids HikariCP
-  # exhaustion under load while staying within Testcontainers PostgreSQL limits.
+  # Hikari pool sizing — see GAP-1393.
+  # maximum-pool-size stays at 50 for burst headroom: EnrollmentCapacityConcurrentTest
+  # runs 20 threads × up to 3 concurrent transactions per thread (enrollment TX +
+  # GradeEventListener REQUIRES_NEW + EnrollmentEventListener REQUIRES_NEW); 50
+  # connections avoids HikariCP exhaustion for that ONE active context while staying
+  # within the Testcontainers PostgreSQL max_connections (~100).
+  #
+  # minimum-idle dropped 10 → 0 (GAP-1393 root cause): the whole kiteclass-core
+  # suite shares ONE static Testcontainers Postgres, but each cached @SpringBootTest /
+  # @DataJpaTest context opens its OWN Hikari pool. With minimum-idle: 10 and Spring's
+  # default context cache (maxSize 32), up to 32 × 10 = 320+ connections were pinned
+  # idle against a single Postgres (max_connections ~100) → exhaustion. Under CI
+  # resource pressure this surfaced as the late, uniquely-keyed RANDOM_PORT
+  # OpenApiSpecExportTest context failing to build with
+  # "Unable to determine Dialect without JDBC metadata" (Hibernate could not open a
+  # connection for JDBC metadata) — flaky in CI full-reactor, green locally.
+  # idle-timeout / max-lifetime / keepalive added so idle pools release Postgres
+  # slots quickly between cached contexts and dead connections are detected+replaced
+  # (CI logged "Failed to validate connection ... has been closed").
   datasource:
     hikari:
       maximum-pool-size: 50
-      minimum-idle: 10
+      minimum-idle: 0
       connection-timeout: 30000
+      idle-timeout: 10000
+      max-lifetime: 60000
+      keepalive-time: 30000
 
 # Internal API secret for tests (fail-fast validation requires a non-blank value)
 internal:

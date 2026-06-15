@@ -1,10 +1,10 @@
 # GAP-1393: OpenApiSpecExportTest (kiteclass-core) intermittent "Failed to load ApplicationContext" trong CI full-reactor
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL
 **Priority:** 🟠 P1
 **Domain:** Test-infra
 **Found:** 2026-06-14 (audit-fix campaign 2026-06-14 — red-flagged #2416/#2421/#2422)
-**Affects:** `kiteclass/kiteclass-core/src/test/java/com/kiteclass/core/openapi/OpenApiSpecExportTest.java`
+**Affects:** `kiteclass/kiteclass-core/src/test/resources/application-test.yml` (root cause) + `kiteclass/kiteclass-core/pom.xml` (surefire insurance) + `kiteclass/kiteclass-core/src/test/java/com/kiteclass/core/openapi/OpenApiSpecExportTest.java` (victim)
 
 ## Problem
 
@@ -25,9 +25,33 @@ Thuộc tính `properties=` riêng → **context-cache key KHÁC** với 67 `@Sp
 
 - PR #2416 (storage IDOR authz), #2421 (devops rollback + CW alarms), #2422 (perf bulkhead + pagination) — **cả 3 merge qua `ADMIN_MERGE_OVERRIDE`** sau khi local-verify clean, vì CI full-reactor đỏ ở chính `OpenApiSpecExportTest`. Đây là tax bypass lặp lại → cần ổn định context thay vì tiếp tục override.
 
-## Root Cause (giả thuyết)
+## Root Cause (ĐÃ XÁC ĐỊNH empirical từ CI log — giả thuyết ban đầu SAI)
 
-Spring TestContext shared-context cache trong reactor lớn (68 `@SpringBootTest`): khi 1 context fail load (resource pressure: Testcontainers Postgres + RANDOM_PORT servlet + springdoc scan), cache có thể trả failure cho test cùng key, hoặc eviction (`@DirtiesContext` ở sibling / cache size 32 mặc định bị vượt) buộc reload fail. 0.003s = không có init thực, lấy thẳng từ cache-failure.
+Điều tra CI log `gh run view 27509770548/27509543210 --log-failed` (cả 2 run đều FAIL **đúng 1 test = OpenApiSpecExportTest**, Errors: 1/1770). Bóc tách `Caused by` chôn dưới noise RabbitMQ `Connection refused`:
+
+```
+java.lang.IllegalStateException: Failed to load ApplicationContext ...
+Caused by: ApplicationContextException: Unable to start web server
+Caused by: WebServerException: Unable to start embedded Tomcat
+Caused by: UnsatisfiedDependencyException: ... 'entityManagerFactory' ...
+Caused by: BeanCreationException: entityManagerFactory ... Unable to create requested
+           service [JdbcEnvironment] due to: Unable to determine Dialect without JDBC metadata
+Caused by: HibernateException: Unable to determine Dialect without JDBC metadata
+```
+
+Đồng thời (cùng timestamp): `HikariPool-4 - Failed to validate connection PgConnection (This connection has been closed)` + lettuce Redis `Cannot reconnect to localhost:32770: Connection refused`.
+
+**Cơ chế thật (KHÔNG phải "cached failure inherit từ sibling"):**
+
+1. **OpenApiSpecExportTest là test `RANDOM_PORT` (Tomcat thật) DUY NHẤT** trong toàn bộ 68 `@SpringBootTest` của kiteclass-core (tất cả còn lại dùng `MOCK` web env). → context của nó có cache-key **duy nhất** → KHÔNG bao giờ reuse warm context, luôn **build mới**. Package `com.kiteclass.core.openapi` xếp **muộn** trong fork → build context mới ở cuối run (~sau 1766 test).
+
+2. **`application-test.yml` đặt `hikari.minimum-idle: 10`** + `maximum-pool-size: 50`. Toàn suite share **1 static Testcontainers Postgres**, nhưng **mỗi cached context (`@SpringBootTest`/`@DataJpaTest`) mở pool Hikari RIÊNG**. Với Spring context-cache mặc định `maxSize = 32`, ở mức idle đã pin **32 × 10 = 320+ connection** vào 1 Postgres (`max_connections` mặc định ~100) → **cạn connection**.
+
+3. Khi OpenApiSpecExportTest build context web mới ở cuối run (lúc connection đã cạn + connection cũ "has been closed"), Hibernate không mở được connection để đọc JDBC metadata → "Unable to determine Dialect" → EMF fail → web server fail → context load fail. `0.003s` = Spring **cache lại context-load FAILURE** (Spring 6.1+) nên test method ném ngay failure đã cache.
+
+4. **PASS local** vì: run nhanh hơn, ít context cached đồng thời, Postgres/Docker local nhiều headroom hơn — không chạm trần connection. **FAIL CI** vì runner bị giới hạn + tích lũy qua 1766 test trước đó.
+
+`minimum-idle: 10` từng được chọn cho `EnrollmentCapacityConcurrentTest` (20 thread × ≤3 TX) — nhưng nó áp cho MỌI context nên gây cạn connection toàn cục.
 
 ## Proposed Fix
 
@@ -39,9 +63,26 @@ Spring TestContext shared-context cache trong reactor lớn (68 `@SpringBootTest
 
 ## Acceptance Criteria
 
-- [ ] Xác định sibling-test (hoặc nguyên nhân) làm fail shared context đầu tiên trong CI full-reactor (điều tra empirical, không patch mù)
-- [ ] `OpenApiSpecExportTest.exportSpec` PASS ổn định trong CI full-reactor ≥3 lần liên tiếp (không cần `ADMIN_MERGE_OVERRIDE`)
-- [ ] Không tăng đáng kể tổng thời gian test kiteclass-core (quarantine fork phải cân nhắc cost)
+- [x] Xác định nguyên nhân thật làm fail context trong CI full-reactor (điều tra empirical, không patch mù) — **DONE**: connection exhaustion trên shared Testcontainers Postgres do `minimum-idle: 10` × nhiều cached context; OpenApiSpecExportTest (RANDOM_PORT duy nhất) build muộn là nạn nhân. Bằng chứng = CI log `Caused by: Unable to determine Dialect` + `connection has been closed`.
+- [ ] `OpenApiSpecExportTest.exportSpec` PASS ổn định trong CI full-reactor ≥3 lần liên tiếp (không cần `ADMIN_MERGE_OVERRIDE`) — **PENDING CI**: flake không tái hiện local nên chỉ xác nhận được qua quan sát CI nhiều run. Fix root-cause đã land + insurance rerun.
+- [x] Không tăng đáng kể tổng thời gian test kiteclass-core — **DONE**: `minimum-idle: 0` không tăng thời gian (chỉ release idle conn); surefire rerun chỉ kích hoạt khi test FAIL; không quarantine fork riêng.
+
+## Resolution (2026-06-15 — PARTIAL, best-effort root-cause fix, CI-confirm pending)
+
+**Fix 1 — root cause (`src/test/resources/application-test.yml`):** `hikari.minimum-idle` 10 → **0** (cached context không pin connection idle nữa) + thêm `idle-timeout: 10000` + `max-lifetime: 60000` + `keepalive-time: 30000` (release nhanh slot Postgres giữa các cached context + validate/replace dead connection — đúng cảnh báo CI "Failed to validate connection ... has been closed"). Giữ `maximum-pool-size: 50` cho burst của `EnrollmentCapacityConcurrentTest` (chỉ context active dùng tới, các context idle giờ giữ 0 conn).
+
+**Fix 2 — insurance (`pom.xml` maven-surefire-plugin):** `rerunFailingTestsCount=2` + `systemPropertyVariables: spring.test.context.failure.threshold=5`. Spring 6.1+ cache context-load FAILURE và fail-fast sau `threshold` (mặc định 1) → rerun thường sẽ dính lại failure đã cache (chính là triệu chứng 0.003s); nâng threshold để rerun **build lại context thật** → retry mới có tác dụng cho transient context-load flake. KHÔNG đụng `argLine` → JaCoCo unit coverage giữ nguyên (verify: log build vẫn in `argLine set to -javaagent:...jacoco`).
+
+**Local verify (foreground):**
+- `./mvnw test -Dtest=OpenApiSpecExportTest -P strict-warnings` → `Tests run: 1, Failures: 0, Errors: 0` · BUILD SUCCESS · jacoco argLine intact.
+- `./mvnw test -Dtest=EnrollmentCapacityConcurrentTest` (test mà pool 50/10 từng tune cho) → PASS, **không regression** với `minimum-idle: 0`.
+- `./mvnw validate` → exit 0.
+
+**Tại sao PARTIAL chứ không DONE:** flake KHÔNG tái hiện local (suite local xanh) nên AC #2 ("PASS ≥3x CI không cần override") chỉ chứng minh được bằng quan sát CI qua nhiều run. Root cause đã xác định deterministic + fix đúng hướng, nhưng theo `gap-done-discipline.md` không flip DONE khi AC còn chưa verify được. Đóng DONE khi 3 PR kiteclass-core kế tiếp qua "Test Core Service" mà không cần `ADMIN_MERGE_OVERRIDE`.
+
+## Log
+
+- **2026-06-15:** Điều tra CI log (#2416 run 27509770548, #2422 run 27509543210) → bác bỏ giả thuyết "sibling cache inherit"; root cause thật = connection exhaustion shared Postgres (`minimum-idle: 10` × cached contexts). Land Fix 1 (Hikari `minimum-idle: 0` + lifecycle bounds) + Fix 2 (surefire rerun + failure.threshold). Local verify PASS (isolation + concurrent test + validate). Status OPEN → PARTIAL (70%). CI-confirm AC #2 pending. PR `fix/open1393-2026-06-15`.
 
 ## Related
 

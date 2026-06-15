@@ -69,7 +69,12 @@ export function AccountTab({ user, phone, organizationName }: AccountTabProps) {
   const handlePrefsSave = async () => {
     setIsPrefsSaving(true);
     try {
-      // TODO: wire to backend when /api/users/{id}/preferences ships.
+      // TODO(GAP-1394): pending BE /api/users/{id}/preferences (notification +
+      // locale prefs composite). No such endpoint exists yet; the per-type
+      // notification-preferences API (/api/v1/notification-preferences) does NOT
+      // map to these UI toggles (trialReminders → TRIAL_ENDING is mandatory and
+      // cannot be disabled; productUpdates + locale have no backend home).
+      // Persisted client-side only until the composite endpoint ships.
       await new Promise((resolve) => setTimeout(resolve, 200));
     } finally {
       setIsPrefsSaving(false);
