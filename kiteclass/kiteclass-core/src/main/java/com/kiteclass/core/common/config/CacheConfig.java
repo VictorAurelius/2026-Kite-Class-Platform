@@ -1,5 +1,6 @@
 package com.kiteclass.core.common.config;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
@@ -53,28 +54,47 @@ public class CacheConfig {
      * @param connectionFactory Redis connection factory
      * @return configured RedisCacheManager
      */
-    @Bean
-    public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) {
+    /**
+     * Value serializer for Redis cache entries. Extracted + package-visible so a
+     * unit test can assert the round-trip (serialize → deserialize) the @Cacheable
+     * path depends on — GAP-1421: the previous config wrote JSON it could not read
+     * back ("missing type id '@class'") → HTTP 500 on cache HIT for cached entities.
+     */
+    static GenericJackson2JsonRedisSerializer redisValueSerializer() {
         // Configure ObjectMapper with Java 8 date/time support
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        // GAP-1421: JPA entities expose computed getters (e.g. Course#isReadOnly())
+        // that serialize as JSON properties but have no settable field — without
+        // this the cache READ throws SerializationException ("Unrecognized field")
+        // → HTTP 500 on cache HIT. Cache-only mapper, so REST request binding (which
+        // SHOULD reject unknown fields) is unaffected.
+        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
-        // Enable default typing to store @class type information in Redis
-        // This prevents ClassCastException when deserializing cached objects
-        // Use PROPERTY format to store @class as JSON property (not WRAPPER_ARRAY)
+        // Enable default typing to store @class type information in Redis so the
+        // exact concrete type round-trips. MUST be EVERYTHING (not NON_FINAL):
+        // GAP-1421 — cached values are DTO **records** (e.g. CourseResponse), which
+        // are FINAL. NON_FINAL skips final types → no root @class written → the
+        // cache READ throws "missing type id property '@class'" → HTTP 500 on cache
+        // HIT. EVERYTHING types final records too. (Scalars that can't carry a
+        // property fall back to WRAPPER_ARRAY automatically.)
         PolymorphicTypeValidator typeValidator = BasicPolymorphicTypeValidator.builder()
                 .allowIfBaseType(Object.class)
                 .build();
         objectMapper.activateDefaultTyping(
                 typeValidator,
-                ObjectMapper.DefaultTyping.NON_FINAL,
+                ObjectMapper.DefaultTyping.EVERYTHING,
                 com.fasterxml.jackson.annotation.JsonTypeInfo.As.PROPERTY
         );
 
         // Create serializer with configured ObjectMapper
-        GenericJackson2JsonRedisSerializer serializer =
-                new GenericJackson2JsonRedisSerializer(objectMapper);
+        return new GenericJackson2JsonRedisSerializer(objectMapper);
+    }
+
+    @Bean
+    public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) {
+        GenericJackson2JsonRedisSerializer serializer = redisValueSerializer();
 
         RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(Duration.ofHours(1))  // Default TTL: 1 hour
