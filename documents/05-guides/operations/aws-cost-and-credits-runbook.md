@@ -148,6 +148,80 @@ Xếp theo độ dễ + giá trị:
 
 ---
 
+## 5.A Chi tiết từng bước — xin courtesy credit $40 (#4)
+
+> AWS Support **Billing & Account** miễn phí cho MỌI account (kể cả Basic plan không trả phí support). Đây là cách xin AWS xoá/hoàn khoản $40 tháng 6.
+
+### Bước 0 — Chuẩn bị (2 phút)
+- Đăng nhập AWS Console bằng **root account** hoặc IAM user có quyền billing (`solo-dev-admin` đủ).
+- Mở sẵn số liệu để dẫn chứng: tháng 6 ~$40, tháng 5 ~$0 (credit che), nguyên nhân ECR CI tích luỹ + đã dọn sạch.
+- (Tuỳ chọn) lấy ảnh Cost Explorer: Console → **Billing and Cost Management** → **Cost Explorer** → group by Service.
+
+### Bước 1 — Mở Support Center
+- Console góc trên phải → click icon **?** hoặc tên account → **Support** → **Support Center**.
+- Hoặc vào thẳng: `https://support.console.aws.amazon.com/support/home#/case/create`
+
+### Bước 2 — Create case
+- Click **Create case** (nút cam).
+- Chọn loại case: **"Account and billing"** (KHÔNG chọn "Technical" — cái đó cần paid plan).
+
+### Bước 3 — Điền form
+| Trường | Chọn / điền |
+|---|---|
+| **Service** | `Billing` |
+| **Category** | `Dispute a Charge` (hoặc `Other Billing Questions` nếu không thấy) |
+| **Severity** | `General question` (mặc định, Basic plan) |
+| **Subject** | `Request one-time courtesy credit for unexpected June charges (~$40)` |
+| **Description** | Dán template Bước 4 |
+
+### Bước 4 — Nội dung gửi (dán nguyên văn — AWS xử lý tiếng Anh nhanh hơn)
+
+```
+Hello AWS Support,
+
+I am a solo developer / student running a small project on this account
+(906286017800, ap-southeast-1). My previous months were fully covered by
+AWS credits (~$0 effective cost). The credits were exhausted unexpectedly,
+so June 2026 has accrued ~$40 in charges that I was not anticipating.
+
+The charges came mainly from ECR image storage that accumulated due to a CI
+misconfiguration (images pushed on every merge). I have already:
+ - deleted all unnecessary ECR images,
+ - removed CloudWatch dashboards/alarms/log groups,
+ - fixed the CI pipeline so images are pushed only at deploy time.
+
+As this was an unintended overage on a small/educational account and I have
+already corrected the root cause, could you please apply a one-time courtesy
+credit to offset the ~$40 June charges?
+
+Thank you very much for your understanding.
+```
+
+> Nếu muốn xin thêm credits dài hạn, có thể nói thêm bạn là sinh viên làm khóa luận — nhưng để tập trung, case này chỉ xin waiver $40.
+
+### Bước 5 — Contact method + Submit
+- **Contact method:** chọn **Web** (đọc reply trong Support Center) — có thể tick thêm email.
+- Click **Submit**.
+
+### Bước 6 — Theo dõi
+- AWS thường phản hồi **1–3 ngày làm việc**.
+- Check reply: Support Center → **Your support cases** → mở case.
+- Nếu AWS hỏi thêm → trả lời ngắn gọn, lịch sự, nhấn mạnh "unintended + root cause fixed".
+- Nếu được duyệt → credit xuất hiện ở **Billing → Credits**, tự khấu trừ hoá đơn.
+
+### Mẹo tăng tỉ lệ duyệt
+- ✅ Lịch sự + thừa nhận lỗi cấu hình + **nhấn mạnh đã fix root cause** (AWS thích thấy bạn đã xử lý).
+- ✅ Số tiền nhỏ ($40) + account nhỏ + lần đầu → khả năng duyệt cao.
+- ✅ Nêu rõ "credits exhausted unexpectedly" — đây là lý do chính đáng.
+- ❌ Đừng đòi hỏi / dọa đóng account — phản tác dụng.
+- ❌ Đừng mở nhiều case trùng — 1 case, chờ reply.
+
+### Nếu KHÔNG được duyệt
+- $40 vẫn phải trả (đã phát sinh). Nhưng các tháng sau = $0 (đã chặn) nếu giữ stopped + re-stop RDS.
+- Chuyển sang xin **AWS Activate $1,000** (#3) hoặc **GitHub Student Pack** (#1) để có credit cho tương lai.
+
+---
+
 ## 6. Monitoring định kỳ (chống tái phát)
 
 ### Mỗi session start
