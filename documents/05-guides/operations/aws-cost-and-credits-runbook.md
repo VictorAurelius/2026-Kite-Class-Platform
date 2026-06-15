@@ -85,6 +85,8 @@ Sau khi dọn ECR+CloudWatch, vẫn còn ~$15-18/mo nếu giữ stack:
 | EIP `52.221.161.175` idle | ~$3.6 | IPv4 charge |
 | Secrets Manager ×16 | ~$6.4 | $0.40/secret |
 
+> **⚠️ EIP — KHÔNG release nếu giữ keep-stopped.** EIP gắn instance *đang chạy* = MIỄN PHÍ; tính $3.6/mo CHỈ vì instance stopped. EIP **sống sót qua stop/start** (instance stopped ≠ terminated) → `start-stack.sh` bật lại = same IP → Cloudflare A record (`kitehub.me`→EIP) KHÔNG đổi. Release EIP → mỗi lần bật stack có IP mới → phải sửa Cloudflare DNS tay. $3.6/mo = giá của IP ổn định + zero DNS churn. Chỉ release khi **teardown hẳn** (terminate instance) + tự động hoá DNS update qua Cloudflare API (`cloudflare-api-token` đã có trong Secrets).
+
 ### ⚠️ Cảnh báo RDS 7-ngày
 AWS **cưỡng bức bật** RDS stopped sau tối đa 7 ngày → tính compute tới khi stop lại. Với keep-stopped PHẢI re-stop định kỳ:
 ```bash
