@@ -54,7 +54,7 @@ spec:
             name: kiteclass-frontend
             port:
               number: 3000
-      # API → direct to core (kiteclass-gateway removed per ADR-032 / GAP-001;
+      # API → direct to core (dedicated gateway removed per ADR-032 / GAP-001;
       # Phase 2 EKS routing redesign may add shared kite-gateway here)
       - path: /api
         pathType: Prefix

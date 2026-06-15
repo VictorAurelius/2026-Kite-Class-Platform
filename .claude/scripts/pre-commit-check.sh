@@ -283,7 +283,6 @@ if [ -n "$JAVA_FILES_CHANGED" ] || [ -n "$STAGED_POM_CHANGED" ]; then
     if [ -n "$JAVA_HOME" ] && [ -x "$JAVA_HOME/bin/java" ] && [ -f "$MAVEN_CMD" ]; then
         # Determine which service was modified
         CORE_CHANGED=$(echo "$JAVA_FILES_CHANGED $STAGED_POM_CHANGED" | tr ' ' '\n' | grep "kiteclass-core" | head -1 || true)
-        GATEWAY_CHANGED=$(echo "$JAVA_FILES_CHANGED $STAGED_POM_CHANGED" | tr ' ' '\n' | grep "kiteclass-gateway" | head -1 || true)
 
         _compile_service() {
             local SERVICE_NAME="$1"
@@ -316,11 +315,6 @@ if [ -n "$JAVA_FILES_CHANGED" ] || [ -n "$STAGED_POM_CHANGED" ]; then
         if [ -n "$CORE_CHANGED" ]; then
             _compile_service "kiteclass-core" \
                 "/mnt/f/nam4/doan/2026-Kite-Class-Platform/kiteclass/kiteclass-core/pom.xml"
-        fi
-
-        if [ -n "$GATEWAY_CHANGED" ]; then
-            _compile_service "kiteclass-gateway" \
-                "/mnt/f/nam4/doan/2026-Kite-Class-Platform/kiteclass/kiteclass-gateway/pom.xml"
         fi
     else
         echo -e "${YELLOW}⚠️  Java/Maven not configured — skipping compile check${NC}"

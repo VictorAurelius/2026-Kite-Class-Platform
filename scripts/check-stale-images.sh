@@ -42,7 +42,6 @@ container_to_dir() {
     kitehub-admin)         echo "kitehub/kitehub-admin" ;;
     kitehub-frontend)      echo "kitehub/kitehub-frontend" ;;
     kiteclass-core)        echo "kiteclass/kiteclass-core" ;;
-    kiteclass-gateway)     echo "kiteclass/kiteclass-gateway" ;;
     kiteclass-frontend)    echo "kiteclass/kiteclass-frontend" ;;
     kite-gateway)          echo "kitehub/kitehub-gateway" ;;
     *)                     echo "" ;;

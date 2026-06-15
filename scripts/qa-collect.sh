@@ -186,7 +186,7 @@ run_backend_kiteclass() {
   output=$(cd "$ROOT_DIR/kiteclass/kiteclass-core" && ./mvnw test -q 2>&1) || exit_code=$?
   parse_mvn_results "$output" "KiteClass core"
 
-  # kiteclass-gateway removed per ADR-032 / GAP-001
+  # dedicated gateway removed per ADR-032 / GAP-001
 }
 
 # ════════════════════════════════════════════════════════════
