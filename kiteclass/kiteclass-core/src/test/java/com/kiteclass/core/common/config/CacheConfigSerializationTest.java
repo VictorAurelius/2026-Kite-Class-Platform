@@ -1,62 +1,52 @@
 package com.kiteclass.core.common.config;
 
-import com.kiteclass.core.module.course.entity.Course;
-import com.kiteclass.core.common.constant.CourseStatus;
-import com.kiteclass.core.module.course.entity.PricingModel;
+import com.kiteclass.core.module.course.dto.CourseResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.UUID;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
 /**
- * GAP-1421: the Redis cache value serializer must round-trip a JPA entity
- * (serialize → deserialize) without throwing. The @Cacheable getById on Course
- * returned HTTP 500 on cache HIT because the configured serializer wrote a JSON
- * value it could not read back ("missing type id property '@class'").
+ * GAP-1421: the Redis cache value serializer must round-trip the types actually
+ * cached. {@code @Cacheable("courses")} stores a {@link CourseResponse} — a Java
+ * RECORD (final). With {@code DefaultTyping.NON_FINAL} the serializer wrote NO root
+ * {@code @class} for final records, so the cache READ failed
+ * ("missing type id property '@class'") → HTTP 500 on cache HIT. The fix types
+ * final records too (round-trips). Course (entity) was the wrong subject — the
+ * cached value is the DTO.
  */
 class CacheConfigSerializationTest {
 
-    private static Course sampleCourse() {
-        Course c = Course.builder()
-                .name("Toán 10")
-                .code("MATH10-HK1")
-                .status(CourseStatus.DRAFT)
-                .pricingModel(PricingModel.PER_HOUR)
-                .price(new BigDecimal("1500000.00"))
-                .unitPrice(new BigDecimal("200000.00"))
-                .durationWeeks(12)
-                .totalSessions(24)
-                .build();
-        c.setId(26L);
-        c.setInstanceId(UUID.randomUUID());
-        c.setCreatedAt(Instant.now());
-        c.setUpdatedAt(Instant.now());
-        c.setCreatedBy(UUID.randomUUID());
-        c.setDeleted(false);
-        c.setVersion(0L);
-        return c;
+    private static CourseResponse sampleResponse() {
+        return new CourseResponse(
+                26L, "Lớp IELTS RW 6.5", "SKY-IELTS-RW", "desc", null, null, null,
+                List.of(),                       // prerequisiteCourses
+                null, 14L, 12, 24,
+                new BigDecimal("1500000.00"),    // price
+                "PER_HOUR",
+                new BigDecimal("200000.00"),     // unitPrice
+                "DRAFT", null, null, null,
+                Instant.now(), Instant.now());
     }
 
-
-
     @Test
-    @DisplayName("configured cache serializer round-trips a Course (no SerializationException)")
-    void courseRoundTripsThroughCacheSerializer() {
+    @DisplayName("configured cache serializer round-trips a CourseResponse record (no SerializationException)")
+    void courseResponseRecordRoundTripsThroughCacheSerializer() {
         GenericJackson2JsonRedisSerializer serializer = CacheConfig.redisValueSerializer();
-        Course course = sampleCourse();
+        CourseResponse dto = sampleResponse();
 
-        byte[] bytes = serializer.serialize(course);
+        byte[] bytes = serializer.serialize(dto);
 
         assertThatCode(() -> {
             Object back = serializer.deserialize(bytes);
-            assertThat(back).isInstanceOf(Course.class);
-            assertThat(((Course) back).getCode()).isEqualTo("MATH10-HK1");
+            assertThat(back).isInstanceOf(CourseResponse.class);
+            assertThat(((CourseResponse) back).code()).isEqualTo("SKY-IELTS-RW");
         }).doesNotThrowAnyException();
     }
 }

@@ -1,6 +1,6 @@
 # GAP-1421: @Cacheable course-detail returns HTTP 500 on cache HIT (Redis serializer can't round-trip the entity)
 
-**Status:** 🟡 PARTIAL
+**Status:** 🟢 DONE
 **Priority:** 🟠 P1
 **Domain:** Backend
 **Found:** 2026-06-15 (KC-3 re-walk — `GET /api/v1/courses/{id}` 500 on cache hit)
@@ -28,17 +28,18 @@ Pre-existing (the `@Cacheable` getById path was never exercised twice in a walk 
 
 - [x] Round-trip unit test: a populated Course serializes → deserializes via `CacheConfig.redisValueSerializer()` without throwing (`CacheConfigSerializationTest`) — handles the `readOnly` computed-getter failure mode.
 - [x] Fix scoped to cache mapper (no entity / REST change).
-- [ ] **Live: `GET /api/v1/courses/{id}` twice (miss → hit) → 200 both — STILL 500 after clean `--no-cache` core rebuild.**
+- [x] **Live: `GET /api/v1/courses/{id}` ×3 (miss → hit → hit) → 200 all** (verified post clean `--no-cache` core rebuild; cached JSON now carries root `@class`).
 
-## ⚠️ PARTIAL — live verify FAILED (second, unresolved failure mode)
+## Root cause (confirmed) + fix
 
-The `FAIL_ON_UNKNOWN_PROPERTIES=false` fix resolves the **`Unrecognized field "readOnly"`** mode (unit-test reproduced + green). But the **live** course-detail still returns 500 on cache hit with a DIFFERENT error: `missing type id property '@class'` — the cached JSON root object has **no `@class`** (`{"id":26,...}`), while nested values ARE typed (`unitPrice:["java.math.BigDecimal",...]`).
+Two distinct failure modes, both now fixed:
 
-**Unresolved contradiction:** `CacheConfig.redisValueSerializer().serialize(course)` in the unit test writes a root `@class` (`{"@class":"...Course",...}`) and round-trips fine; the live Spring-Cache write of the same entity via the same (verified-deployed) serializer omits the root `@class`. Same config, divergent output — root cause not yet identified by static inspection (needs runtime debug of GenericJackson2JsonRedisSerializer ↔ Spring Cache `RedisCache.put` serialization path; possible GenericJackson2 root-typing behavior difference vs direct `serialize()`).
+1. **Root `@class` missing on cached record DTOs (the live 500).** `@Cacheable("courses")` caches `CourseResponse` — a Java **record** (final). The serializer used `DefaultTyping.NON_FINAL`, which **skips final types** → the root DTO was written with no `@class` → cache READ deserializes as `Object` → `missing type id property '@class'` → 500 on cache HIT. (The earlier unit test mistakenly serialized the `Course` *entity* — non-final → got root `@class` → masked the bug. Corrected to serialize the actual cached `CourseResponse` record, which reproduced the live error, then went green.) **Fix: `NON_FINAL` → `EVERYTHING`** (types final records too).
+2. **Computed-getter unrecognized field.** `FAIL_ON_UNKNOWN_PROPERTIES=false` on the cache mapper (ignores computed getters like `Course#isReadOnly()` on read).
 
-**Not blocking KC-3 recurrence** — `GET /courses/{id}/classes` (classes list) is uncached + works; the recurrence walk uses the "Lớp học" nav path, not course detail. Course-detail view + the course-detail "Thêm lớp học" button remain 500 until the root-`@class` mode is fixed.
+Both scoped to the cache `ObjectMapper` (`CacheConfig.redisValueSerializer()`); REST request binding unaffected. Cache format changed (NON_FINAL→EVERYTHING) → stale entries flushed on deploy.
 
-**Next:** runtime-debug why Spring Cache write omits root `@class`; candidate fixes — switch to `GenericJackson2JsonRedisSerializer.builder()` typing, or wrap cached values in a typed holder, or cache a DTO instead of the entity.
+Verified live: cached JSON root = `{"@class":"...CourseResponse",...}`; `GET /courses/{id}` 200 across miss + repeated hits.
 
 ## Related
 
