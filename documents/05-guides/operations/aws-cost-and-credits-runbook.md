@@ -152,6 +152,14 @@ Xếp theo độ dễ + giá trị:
 
 ## 5.A Chi tiết từng bước — xin courtesy credit $40 (#4)
 
+> **📌 Case đã nộp (2026-06-15):**
+> - **Case ID:** `178149494800729` · Type: Account · Category: Billing, Dispute a Charge · Severity: General question
+> - **Status:** Unassigned (chờ agent) · Opened by `mvann1207@gmail.com` · Communication: Web
+> - **ETA reply:** 1–3 ngày làm việc → theo dõi tại Support Center → *Your support cases*
+> - **Nếu duyệt:** credit hiện ở Billing → Credits, tự khấu trừ $40 tháng 6
+> - **Nếu trượt:** $40 vẫn trả; chuyển sang Activate $1,000 (#3) / GitHub Student Pack (#1)
+
+
 > AWS Support **Billing & Account** miễn phí cho MỌI account (kể cả Basic plan không trả phí support). Đây là cách xin AWS xoá/hoàn khoản $40 tháng 6.
 
 ### Bước 0 — Chuẩn bị (2 phút)
