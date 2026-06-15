@@ -39,10 +39,10 @@ const OnboardingWizard = dynamic(
 /**
  * Subscription health snapshot. Wave 31 Bucket A ships with a derived-from-
  * Instance shim because `/api/subscription/health` doesn't exist yet
- * (TODO follow-up: file gap to expose a composite endpoint that returns
- * tier + usage % + 7-day series in one round-trip). Today we synthesize
- * what we can from the owner's instances list and stub the sparklines so
- * the layout is ready when real data lands.
+ * (TODO(GAP-1394): pending BE composite endpoint returning tier + usage % +
+ * 7-day series in one round-trip — needs a usage-telemetry backend that does
+ * not exist yet). Today we synthesize what we can from the owner's instances
+ * list and stub the sparklines so the layout is ready when real data lands.
  */
 interface SubscriptionHealth {
   /** Tier label of the primary instance — drives the badge in the tier card. */
@@ -76,7 +76,10 @@ function buildHealthSnapshot(instances: Instance[] | undefined): SubscriptionHea
     subscriptionExpiresAt: primary?.subscriptionExpiresAt ?? null,
     activeInstances,
     totalInstances: list.length,
-    // TODO(wave-31-followup): replace stub series with real /api/subscription/health response
+    // TODO(GAP-1394): pending BE GET /api/subscription/health — replace these
+    // stub sparkline series with real usage telemetry. tier/trialDaysLeft/
+    // instances above are REAL (from the instances API); only these 7-day
+    // series are placeholders until the telemetry endpoint ships.
     series: {
       activeClasses: [42, 48, 51, 47, 55, 58, 62],
       instances: [list.length, list.length, list.length, list.length, list.length, list.length, list.length],
