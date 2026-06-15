@@ -43,6 +43,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import type { OnboardingPhase } from '@/hooks/useOnboardingPhase';
 import { FeedbackForm } from '@/components/feedback/FeedbackForm';
+import { useAuthStore } from '@/stores/auth-store';
 
 // Zalo OA fast-path (Wave 98 B6 GAP-660) — env-var-driven OA ID with placeholder
 // fallback per documents/05-guides/account-prep/zalo-oa-setup-runbook.md §2.2.
@@ -68,16 +69,37 @@ export interface SupportMenuProps {
 }
 
 /**
- * Derive persona-aware help route từ phase + role hint.
- * Anonymous → public help; authenticated → persona-specific.
+ * Derive persona-aware help route từ phase + auth role.
+ *
+ * GAP-1394: wires role-based help routing (previously a TODO-B5 stub returning
+ * `/help`, which 404s — no `/help` base route exists). Anonymous users → public
+ * help; authenticated users → the persona help page matching their platform role.
+ *
+ * Role → route map (existing help pages: anonymous / p2-owner / p3-manager /
+ * platform-admin):
+ *  - PLATFORM_ADMIN | ADMIN          → /help/platform-admin
+ *  - STAFF                           → /help/p3-manager
+ *  - OWNER (+ authenticated fallback) → /help/p2-owner
+ *
+ * Pure function (no hooks) so it stays unit-testable in isolation.
  */
-function helpRouteForPhase(phase: OnboardingPhase | undefined): string {
-  if (!phase || phase === 'anonymous') {
+export function helpRouteFor(
+  phase: OnboardingPhase | undefined,
+  role: string | undefined,
+): string {
+  if (!role || phase === 'anonymous') {
     return '/help/anonymous';
   }
-  // Authenticated users default to general help; persona detection deferred to B5.
-  // TODO B5 — read JWT role claim → route to /help/p1, /help/p2-owner, /help/p3-manager
-  return '/help';
+  switch (role.trim().toUpperCase()) {
+    case 'PLATFORM_ADMIN':
+    case 'ADMIN':
+      return '/help/platform-admin';
+    case 'STAFF':
+      return '/help/p3-manager';
+    case 'OWNER':
+    default:
+      return '/help/p2-owner';
+  }
 }
 
 export function SupportMenu({
@@ -88,7 +110,11 @@ export function SupportMenu({
 }: SupportMenuProps) {
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
 
-  const helpRoute = helpRouteForPhase(phase);
+  // GAP-1394: read raw platform role (distinguishes PLATFORM_ADMIN from OWNER —
+  // useRole collapses the alias) to route the "Hướng dẫn nhanh" help link.
+  const role = useAuthStore((s) => s.user?.role);
+
+  const helpRoute = helpRouteFor(phase, role);
 
   const handleFeedback = () => {
     if (onFeedbackClick) {

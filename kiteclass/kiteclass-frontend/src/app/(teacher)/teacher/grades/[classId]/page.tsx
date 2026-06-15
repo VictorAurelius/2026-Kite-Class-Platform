@@ -111,7 +111,9 @@ export default function TeacherGradesClassPage() {
     setState('saving');
     setErrorMessage(undefined);
     try {
-      // TODO follow-up: wire kc-core gradebook API (sub-gap to be filed).
+      // TODO(GAP-1394): pending BE kc-core gradebook API (batch save grades +
+      // roster fetch). LMS domain — endpoint not yet shipped; grid uses sample
+      // data until wired. Save is simulated client-side.
       await new Promise((resolve) => setTimeout(resolve, 600));
       setSavedAt(
         `${new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })} bởi ${TEACHER_PROFILE.shortName}`,
