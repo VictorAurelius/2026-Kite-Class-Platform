@@ -193,6 +193,115 @@
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
+
+            <!--
+              GAP-1344: JaCoCo coverage — mirrors kiteclass-core config so the
+              kitehub multi-module reactor emits line/branch coverage instead of
+              the file-count proxy the quality audit was forced to use.
+
+              Declared in the parent <build><plugins> so all 6 child modules
+              inherit it (platform / subscription / branding / email / admin / gateway).
+
+              Phase wiring (same as kiteclass-core/pom.xml):
+                - prepare-agent             → before surefire (writes target/jacoco.exec)
+                - prepare-agent-integration → before failsafe (writes target/jacoco-it.exec)
+                - merge                     → after integration-test (target/jacoco-merged.exec)
+                - report                    → during verify (reads merged exec → target/site/jacoco/jacoco.xml)
+
+              Coverage commands:
+                - `./mvnw -pl <module> -am test jacoco:report -P strict-warnings`
+                  → unit coverage from default jacoco.exec → target/site/jacoco
+                - `./mvnw -pl <module> -am verify -P strict-warnings`
+                  → merged unit+IT coverage (modules with *IT under failsafe)
+
+              Kitehub CI (kitehub-ci.yml) runs `mvn test`; pair with `jacoco:report`
+              goal to publish per-module coverage (mirrors core-ci.yml pattern).
+            -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.15</version>
+                <executions>
+                    <!-- Surefire agent: writes target/jacoco.exec (default) -->
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+
+                    <!-- Failsafe agent: writes target/jacoco-it.exec, bound to pre-integration-test -->
+                    <execution>
+                        <id>prepare-agent-integration</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>prepare-agent-integration</goal>
+                        </goals>
+                        <configuration>
+                            <destFile>${project.build.directory}/jacoco-it.exec</destFile>
+                            <propertyName>failsafeArgLine</propertyName>
+                        </configuration>
+                    </execution>
+
+                    <!-- Merge surefire + failsafe execs → target/jacoco-merged.exec -->
+                    <execution>
+                        <id>merge-results</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>merge</goal>
+                        </goals>
+                        <configuration>
+                            <fileSets>
+                                <fileSet>
+                                    <directory>${project.build.directory}</directory>
+                                    <includes>
+                                        <include>jacoco.exec</include>
+                                        <include>jacoco-it.exec</include>
+                                    </includes>
+                                </fileSet>
+                            </fileSets>
+                            <destFile>${project.build.directory}/jacoco-merged.exec</destFile>
+                        </configuration>
+                    </execution>
+
+                    <!-- Generate report from merged exec → target/site/jacoco/jacoco.xml -->
+                    <execution>
+                        <id>report-merged</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                        <configuration>
+                            <dataFile>${project.build.directory}/jacoco-merged.exec</dataFile>
+                            <outputDirectory>${project.build.directory}/site/jacoco</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!--
+              Failsafe: explicitly declare so the prepare-agent-integration argLine
+              is wired in. Spring Boot's parent inherits a failsafe binding but does
+              NOT wire the JaCoCo argLine — without this, the agent is silently
+              dropped and *IT coverage is lost. Bound to integration-test + verify,
+              so `mvn test` (kitehub CI default) is unaffected.
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <configuration>
+                    <argLine>${failsafeArgLine}</argLine>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>integration-tests</id>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 

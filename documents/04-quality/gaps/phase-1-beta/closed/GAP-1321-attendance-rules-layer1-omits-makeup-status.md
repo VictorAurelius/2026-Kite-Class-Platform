@@ -1,6 +1,6 @@
 # GAP-1321: attendance/rules.md Layer-1 omits MAKEUP status (present in code + Layer-2/3)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟡 P2
 **Domain:** Docs (KiteClass attendance 3-layer consistency)
 **Found:** 2026-06-14 (Business Logic full audit post wave-p0-closeout-1)
@@ -32,9 +32,17 @@ Thêm MAKEUP vào `attendance/rules.md`:
 
 ## Acceptance Criteria
 
-- [ ] `attendance/rules.md` §1 status list = 5 giá trị khớp `AttendanceStatus.java`.
-- [ ] Permission matrix + point-deduction note phản ánh MAKEUP.
-- [ ] Cross-layer: rules.md ↔ api-contract.md ↔ use-cases.md ↔ code nhất quán 5 status.
+- [x] `attendance/rules.md` §1 status list = 5 giá trị khớp `AttendanceStatus.java`.
+- [x] Permission matrix + point-deduction note phản ánh MAKEUP.
+- [x] Cross-layer: rules.md ↔ api-contract.md ↔ use-cases.md ↔ code nhất quán 5 status.
+
+## Resolution
+
+**DONE** 2026-06-15 (PR audit-fixD-bizdocs). `attendance/rules.md` §1 cập nhật:
+- Status list: `PRESENT, LATE, ABSENT, EXCUSED, MAKEUP` (5 values, ghi rõ "must match `AttendanceStatus` enum").
+- Thêm bảng status × display VI × short code × **points-deduction** × meaning — MAKEUP ("Học bù", `HB`, deduction `0`) khớp `AttendanceStatus.getPointsDeduction()` (PRESENT/EXCUSED/MAKEUP = 0; LATE = −5; ABSENT = −10).
+- Permission Matrix note: tất cả status (incl. MAKEUP) set **manual** bởi teacher/admin — không auto-determine.
+- Cross-layer: rules.md (Layer-1) giờ khớp api-contract.md (Layer-3) + use-cases.md (UC-ATT-09) + `AttendanceStatus.java` = 5 status nhất quán. `bash scripts/verify-business-docs.sh kiteclass` → attendance BR→UC PASS, API→Code PASS, 0 FAIL.
 
 ## Related
 
