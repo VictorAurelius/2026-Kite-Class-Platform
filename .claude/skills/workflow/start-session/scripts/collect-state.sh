@@ -296,6 +296,13 @@ aws_collect() {
   alarms="$(timeout 8 aws cloudwatch describe-alarms $profile_arg --state-value ALARM \
     --query 'MetricAlarms[].AlarmName' --output json 2>/dev/null || echo '[]')"
 
+  # EIP idle-cost early-warning (free describe-addresses; per aws-cost-guard.md —
+  # EIP not attached to a running instance incurs idle IPv4 charge ~$3.6/mo).
+  local eip
+  eip="$(timeout 8 aws ec2 describe-addresses $profile_arg \
+    --query 'Addresses[].{ip:PublicIp,inst:InstanceId}' \
+    --output json 2>/dev/null || echo '[]')"
+
   # ECR image-count early-warning (per retention-policy-completeness.md — surface
   # unbounded growth before it hits the bill). Bounded; only runs on cache refresh.
   local ecr_json="{}" ecr_repos ecr_total=0 ecr_max=0 ecr_maxname="" n
@@ -324,8 +331,9 @@ aws_collect() {
     --argjson trails "$trail_status" \
     --argjson alarms "$alarms" \
     --argjson ecr "$ecr_json" \
+    --argjson eip "$eip" \
     '{timestamp:$ts, timestamp_epoch:$tsep, region:$region, identity:$identity,
-      ec2:$ec2, rds:$rds, alb:$alb, trails:$trails, alarms_in_alarm:$alarms, ecr:$ecr}' \
+      ec2:$ec2, rds:$rds, alb:$alb, trails:$trails, alarms_in_alarm:$alarms, ecr:$ecr, eip:$eip}' \
     > "$AWS_CACHE_FILE"
   AWS_STATUS="fresh"
 }
@@ -371,6 +379,23 @@ aws_render_lines() {
   ecr_maxname="$(jq -r '.ecr.max_repo // ""' "$AWS_CACHE_FILE")"
   [ "$ecr_max" -gt 200 ] 2>/dev/null && ecr_warn=" ⚠️  max ${ecr_max} @ ${ecr_maxname} (>200 → check lifecycle per retention-policy-completeness.md)"
 
+  # 💸 Cost-watch (free proxies per aws-cost-guard.md — flag cost drivers BEFORE bill).
+  # Idle EIP = no InstanceId OR attached to a non-running instance. Thresholds:
+  #   ECR images >30 (deploy-only push → steady-state should be low) · RDS running ·
+  #   idle EIP (~$3.6/mo) · CloudWatch alarms (each ~$0.10/mo).
+  local cw_flags="" eip_idle running_ec2_ids
+  running_ec2_ids="$(jq -r '[.ec2[] | select(.state=="running") | .id] | join(" ")' "$AWS_CACHE_FILE" 2>/dev/null || echo '')"
+  eip_idle="$(jq -r --arg run "$running_ec2_ids" \
+    '[.eip[]? | select((.inst // "") == "" or ((.inst // "") as $i | ($run | split(" ") | index($i)) | not))] | length' \
+    "$AWS_CACHE_FILE" 2>/dev/null || echo 0)"
+  case "$eip_idle" in (*[!0-9]*|'') eip_idle=0 ;; esac
+  [ "$ecr_images" != "?" ] && [ "$ecr_images" -gt 30 ] 2>/dev/null && cw_flags="${cw_flags} ECR ${ecr_images} imgs(>30)"
+  [ "$rds_count" -gt 0 ] 2>/dev/null && { jq -e '[.rds[]|select(.state=="available")]|length>0' "$AWS_CACHE_FILE" >/dev/null 2>&1 && cw_flags="${cw_flags} RDS-running"; }
+  [ "$eip_idle" -gt 0 ] 2>/dev/null && cw_flags="${cw_flags} ${eip_idle}-idle-EIP(~\$3.6/mo)"
+  [ "$alarm_count" -gt 0 ] 2>/dev/null && cw_flags="${cw_flags} ${alarm_count}-CW-alarm"
+  local cw_line
+  if [ -n "$cw_flags" ]; then cw_line="💸 ⚠️ cost drivers:${cw_flags} — xem aws-cost-and-credits-runbook.md"; else cw_line="💸 ✅ clean (no idle cost drivers)"; fi
+
   cat <<EOS
   · Account/Region: $account / $AWS_REGION_OUT
   · EC2:           $ec2_running running, $ec2_stopped stopped, $ec2_total total${ec2_summary:+ — $ec2_summary}
@@ -379,6 +404,7 @@ aws_render_lines() {
   · ECR:           ${ecr_images} images / ${ecr_repos} repos${ecr_warn}
   · CloudTrail:    ${trail_summary:-<none — audit baseline missing per aws-observability-first.md>}
   · Alarms ALARM:  $alarm_count$([ "$alarm_count" -gt 0 ] && echo " ⚠️  $alarm_list")
+  · Cost watch:    ${cw_line}
   · Cache:         ${AWS_STATUS} (age ${cache_age_min}m, TTL 30m)
 EOS
 }

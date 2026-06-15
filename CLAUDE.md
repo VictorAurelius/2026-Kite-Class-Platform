@@ -131,8 +131,8 @@ Tham khảo: `.claude/skills/devops/devops-standards.md` (section Docker Scripts
 
 **Rationale:** PR CI already validates the merge candidate — re-running same tests on main post-merge is redundant for solo dev. Saves 4-6 workflow runs per merge × ~5 merges/day = ~25 runs/day wasted.
 
-**Kept `push: main`:**
-- `docker-build-push.yml` — pushes Docker images to ECR (actual deploy side-effect, not redundant)
+**ECR push = deploy-only (2026-06-15, AWS cost control):**
+- `docker-build-push.yml` push ECR CHỈ trên tag `v*.*.*` HOẶC `workflow_dispatch` (KHÔNG `push: main` — mỗi merge push 10 image → tích vô hạn). PR = build-only. Quy tắc: `.claude/rules/aws-cost-guard.md`.
 
 **Re-enable `push: main` on test workflows when:**
 - Team grows beyond solo (need main-protection re-verification)
