@@ -12,7 +12,7 @@ export const dynamic = 'force-dynamic';
 import { use, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Pencil, Trash2, BookOpen, Archive } from 'lucide-react';
+import { Pencil, Trash2, BookOpen, Archive, CalendarPlus } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout';
 import { StatusBadge, LoadingSpinner, ErrorAlert } from '@/components/common';
 import { Button } from '@/components/ui/button';
@@ -116,6 +116,14 @@ export default function CourseDetailPage({
               </Button>
             )}
             {!course.status.includes('ARCHIVED') && (
+              <Link href={`/courses/${id}/classes/new`}>
+                <Button variant="outline">
+                  <CalendarPlus className="mr-2 h-4 w-4" />
+                  Thêm lớp học
+                </Button>
+              </Link>
+            )}
+            {!course.status.includes('ARCHIVED') && (
               <Link href={`/courses/${id}/edit`}>
                 <Button variant="outline">
                   <Pencil className="mr-2 h-4 w-4" />
@@ -209,9 +217,22 @@ export default function CourseDetailPage({
           </div>
         </div>
 
-        {/* LMS content authoring (GAP-1113 Increment A — Nội dung tab) */}
+        {/* LMS content authoring (GAP-1113 Increment A — Nội dung tab).
+            BE gates module listing on COURSE_NOT_PUBLISHED, so only mount the
+            manager for a published course; a DRAFT course shows guidance instead
+            of letting CourseContentManager fire a 400. */}
         <div className="rounded-lg border bg-card p-6">
-          <CourseContentManager courseId={courseId} />
+          {isPublished ? (
+            <CourseContentManager courseId={courseId} />
+          ) : (
+            <div className="space-y-1 text-sm">
+              <p className="font-medium">Nội dung bài học</p>
+              <p className="text-muted-foreground">
+                Xuất bản khóa học để bắt đầu thêm nội dung bài học. Quản lý nội dung
+                khả dụng sau khi khóa học chuyển sang trạng thái “Đã xuất bản”.
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
