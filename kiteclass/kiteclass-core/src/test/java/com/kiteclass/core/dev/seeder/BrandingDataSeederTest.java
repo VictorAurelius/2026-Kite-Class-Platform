@@ -184,7 +184,9 @@ class BrandingDataSeederTest {
     void seedDemoTrioUpsertsLandingAndEvictsCache() {
         // transactionTemplate runs the callback synchronously.
         doAnswer(inv -> {
-            inv.getArgument(0, Consumer.class).accept(null);
+            @SuppressWarnings("unchecked")
+            Consumer<Object> action = inv.getArgument(0, Consumer.class);
+            action.accept(null);
             return null;
         }).when(transactionTemplate).executeWithoutResult(any());
         // Instances already exist → instance creation + seed(slug) heavy path skip.

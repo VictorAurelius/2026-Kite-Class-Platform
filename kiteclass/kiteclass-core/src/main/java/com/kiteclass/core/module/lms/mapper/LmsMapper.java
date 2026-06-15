@@ -160,7 +160,8 @@ public interface LmsMapper {
      * @param request the create request DTO
      * @return LearningResource entity
      */
-    @Mapping(target = "lessonId", ignore = true)  // Set by service layer
+    @Mapping(target = "lessonId", ignore = true)        // Set by service layer
+    @Mapping(target = "uploadedFileId", ignore = true)  // Set by service layer on upload (GAP-1405)
     LearningResource toResourceEntity(CreateLearningResourceRequest request);
 
     // ==================== LessonProgress Mappings ====================

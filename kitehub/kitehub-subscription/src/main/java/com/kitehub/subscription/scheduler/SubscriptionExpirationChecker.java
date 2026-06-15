@@ -3,7 +3,6 @@ package com.kitehub.subscription.scheduler;
 import com.kitehub.platform.domain.entity.Instance;
 import com.kitehub.platform.domain.entity.Payment;
 import com.kitehub.platform.domain.entity.Subscription;
-import com.kitehub.platform.domain.enums.PaymentStatus;
 import com.kitehub.platform.domain.enums.SubscriptionStatus;
 import com.kitehub.subscription.client.EmailServiceClient;
 import com.kitehub.subscription.config.SubscriptionConfig;
