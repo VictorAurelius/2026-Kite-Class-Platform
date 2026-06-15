@@ -1,5 +1,6 @@
 package com.kiteclass.core.module.parent.payment;
 
+import com.kiteclass.core.common.context.TenantContext;
 import com.kiteclass.core.common.context.UserContext;
 import com.kiteclass.core.common.dto.ApiResponse;
 import com.kiteclass.core.common.exception.BusinessException;
@@ -199,13 +200,22 @@ public class ParentPaymentController {
     }
 
     /**
-     * Resolve current tenant_id (instance_id) from request scope. Wave 105
-     * stub returns nil-UUID; production wiring uses TenantContext when
-     * available across modules.
+     * Resolve current tenant_id (instance_id) from the request-scoped
+     * {@link TenantContext} thread-local (GAP-1413).
+     *
+     * <p>Populated by {@code TenantFilterInterceptor} from the gateway-injected
+     * {@code X-Tenant-Id} header — the same source every other tenant-scoped
+     * kiteclass-core endpoint uses. This scopes the payment-idempotency lookup
+     * + first-write to the caller's real tenant, replacing the former nil-UUID
+     * stub that collapsed every tenant's idempotency keys into one phantom
+     * tenant (cross-tenant RLS hole).
+     *
+     * @return the current tenant UUID as a string (for the {@code instance_id} scope)
+     * @throws com.kiteclass.core.common.exception.TenantNotSetException
+     *         if the request bypassed the tenant interceptor (missing X-Tenant-Id)
      */
     private String currentTenantId() {
-        // TODO Wave 106: use TenantContext.getCurrentTenant() when stable helper exists.
-        return "00000000-0000-0000-0000-000000000000";
+        return TenantContext.getCurrentTenant().toString();
     }
 
     private Long requireParentId(Long parentId) {
