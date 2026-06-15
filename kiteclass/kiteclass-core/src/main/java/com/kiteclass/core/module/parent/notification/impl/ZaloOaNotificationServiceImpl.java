@@ -1,5 +1,6 @@
 package com.kiteclass.core.module.parent.notification.impl;
 
+import com.kiteclass.core.common.context.TenantContext;
 import com.kiteclass.core.module.parent.notification.ZaloOaNotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -125,19 +126,24 @@ public class ZaloOaNotificationServiceImpl implements ZaloOaNotificationService 
     }
 
     /**
-     * Resolve current tenant_id (instance_id) from Hibernate filter context.
+     * Resolve current tenant_id (instance_id) from the request-scoped
+     * {@link TenantContext} thread-local (GAP-1413).
      *
-     * <p>Wave 105 stub: returns a placeholder UUID derived from
-     * the request's tenant scope. Wave 106 wiring will use
-     * {@code TenantContext.getCurrentTenant()} once a stable helper exists
-     * across modules. For Phase 1 BETA test, this is good enough — the
-     * outbox row carries instance_id for downstream RLS even if the value
-     * is a zero-UUID during early development.
+     * <p>These notification methods run with {@code Propagation.REQUIRES_NEW},
+     * which suspends the parent transaction but stays on the SAME request
+     * thread (not {@code @Async}), so the {@code X-Tenant-Id}-derived
+     * thread-local set by {@code TenantFilterInterceptor} is available here.
+     * The outbox row therefore carries the real tenant's {@code instance_id},
+     * preserving RLS isolation — not the former nil-UUID stub that scoped
+     * every tenant's notification to a single phantom tenant.
+     *
+     * @return the current tenant UUID as a string (for the {@code ?::uuid} bind)
+     * @throws com.kiteclass.core.common.exception.TenantNotSetException
+     *         if invoked outside a tenant-scoped request (caught by the
+     *         best-effort wrapper in each record* method)
      */
     private String resolveTenantId() {
-        // Defer to Hibernate filter param via thread-local; if not available,
-        // use the nil UUID — Wave 106 audit will reconcile.
-        return "00000000-0000-0000-0000-000000000000";
+        return TenantContext.getCurrentTenant().toString();
     }
 
     private String escapeJson(String s) {

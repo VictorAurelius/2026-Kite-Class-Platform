@@ -21,10 +21,40 @@ import type { LoginRequest, AuthResponse } from '@/types/auth';
  * to `/login` (its token-refresh path) — which would abort the owner's KH fallback.
  * A bare client keeps the probe side-effect-free.
  */
+/**
+ * Browser-side baseURL must PRESERVE the tenant Host (GAP-1207, mirrored from
+ * `public.ts`). Tenant-auth login resolves the tenant from the gateway's
+ * Host-based resolver (client X-Tenant-Id is stripped — GAP-814). A static
+ * `NEXT_PUBLIC_API_URL=http://localhost:9000` sends Host=localhost → gateway
+ * can't resolve the subdomain tenant → tenant-auth login fails. When the page is
+ * served from a tenant subdomain (prod `*.kitehub.me` or local `*.nip.io` walk),
+ * call the gateway on the SAME hostname (only the port comes from the env URL).
+ */
+function loginBaseUrl(): string {
+  const configured = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000';
+  if (typeof window === 'undefined') return configured;
+  const { hostname, protocol } = window.location;
+  const isIp = /^\d+\.\d+\.\d+\.\d+$/.test(hostname);
+  const hasSubdomain = !isIp && hostname !== 'localhost' && hostname.split('.').length >= 3;
+  if (!hasSubdomain) return configured;
+  let port = '9000';
+  try {
+    port = new URL(configured).port || port;
+  } catch {
+    /* keep default gateway port */
+  }
+  return `${protocol}//${hostname}:${port}`;
+}
+
 const loginClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080',
   timeout: 10000,
   headers: { 'Content-Type': 'application/json', 'Accept-Language': 'vi' },
+});
+// Resolve baseURL per-request so window.location (tenant subdomain Host) is read
+// at call time, not module-load (GAP-1207 host-preservation for tenant-auth login).
+loginClient.interceptors.request.use((config) => {
+  config.baseURL = loginBaseUrl();
+  return config;
 });
 
 /** KC-native tenant-auth login payload (carried inside the ApiResponse wrapper). */

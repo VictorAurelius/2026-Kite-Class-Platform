@@ -13,9 +13,10 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Bell, ClipboardCheck, BookOpenCheck, CalendarDays, BarChart3, Settings, ClipboardList } from 'lucide-react';
+import { Bell, ClipboardCheck, BookOpenCheck, CalendarDays, BarChart3, Settings, ClipboardList, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SkipToContent } from '@/components/a11y/skip-to-content';
+import { useAuth } from '@/hooks/useAuth';
 
 type NavItem = {
   href: string;
@@ -71,6 +72,7 @@ export function TeacherShell({
   teacherInitials = 'TH',
 }: TeacherShellProps) {
   const pathname = usePathname() ?? '/teacher';
+  const { logout } = useAuth();
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -145,6 +147,14 @@ export function TeacherShell({
                 <div className="text-xs text-muted-foreground">{teacherSubtitle}</div>
               </div>
             </div>
+            <button
+              type="button"
+              onClick={() => logout()}
+              className="rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-red-600"
+              aria-label="Đăng xuất"
+            >
+              <LogOut className="h-5 w-5" />
+            </button>
           </div>
         </div>
         {/* Mobile nav: secondary row */}

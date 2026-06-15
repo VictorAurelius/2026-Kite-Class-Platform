@@ -10,11 +10,15 @@ import { authApi } from '../auth';
 import { apiClient } from '@/lib/api-client';
 import type { LoginRequest, AuthResponse } from '@/types/auth';
 
-// Bare login client (axios.create, no interceptor) used by authApi.login — see
-// auth.ts. Hoisted so the module-load `axios.create(...)` returns this mock.
+// Bare login client (axios.create) used by authApi.login — see auth.ts. Hoisted
+// so the module-load `axios.create(...)` returns this mock. GAP-1416: auth.ts now
+// registers a request interceptor (per-request host-preserved baseURL), so the
+// mock must expose `interceptors.request.use` or module load throws.
 const { loginPost } = vi.hoisted(() => ({ loginPost: vi.fn() }));
 vi.mock('axios', () => ({
-  default: { create: () => ({ post: loginPost }) },
+  default: {
+    create: () => ({ post: loginPost, interceptors: { request: { use: vi.fn() } } }),
+  },
 }));
 
 // Mock apiClient (logout / refresh / forgot / reset / verify still route through it)

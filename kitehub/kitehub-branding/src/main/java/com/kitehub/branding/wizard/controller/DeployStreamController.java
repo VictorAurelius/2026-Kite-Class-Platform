@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import com.kitehub.branding.security.TenantOwnershipGuard;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -191,14 +192,21 @@ public class DeployStreamController {
     @PreAuthorize("hasAnyRole('OWNER','MANAGER','TEACHER','ACCOUNTANT','PLATFORM_ADMIN','ADMIN','STAFF')")
     public ResponseEntity<Map<String, Object>> mintSseToken(
             @PathVariable UUID jobId,
+            @RequestHeader(value = "X-Tenant-Id", required = false) String tenantHeader,
             @RequestHeader(value = "X-User-Id", required = false) String userId,
             @RequestHeader(value = "X-User-Roles", required = false) String roles) {
-        if (brandingJobRepository.findById(jobId).isEmpty()) {
+        Optional<BrandingJob> jobOpt = brandingJobRepository.findById(jobId);
+        if (jobOpt.isEmpty()) {
             Map<String, Object> notFound = new LinkedHashMap<>();
             notFound.put("error", "JOB_NOT_FOUND");
             notFound.put("jobId", jobId.toString());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(notFound);
         }
+        // GAP-1420 (GAP-1019 sweep miss): gate token minting to the owning tenant.
+        // Without this, any OWNER could mint a (jobId-scoped) SSE token for another
+        // tenant's job and stream its deploy progress. The deploy-stream GET is then
+        // transitively protected — SseTokenService binds the token to this jobId.
+        TenantOwnershipGuard.requireInstanceOwnership(jobOpt.get().getInstanceId(), tenantHeader);
         String token = sseTokenService.mint(userId, roles, jobId);
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("token", token);

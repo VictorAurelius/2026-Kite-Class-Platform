@@ -17,6 +17,13 @@ vi.mock('next/navigation', () => ({
   usePathname: () => '/teacher/attendance',
 }));
 
+// TeacherShell consumes useAuth() for its logout button. The real hook pulls in
+// useRouter + useQueryClient (needs a QueryClientProvider) — out of scope for
+// these render smoke tests, so stub it to just the logout affordance.
+vi.mock('@/hooks/useAuth', () => ({
+  useAuth: () => ({ logout: vi.fn() }),
+}));
+
 describe('TeacherShell', () => {
   it('renders the four primary nav items in Vietnamese', () => {
     render(

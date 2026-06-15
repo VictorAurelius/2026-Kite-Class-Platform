@@ -1,15 +1,18 @@
 package com.kiteclass.core.module.parent.payment;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kiteclass.core.common.context.TenantContext;
 import com.kiteclass.core.module.parent.notification.ZaloOaNotificationService;
 import com.kiteclass.core.module.parent.repository.ParentStudentLinkRepository;
 import com.kiteclass.core.module.payment.dto.CreatePaymentRequest;
 import com.kiteclass.core.module.payment.dto.PaymentResponse;
 import com.kiteclass.core.module.payment.enums.PaymentMethod;
 import com.kiteclass.core.module.payment.service.PaymentService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -27,7 +30,9 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
 import java.util.Optional;
+import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -102,6 +107,12 @@ class ParentPaymentControllerTest {
     private static final Long CHILD_B_ID = 200L;  // NOT linked — cross-child spoof target
     private static final String VALID_KEY = "550e8400-e29b-41d4-a716-446655440000";
 
+    // GAP-1413: two distinct tenants — prove idempotency scoping uses the real
+    // request tenant, NOT the former hardcoded nil-UUID stub.
+    private static final UUID TENANT_A = UUID.fromString("11111111-1111-1111-1111-111111111111");
+    private static final UUID TENANT_B = UUID.fromString("22222222-2222-2222-2222-222222222222");
+    private static final String NIL_UUID = "00000000-0000-0000-0000-000000000000";
+
     private CreatePaymentRequest sampleRequest() {
         return CreatePaymentRequest.builder()
                 .invoiceId(1L)
@@ -115,6 +126,15 @@ class ParentPaymentControllerTest {
         Mockito.reset(paymentService, linkRepository, idempotencyService, zaloOaNotificationService);
         // Default: validKey returns the header value as-is for valid format.
         when(idempotencyService.requireValidKey(VALID_KEY)).thenReturn(VALID_KEY);
+        // @WebMvcTest slice has no TenantFilterInterceptor; emulate the gateway-injected
+        // X-Tenant-Id → TenantContext that production wires (GAP-1413). Default = TENANT_A.
+        TenantContext.setCurrentTenant(TENANT_A);
+    }
+
+    @AfterEach
+    void clearTenantContext() {
+        // Prevent ThreadLocal leak across tests (MockMvc runs on the test thread).
+        TenantContext.clear();
     }
 
     @Test
@@ -158,6 +178,50 @@ class ParentPaymentControllerTest {
         // not asserted here — UserContext unpopulated in web slice).
         verify(paymentService, times(1))
                 .createPayment(any(CreatePaymentRequest.class), any());
+    }
+
+    @Test
+    @DisplayName("GAP-1413 — payment scoped to request tenant (TENANT_B), NOT nil-UUID stub")
+    void payment_idempotency_scoped_to_request_tenant_not_nil_uuid() throws Exception {
+        // Switch this request to TENANT_B (default in @BeforeEach is TENANT_A).
+        TenantContext.clear();
+        TenantContext.setCurrentTenant(TENANT_B);
+
+        when(linkRepository.existsByParentIdAndStudentIdAndDeletedFalse(PARENT_LINH_ID, CHILD_A_ID))
+                .thenReturn(true);
+        when(idempotencyService.lookup(anyString(), eq(VALID_KEY)))
+                .thenReturn(Optional.empty());
+        PaymentResponse created = PaymentResponse.builder()
+                .id(999L).invoiceId(1L)
+                .amount(new BigDecimal("1500000"))
+                .paymentMethod(PaymentMethod.VNPAY).build();
+        when(paymentService.createPayment(any(CreatePaymentRequest.class), any()))
+                .thenReturn(created);
+        when(idempotencyService.recordFirstWrite(anyString(), eq(VALID_KEY),
+                eq(PARENT_LINH_ID), eq(1L), eq(999L), anyString()))
+                .thenReturn(true);
+
+        mockMvc.perform(post("/api/v1/parent/children/{childId}/payments", CHILD_A_ID)
+                        .header("X-User-Reference-Id", PARENT_LINH_ID)
+                        .header("Idempotency-Key", VALID_KEY)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(sampleRequest())))
+                .andExpect(status().isCreated());
+
+        // The tenant scope passed to idempotency lookup MUST be TENANT_B's real UUID —
+        // NOT the former nil-UUID stub that collapsed all tenants into one phantom scope.
+        ArgumentCaptor<String> tenantCaptor = ArgumentCaptor.forClass(String.class);
+        verify(idempotencyService).lookup(tenantCaptor.capture(), eq(VALID_KEY));
+        assertThat(tenantCaptor.getValue())
+                .isEqualTo(TENANT_B.toString())
+                .isNotEqualTo(NIL_UUID);
+
+        ArgumentCaptor<String> writeTenantCaptor = ArgumentCaptor.forClass(String.class);
+        verify(idempotencyService).recordFirstWrite(writeTenantCaptor.capture(),
+                eq(VALID_KEY), eq(PARENT_LINH_ID), eq(1L), eq(999L), anyString());
+        assertThat(writeTenantCaptor.getValue())
+                .isEqualTo(TENANT_B.toString())
+                .isNotEqualTo(NIL_UUID);
     }
 
     @Test

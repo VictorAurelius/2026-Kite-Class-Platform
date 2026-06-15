@@ -31,7 +31,6 @@ import {
   Settings,
   Wallet,
   Palette,
-  ShieldCheck,
   type LucideIcon,
 } from 'lucide-react';
 import { UserType } from '@/types/auth';
@@ -70,8 +69,10 @@ export const DASHBOARD_NAV: readonly DashboardNavItem[] = [
   { title: 'Báo cáo', href: '/reports', icon: BarChart, roles: OWNER_ADMIN },
   { title: 'Bảng lương', href: '/admin/payroll', icon: Wallet, roles: OWNER_ADMIN },
   { title: 'Thương hiệu', href: '/branding', icon: Palette, roles: OWNER_ADMIN },
-  // Role-assignment UI itself is Bucket D — this links to the placeholder page.
-  { title: 'Phân quyền', href: '/admin/roles', icon: ShieldCheck, roles: OWNER_ADMIN },
+  // 'Phân quyền' (/admin/roles) removed from nav for Phase 1 BETA: roles are
+  // auto-assigned at provisioning and the manual user_roles layer is not yet
+  // wired into authz (deferred to Phase 3 per GAP-1119). The read-only overview
+  // page still exists at /admin/roles for direct access.
   { title: 'Cài đặt', href: '/settings', icon: Settings, roles: OWNER_ADMIN_STAFF },
 ];
 
