@@ -209,8 +209,15 @@ def build_html(rows) -> str:
 
     Shared by the static renderer (main) and the live server (serve-gap-board.py).
     """
+    # Escape HTML-sensitive chars so JSON values containing literal "</script>"
+    # (e.g. XSS/JsonLd gap notes) cannot break out of the <script> block.
+    # \uXXXX are valid JSON escapes — JS parses them back to the originals.
+    data_json = (json.dumps(rows, ensure_ascii=False)
+                 .replace("<", "\\u003c")
+                 .replace(">", "\\u003e")
+                 .replace("&", "\\u0026"))
     return (HTML
-            .replace("/*DATA*/", json.dumps(rows, ensure_ascii=False))
+            .replace("/*DATA*/", data_json)
             .replace("/*STATUS*/", json.dumps(STATUS_ORDER))
             .replace("/*ACTIVE*/", json.dumps(ACTIVE_STATUSES)))
 
