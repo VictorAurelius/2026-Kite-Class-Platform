@@ -14,7 +14,9 @@ import { UserType } from '@/types/auth';
 const titles = (role: Parameters<typeof navItemsForRole>[0]) =>
   navItemsForRole(role).map((i) => i.title);
 
-const OWNER_ONLY = ['Giáo viên', 'Khóa học', 'Báo cáo', 'Bảng lương', 'Thương hiệu', 'Phân quyền'];
+// 'Phân quyền' (/admin/roles) removed from nav for Phase 1 BETA — GAP-1417
+// (user_roles assign layer not wired into authz; deferred Phase 3 per GAP-1119).
+const OWNER_ONLY = ['Giáo viên', 'Khóa học', 'Báo cáo', 'Bảng lương', 'Thương hiệu'];
 const SHARED = ['Tổng quan', 'Học viên', 'Lớp học', 'Điểm danh', 'Học phí', 'Cài đặt'];
 
 describe('navItemsForRole', () => {
@@ -52,8 +54,10 @@ describe('navItemsForRole', () => {
     expect(navItemsForRole(undefined).length).toBeGreaterThan(0);
   });
 
-  it('the role-assign item links to the Bucket D placeholder', () => {
-    const phanQuyen = DASHBOARD_NAV.find((i) => i.title === 'Phân quyền');
-    expect(phanQuyen?.href).toBe('/admin/roles');
+  it('does NOT expose the role-assign item in Phase 1 (gated — GAP-1417)', () => {
+    // user_roles assign is not wired into authz; the /admin/roles page is a
+    // read-only overview and must not be discoverable via the owner nav.
+    expect(DASHBOARD_NAV.find((i) => i.title === 'Phân quyền')).toBeUndefined();
+    expect(DASHBOARD_NAV.find((i) => i.href === '/admin/roles')).toBeUndefined();
   });
 });
