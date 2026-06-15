@@ -120,15 +120,19 @@ describe('GAP-865 — Reports dashboard page', () => {
 
     // Revenue KPI — VND format with đ suffix
     expect(screen.getByText(/15\.000\.000đ/)).toBeInTheDocument();
-    // Attendance KPI — percent with VN decimal comma
-    expect(screen.getByText('92,5%')).toBeInTheDocument();
+    // Attendance KPI — percent with VN decimal comma. GAP-1378: the same value
+    // now also appears in the chart's sr-only data table, so >=1 occurrence.
+    expect(screen.getAllByText('92,5%').length).toBeGreaterThanOrEqual(1);
 
-    // Two chart card titles
-    expect(screen.getByText('Doanh thu theo tháng')).toBeInTheDocument();
-    expect(screen.getByText('Tỷ lệ điểm danh theo tháng')).toBeInTheDocument();
+    // Two chart card titles. GAP-1378: each label now also captions the chart's
+    // sr-only data table, so assert >=1 occurrence.
+    expect(screen.getAllByText('Doanh thu theo tháng').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Tỷ lệ điểm danh theo tháng').length).toBeGreaterThanOrEqual(1);
 
-    // Charts render as SVG (non-empty series)
-    expect(screen.getAllByRole('img').length).toBeGreaterThanOrEqual(2);
+    // GAP-1378: charts now expose their values via accessible data tables
+    // (decorative SVG is aria-hidden) — 2 tables, named by their captions.
+    expect(screen.getByRole('table', { name: 'Doanh thu theo tháng' })).toBeInTheDocument();
+    expect(screen.getByRole('table', { name: 'Tỷ lệ điểm danh theo tháng' })).toBeInTheDocument();
   });
 
   it('shows loading skeletons while queries pending', () => {

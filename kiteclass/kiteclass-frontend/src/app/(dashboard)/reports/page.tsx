@@ -165,6 +165,7 @@ export default function ReportsPage() {
               formatValue={formatVnd}
               color="rgb(37, 99, 235)"
               emptyHint="Chưa có dữ liệu doanh thu trong 12 tháng gần nhất"
+              label="Doanh thu theo tháng"
             />
           )}
         </CardContent>
@@ -193,6 +194,7 @@ export default function ReportsPage() {
               formatValue={formatPercent}
               color="rgb(34, 197, 94)"
               emptyHint="Chưa có dữ liệu điểm danh trong 12 tháng gần nhất"
+              label="Tỷ lệ điểm danh theo tháng"
             />
           )}
         </CardContent>

@@ -29,6 +29,13 @@ interface MonthlyBarChartProps {
   height?: number;
   /** Shown when all values are 0 (no real data yet). */
   emptyHint?: string;
+  /**
+   * Accessible label describing what the chart measures (e.g. "Doanh thu theo
+   * tháng"). Used as the sr-only data-table caption + value column header so a
+   * screen-reader user reads the real per-month values (WCAG 1.1.1). Falls back
+   * to a generic label when not provided.
+   */
+  label?: string;
 }
 
 /** `2026-06` → `T6` (VN convention: tháng = T). */
@@ -44,6 +51,7 @@ export function MonthlyBarChart({
   color = 'rgb(37, 99, 235)',
   height = 240,
   emptyHint = 'Chưa có dữ liệu',
+  label = 'Biểu đồ cột theo tháng',
 }: MonthlyBarChartProps) {
   const allZero = useMemo(
     () => data.length === 0 || data.every((d) => d.value === 0),
@@ -85,13 +93,33 @@ export function MonthlyBarChart({
 
   return (
     <div>
-      <div className="relative" style={{ height: `${height}px` }}>
+      {/* GAP-1378: sr-only data table conveys the real per-month values to
+          screen readers (WCAG 1.1.1). The SVG below is marked aria-hidden so
+          it's treated as decorative — its child <title> tooltips were masked
+          once the parent had role="img" + a generic aria-label. */}
+      <table className="sr-only">
+        <caption>{label}</caption>
+        <thead>
+          <tr>
+            <th scope="col">Tháng</th>
+            <th scope="col">Giá trị</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((point) => (
+            <tr key={point.month}>
+              <th scope="row">{monthLabel(point.month)}</th>
+              <td>{formatValue(point.value)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <div className="relative" style={{ height: `${height}px` }} aria-hidden="true">
         <svg
           viewBox="0 0 100 100"
           preserveAspectRatio="none"
           className="h-full w-full"
-          role="img"
-          aria-label="Biểu đồ cột theo tháng"
         >
           {/* Grid lines */}
           {[0, 25, 50, 75, 100].map((pct) => (
@@ -127,8 +155,8 @@ export function MonthlyBarChart({
         </svg>
       </div>
 
-      {/* X-axis month labels */}
-      <div className="mt-2 flex justify-between text-[10px] text-muted-foreground">
+      {/* X-axis month labels — decorative (values already in the sr-only table) */}
+      <div className="mt-2 flex justify-between text-[10px] text-muted-foreground" aria-hidden="true">
         {data.map((point) => (
           <span key={point.month} className="flex-1 text-center">
             {monthLabel(point.month)}

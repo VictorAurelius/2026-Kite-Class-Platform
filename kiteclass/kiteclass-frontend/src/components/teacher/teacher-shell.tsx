@@ -15,6 +15,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Bell, ClipboardCheck, BookOpenCheck, CalendarDays, BarChart3, Settings, ClipboardList } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { SkipToContent } from '@/components/a11y/skip-to-content';
 
 type NavItem = {
   href: string;
@@ -73,6 +74,8 @@ export function TeacherShell({
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      {/* Skip to main content (accessibility — WCAG 2.4.1) */}
+      <SkipToContent />
       <header className="sticky top-0 z-30 border-b border-border bg-card">
         <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 lg:px-6">
           <div className="flex items-center gap-6">
@@ -171,7 +174,7 @@ export function TeacherShell({
           })}
         </nav>
       </header>
-      <main className="mx-auto max-w-7xl px-4 py-6 lg:px-6">{children}</main>
+      <main id="main-content" role="main" className="mx-auto max-w-7xl px-4 py-6 lg:px-6">{children}</main>
     </div>
   );
 }

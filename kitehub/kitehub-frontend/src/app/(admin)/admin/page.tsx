@@ -16,7 +16,7 @@
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAdminDashboard } from '@/hooks/use-admin';
-import { Building2, CheckCircle, Clock, XCircle, TrendingUp, CreditCard, ArrowRight, DollarSign } from 'lucide-react';
+import { Building2, CheckCircle, Clock, XCircle, TrendingUp, CreditCard, ArrowRight, DollarSign, Inbox } from 'lucide-react';
 
 /**
  * Format number as Vietnamese currency (VND).
@@ -68,8 +68,34 @@ export default function AdminDashboardPage() {
     );
   }
 
+  // GAP-1375: render an explicit empty state instead of a blank screen when the
+  // API returns no stats (e.g. 204 / undefined on a brand-new platform). The
+  // previous `return null` left the admin staring at a white page that looked
+  // like a crash.
   if (!stats) {
-    return null;
+    return (
+      <div className="space-y-6">
+        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <Card className="shadow-soft">
+          <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="rounded-full bg-muted p-4 text-muted-foreground">
+              <Inbox className="h-8 w-8" aria-hidden="true" />
+            </div>
+            <h2 className="mt-4 text-lg font-semibold">Chưa có dữ liệu thống kê</h2>
+            <p className="mt-1 max-w-md text-sm text-muted-foreground">
+              Hệ thống chưa ghi nhận instance hoặc giao dịch nào. Khi có trung tâm
+              đăng ký, số liệu tổng quan sẽ hiển thị tại đây.
+            </p>
+            <Link
+              href="/admin/instances"
+              className="mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              Quản lý Instance <ArrowRight className="h-4 w-4" />
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   const statCards = [

@@ -1,6 +1,6 @@
 # GAP-1375: KH admin dashboard null-render khi no-data → blank screen, thiếu empty state
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟡 P2
 **Domain:** Frontend
 **Found:** 2026-06-14 (UI review full audit, AUDIT-2026-06-14-ui-review-full)
@@ -22,9 +22,15 @@ Thay `return null` bằng empty-state UI: heading "Dashboard" + message thân th
 
 ## Acceptance Criteria
 
-- [ ] `stats` undefined/empty → render empty-state UI (heading + message + optional CTA), KHÔNG blank
-- [ ] Phân biệt rõ 3 trạng thái: loading / error / empty / có-data
-- [ ] Empty state Vietnamese narrative nhất quán
+- [x] `stats` undefined/empty → render empty-state UI (heading "Dashboard" + icon + message + CTA "Quản lý Instance"), KHÔNG blank
+- [x] Phân biệt rõ 4 trạng thái: loading (skeleton) / error (message) / empty (empty-state mới) / có-data
+- [x] Empty state Vietnamese narrative nhất quán
+
+## Resolution
+
+**Fixed:** 2026-06-15 (branch `fix/audit-fixH-ui-2026-06-14`)
+
+`kitehub-frontend/src/app/(admin)/admin/page.tsx`: thay `if (!stats) return null;` bằng empty-state card — heading "Dashboard" + `Inbox` icon + message "Chưa có dữ liệu thống kê" + CTA `Link → /admin/instances`. Giữ layout shell nhất quán (không còn trang trắng trông như crash). Import thêm `Inbox` từ lucide-react.
 
 ## Related
 

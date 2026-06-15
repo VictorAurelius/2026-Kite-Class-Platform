@@ -4,11 +4,14 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { ConsentBanner } from '@kite/shared-ui';
 import { KiteLogo } from '@/components/brand/KiteLogo';
+import { SkipToContent } from '@/components/a11y/SkipToContent';
 import { Footer } from './Footer';
 
 export function PublicLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col">
+      {/* Skip to main content (accessibility — WCAG 2.4.1) */}
+      <SkipToContent />
       {/* Header */}
       <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center justify-between">
@@ -39,7 +42,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
       </header>
 
       {/* Main content */}
-      <main className="flex-1">{children}</main>
+      <main id="main-content" className="flex-1" role="main">{children}</main>
 
       {/* Footer — GAP-540 Wave 78 Bucket F: support channel discoverability */}
       <Footer />

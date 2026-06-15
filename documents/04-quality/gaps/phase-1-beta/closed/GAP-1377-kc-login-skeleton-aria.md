@@ -1,6 +1,6 @@
 # GAP-1377: KC login ssr:false skeleton thiếu aria-busy/aria-live + no-JS chỉ thấy skeleton
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟢 P3
 **Domain:** Frontend
 **Found:** 2026-06-14 (UI review full audit, AUDIT-2026-06-14-ui-review-full)
@@ -25,9 +25,15 @@ Thêm `role="status"` + `aria-busy="true"` + sr-only text "Đang tải biểu m�
 
 ## Acceptance Criteria
 
-- [ ] Skeleton wrapper có `role="status"` + `aria-busy` + sr-only loading text
-- [ ] Screen reader announce loading state khi vào /login
-- [ ] (optional) noscript fallback
+- [x] Skeleton wrapper có `role="status"` + `aria-busy="true"` + `aria-live="polite"` + sr-only loading text "Đang tải biểu mẫu đăng nhập…"
+- [x] Screen reader announce loading state khi vào /login (skeleton boxes giờ `aria-hidden`, chỉ đọc sr-only text)
+- [ ] (optional) noscript fallback — DEFER (optional polish, không block)
+
+## Resolution
+
+**Fixed:** 2026-06-15 (branch `fix/audit-fixH-ui-2026-06-14`)
+
+`kiteclass-frontend/src/app/(auth)/login/page.tsx`: skeleton `loading` của `next/dynamic(ssr:false)` thêm `role="status"` + `aria-busy="true"` + `aria-live="polite"` + `<span className="sr-only">Đang tải biểu mẫu đăng nhập…</span>`; các `<Skeleton>` visual divs đánh `aria-hidden="true"` để SR chỉ đọc sr-only text (WCAG 4.1.3 Status Messages). `ssr:false` giữ nguyên (chủ ý GAP-236).
 
 ## Related
 
