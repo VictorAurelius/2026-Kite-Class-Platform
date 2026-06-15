@@ -29,7 +29,10 @@ const classSchema = z
       errorMap: () => ({ message: 'Chọn loại địa điểm' }),
     }),
     locationDetail: z.string().optional(),
-    startDate: z.string().optional(),
+    // GAP-1423: classes.start_date is NOT NULL in the DB — required here (and @NotNull
+    // in CreateClassRequest) so a blank date returns a 400 field error instead of a 500
+    // constraint violation. end_date stays optional (nullable column).
+    startDate: z.string().min(1, 'Ngày bắt đầu không được để trống'),
     endDate: z.string().optional(),
     maxStudents: z.preprocess(
       (v) => (v === '' || v === undefined ? undefined : Number(v)),
@@ -150,6 +153,7 @@ export function ClassForm({
           <FormInput
             label="Ngày bắt đầu"
             type="date"
+            required
             error={errors.startDate?.message}
             disabled={isSubmitting || isReadOnly || isRestrictedEdit}
             {...register('startDate')}
