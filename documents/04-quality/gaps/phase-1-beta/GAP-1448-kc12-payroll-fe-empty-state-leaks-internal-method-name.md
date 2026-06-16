@@ -13,8 +13,13 @@ Discovered Phase-2 browser walk KC-12. Empty-state payroll hiển thị "Kỳ l�
 Thay reference method nội bộ bằng copy user-facing (vd "Kỳ lương sẽ xuất hiện sau khi chạy bảng lương (Phase 2)"). Cân nhắc fix date-filter format theo locale vi.
 
 ## Acceptance Criteria
-- [ ] Empty-state payroll không còn tên method `PayrollService.calculate`
-- [ ] (Tùy chọn) date-filter render theo locale vi
+- [x] Empty-state payroll không còn tên method `PayrollService.calculate` — thay bằng copy user-facing "Kỳ lương sẽ xuất hiện sau khi chạy bảng lương — chức năng 'Chạy bảng lương' sẽ có ở Phase 2" (grep `PayrollService.calculate` trong src → clean).
+- [ ] (Tùy chọn) date-filter render theo locale vi — defer (cosmetic i18n nit, không trong scope P3 này).
+
+## Fix (Phase-3 coordinator inline, 2026-06-16)
+- `kiteclass-frontend/.../admin/payroll/page.tsx:221-226` — bỏ `<code>PayrollService.calculate(...)</code>` leak, thay copy user-facing.
+- Status PARTIAL: text-leak fixed; optional date-locale deferred; runtime confirm tại consolidated walk.
 
 ## Related
 - Discovered in: Phase-2 browser walk (flow KC-12), 2026-06-16
+- Fixed in: Wave flow-fix-1 Phase-3 (coordinator inline)
