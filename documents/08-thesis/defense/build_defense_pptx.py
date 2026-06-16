@@ -129,7 +129,7 @@ def notes(slide, text):
     slide.notes_slide.notes_text_frame.text = text
 
 
-def bullets(slide, items, left=0.6, top=1.85, width=12.1, height=4.7, base=18):
+def bullets(slide, items, left=0.75, top=1.95, width=11.9, height=4.6, base=19):
     tb = slide.shapes.add_textbox(Inches(left), Inches(top), Inches(width), Inches(height))
     tf = tb.text_frame; tf.word_wrap = True
     first = True
@@ -137,10 +137,11 @@ def bullets(slide, items, left=0.6, top=1.85, width=12.1, height=4.7, base=18):
         text, level, bold, color = (list(it) + [None, None])[:4]
         p = tf.paragraphs[0] if first else tf.add_paragraph()
         first = False
-        p.level = level; p.space_after = Pt(5)
+        p.level = level
+        p.space_after = Pt(10 if level == 0 else 6)
         run = p.add_run()
-        run.text = ("• " if level == 0 else "– ") + text
-        run.font.size = Pt(base - level * 2)
+        run.text = ("▸  " if level == 0 else "•  ") + text
+        run.font.size = Pt(base - level * 3)
         run.font.bold = bool(bold)
         run.font.color.rgb = color if color else DARK
     return tb
@@ -178,6 +179,81 @@ def caption(slide, text, top=6.5, size=11, left=0.6, width=12.1):
     r.font.size = Pt(size); r.font.italic = True; r.font.color.rgb = GREY
 
 
+PANEL_FILL = RGBColor(0xFB, 0xFC, 0xFE)
+PANEL_LINE = RGBColor(0xC5, 0xD0, 0xE0)
+
+
+def panel(slide, l, t, w, h, fill=PANEL_FILL, line=PANEL_LINE):
+    from pptx.enum.shapes import MSO_SHAPE
+    sp = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(l), Inches(t),
+                                Inches(w), Inches(h))
+    sp.adjustments[0] = 0.025
+    sp.fill.solid(); sp.fill.fore_color.rgb = fill
+    sp.line.color.rgb = line; sp.line.width = Pt(1)
+    sp.shadow.inherit = False
+    return sp
+
+
+def diagram(slide, img, l=0.5, t=1.74, w=12.33, h=4.78, pad=0.22):
+    """Khung panel trắng + sơ đồ phóng to căn giữa (tách sơ đồ tối khỏi nền sóng)."""
+    panel(slide, l, t, w, h)
+    add_pic_fit(slide, img, l + pad, t + pad, w - 2 * pad, h - 2 * pad, border=False)
+
+
+def kpi_cards(slide, cards, top=2.05, h=2.3):
+    """cards: list of (number, label, sub). Thẻ số lớn."""
+    from pptx.enum.shapes import MSO_SHAPE
+    n = len(cards); gap = 0.4
+    total_w = 12.33; cw = (total_w - gap * (n - 1)) / n
+    x = 0.5
+    for num, label, sub in cards:
+        c = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(x), Inches(top),
+                                   Inches(cw), Inches(h))
+        c.adjustments[0] = 0.06
+        c.fill.solid(); c.fill.fore_color.rgb = RGBColor(0xF2, 0xF6, 0xFC)
+        c.line.color.rgb = BLUE; c.line.width = Pt(1.25)
+        c.shadow.inherit = False
+        tf = c.text_frame; tf.word_wrap = True
+        tf.margin_top = Inches(0.18); tf.margin_left = Inches(0.1); tf.margin_right = Inches(0.1)
+        p = tf.paragraphs[0]; p.alignment = PP_ALIGN.CENTER
+        r = p.add_run(); r.text = num
+        r.font.size = Pt(40); r.font.bold = True; r.font.color.rgb = NAVY
+        p2 = tf.add_paragraph(); p2.alignment = PP_ALIGN.CENTER
+        r2 = p2.add_run(); r2.text = label
+        r2.font.size = Pt(15); r2.font.bold = True; r2.font.color.rgb = DARK
+        p3 = tf.add_paragraph(); p3.alignment = PP_ALIGN.CENTER
+        r3 = p3.add_run(); r3.text = sub
+        r3.font.size = Pt(11); r3.font.color.rgb = GREY
+        x += cw + gap
+
+
+def agenda_bars(slide, items, top=2.1):
+    from pptx.enum.shapes import MSO_SHAPE
+    y = top; bh = 0.78; gap = 0.18
+    for i, txt in enumerate(items, 1):
+        # số tròn
+        num = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(1.1), Inches(y),
+                                     Inches(0.62), Inches(0.62))
+        num.fill.solid(); num.fill.fore_color.rgb = BLUE; num.line.fill.background()
+        num.shadow.inherit = False
+        np_ = num.text_frame.paragraphs[0]; np_.alignment = PP_ALIGN.CENTER
+        rn = np_.add_run(); rn.text = str(i)
+        rn.font.size = Pt(22); rn.font.bold = True; rn.font.color.rgb = WHITE
+        # thanh
+        bar = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(1.95), Inches(y),
+                                     Inches(10.4), Inches(0.62))
+        bar.adjustments[0] = 0.3
+        bar.fill.solid(); bar.fill.fore_color.rgb = RGBColor(0xF2, 0xF6, 0xFC)
+        bar.line.color.rgb = PANEL_LINE; bar.line.width = Pt(0.75)
+        bar.shadow.inherit = False
+        bar.text_frame.word_wrap = True
+        bar.text_frame.margin_left = Inches(0.2)
+        bp = bar.text_frame.paragraphs[0]
+        rb = bp.add_run(); rb.text = txt
+        rb.font.size = Pt(16); rb.font.bold = True; rb.font.color.rgb = NAVY
+        y += bh + gap
+
+
 A = lambda n: os.path.join(ASSETS, n)
 
 # ═══ 1. Bìa (nền image1, text ở vùng trắng dưới) ═══
@@ -204,13 +280,13 @@ notes(s, "Chào hội đồng. Em là Nguyễn Văn Kiệt, lớp CNTT1-K63, dư
 
 # ═══ 2. Nội dung ═══
 s = content_slide("Nội dung trình bày")
-bullets(s, [
-    ("Phần 1 — Tổng quan: bối cảnh, khảo sát thị trường, mục tiêu (Chương 1)", 0, True, NAVY),
-    ("Phần 2 — Kỹ thuật AI, khung pháp lý, phương pháp luận (Chương 1)", 0, True, NAVY),
-    ("Phần 3 — Phân tích và thiết kế kiến trúc đa-tenant (Chương 2)", 0, True, NAVY),
-    ("Phần 4 — Cài đặt, triển khai AWS và kết quả (Chương 3 & 4)", 0, True, NAVY),
-    ("Phần 5 — Demo trực tiếp, hạn chế và kết luận", 0, True, NAVY),
-], top=2.1, base=22)
+agenda_bars(s, [
+    "Tổng quan: bối cảnh, khảo sát thị trường, mục tiêu  (Chương 1)",
+    "Kỹ thuật AI, khung pháp lý, phương pháp luận  (Chương 1)",
+    "Phân tích và thiết kế kiến trúc đa-tenant  (Chương 2)",
+    "Cài đặt, triển khai AWS và kết quả  (Chương 3 & 4)",
+    "Demo trực tiếp, hạn chế và kết luận",
+])
 notes(s, "Bài trình bày bám bốn chương: tổng quan, thiết kế kiến trúc, cài đặt "
          "và triển khai, đánh giá kết quả; khép lại bằng demo và kết luận. (~20 giây)")
 
@@ -264,7 +340,7 @@ bullets(s, [
     ("Quality Gate lọc NSFW + brand-fit; dự phòng Hugging Face; retry tối đa 3 lần", 0, False, None),
     ("Chi phí ~0,0036 USD/3 ảnh; thời gian 30–60 giây", 0, True, GREEN),
 ], left=0.55, top=1.85, width=6.7, base=15)
-add_pic_fit(s, A("fig-3.4-ai-wizard.png"), 7.3, 1.85, 5.6, 4.6)
+diagram(s, A("fig-3.4-ai-wizard.png"), 7.2, 1.8, 5.85, 4.7)
 caption(s, "Hình 3.4 — Trình hướng dẫn AI Branding cho chủ trung tâm.", top=6.55, left=7.0, width=6.0)
 notes(s, "Đóng góp thứ nhất: tự động hóa nhận diện thương hiệu, dùng API thương "
          "mại thay vì tự host GPU. Pipeline bất đồng bộ không chặn giao diện, có "
@@ -293,7 +369,7 @@ bullets(s, [
     ("Chuẩn hóa quy tắc: mỗi sai sót → quy tắc + kiểm tra tự động", 0, False, None),
     ("Cơ sở: Deming PDCA, Beck TDD, Poppendieck Lean, IEEE 730", 0, True, GREY),
 ], left=0.55, top=1.85, width=6.9, base=16)
-add_pic_fit(s, A("fig-3.6-test-pyramid.png"), 7.5, 1.95, 5.4, 4.3)
+diagram(s, A("fig-3.6-test-pyramid.png"), 7.4, 1.85, 5.6, 4.6)
 caption(s, "Hình 3.6 — Kim tự tháp kiểm thử áp dụng cho KiteHub.", top=6.5, left=7.2, width=5.6)
 notes(s, "Bốn trụ cột có cơ sở lý thuyết. Trụ cột bốn: mỗi sai sót thành quy "
          "tắc có kiểm tra. Kim tự tháp kiểm thử minh họa phân bố ba tầng test. "
@@ -301,7 +377,7 @@ notes(s, "Bốn trụ cột có cơ sở lý thuyết. Trụ cột bốn: mỗi 
 
 # ═══ 9. C4 context ═══
 s = content_slide("Kiến trúc tổng thể — C4 Level 1 (Hình 2.1)")
-add_pic_fit(s, A("fig-2.1-c4-context.png"), 0.6, 1.8, 12.1, 4.6)
+diagram(s, A("fig-2.1-c4-context.png"))
 caption(s, "Hình 2.1 — Sơ đồ ngữ cảnh: KiteHub (control-plane) + KiteClass (data-plane) chia sẻ PostgreSQL RLS.", top=6.5)
 notes(s, "Kiến trúc tổng thể chia hai mặt phẳng: KiteHub control-plane quản lý "
          "vòng đời tenant; KiteClass data-plane phục vụ giáo dục. Chia sẻ một "
@@ -309,7 +385,7 @@ notes(s, "Kiến trúc tổng thể chia hai mặt phẳng: KiteHub control-plan
 
 # ═══ 10. C4 container ═══
 s = content_slide("Phân rã container — C4 Level 2 (Hình 2.2)")
-add_pic_fit(s, A("fig-2.2-c4-container.png"), 0.6, 1.8, 12.1, 4.6)
+diagram(s, A("fig-2.2-c4-container.png"))
 caption(s, "Hình 2.2 — KiteHub: 6 microservice (vòng đời khác nhau); KiteClass: modular monolith.", top=6.5)
 notes(s, "KiteHub 6 microservice vì vòng đời khác nhau (branding bất đồng bộ, "
          "email hàng đợi, subscription giao dịch); KiteClass modular monolith vì "
@@ -334,7 +410,7 @@ notes(s, "So sánh bốn mô hình. Chọn RLS vì chi phí thấp nhất và da
 
 # ═══ 12. Defense 5 layer ═══
 s = content_slide("Bảo mật nhiều lớp — Defense-in-depth (Hình 2.3)")
-add_pic_fit(s, A("fig-2.3-defense-5layer.png"), 0.6, 1.8, 12.1, 4.6)
+diagram(s, A("fig-2.3-defense-5layer.png"))
 caption(s, "Hình 2.3 — JWT → @PreAuthorize → tenant interceptor → bộ lọc repository → PostgreSQL RLS (phòng tuyến cuối).", top=6.5)
 notes(s, "Nhiều lớp độc lập. RLS là phòng tuyến cuối: quên kiểm tra tầng ứng "
          "dụng, database vẫn ép buộc. Phải thủng cả 5 lớp mới rò dữ liệu chéo "
@@ -342,7 +418,7 @@ notes(s, "Nhiều lớp độc lập. RLS là phòng tuyến cuối: quên kiể
 
 # ═══ 13. ERD ═══
 s = content_slide("Mô hình dữ liệu — ERD KiteClass (Hình 2.6b)")
-add_pic_fit(s, A("fig-2.6b-erd-kiteclass.png"), 0.6, 1.8, 12.1, 4.6)
+diagram(s, A("fig-2.6b-erd-kiteclass.png"))
 caption(s, "Hình 2.6b — ERD domain giáo dục: ENROLLMENTS phân giải quan hệ nhiều-nhiều STUDENTS ↔ CLASSES.", top=6.5)
 notes(s, "Mô hình dữ liệu domain giáo dục. ENROLLMENTS phân giải nhiều-nhiều "
          "học viên–lớp; điểm danh, điểm, thanh toán gắn quanh đăng ký. Mọi bảng "
@@ -350,7 +426,7 @@ notes(s, "Mô hình dữ liệu domain giáo dục. ENROLLMENTS phân giải nhi
 
 # ═══ 14. Tenant state ═══
 s = content_slide("Vòng đời tenant — máy trạng thái (Hình 2.8)")
-add_pic_fit(s, A("fig-2.8-tenant-state.png"), 0.6, 1.8, 12.1, 4.6)
+diagram(s, A("fig-2.8-tenant-state.png"))
 caption(s, "Hình 2.8 — PENDING → TRIAL → ACTIVE → SUSPEND; cấp phát tenant + magic-link kích hoạt.", top=6.5)
 notes(s, "Vòng đời tenant: từ chờ duyệt, sang dùng thử khi cấp magic-link, đến "
          "hoạt động chính thức. Sự kiện branding.deploy phát song song dựng "
@@ -358,7 +434,7 @@ notes(s, "Vòng đời tenant: từ chờ duyệt, sang dùng thử khi cấp ma
 
 # ═══ 15. AWS ═══
 s = content_slide("Triển khai thực tế — AWS Singapore (Hình 4.1a)")
-add_pic_fit(s, A("fig-4.1a-vpc-topology.png"), 0.55, 1.85, 7.6, 4.6)
+diagram(s, A("fig-4.1a-vpc-topology.png"), 0.5, 1.8, 7.7, 4.7)
 bullets(s, [
     ("Vùng ap-southeast-1", 0, True, NAVY),
     ("Public subnet: ALB + 2× EC2 t3.micro", 1, False, None),
@@ -375,7 +451,7 @@ notes(s, "Triển khai thực tế AWS Singapore, VPC tách public/private subne
 
 # ═══ 16. CI/CD ═══
 s = content_slide("CI/CD và giám sát vận hành (Hình 4.2a)")
-add_pic_fit(s, A("fig-4.2a-ci-build.png"), 0.55, 1.85, 7.5, 4.6)
+diagram(s, A("fig-4.2a-ci-build.png"), 0.5, 1.8, 7.6, 4.7)
 bullets(s, [
     ("GitHub Actions + OIDC — không lưu access key tĩnh", 0, False, None),
     ("Docker tag bất biến theo SHA; Terraform plan-trước-apply + xác nhận thủ công", 0, False, None),
@@ -410,14 +486,16 @@ notes(s, "Minh chứng giá trị AI Branding: bên trái gói Miễn phí mẫu
 
 # ═══ 19. KPI ═══
 s = content_slide("Kết quả đánh giá — các chỉ số chính (Chương 4)")
-table(s, [
-    ["Hạng mục", "Baseline", "Hiện tại", "Tăng", "Động lực cải tiến"],
-    ["Hiệu năng", "81/100 B", "86/100 B+", "+5", "RLS NULL force-fail, reset GUC, phân trang con trỏ"],
-    ["Bảo mật", "76/100 C+", "93/100 A", "+17", "Audit OWASP, audit_logs bất biến V60, chặn bypass admin"],
-    ["Chất lượng", "78/110 C+", "90/110 B+", "+12", "Coverage test, giám sát, sẵn sàng vận hành"],
-    ["Tải (RPS)", "—", "≥100k", "—", "Kiểm thử tải Locust — dư địa cho cohort mời thử"],
-], top=2.0, fs=12.5, col_widths=[1.9, 1.7, 1.7, 1.0, 5.9])
-caption(s, "Mỗi điểm số gắn audit report có evidence block trong Chương 4 — không phải tự nhận định.", top=6.15)
+kpi_cards(s, [
+    ("86/100", "Hiệu năng", "B+ · từ 81 (+5)"),
+    ("93/100", "Bảo mật", "A · từ 76 (+17)"),
+    ("90/110", "Chất lượng", "B+ · từ 78 (+12)"),
+    ("≥100k", "Tải (RPS)", "Kiểm thử Locust"),
+], top=2.1, h=2.3)
+bullets(s, [
+    ("Cải tiến đo được qua các kỳ audit: RLS NULL force-fail, audit_logs bất biến (V60), chặn bypass admin, phân trang con trỏ", 0, False, None),
+    ("Mỗi điểm số gắn audit report có evidence block trong Chương 4 — không phải tự nhận định", 0, True, NAVY),
+], top=4.75, height=1.7, base=16)
 notes(s, "Bốn chỉ số: hiệu năng 86, bảo mật 93, chất lượng 90/110, đều vượt "
          "ngưỡng đạt. Mỗi điểm số có audit report evidence block; trajectory cho "
          "thấy cải tiến đo được. (~80 giây)")
