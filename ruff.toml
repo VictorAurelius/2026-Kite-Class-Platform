@@ -20,6 +20,13 @@ extend-exclude = [
     ".venv",
 ]
 
+# Honor exclude/extend-exclude even when paths are passed to ruff explicitly.
+# CI (quality-code.yml) passes the git-diff list of changed *.py files directly
+# to `ruff check`; without this, ruff lints excluded paths (e.g. documents/**
+# thesis build scripts) that the non-PR `find scripts .claude/hooks` scope skips.
+# Canonical ruff/pre-commit pattern — makes ruff.toml the single source of truth.
+force-exclude = true
+
 [lint]
 # Rule selection — start conservative, expand once baseline stable.
 #   E, W  → pycodestyle (style)
