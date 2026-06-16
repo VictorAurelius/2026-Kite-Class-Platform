@@ -118,4 +118,4 @@ Khi G2 xong, báo lại 1 trong 4:
 - **Access:** nip.io `sky-education-074901.127.0.0.1.nip.io:3000` → redirect `/parent`.
 - **Verified:** login 200 → /me Trần Thị Hồng → /me/children [Phạm Thị Mai] → fees facet real invoice 3.5M (consent gate) → IDOR cross-child 403. 0 console errors.
 - **STALE note:** wave-plan §11 "parent Phase-2-gated" SAI — auth-1 (GAP-725/1122) đã ship parent login.
-- **Còn lại (GAP-1458 PARTIAL Phase 1.5):** FE facet pages (attendance/billing/grades + hero 92
+- **Còn lại (GAP-1458 PARTIAL Phase 1.5):** FE facet pages (attendance/billing/grades + hero 92%/GPA 8.4) vẫn MOCK; chỉ /me + /me/children + transcript + fees là real. Seed attendance/grade data nếu muốn full-populated G2 walk.
