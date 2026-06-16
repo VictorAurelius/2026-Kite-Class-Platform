@@ -1,6 +1,6 @@
 # GAP-1460: Link tĩnh /docs/data-reset-policy 404 trên owner+STAFF dashboard
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🔴 P3
 **Domain:** Frontend
 **Found:** 2026-06-16 (Flow Verification Campaign — KC-1/2/3/8 browser re-walk)
