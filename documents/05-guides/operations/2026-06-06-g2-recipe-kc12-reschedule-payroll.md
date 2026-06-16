@@ -31,7 +31,7 @@ export JWT_SECRET=$(docker exec kite-gateway sh -c 'printf %s "$JWT_SECRET"')
 # Mint ADMIN token (reschedule cần access-to-class; payroll cần ADMIN)
 mint(){ python3 -c "import hmac,hashlib,base64,json,time,os;s=os.environ['JWT_SECRET'].encode();b=lambda x:base64.urlsafe_b64encode(x).rstrip(b'=');h=b(json.dumps({'alg':'HS512','typ':'JWT'},separators=(',',':')).encode());n=int(time.time());p=b(json.dumps({'sub':'$1','email':'$2','role':'$3','type':'access','tenantId':'aaaabbbb-0000-0000-0000-000000000001','iat':n,'exp':n+3600},separators=(',',':')).encode());sig=b(hmac.new(s,h+b'.'+p,hashlib.sha512).digest());print((h+b'.'+p+b'.'+sig).decode())"; }
 AT=$(mint "11111111-aaaa-0000-0000-000000000001" "admin.kc@test.vn" "ADMIN")
-OT=$(curl -s -X POST $G/api/auth/login -H 'Content-Type: application/json' -d '{"email":"owner.test@test.vn","password":"Test@1234"}' | jq -r .accessToken)
+OT=$(curl -s -X POST $G/api/auth/login -H 'Content-Type: application/json' -d '{"email":"owner@skyedu.vn","password":"SkyEdu@2026"}' | jq -r .accessToken)
 RC=GV_OM_BAN_DOT_XUAT   # reasonCategory enum hợp lệ
 ```
 

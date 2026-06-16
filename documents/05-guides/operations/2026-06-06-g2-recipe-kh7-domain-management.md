@@ -24,7 +24,7 @@ references:
 **Điều kiện đầu vào:**
 
 - Stack Docker local đang chạy, các service `healthy`: `kite-gateway`, `kitehub-subscription`, `kite-postgres`. (FE `kitehub-frontend` tùy chọn — KH-7 hiện chưa có trang FE quản lý domain hoàn chỉnh, G2 này test **backend qua API**, đó là logic vừa walk G1.)
-- Tài khoản Owner: `owner.test@test.vn` / `Test@1234`.
+- Tài khoản Owner: `owner@skyedu.vn` / `SkyEdu@2026`.
 - Một instance tier **PREMIUM/ENTERPRISE** + có `subdomain` non-null (tier gate ở `DomainService` chặn instance FREE/TRIAL/BASIC). Wave flow-kh7 đã tạm set instance `22003e3c…` lên `PREMIUM` cho walk — lệnh §2 sẽ lấy đúng instanceId.
 
 **Thời lượng:** ~10-15 phút (API walk qua gateway).
@@ -46,7 +46,7 @@ GW=http://localhost:9000
 ```bash
 TOKEN=$(curl -sS -X POST $GW/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"owner.test@test.vn","password":"Test@1234"}' | jq -r '.accessToken')
+  -d '{"email":"owner@skyedu.vn","password":"SkyEdu@2026"}' | jq -r '.accessToken')
 echo "TOKEN length: ${#TOKEN}"   # > 0 nghĩa là login OK
 
 # Lấy instanceId PREMIUM của Owner (thay nếu DB của bạn khác)
@@ -197,7 +197,7 @@ Khi nhận báo cáo, tôi flip campaign §4 dòng KH-7: `🔄 walk-pass-pending
 | Hiện tượng | Cách thử trước |
 |---|---|
 | Gateway 503 / timeout | `docker restart kite-gateway` + đợi 30-60 giây, retry |
-| Login trả token rỗng (`${#TOKEN}` = 0) | Kiểm tra `owner.test@test.vn` / `Test@1234` còn đúng; gọi `/api/auth/login` xem raw response |
+| Login trả token rỗng (`${#TOKEN}` = 0) | Kiểm tra `owner@skyedu.vn` / `SkyEdu@2026` còn đúng; gọi `/api/auth/login` xem raw response |
 | POST domain trả 400 tier | Instance chưa PREMIUM/ENTERPRISE — `UPDATE instances SET tier='PREMIUM' WHERE id='$IID';` |
 | `backupUrl=https://null.kitehub.me` | Instance thiếu `subdomain` — chọn instance khác (cosmetic, pre-walk mục 8) |
 | Verify trả 500 (không phải 200) | Regression DNS lookup — báo lại ngay, đây là blocker thật |
@@ -217,4 +217,4 @@ Hiện ngoài phạm vi G2; ghi nhận để chuẩn bị wave sau.
 
 ## 🔄 Re-walk update 2026-06-16 (agent headless browser-walk, nip.io)
 
-- **Verdict:** ✅ FULL PASS (login → add → PENDING_VERIFY → verify → delete + 2 sad-path).\n- **ĐÍNH CHÍNH:** CustomDomainTab FE **CÓ tồn tại** + wired đầy đủ tại `(customer)/settings` tab 'Tên miền' (recipe cũ ghi 'chưa có FE' là SAI).\n- **Credential:** owner@skyedu.vn (PREMIUM). Recipe credential owner.test@test.vn (FREE) chỉ thấy locked state.\n- Access `:3001` resolve tenant qua JWT claim — localhost:3001 production-accurate (không cần subdomain).\n- **Positive:** GAP-1023 cross-tenant IDOR nay **403** (đã fix) → re-verify candidate.\n- Defer: FE nuốt backend reason + BE error English (GAP-1462 P2).
+- **Verdict:** ✅ FULL PASS (login → add → PENDING_VERIFY → verify → delete + 2 sad-path).\n- **ĐÍNH CHÍNH:** CustomDomainTab FE **CÓ tồn tại** + wired đầy đủ tại `(customer)/settings` tab 'Tên miền' (recipe cũ ghi 'chưa có FE' là SAI).\n- **Credential:** owner@skyedu.vn (PREMIUM). Recipe credential owner@skyedu.vn (FREE) chỉ thấy locked state.\n- Access `:3001` resolve tenant qua JWT claim — localhost:3001 production-accurate (không cần subdomain).\n- **Positive:** GAP-1023 cross-tenant IDOR nay **403** (đã fix) → re-verify candidate.\n- Defer: FE nuốt backend reason + BE error English (GAP-1462 P2).

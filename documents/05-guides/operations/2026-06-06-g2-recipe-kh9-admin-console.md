@@ -33,7 +33,7 @@ export JWT_SECRET=$(docker exec kite-gateway sh -c 'printf %s "$JWT_SECRET"')
 ADMIN_UUID=$(docker exec kite-postgres psql -U kitehub -d kitehub -tAc "SELECT id FROM users WHERE email='admin.test@test.vn';")
 AT=$(python3 -c "import hmac,hashlib,base64,json,time,os;s=os.environ['JWT_SECRET'].encode();b=lambda x:base64.urlsafe_b64encode(x).rstrip(b'=');h=b(json.dumps({'alg':'HS512','typ':'JWT'},separators=(',',':')).encode());n=int(time.time());p=b(json.dumps({'sub':'$ADMIN_UUID','email':'admin.test@test.vn','role':'PLATFORM_ADMIN','type':'access','tenantId':'aaaabbbb-0000-0000-0000-000000000001','iat':n,'exp':n+3600},separators=(',',':')).encode());sig=b(hmac.new(s,h+b'.'+p,hashlib.sha512).digest());print((h+b'.'+p+b'.'+sig).decode())")
 echo "admin token len: ${#AT}"
-OT=$(curl -s -X POST $G/api/auth/login -H 'Content-Type: application/json' -d '{"email":"owner.test@test.vn","password":"Test@1234"}' | jq -r .accessToken)
+OT=$(curl -s -X POST $G/api/auth/login -H 'Content-Type: application/json' -d '{"email":"owner@skyedu.vn","password":"SkyEdu@2026"}' | jq -r .accessToken)
 ```
 
 **Cách (b) — hoàn tất 2FA enrollment qua UI** (nếu muốn test full login UX): login → enroll TOTP → verify → nhận accessToken. Lâu hơn; dùng (a) cho G2 nhanh.
