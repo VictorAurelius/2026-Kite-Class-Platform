@@ -1,0 +1,33 @@
+{
+  "pr": 2448,
+  "title": "docs(handoff): session 2026-06-15 close \u2014 RBAC G2 + audit fix-wave + KC-3 walk",
+  "branch": "docs/session-close-2026-06-15",
+  "created_at": null,
+  "merged_at": "2026-06-15T14:17:24Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-06-15T14:17:30.238453",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 4,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/1",
+  "session_telemetry": {
+    "session_id": "nguyenvankiet@NguyenVanKiet:ppid-2671683"
+  }
+}
