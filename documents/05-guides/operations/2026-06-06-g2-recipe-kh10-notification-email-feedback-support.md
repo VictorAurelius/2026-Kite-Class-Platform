@@ -19,7 +19,7 @@ references:
 **Prereq:**
 - Local stack UP: `docker ps` thấy `kite-gateway` + `kitehub-subscription` + `kitehub-email` + `kite-postgres` + `kite-mailhog` đều `healthy`. Nếu chưa → `cd kitehub && ./scripts/up.sh` rồi chờ ~60s.
 - Đã merge Wave flow-kh10 (PR #2201).
-- Seed users tồn tại: `owner.test@test.vn` / `Test@1234` (OWNER), `admin.test@test.vn` (PLATFORM_ADMIN, 2FA-gated).
+- Seed users tồn tại: `owner@skyedu.vn` / `SkyEdu@2026` (OWNER), `admin.test@test.vn` (PLATFORM_ADMIN, 2FA-gated).
 
 **Thời lượng:** ~12-15 phút.
 
@@ -31,7 +31,7 @@ references:
 ```bash
 G=http://localhost:9000
 OT=$(curl -s -X POST $G/api/auth/login -H 'Content-Type: application/json' \
-  -d '{"email":"owner.test@test.vn","password":"Test@1234"}' | jq -r .accessToken)
+  -d '{"email":"owner@skyedu.vn","password":"SkyEdu@2026"}' | jq -r .accessToken)
 echo "owner token len: ${#OT}"   # >300 = OK
 ```
 - Admin token: admin login bị **2FA enrollment gate** (by-design). Cho G2 admin-email, mint HS512 PLATFORM_ADMIN JWT:

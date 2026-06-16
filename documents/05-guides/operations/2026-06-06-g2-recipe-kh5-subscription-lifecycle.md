@@ -33,7 +33,7 @@ Trọng tâm: (1) xác nhận FE tự gắn `Authorization: Bearer` + tự gọi
   - `docker ps | grep -E 'kitehub-frontend|kite-gateway|kitehub-subscription'` → `healthy`/`Up`.
   - Mở `http://localhost:3001` trên browser → trang load (KHÔNG `ERR_EMPTY_RESPONSE`; nếu lỗi xem §6 — stale docker-proxy GAP-1067 class).
 - Code Wave flow-kh5 đã ship: 2 inline fix (FM-2 + FM-5) + rebuild `kitehub-subscription`.
-- Seeded data: Owner `owner.test@test.vn / Test@1234` (subdomain `sky-test`), subscription `81cf38cd-342d-4a03-82e1-bde3c47f6954` ở trạng thái `BASIC` / `ACTIVE`.
+- Seeded data: Owner `owner@skyedu.vn / SkyEdu@2026` (subdomain `sky-education`), subscription `3ea90672-44d3-4ee9-9859-fd312482b429` ở trạng thái `BASIC` / `ACTIVE`.
 
 **Thời lượng:** ~12-18 phút (browser-walk 2 thao tác + curl supplement BE-only).
 
@@ -46,7 +46,7 @@ Trọng tâm: (1) xác nhận FE tự gắn `Authorization: Bearer` + tự gọi
 - Mở **Chrome/Edge** → `http://localhost:3001`.
 - Mở **DevTools** (F12) → tab **Network** → filter `Fetch/XHR` → tick **Preserve log** (giữ request qua redirect).
 - Mở tab **Console** song song → theo dõi uncaught error / failed-to-fetch.
-- Đăng nhập: nếu chưa login, browser redirect `/login` → nhập `owner.test@test.vn` / `Test@1234` → "Đăng nhập" → redirect vào trang chủ Owner.
+- Đăng nhập: nếu chưa login, browser redirect `/login` → nhập `owner@skyedu.vn` / `SkyEdu@2026` → "Đăng nhập" → redirect vào trang chủ Owner.
 
 ### 2.2 Terminal (cho §4 curl supplement BE-only + verify DB)
 
@@ -56,11 +56,11 @@ GW=http://localhost:9000
 # Đăng nhập Owner qua gateway → lấy accessToken (chỉ dùng cho §4 BE-only renew/IDOR)
 TOKEN=$(curl -s -X POST "$GW/api/auth/login" \
   -H 'Content-Type: application/json' \
-  -d '{"email":"owner.test@test.vn","password":"Test@1234"}' | jq -r '.accessToken')
+  -d '{"email":"owner@skyedu.vn","password":"SkyEdu@2026"}' | jq -r '.accessToken')
 echo "TOKEN length: ${#TOKEN}"   # > 100 nghĩa là login OK
 
 # Subscription seeded (BASIC/ACTIVE)
-SUB=81cf38cd-342d-4a03-82e1-bde3c47f6954   # owner.test@test.vn / sky-test (BASIC/ACTIVE) — verified DB 2026-06-09
+SUB=3ea90672-44d3-4ee9-9859-fd312482b429   # owner@skyedu.vn / sky-education (BASIC/ACTIVE) — verified DB 2026-06-09
 AUTH=(-H "Authorization: Bearer $TOKEN")
 ```
 
@@ -78,7 +78,7 @@ Base path subscription: `/api/platform/subscriptions`. Verify DB:
 4. **ChangeConfirmation** hiển thị tier mới `FREE` → click **xác nhận** (nút confirm trong panel).
 
 **✅ Kỳ vọng (PASS):**
-- DevTools **Network**: request `PATCH http://localhost:9000/api/platform/subscriptions/81cf38cd-342d-4a03-82e1-bde3c47f6954/downgrade` → **HTTP 200**, request body `{"newTier":"FREE"}`.
+- DevTools **Network**: request `PATCH http://localhost:9000/api/platform/subscriptions/3ea90672-44d3-4ee9-9859-fd312482b429/downgrade` → **HTTP 200**, request body `{"newTier":"FREE"}`.
 - **Request Headers** có `Authorization: Bearer eyJ...` do **FE tự gắn** (qua apiClient interceptor) — bạn KHÔNG nhập header tay.
 - FE: toast **"Đã lên lịch hạ gói. Thay đổi sẽ có hiệu lực cuối kỳ thanh toán."** → redirect `/billing?success=downgrade` → toast **"Đã lên lịch hạ gói thành công!"**.
 - Console clean (không uncaught error).
@@ -88,7 +88,7 @@ Base path subscription: `/api/platform/subscriptions`. Verify DB:
 **🔍 Verify DB:**
 ```bash
 docker exec kite-postgres psql -U kitehub -d kitehub \
-  -c "SELECT tier, pending_tier, status FROM subscriptions WHERE id='81cf38cd-342d-4a03-82e1-bde3c47f6954';"
+  -c "SELECT tier, pending_tier, status FROM subscriptions WHERE id='3ea90672-44d3-4ee9-9859-fd312482b429';"
 # Kỳ vọng: tier=BASIC, pending_tier=FREE, status=ACTIVE (downgrade áp dụng cuối chu kỳ)
 ```
 
@@ -100,7 +100,7 @@ docker exec kite-postgres psql -U kitehub -d kitehub \
 3. Dialog **"Xác nhận hủy đăng ký"** mở ra (list hệ quả: còn hiệu lực đến hết chu kỳ → tạm ngưng → giữ data 30 ngày) → click **"Xác nhận hủy"**.
 
 **✅ Kỳ vọng (PASS):**
-- DevTools **Network**: request `DELETE http://localhost:9000/api/platform/subscriptions/81cf38cd-342d-4a03-82e1-bde3c47f6954` → **HTTP 204** No Content.
+- DevTools **Network**: request `DELETE http://localhost:9000/api/platform/subscriptions/3ea90672-44d3-4ee9-9859-fd312482b429` → **HTTP 204** No Content.
   - Lưu ý: FE cancel **KHÔNG** gửi `?immediate=true` → đây là **hủy cuối kỳ** (đúng theo copy DangerZone "còn hiệu lực đến hết chu kỳ thanh toán"), KHÁC với `curl ?immediate=true` hủy ngay.
 - **Request Headers** có `Authorization: Bearer` do FE tự gắn (KHÔNG tay).
 - FE: redirect `/billing?success=cancelled`.
@@ -111,7 +111,7 @@ docker exec kite-postgres psql -U kitehub -d kitehub \
 **🔍 Verify DB:**
 ```bash
 docker exec kite-postgres psql -U kitehub -d kitehub \
-  -c "SELECT status, auto_renew, expires_at FROM subscriptions WHERE id='81cf38cd-342d-4a03-82e1-bde3c47f6954';"
+  -c "SELECT status, auto_renew, expires_at FROM subscriptions WHERE id='3ea90672-44d3-4ee9-9859-fd312482b429';"
 # Kỳ vọng: auto_renew=false + status phản ánh đã hủy (CANCELLED hoặc cancel-scheduled cuối kỳ);
 # vì hủy cuối kỳ (no immediate), expires_at có thể giữ tới cuối chu kỳ — autoRenew=false là tín hiệu chắc chắn.
 ```
@@ -222,7 +222,7 @@ Khi G2 xong, báo lại 1 trong 4:
 | Triệu chứng | Fix nhanh |
 |---|---|
 | `http://localhost:3001` trả `ERR_EMPTY_RESPONSE` | Stale docker-proxy port-forward (GAP-1067 class) — `bash kitehub/scripts/rebuild.sh kitehub-frontend` hoặc restart compose; chờ `kitehub-frontend` healthy |
-| Login `:3001` redirect loop / 401 | Sai credential hoặc gateway down — `docker logs kite-gateway --tail 30`; xác nhận `owner.test@test.vn` seeded |
+| Login `:3001` redirect loop / 401 | Sai credential hoặc gateway down — `docker logs kite-gateway --tail 30`; xác nhận `owner@skyedu.vn` seeded |
 | Nhầm port `:3000` | `:3000` = KiteClass (kiteclass-frontend), KHÔNG phải KH-5. KH-5 = `:3001` (per `kitehub-kiteclass-boundary.md` §2) |
 | Network `PATCH /downgrade` không xuất hiện | TierSelector chưa cho chọn FREE, hoặc chọn nhầm gói ≥ BASIC (→ thành upgrade) — chọn đúng gói THẤP hơn |
 | Nút "Hủy đăng ký" không phát DELETE | `instance.subscriptionId` rỗng — verify: `docker exec kite-postgres psql -U kitehub -d kitehub -c "SELECT id, subscription_id FROM instances WHERE id=(SELECT instance_id FROM subscriptions WHERE id='$SUB');"` |

@@ -18,7 +18,7 @@ supersedes: 2026-06-08-g2-recipe-kc1-remaining-browser-walks.md (bản gọn, g�
 docker ps --format '{{.Names}}\t{{.Status}}' | grep kite   # tất cả phải healthy
 ```
 - Login: http://localhost:3000/login
-- Tenant **A**: `owner@skyedu.vn` / `SkyEdu@2026` · Tenant **B**: `owner.test@test.vn` / `Test@1234`
+- Tenant **A**: `owner@skyedu.vn` / `SkyEdu@2026` · Tenant **B**: `owner@skyedu.vn` / `SkyEdu@2026`
 - Mở DevTools (F12) → tab **Network** (để xem status) + **Application → Storage**.
 
 ---
@@ -54,7 +54,7 @@ Báo gọn dạng: `W1 ✅ | W2 ✅ | W3 ⚠️ (bước 2 upload 415)`
 | Triệu chứng | Xử nhanh |
 |---|---|
 | `:3000` trắng / ERR_EMPTY_RESPONSE | `cd kitehub && bash scripts/up.sh --force-recreate` (stale proxy → GAP-1067 chính là cái này) |
-| Login 400 | Dùng đúng email bảng trên (owner@skyedu.vn / owner.test@test.vn) |
+| Login 400 | Dùng đúng email bảng trên (owner@skyedu.vn / owner@skyedu.vn) |
 | Upload 415 "part not present" | Network → Request Headers phải có `Content-Type: multipart/form-data; boundary=...` |
 | Logo 403 "expired" | F5 reload (presigned regen-on-read); vẫn 403 → fail GAP-1072 |
 

@@ -7,16 +7,19 @@ import { Badge } from '@/components/ui/badge';
 import { Check, X, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { PLAN_DETAILS, type PricingTier } from '@/lib/pricing';
+import { PLAN_DETAILS, formatVnd, type PricingTier } from '@/lib/pricing';
 
 interface PlanComparisonProps {
   currentTier: PricingTier | null;
 }
 
+// GAP-1465: dùng formatVnd từ lib/pricing để format số tiền ĐỒNG NHẤT với
+// TierSelector (/billing/upgrade) — trước đây formatVND local ("500.000₫")
+// khác formatPrice ("500.000 ₫/tháng") gây hiển thị lệch giữa 2 route.
 function formatVND(amount: number): string {
   if (amount === 0) return 'Miễn phí';
   if (amount < 0) return 'Liên hệ';
-  return new Intl.NumberFormat('vi-VN').format(amount) + '₫';
+  return formatVnd(amount);
 }
 
 export function PlanComparison({ currentTier }: PlanComparisonProps) {
@@ -120,7 +123,7 @@ export function PlanComparison({ currentTier }: PlanComparisonProps) {
                   )}
                   {annual && plan.monthlyPrice > 0 && (
                     <p className="text-xs text-muted-foreground mt-1 line-through">
-                      {formatVND(plan.monthlyPrice * 12)}₫/năm
+                      {formatVND(plan.monthlyPrice * 12)}/năm
                     </p>
                   )}
                 </div>

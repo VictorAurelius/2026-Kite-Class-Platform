@@ -38,7 +38,7 @@ Kỳ vọng: **tất cả `healthy`** (postgres/redis/rabbitmq/minio/mailhog + g
 | Tenant | Email | Password | Subdomain | Instance UUID |
 |---|---|---|---|---|
 | **A — Sky Education** | `owner@skyedu.vn` | `SkyEdu@2026` | `sky-education` | `0edaee10-2d13-44be-9151-12b78b7c5fd4` |
-| **B — Sky Test** | `owner.test@test.vn` | `Test@1234` | `skytest` / `sky-test` | `aaaabbbb-0000-0000-0000-000000000001` |
+| **B — Sky Test** | `owner@skyedu.vn` | `SkyEdu@2026` | `skytest` / `sky-education` | `aaaabbbb-0000-0000-0000-000000000001` |
 
 > ⚠️ Credential `walk.owner+bucketb@skyedu.vn` trong handoff CŨ KHÔNG còn (re-seed sau rebuild). Dùng bảng trên.
 
@@ -66,7 +66,7 @@ Kỳ vọng: **tất cả `healthy`** (postgres/redis/rabbitmq/minio/mailhog + g
 
 ### Bước A3 — (Tùy chọn) Cross-tenant isolation
 > Lưu ý: trên `localhost` đây là **dev-fallback path** (production tách bằng subdomain). Test phụ.
-- **Action:** Trong tab 2, logout. Login `owner.test@test.vn` / `Test@1234` (tenant B). Quay lại **tab 1** (vẫn tenant A) → F5 reload.
+- **Action:** Trong tab 2, logout. Login `owner@skyedu.vn` / `SkyEdu@2026` (tenant B). Quay lại **tab 1** (vẫn tenant A) → F5 reload.
 - **Kỳ vọng:** Tab 1 vẫn là tenant A (logout/login tenant B ở tab 2 KHÔNG đá tab 1 sang B hoặc logout tab 1). Mỗi tab giữ namespace riêng.
 - **Verify:** DevTools mỗi tab → `kc:currentTenant` khác nhau (tab1=A, tab2=B); local storage có CẢ 2 namespace `kc:<A>:*` + `kc:<B>:*` không clobber nhau.
 - **Sad-path:** Tab 1 bị logout / đổi sang tenant B → isolation leak. Báo FAIL.
@@ -97,7 +97,7 @@ Kỳ vọng: **tất cả `healthy`** (postgres/redis/rabbitmq/minio/mailhog + g
 
 | Triệu chứng | Nguyên nhân khả dĩ | Cách xử |
 |---|---|---|
-| Login 400 mọi call | Sai credential, HOẶC owner không phải `instances.owner_id` (per GAP-1068) | Dùng đúng bảng §1.2 (owner@skyedu.vn / owner.test@test.vn) |
+| Login 400 mọi call | Sai credential, HOẶC owner không phải `instances.owner_id` (per GAP-1068) | Dùng đúng bảng §1.2 (owner@skyedu.vn / owner@skyedu.vn) |
 | Tab 2 đá `/login` | localStorage cross-tab persist fail | DevTools → check key `kc:<tenant>:accessToken` tồn tại |
 | Upload 415/400 "part not present" | multipart boundary thiếu | Network → check `Content-Type: multipart/form-data; boundary=` |
 | Logo 403 "expired" | presigned URL hết hạn (GAP-1072) | F5 reload (regen-on-read); nếu vẫn 403 → FAIL |

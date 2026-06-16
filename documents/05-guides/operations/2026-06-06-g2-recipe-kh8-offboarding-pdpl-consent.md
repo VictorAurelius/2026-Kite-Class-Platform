@@ -27,7 +27,7 @@ references:
 ```bash
 G=http://localhost:9000
 OT=$(curl -s -X POST $G/api/auth/login -H 'Content-Type: application/json' \
-  -d '{"email":"owner.test@test.vn","password":"Test@1234"}' | jq -r .accessToken)
+  -d '{"email":"owner@skyedu.vn","password":"SkyEdu@2026"}' | jq -r .accessToken)
 VID="g2-visitor-$(date +%s)"   # visitorId duy nhất cho consent test
 ```
 
@@ -61,7 +61,7 @@ curl -s -X POST "$G/api/v1/consent/$VID/revoke" -w '\n[%{http_code}]\n' | head -
 **Hành động:**
 ```bash
 TICKET=$(curl -s -X POST "$G/api/v1/dsar/request" -H "Authorization: Bearer $OT" -H 'Content-Type: application/json' \
-  -d '{"requestType":"ACCESS","email":"owner.test@test.vn"}' | jq -r '.ticketId // .data.ticketId')
+  -d '{"requestType":"ACCESS","email":"owner@skyedu.vn"}' | jq -r '.ticketId // .data.ticketId')
 echo "ticket: $TICKET"
 ```
 **✅ Kỳ vọng (PASS):** HTTP **201**, có `ticketId`.

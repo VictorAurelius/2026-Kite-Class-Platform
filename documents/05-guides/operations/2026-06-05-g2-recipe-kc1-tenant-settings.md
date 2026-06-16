@@ -92,3 +92,10 @@ Khi G2 xong, báo lại 1 trong 4:
 | Tab "Tùy chọn" vẫn hiện cho Owner | FE chưa rebuild fix GAP-979 → `bash kitehub/scripts/rebuild.sh ... kiteclass-frontend` |
 
 **G3 production parity (Phase tiếp):** verify trên RDS thật (Flyway V86 migrate sạch) + FE serve qua subdomain wildcard + JWT tenantId resolve đúng tenant. Gated GAP-612 (AWS account suspended).
+
+
+---
+
+## 🔄 Re-walk update 2026-06-16 (agent headless browser-walk, nip.io)
+
+- **Verdict:** ✅ PASS (14 bước, 0 product bug).\n- **Credential:** owner login đi qua KH SSO fallback `/api/auth/login` (tenant-auth `/api/v1/tenant-auth/login` trả 401 by-design vì owner tenant_id=NULL — KHÔNG phải lỗi).\n- **Seed drift:** displayName thực = "Trung tâm cô Đỗ Lan Khánh" (không phải "Sky Education").\n- **Access:** dùng nip.io `sky-education.127.0.0.1.nip.io:3000` (CẤM localhost:3000?tenant=).\n- Pre-walk predictions refuted: version-history 200 (không 403), logo MinIO OK, /classes /invoices 200.\n- Cosmetic: themeConfigJson embed tên cũ (GAP-1461, 0 user impact).
