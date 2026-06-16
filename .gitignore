@@ -170,3 +170,9 @@ documents/sky-landing-walk-evidence.png
 .claude/g3-walk-scratch/
 .walk-artifacts/
 documents/04-quality/gaps/gap-board.html
+
+# Defense deck PIL preview renders (local visual QA only — regen via /tmp/render_preview.py)
+documents/08-thesis/defense/preview/
+
+# Defense deck — original dark-bg diagram backups (recoverable from thesis-v1.docx)
+documents/08-thesis/defense/assets/_dark-backup/

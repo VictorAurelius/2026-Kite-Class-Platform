@@ -35,6 +35,10 @@ WHITE = RGBColor(0xFF, 0xFF, 0xFF)
 LIGHT = RGBColor(0xEC, 0xEF, 0xF6)
 DARK = RGBColor(0x22, 0x22, 0x22)
 
+# Font typeface tường minh — tránh font-substitution trên máy phòng bảo vệ.
+# Arial: phổ cập mọi OS + hỗ trợ dấu tiếng Việt tốt + rõ khi chiếu. Đổi 1 dòng nếu cần.
+FONT_NAME = "Arial"
+
 BG_COVER = os.path.join(ASSETS, "tpl-bg-cover.jpg")
 BG_CONTENT = os.path.join(ASSETS, "tpl-bg-content.jpg")
 BG_SECTION = os.path.join(ASSETS, "tpl-bg-section.jpg")
@@ -84,8 +88,10 @@ def add_pic_fit(slide, path, box_l, box_t, box_w, box_h, border=True):
 
 
 def title_box(slide, text, size=26):
-    """Tiêu đề đặt DƯỚI band xanh template (top ~1.05in), chữ navy."""
-    tb = slide.shapes.add_textbox(Inches(0.55), Inches(1.04), Inches(12.2), Inches(0.66))
+    """Tiêu đề đặt DƯỚI band xanh template, chữ navy.
+    Band trong tpl-bg-content.jpg kết thúc ở y=1.146in → title top=1.28in
+    để đỉnh chữ + dấu tiếng Việt KHÔNG bị band che (trước đây 1.04in → chui vào band)."""
+    tb = slide.shapes.add_textbox(Inches(0.55), Inches(1.28), Inches(12.2), Inches(0.6))
     tb.text_frame.word_wrap = True
     p = tb.text_frame.paragraphs[0]
     r = p.add_run(); r.text = text
@@ -307,47 +313,50 @@ notes(s, "Bối cảnh: thị trường lớn, pháp luật hợp pháp hóa d�
          "AI vừa đủ chín. (~60 giây)")
 
 # ═══ 4. Khảo sát (ảnh grid) ═══
-s = content_slide("Khảo sát hệ thống tương tự (§1.3)")
+s = content_slide("Khảo sát hệ thống tương tự (§1.2)")
 add_pic_fit(s, A("fig-1.1-beeclass.png"), 0.6, 1.85, 5.9, 2.25)
 add_pic_fit(s, A("fig-1.2-mona.png"), 6.8, 1.85, 5.9, 2.25)
 add_pic_fit(s, A("fig-1.3-easyedu.png"), 0.6, 4.2, 5.9, 2.15)
 add_pic_fit(s, A("fig-1.4-dotb.png"), 6.8, 4.2, 5.9, 2.15)
 caption(s, "Hình 1.1–1.4: BeeClass, Mona eLMS, Easy Edu, DotB — đều đơn-tenant, không AI. "
            "KiteHub khác biệt: đa-tenant RLS gốc + AI Branding.", top=6.55)
-notes(s, "Khảo sát 5 hệ thống tham khảo (thêm MISA AMIS). Hầu hết đơn-tenant, "
-         "không AI. KiteHub khai thác khoảng trống đa-tenant gốc + AI Branding "
-         "phân khúc giá thấp. (~70 giây)")
+notes(s, "Khảo sát bốn hệ thống tham khảo: BeeClass (gamification nhẹ) + Mona eLMS, "
+         "Easy Edu, DotB (quản lý trung tâm). Đều đơn-tenant, không AI. KiteHub khai "
+         "thác khoảng trống đa-tenant gốc + AI Branding phân khúc giá thấp. (~70 giây)")
 
-# ═══ 5. Mục tiêu ═══
-s = content_slide("Mục tiêu và phạm vi đề tài (§1.7)")
+# ═══ 5. Mục tiêu + Phạm vi (Mở đầu §2–§3) ═══
+s = content_slide("Mục tiêu và phạm vi nghiên cứu (Mở đầu §2–§3)")
 bullets(s, [
-    ("Bốn nhóm mục tiêu:", 0, True, NAVY),
-    ("Chức năng: onboarding wizard, AI Branding, vòng đời tenant, tuân thủ tích hợp sẵn", 1, False, None),
-    ("Phi chức năng: p95 ≤ 500ms (API đọc), cô lập cấp database, OWASP Top 10, ≥100 tenant/instance", 1, False, None),
-    ("Pháp lý: PDPL 2023 + Luật An ninh mạng 2018 + Thông tư 78/2021/TT-BTC", 1, False, None),
-    ("Phương pháp luận: phát triển hướng chất lượng — kiểm thử trước, vòng lặp ngắn 1–3 ngày", 1, False, None),
-    ("Phạm vi thực hiện: wizard tự phục vụ, AI Branding, cô lập RLS, tuân thủ pháp lý, triển khai AWS", 0, True, NAVY),
-    ("Phát triển sau: thanh toán đa cổng, hóa đơn điện tử, ứng dụng di động, mở rộng khối K-12", 0, True, GREY),
+    ("Bốn mục tiêu nghiên cứu:", 0, True, NAVY),
+    ("Nền tảng SaaS đa-tenant — mở rộng 1 → hàng trăm chi nhánh không thiết kế lại kiến trúc", 1, False, None),
+    ("AI Branding tự sinh logo/banner/ảnh chủ đạo — rút ngắn khởi tạo từ vài tuần xuống vài ngày", 1, False, None),
+    ("Tuân thủ pháp luật VN: PDPL 2023, Luật An ninh mạng 2018, Thông tư 78/2021/TT-BTC", 1, False, None),
+    ("Phương pháp luận phát triển hướng chất lượng — TDD, DDD, PDCA xuyên suốt", 1, False, None),
+    ("Phạm vi: AWS Singapore Free Tier; 2 giáo viên độc lập thật (Miễn phí + Trả phí)", 0, True, NAVY),
+    ("3 nhóm người dùng: GV độc lập, Chủ trung tâm, Quản lý. Phụ huynh/Học sinh K-12 — phát triển sau", 0, True, GREY),
 ], top=1.85, base=16)
-notes(s, "Bốn nhóm mục tiêu: chức năng, phi chức năng đo được, pháp lý, phương "
-         "pháp luận. Phạm vi tập trung mức sẵn sàng cho tenant thực tế. (~60 giây)")
+notes(s, "Bốn mục tiêu (Mở đầu §2): SaaS đa-tenant, AI Branding, tuân thủ pháp luật, "
+         "phương pháp luận chất lượng. Phạm vi (§3): AWS Singapore, hai giáo viên thật, "
+         "ba nhóm người dùng; nhóm K-12 lùi sau do cần DPO/DPIA. (~60 giây)")
 
 # ═══ 6. AI Branding (ảnh) ═══
-s = content_slide("Đóng góp 1 — Kỹ thuật AI Branding (§1.4)")
+s = content_slide("Khác biệt — AI Branding tự động (§1.3 · §3.1.2)")
 bullets(s, [
-    ("Sinh logo + ảnh bìa + banner tự động khi tenant đăng ký (Stable Diffusion XL qua Replicate)", 0, False, None),
-    ("Pipeline bất đồng bộ: Form → Gateway → Orchestrator → RabbitMQ → Worker → AI → Quality Gate → S3", 0, False, None),
-    ("Quality Gate lọc NSFW + brand-fit; dự phòng Hugging Face; retry tối đa 3 lần", 0, False, None),
-    ("Chi phí ~0,0036 USD/3 ảnh; thời gian 30–60 giây", 0, True, GREEN),
+    ("Tự sinh logo + ảnh bìa từ prompt văn bản + màu thương hiệu khi tenant khởi tạo", 0, False, None),
+    ("OpenAI GPT-4 Vision + DALL-E 3 (vận hành) · Ollama tự host (phát triển)", 0, False, None),
+    ("Ưu tiên mẫu (template-first): chỉ gọi AI khi cần; xem trước bắt buộc đạt WCAG AA", 0, False, None),
+    ("Bộ phân loại an toàn nội dung trước khi triển khai; gói FREE tạo lại tối đa 3 lần/ngày", 0, False, None),
+    ("Chi phí ~0,04 USD/ảnh DALL-E 3 — không hệ tham khảo nào có tính năng này", 0, True, GREEN),
 ], left=0.55, top=1.85, width=6.7, base=15)
 diagram(s, A("fig-3.4-ai-wizard.png"), 7.2, 1.8, 5.85, 4.7)
 caption(s, "Hình 3.4 — Trình hướng dẫn AI Branding cho chủ trung tâm.", top=6.55, left=7.0, width=6.0)
-notes(s, "Đóng góp thứ nhất: tự động hóa nhận diện thương hiệu, dùng API thương "
-         "mại thay vì tự host GPU. Pipeline bất đồng bộ không chặn giao diện, có "
-         "quality gate và dự phòng provider. Bên phải là wizard thực tế. (~80 giây)")
+notes(s, "Yếu tố khác biệt thứ hai (§1.3): tự động hóa nhận diện thương hiệu. "
+         "Vận hành dùng OpenAI GPT-4 Vision + DALL-E 3, phát triển dùng Ollama tự "
+         "host. Ưu tiên mẫu, chỉ gọi AI khi cần; xem trước bắt buộc đạt WCAG AA + "
+         "qua bộ phân loại an toàn nội dung. Bên phải là wizard thực tế. (~80 giây)")
 
 # ═══ 7. Pháp luật VN ═══
-s = content_slide("Tuân thủ pháp luật Việt Nam (§1.5)")
+s = content_slide("Khác biệt — Tuân thủ pháp luật VN theo thiết kế (§1.3 · §2.1.2)")
 table(s, [
     ["Văn bản", "Yêu cầu chính", "Cách hiện thực"],
     ["PDPL 2023", "Consent cụ thể; quyền truy cập/xóa; DPO khi >10k chủ thể; báo vi phạm 72h", "consent_record; quy trình DSAR; audit log bất biến V60 (Điều 11)"],
@@ -361,38 +370,43 @@ notes(s, "Ba trụ cột pháp luật tích hợp từ thiết kế. PDPL mốc 
          "tác MISA. (~70 giây)")
 
 # ═══ 8. Phương pháp luận (ảnh) ═══
-s = content_slide("Phương pháp luận hướng chất lượng (§1.6)")
+s = content_slide("Phương pháp luận hướng chất lượng (Mở đầu §4 · §3.2)")
 bullets(s, [
-    ("Vòng lặp ngắn 1–3 ngày, phạm vi + tiêu chí nghiệm thu rõ ràng", 0, False, None),
-    ("Kiểm thử trước (test-first), coverage ≥ 70%", 0, False, None),
-    ("Đánh giá theo kỳ (audit): bảo mật / hiệu năng / nghiệp vụ / giao diện / vận hành", 0, False, None),
-    ("Chuẩn hóa quy tắc: mỗi sai sót → quy tắc + kiểm tra tự động", 0, False, None),
-    ("Cơ sở: Deming PDCA, Beck TDD, Poppendieck Lean, IEEE 730", 0, True, GREY),
+    ("Kết hợp nghiên cứu lý thuyết (so sánh 4 hệ thống) + thực nghiệm (thiết kế + hiện thực)", 0, False, None),
+    ("Phát triển hướng kiểm thử (TDD) — coverage ≥ 75% line trên module nghiệp vụ", 0, False, None),
+    ("Thiết kế hướng miền (DDD) tách control-plane / domain-plane", 0, False, None),
+    ("Chu trình cải tiến liên tục Plan-Do-Check-Act (PDCA) duy trì chất lượng mã + tài liệu", 0, False, None),
+    ("Cơ sở: Beck TDD (2002), Evans DDD (2003), Deming PDCA (1986), IEEE 730 SQA", 0, True, GREY),
 ], left=0.55, top=1.85, width=6.9, base=16)
 diagram(s, A("fig-3.6-test-pyramid.png"), 7.4, 1.85, 5.6, 4.6)
 caption(s, "Hình 3.6 — Kim tự tháp kiểm thử áp dụng cho KiteHub.", top=6.5, left=7.2, width=5.6)
-notes(s, "Bốn trụ cột có cơ sở lý thuyết. Trụ cột bốn: mỗi sai sót thành quy "
-         "tắc có kiểm tra. Kim tự tháp kiểm thử minh họa phân bố ba tầng test. "
-         "(~50 giây)")
+notes(s, "Phương pháp luận kết hợp lý thuyết (so sánh hệ tham khảo) và thực "
+         "nghiệm. Ba trụ cột có cơ sở: TDD (Beck), DDD (Evans), PDCA (Deming), "
+         "theo chuẩn SQA IEEE 730. Kim tự tháp kiểm thử minh họa phân bố ba tầng "
+         "test (~985 test). (~50 giây)")
 
 # ═══ 9. C4 context ═══
 s = content_slide("Kiến trúc tổng thể — C4 Level 1 (Hình 2.1)")
 diagram(s, A("fig-2.1-c4-context.png"))
-caption(s, "Hình 2.1 — Sơ đồ ngữ cảnh: KiteHub (control-plane) + KiteClass (data-plane) chia sẻ PostgreSQL RLS.", top=6.5)
-notes(s, "Kiến trúc tổng thể chia hai mặt phẳng: KiteHub control-plane quản lý "
-         "vòng đời tenant; KiteClass data-plane phục vụ giáo dục. Chia sẻ một "
-         "PostgreSQL cô lập bằng RLS. (~70 giây)")
+caption(s, "Hình 2.1 — Ngữ cảnh C4 L1: 8 nhóm actor + 6 hệ thống ngoài; mọi truy cập qua HTTPS, không actor nào chạm DB trực tiếp.", top=6.5)
+notes(s, "Sơ đồ ngữ cảnh C4 Level 1 (Brown): Kite Platform tương tác 8 nhóm actor "
+         "và 6 hệ thống bên ngoài. Mọi actor truy cập qua HTTPS (TLS 1.2+); hệ "
+         "thống ngoài cô lập qua adapter pattern (NotificationChannel cho email, "
+         "PaymentProcessor cho VietQR). Không actor nào chạm DB trực tiếp — đều "
+         "qua biên trust gateway. (~70 giây)")
 
 # ═══ 10. C4 container ═══
 s = content_slide("Phân rã container — C4 Level 2 (Hình 2.2)")
 diagram(s, A("fig-2.2-c4-container.png"))
-caption(s, "Hình 2.2 — KiteHub: 6 microservice (vòng đời khác nhau); KiteClass: modular monolith.", top=6.5)
-notes(s, "KiteHub 6 microservice vì vòng đời khác nhau (branding bất đồng bộ, "
-         "email hàng đợi, subscription giao dịch); KiteClass modular monolith vì "
-         "domain giáo dục gắn kết chặt. (~60 giây)")
+caption(s, "Hình 2.2 — Container C4 L2: 4 cụm — Frontend (2 Next.js) · Gateway · 6 service KiteHub + KiteClass core · 4 hạ tầng kite-.", top=6.5)
+notes(s, "Sơ đồ container C4 Level 2: bốn cụm. Frontend gồm hai Next.js (kitehub "
+         "cổng 3001 marketing/quản trị, kiteclass cổng 3000 giáo dục, ~85% mobile). "
+         "Gateway (Spring Cloud Gateway cổng 9000) là điểm vào duy nhất. Cụm dịch "
+         "vụ: 6 service KiteHub + kiteclass-core. Hạ tầng dùng chung 4 container "
+         "kite- (Postgres/Redis/RabbitMQ/MinIO). Tổng 17 thành phần. (~60 giây)")
 
 # ═══ 11. RLS ═══
-s = content_slide("Đóng góp 2 — Cô lập đa-tenant bằng RLS")
+s = content_slide("Khác biệt — Cô lập đa-tenant bằng RLS (§2.2.3)")
 table(s, [
     ["Mô hình", "Chi phí", "Cô lập", "Quy mô", "Quyết định"],
     ["Instance mỗi tenant", "Rất cao", "Tuyệt đối", "≤10", "Loại"],
@@ -401,12 +415,13 @@ table(s, [
     ["Row-Level Security", "Thấp", "DB engine ép buộc", "≥1000", "Áp dụng"],
 ], top=1.95, fs=13, col_widths=[2.9, 1.9, 2.7, 2.3, 2.4])
 bullets(s, [
-    ("RLS policy + biến phiên app.current_tenant_id (HikariCP) — Postgres ép lọc ở MỖI truy vấn", 0, True, NAVY),
-    ("Quên điều kiện lọc vẫn không rò chéo tenant — kiểm chứng tại Salesforce, Shopify, HubSpot", 0, False, None),
+    ("RLS policy + biến phiên app.current_tenant_id — Postgres ép lọc ở MỖI truy vấn", 0, True, NAVY),
+    ("Mô hình Pool theo AWS Well-Architected SaaS Lens; NULL force-fail + HikariCP GUC reset", 0, False, None),
 ], top=4.75, height=1.7, base=15)
-notes(s, "So sánh bốn mô hình. Chọn RLS vì chi phí thấp nhất và database engine "
-         "ép buộc, không phụ thuộc lập trình viên nhớ điều kiện lọc. Đóng góp "
-         "thứ hai. (~70 giây)")
+notes(s, "Đồ án đánh giá 6 pattern multi-tenant, chọn Shared Database + tenant_id "
+         "+ PostgreSQL RLS (mô hình Pool theo AWS SaaS Lens). Lý do: chi phí vận "
+         "hành thấp nhất + database engine ép lọc, không phụ thuộc lập trình viên "
+         "nhớ điều kiện. Bảng rút gọn 4 mô hình tiêu biểu. (~70 giây)")
 
 # ═══ 12. Defense 5 layer ═══
 s = content_slide("Bảo mật nhiều lớp — Defense-in-depth (Hình 2.3)")
@@ -440,14 +455,14 @@ bullets(s, [
     ("Public subnet: ALB + 2× EC2 t3.micro", 1, False, None),
     ("Private subnet: RDS PostgreSQL cô lập", 1, False, None),
     ("Phụ trợ: S3, SES, Secrets Manager, ECR, CloudWatch", 1, False, None),
-    ("Free Tier 12 tháng → hạ tầng ~0; AI Branding ~0,19 USD/tenant onboard", 0, True, GREEN),
-    ("Chưa chạm ngưỡng PDPL Đ28 / NĐ53; có lộ trình chuyển vùng trong nước", 0, False, GREY),
+    ("Free Tier 12 tháng → tổng chi phí ~15–30 USD/tháng (≈360–720 nghìn đồng)", 0, True, GREEN),
+    ("Chưa chạm ngưỡng PDPL Đ28 (10k) / NĐ53 (1 triệu user); có lộ trình chuyển vùng trong nước", 0, False, GREY),
 ], left=8.35, top=1.95, width=4.7, base=14)
 caption(s, "Hình 4.1a — Topology VPC (10.0.0.0/16).", top=6.55, left=0.55, width=7.6)
-notes(s, "Triển khai thực tế AWS Singapore, VPC tách public/private subnet, RDS "
-         "trong private subnet. Free Tier cho chi phí hạ tầng gần như 0, chi phí "
-         "chính là AI Branding ~0,19 USD/tenant. Chưa vượt ngưỡng pháp lý, có "
-         "lộ trình chuyển vùng. (~60 giây)")
+notes(s, "Triển khai thực tế AWS Singapore (ap-southeast-1), VPC tách public/"
+         "private subnet, RDS trong private subnet. Free Tier giữ tổng chi phí "
+         "~15–30 USD/tháng (EC2 vượt 750h tính ~7,38 USD; AI DALL-E 3 ~0,04 USD/"
+         "ảnh). Chưa vượt ngưỡng pháp lý, có lộ trình chuyển vùng. (~60 giây)")
 
 # ═══ 16. CI/CD ═══
 s = content_slide("CI/CD và giám sát vận hành (Hình 4.2a)")
@@ -485,20 +500,21 @@ notes(s, "Minh chứng giá trị AI Branding: bên trái gói Miễn phí mẫu
          "tông màu khác hẳn. Hai tenant thật, hai thương hiệu riêng. (~70 giây)")
 
 # ═══ 19. KPI ═══
-s = content_slide("Kết quả đánh giá — các chỉ số chính (Chương 4)")
+s = content_slide("Kết quả kiểm thử và đánh giá chất lượng (§3.2)")
 kpi_cards(s, [
-    ("86/100", "Hiệu năng", "B+ · từ 81 (+5)"),
-    ("93/100", "Bảo mật", "A · từ 76 (+17)"),
-    ("90/110", "Chất lượng", "B+ · từ 78 (+12)"),
-    ("≥100k", "Tải (RPS)", "Kiểm thử Locust"),
+    ("~985", "Test case", "850 unit·120 IT·15-25 E2E"),
+    ("≥99,5%", "Tỷ lệ pass", "trên nhánh main"),
+    ("≥75%", "Coverage", "module nghiệp vụ"),
+    ("4 chiều", "Audit định kỳ", "Quality·Security·Perf·API"),
 ], top=2.1, h=2.3)
 bullets(s, [
-    ("Cải tiến đo được qua các kỳ audit: RLS NULL force-fail, audit_logs bất biến (V60), chặn bypass admin, phân trang con trỏ", 0, False, None),
-    ("Mỗi điểm số gắn audit report có evidence block trong Chương 4 — không phải tự nhận định", 0, True, NAVY),
+    ("Kim tự tháp test pyramid (Cohn): đáy unit rộng → integration (Testcontainers Postgres+RabbitMQ) → đỉnh E2E Playwright", 0, False, None),
+    ("Audit định kỳ theo SQA IEEE 730 — findings mỗi kỳ track riêng + schedule fix vòng kế tiếp (continuous quality loop)", 0, True, NAVY),
 ], top=4.75, height=1.7, base=16)
-notes(s, "Bốn chỉ số: hiệu năng 86, bảo mật 93, chất lượng 90/110, đều vượt "
-         "ngưỡng đạt. Mỗi điểm số có audit report evidence block; trajectory cho "
-         "thấy cải tiến đo được. (~80 giây)")
+notes(s, "Tổng ~985 test (850 unit + 120 integration + 15-25 E2E), pass ≥99,5% "
+         "trên main, coverage ≥75% line module nghiệp vụ. Integration dùng "
+         "Testcontainers Postgres thật (không H2) cho RLS/GUC. Audit định kỳ 4 "
+         "chiều theo IEEE 730, vòng cải tiến liên tục. (~80 giây)")
 
 # ═══ 20. DEMO ═══
 s = section_slide("Demo trực tiếp",
@@ -529,17 +545,41 @@ s = prs.slides.add_slide(L_BLANK); _idx[0] += 1
 set_bg(s, BG_SECTION)
 title_box(s, "Kết luận")
 bullets(s, [
-    ("Ba đóng góp chính của đề tài:", 0, True, NAVY),
-    ("Kỹ thuật AI Branding tự động — sinh bộ nhận diện thương hiệu chi phí thấp, bất đồng bộ", 1, False, None),
-    ("Kiến trúc đa-tenant cô lập bằng PostgreSQL RLS — bảo mật nhiều lớp, mở rộng tốt", 1, False, None),
-    ("Phương pháp luận phát triển hướng chất lượng — audit có evidence, chuẩn hóa quy tắc", 1, False, None),
-    ("Sản phẩm đã triển khai thực tế trên AWS, đạt các ngưỡng hiệu năng/bảo mật/chất lượng", 0, False, None),
+    ("Đồ án hoàn thành các mục tiêu đặt ra trong phạm vi triển khai hiện tại:", 0, True, NAVY),
+    ("Nền tảng KiteHub trên AWS Singapore: 7 microservice + 2 ứng dụng giao diện, cô lập đa-tenant bằng RLS", 1, False, None),
+    ("Bốn khác biệt: đa-tenant RLS gốc · AI Branding tự động · tuân thủ pháp luật theo thiết kế · UX Vietnamese-first", 1, False, None),
+    ("Đáp ứng PDPL 2023, Luật An ninh mạng 2018, Thông tư 78/2021/TT-BTC; kiểm chứng qua bộ kiểm thử nhiều tầng", 1, False, None),
+    ("Mã nguồn công khai trên GitHub để hội đồng đối chiếu trực tiếp", 0, False, None),
     ("Em xin chân thành cảm ơn thầy Nguyễn Đức Dư và quý hội đồng — sẵn sàng trả lời câu hỏi", 0, True, NAVY),
 ], top=1.95, base=18)
 page_num(s, _idx[0])
-notes(s, "Tóm ba đóng góp: AI Branding, đa-tenant RLS, phương pháp luận hướng "
-         "chất lượng. Sản phẩm triển khai thực tế, đạt ngưỡng đánh giá. Cảm ơn "
-         "GVHD và hội đồng, em sẵn sàng nhận câu hỏi. (~40 giây)")
+notes(s, "Tóm kết quả: nền tảng 7 microservice + 2 FE trên AWS Singapore, cô lập "
+         "đa-tenant RLS, bốn yếu tố khác biệt, đáp ứng PDPL/An ninh mạng/TT78, "
+         "kiểm chứng qua kiểm thử nhiều tầng, mã nguồn công khai. Cảm ơn GVHD và "
+         "hội đồng, em sẵn sàng nhận câu hỏi. (~40 giây)")
+
+# --- Áp font tường minh cho MỌI run (title/bullet/table/caption) trước khi lưu ---
+def _apply_font(prs, name):
+    n = 0
+    for slide in prs.slides:
+        for shape in slide.shapes:
+            if shape.has_text_frame:
+                for para in shape.text_frame.paragraphs:
+                    for run in para.runs:
+                        run.font.name = name
+                        n += 1
+            if shape.has_table:
+                for row in shape.table.rows:
+                    for cell in row.cells:
+                        for para in cell.text_frame.paragraphs:
+                            for run in para.runs:
+                                run.font.name = name
+                                n += 1
+    return n
+
+
+_n = _apply_font(prs, FONT_NAME)
+print(f"Applied font '{FONT_NAME}' to {_n} runs")
 
 prs.save(OUT)
 print("OK saved:", OUT)
