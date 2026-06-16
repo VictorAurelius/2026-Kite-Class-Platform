@@ -15,7 +15,7 @@
 
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAdminDashboard } from '@/hooks/use-admin';
+import { useAdminDashboard, useAdminPendingPayments } from '@/hooks/use-admin';
 import { Building2, CheckCircle, Clock, XCircle, TrendingUp, CreditCard, ArrowRight, DollarSign, Inbox } from 'lucide-react';
 
 /**
@@ -52,6 +52,10 @@ function DashboardSkeleton() {
 
 export default function AdminDashboardPage() {
   const { data: stats, isLoading, error } = useAdminDashboard();
+  // GAP-1440: pendingPayments is not part of the dashboard endpoint — derive the
+  // count from the pending-payments list so the KPI shows real data, not 0.
+  const { data: pendingPayments } = useAdminPendingPayments();
+  const pendingPaymentsCount = pendingPayments?.length ?? 0;
 
   if (isLoading) {
     return <DashboardSkeleton />;
@@ -141,7 +145,7 @@ export default function AdminDashboardPage() {
             {[
               { label: 'Tổng doanh thu', value: formatVND(stats.totalRevenue), color: '' },
               { label: 'Doanh thu tháng này', value: formatVND(stats.monthlyRevenue), color: '' },
-              { label: 'Thanh toán chờ xác nhận', value: String(stats.pendingPayments), color: 'text-orange-600 dark:text-orange-400' },
+              { label: 'Thanh toán chờ xác nhận', value: String(pendingPaymentsCount), color: 'text-orange-600 dark:text-orange-400' },
             ].map((r) => (
               <div key={r.label} className="flex justify-between items-center py-1">
                 <span className="text-sm text-muted-foreground">{r.label}</span>
