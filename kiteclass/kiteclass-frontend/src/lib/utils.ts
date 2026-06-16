@@ -10,9 +10,12 @@ export function cn(...inputs: ClassValue[]) {
  * Uses UTC timezone to match ISO timestamps from backend
  */
 export function formatDate(dateString: string): string {
+  // BUG-KC3-2: null/unparseable date hiển thị "Invalid Date" cho user (dashboard
+  // "Học viên mới nhất" + 6 call site khác). Trả em-dash placeholder thay vì literal lỗi.
+  if (!dateString) return '—';
   const date = new Date(dateString);
   if (isNaN(date.getTime())) {
-    return 'Invalid Date';
+    return '—';
   }
   return new Intl.DateTimeFormat('vi-VN', {
     day: '2-digit',
@@ -27,9 +30,11 @@ export function formatDate(dateString: string): string {
  * Uses UTC timezone to match ISO timestamps from backend
  */
 export function formatDateTime(dateTimeString: string): string {
+  // BUG-KC3-2 sister: same "Invalid Date" leak cho datetime call sites.
+  if (!dateTimeString) return '—';
   const date = new Date(dateTimeString);
   if (isNaN(date.getTime())) {
-    return 'Invalid Date';
+    return '—';
   }
   return new Intl.DateTimeFormat('vi-VN', {
     day: '2-digit',

@@ -395,6 +395,10 @@ services:
       # Local → FE at localhost:3001 so email links resolve to the local stack, not prod.
       # Prod overrides to https://kitehub.me (docker-compose.production.yml / fetch-secrets).
       KITEHUB_BETA_SIGNUP_BASE_URL: ${KITEHUB_BETA_SIGNUP_BASE_URL:-http://localhost:3001}
+      # KC-2 pre-walk FM-1: staff-invitation email accept link base (kitehub.staff.invitation.base-url).
+      # Local → FE at localhost:3001 so accept links resolve to local stack, not prod kitehub.me.
+      # Prod overrides to https://kitehub.me (docker-compose.production.yml). Mirrors beta-signup above.
+      KITEHUB_STAFF_INVITATION_BASE_URL: ${KITEHUB_STAFF_INVITATION_BASE_URL:-http://localhost:3001}
       # Wave flow-kh3 Finding #4 pre-walk fix: VietQRService.@Value default falls back to false
       # so without this override the container would call the real https://api.vietqr.io/v2/generate
       # endpoint from the local stack. application.yml top-level binding already defaults to true,

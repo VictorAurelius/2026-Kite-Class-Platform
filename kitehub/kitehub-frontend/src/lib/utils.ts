@@ -6,9 +6,11 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatDate(dateString: string): string {
+  // BUG-KC3-2 cross-flow sweep: same "Invalid Date" leak ở KiteHub FE.
+  if (!dateString) return '—';
   const date = new Date(dateString);
   if (isNaN(date.getTime())) {
-    return 'Invalid Date';
+    return '—';
   }
   return new Intl.DateTimeFormat('vi-VN', {
     day: '2-digit',
@@ -19,9 +21,11 @@ export function formatDate(dateString: string): string {
 }
 
 export function formatDateTime(dateTimeString: string): string {
+  // BUG-KC3-2 cross-flow sweep sister: datetime call sites.
+  if (!dateTimeString) return '—';
   const date = new Date(dateTimeString);
   if (isNaN(date.getTime())) {
-    return 'Invalid Date';
+    return '—';
   }
   return new Intl.DateTimeFormat('vi-VN', {
     day: '2-digit',

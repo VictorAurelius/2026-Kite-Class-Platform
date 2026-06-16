@@ -96,6 +96,9 @@ services:
       # GAP-801 — beta-invite signup link base (kitehub.beta.signup-base-url); default
       # http://localhost:3001 would dead-link in prod. FE claim-code route /beta-signup/code.
       KITEHUB_BETA_SIGNUP_BASE_URL: "https://kitehub.me"
+      # KC-2 pre-walk FM-1 — staff-invitation accept link base (kitehub.staff.invitation.base-url);
+      # default http://localhost:3001 would dead-link in prod. FE route /staff/accept-invite.
+      KITEHUB_STAFF_INVITATION_BASE_URL: "https://kitehub.me"
       # GAP-508 P0 — subscription → email service inter-service RPC (gateway routes via internal docker network)
       EMAIL_SERVICE_URL: "http://kitehub-email:8080"
       # Wave flow-kh3-3 — SePay payment webhook Apikey auth + beta-mode symbolic amount.
