@@ -220,11 +220,8 @@ export default function AdminPayrollPage() {
           {periodsLoading && <p className="text-sm text-muted-foreground">Đang tải...</p>}
           {periods && periods.content.length === 0 && (
             <p className="text-sm text-muted-foreground">
-              Không có kỳ lương theo bộ lọc. Kỳ lương được tạo bởi
-              <code className="mx-1 rounded bg-muted px-1 text-xs">
-                PayrollService.calculate(...)
-              </code>
-              ; Phase 2 (GAP-057b) sẽ thêm nút chạy bảng lương.
+              Không có kỳ lương theo bộ lọc. Kỳ lương sẽ xuất hiện sau khi chạy
+              bảng lương — chức năng &ldquo;Chạy bảng lương&rdquo; sẽ có ở Phase 2.
             </p>
           )}
           {periods && periods.content.length > 0 && (

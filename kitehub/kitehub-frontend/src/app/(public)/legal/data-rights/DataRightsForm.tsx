@@ -13,7 +13,10 @@ import { useState, type FormEvent } from 'react';
  * - Optional: scope free text + reason + contact preference
  * - Honeypot field (`companyWebsite`) — kept hidden via Tailwind `hidden` + tabindex=-1
  *
- * Posts to `/api/v1/dsar/request`; on success shows ticket UUID + 20-day SLA.
+ * Posts to `${NEXT_PUBLIC_API_URL}/api/v1/dsar/request` (gateway :9000 in dev);
+ * on success shows ticket UUID + 20-day SLA. GAP-1438: must hit the gateway, NOT
+ * the FE origin (`next.config` has no proxy `rewrites()`), and must surface a
+ * status-specific Vietnamese message instead of dumping a raw HTML error body.
  */
 
 interface FormState {
@@ -35,6 +38,46 @@ const RIGHT_OPTIONS: { value: string; label: string; description: string }[] = [
   { value: 'RESTRICT', label: 'Quyền hạn chế xử lý', description: 'Yêu cầu tạm dừng xử lý dữ liệu.' },
   { value: 'OBJECT', label: 'Quyền phản đối xử lý', description: 'Phản đối việc sử dụng dữ liệu cho mục đích cụ thể.' },
 ];
+
+// GAP-1438: mirror beta-status.ts — DSAR is a public endpoint reached via the
+// gateway (:9000 in dev, NEXT_PUBLIC_API_URL in prod), NOT the FE origin.
+const DSAR_ENDPOINT = '/api/v1/dsar/request';
+
+/**
+ * Maps a failed DSAR submit response to a friendly Vietnamese message.
+ * Never returns the raw response body (could be a 404 HTML page) — only a
+ * status-specific message, optionally enriched by a JSON `message`/`errorCode`.
+ */
+async function describeError(res: Response): Promise<string> {
+  // Only trust the body when the server says it is JSON; an HTML 404 page must
+  // never leak into the alert (GAP-1438, sibling generic-catch class GAP-926).
+  const contentType = res.headers.get('content-type') ?? '';
+  let detail = '';
+  if (contentType.includes('application/json')) {
+    try {
+      const body = (await res.json()) as { message?: string; errorCode?: string };
+      detail = body.message?.trim() ?? '';
+    } catch {
+      detail = '';
+    }
+  }
+  switch (res.status) {
+    case 400:
+      return detail || 'Thông tin gửi lên không hợp lệ. Vui lòng kiểm tra lại các trường bắt buộc.';
+    case 401:
+    case 403:
+      return 'Bạn không có quyền thực hiện yêu cầu này. Vui lòng thử lại sau hoặc liên hệ DPO.';
+    case 404:
+      return 'Không tìm thấy dịch vụ xử lý yêu cầu (lỗi định tuyến). Vui lòng thử lại sau ít phút.';
+    case 429:
+      return 'Bạn đã gửi quá nhiều yêu cầu. Vui lòng đợi một lát rồi thử lại.';
+    default:
+      if (res.status >= 500) {
+        return 'Hệ thống đang gặp sự cố, vui lòng thử lại sau ít phút.';
+      }
+      return detail || `Yêu cầu không thành công (mã lỗi ${res.status}). Vui lòng thử lại.`;
+  }
+}
 
 const initialState: FormState = {
   rightType: 'ACCESS',
@@ -81,7 +124,8 @@ export function DataRightsForm() {
     }
     setSubmitting(true);
     try {
-      const res = await fetch('/api/v1/dsar/request', {
+      const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000';
+      const res = await fetch(`${baseURL}${DSAR_ENDPOINT}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -96,14 +140,15 @@ export function DataRightsForm() {
         }),
       });
       if (!res.ok) {
-        const text = await res.text().catch(() => '');
-        throw new Error(text || `Yêu cầu không thành công (HTTP ${res.status}).`);
+        setError(await describeError(res));
+        return;
       }
       const body = (await res.json()) as SuccessState;
       setSuccess(body);
       setState(initialState);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Có lỗi không xác định, vui lòng thử lại.');
+    } catch {
+      // Network / CORS / parse failure — no raw body leaked.
+      setError('Không thể kết nối tới máy chủ. Vui lòng kiểm tra kết nối mạng và thử lại.');
     } finally {
       setSubmitting(false);
     }

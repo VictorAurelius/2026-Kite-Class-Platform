@@ -33,6 +33,7 @@ import {
   type OnboardingProgressResponse,
   type OnboardingStepId,
 } from '@/lib/api/onboarding';
+import { getTenantIdFromToken } from '@/lib/auth/jwt-storage';
 
 interface OnboardingChecklistProps {
   /** Inject initial state for SSR/tests (skips first fetch). */
@@ -47,6 +48,14 @@ export function OnboardingChecklist({ initialState }: OnboardingChecklistProps =
   const [showDemoConfirm, setShowDemoConfirm] = useState<boolean>(false);
 
   const refresh = useCallback(async () => {
+    // GAP-1445: onboarding is per-tenant (BR-ONBOARD-001). A platform owner with
+    // no tenant context (no tenantId JWT claim) has no checklist — skip the fetch
+    // instead of hitting a tenant-scoped endpoint that rejects (TENANT_CONTEXT_MISSING)
+    // and surfacing a scary error. Renders nothing (state stays null).
+    if (!getTenantIdFromToken()) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {

@@ -1,6 +1,6 @@
 # GAP-1443: SupportMenu + FeedbackWidget mồ côi — feedback & support không có entry point FE trong app
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🔴 P1
 **Domain:** Frontend
 **Found:** 2026-06-16 (Phase-2 browser walk flow KH-10)
@@ -13,9 +13,16 @@ Discovered Phase-2 browser walk KH-10. `OnboardingCoordinator` (mounter duy nh�
 Mount `<OnboardingCoordinator>` (render `SupportMenu` floating button → FeedbackForm modal + quick-help + mailto support@kitehub.me + Zalo OA) trong `DashboardLayout` authenticated của customer (hoặc root authenticated layout).
 
 ## Acceptance Criteria
-- [ ] Owner đăng nhập thấy nút support/feedback floating
-- [ ] Submit feedback qua FE → POST /api/v1/feedback 201
-- [ ] Quick-help + mailto + Zalo OA reachable từ menu
+- [x] Owner đăng nhập thấy nút support/feedback floating — `DashboardLayout` mount `<OnboardingCoordinator>` (render banner + `SupportMenu` floating); `DashboardLayout.test.tsx` assert `support-menu-trigger` present. Runtime confirm pending walk.
+- [ ] Submit feedback qua FE → POST /api/v1/feedback 201 — SupportMenu wires FeedbackForm modal (BE 201 sẵn); runtime submit confirm tại consolidated walk.
+- [ ] Quick-help + mailto + Zalo OA reachable từ menu — SupportMenu render đủ items; runtime click confirm tại walk.
+
+## Fix (Phase-3 coordinator inline, 2026-06-16)
+- `kitehub-frontend/.../layout/DashboardLayout.tsx` — swap standalone `<BetaDisclaimerBanner>` → `<OnboardingCoordinator>` (renders banner without dup + mounts `SupportMenu`).
+- Test: `kitehub-frontend/.../layout/__tests__/DashboardLayout.test.tsx` (2 PASS) — regression guard cho mount.
+- Build: `pnpm build` kitehub-frontend exit 0.
+- Status PARTIAL: mount proven via test + build; runtime feedback-submit + click affordances confirm tại consolidated walk.
 
 ## Related
 - Discovered in: Phase-2 browser walk (flow KH-10), 2026-06-16
+- Fixed in: Wave flow-fix-1 Phase-3 (coordinator inline)

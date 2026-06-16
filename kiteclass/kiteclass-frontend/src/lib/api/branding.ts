@@ -12,9 +12,16 @@ import type {
   UpdateBrandingRequest,
   UploadLogoResponse,
   BannerUploadResponse,
+  BrandingVersion,
+  BrandingVersionPage,
 } from '@/types/branding';
 
 const BASE_URL = '/api/v1/settings/branding';
+
+// GAP-1446: version-history + rollback live under a DIFFERENT base path than
+// the settings/branding CRUD endpoints — they are tenant-scoped via the path
+// instanceId (matches BrandingVersionController @RequestMapping).
+const VERSION_BASE_URL = '/api/v1/branding';
 
 export const brandingApi = {
   /**
@@ -83,5 +90,40 @@ export const brandingApi = {
       formData
     );
     return data.data!; // Unwrap ApiResponse wrapper
+  },
+
+  /**
+   * List branding version history (admin/owner only) — GAP-1446.
+   *
+   * Returns a raw Spring {@code Page<BrandingVersion>} (newest first). Unlike the
+   * settings/branding endpoints, the version controller does NOT wrap the body in
+   * {@code ApiResponse}, so the response is read directly (no {@code .data.data}).
+   */
+  listVersions: async (
+    instanceId: string,
+    page = 0,
+    size = 20
+  ): Promise<BrandingVersionPage> => {
+    const { data } = await apiClient.get<BrandingVersionPage>(
+      `${VERSION_BASE_URL}/${instanceId}/versions`,
+      { params: { page, size } }
+    );
+    return data;
+  },
+
+  /**
+   * Roll branding back to a specific version (admin/owner only) — GAP-1446.
+   *
+   * Creates a NEW append-only version entry that restores the target snapshot and
+   * returns it. Returns the raw {@code BrandingVersion} (no {@code ApiResponse} wrapper).
+   */
+  rollback: async (
+    instanceId: string,
+    versionNumber: number
+  ): Promise<BrandingVersion> => {
+    const { data } = await apiClient.post<BrandingVersion>(
+      `${VERSION_BASE_URL}/${instanceId}/versions/${versionNumber}/rollback`
+    );
+    return data;
   },
 };

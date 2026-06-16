@@ -5,7 +5,7 @@ import { Sidebar } from './Sidebar';
 import { useAuthStore } from '@/stores/auth-store';
 import { useRouter } from 'next/navigation';
 import { clearTokens, clearLegacyLocalStorageTokens } from '@/lib/auth/jwt-storage';
-import { BetaDisclaimerBanner } from '@/components/beta-disclaimer';
+import { OnboardingCoordinator } from '@/components/onboarding/OnboardingCoordinator';
 import { SkipToContent } from '@/components/a11y/SkipToContent';
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
@@ -46,10 +46,13 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           </div>
         </header>
         <main id="main-content" role="main" className="flex-1 p-6">
-          {/* Wave 98 Bucket B3 GAP-539 finishing stroke — dashboard-wide beta banner.
-              Dismissible via cookie (1y); see BetaDisclaimerBanner.tsx. */}
+          {/* GAP-1443 — OnboardingCoordinator orchestrates banner + SupportMenu
+              (feedback/support/help floating entry) so owner has a support
+              affordance. Replaces standalone BetaDisclaimerBanner (Wave 98 B3
+              GAP-539); coordinator renders the same banner (dismissible cookie 1y)
+              plus the `?` SupportMenu (GAP-656). */}
           <div className="mb-4">
-            <BetaDisclaimerBanner />
+            <OnboardingCoordinator />
           </div>
           {children}
         </main>

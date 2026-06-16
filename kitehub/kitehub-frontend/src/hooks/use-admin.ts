@@ -5,22 +5,52 @@ import type {
   AdminInstanceSummary,
   AdminPayment,
   DashboardStats,
+  DashboardStatsResponse,
   RevenueReport,
   ConfirmPaymentRequest,
   RejectPaymentRequest,
 } from '@/types/admin';
 
 /**
+ * Map the backend nested dashboard stats response to the FE flat view model.
+ *
+ * GAP-1440: BE `GET /api/platform/admin/dashboard` returns nested
+ * `instancesByStatus` (map) + `mrr`/`arr`; the FE dashboard page reads flat
+ * `activeInstances` / `totalRevenue` / etc. Without this mapping the page
+ * rendered NaN/undefined (only `totalInstances` happened to match by name).
+ *
+ * Defensive `?? 0` on every field so a partial/empty BE payload never produces
+ * NaN in the UI.
+ */
+export function mapDashboardStats(r: DashboardStatsResponse): DashboardStats {
+  const byStatus = r.instancesByStatus ?? {};
+  return {
+    totalInstances: r.totalInstances ?? 0,
+    activeInstances: byStatus['ACTIVE'] ?? 0,
+    trialInstances: byStatus['TRIAL'] ?? 0,
+    suspendedInstances: byStatus['SUSPENDED'] ?? 0,
+    totalRevenue: r.arr ?? 0,
+    monthlyRevenue: r.mrr ?? 0,
+    newInstancesThisMonth: r.newSignupsLast30Days ?? 0,
+  };
+}
+
+/**
  * Get admin dashboard statistics.
+ *
+ * Fetches the backend nested shape ({@link DashboardStatsResponse}) and maps it
+ * to the flat {@link DashboardStats} view model via {@link mapDashboardStats}
+ * (GAP-1440). Returns `null` when the API responds with no body (e.g. 204 on a
+ * brand-new platform) so the page renders its empty state instead of crashing.
  */
 export function useAdminDashboard() {
   return useQuery({
     queryKey: ['admin', 'dashboard'],
-    queryFn: async () => {
-      const { data } = await apiClient.get<DashboardStats>(
+    queryFn: async (): Promise<DashboardStats | null> => {
+      const { data } = await apiClient.get<DashboardStatsResponse>(
         endpoints.admin.dashboard
       );
-      return data;
+      return data ? mapDashboardStats(data) : null;
     },
     staleTime: 60000, // 1 minute
   });

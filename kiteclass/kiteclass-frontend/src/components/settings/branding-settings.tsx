@@ -29,6 +29,16 @@ const LandingBannerSettings = dynamic(
     ),
   { ssr: false },
 );
+
+// GAP-1446: version history + rollback card. Lazy-loaded (below-fold + extra
+// React Query usage) to keep the settings route under its bundle budget.
+const BrandingVersionHistory = dynamic(
+  () =>
+    import('@/components/settings/branding-version-history').then(
+      (m) => m.BrandingVersionHistory,
+    ),
+  { ssr: false },
+);
 import { Upload, Palette } from 'lucide-react';
 import { useState } from 'react';
 
@@ -392,6 +402,9 @@ export function BrandingSettings() {
           </Button>
         </div>
       </form>
+
+      {/* Version history + rollback (GAP-1446) */}
+      <BrandingVersionHistory />
     </div>
   );
 }
