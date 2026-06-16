@@ -18,7 +18,14 @@ Triage dưới flow KH-1 onboarding: xử lý owner platform không có tenant (
 ## Triage (Phase-3, 2026-06-16) — DEFER, cần design decision (design-first)
 Per `design-first-investigation-order.md`: `OnboardingProgressController.resolveTenant()` ném `TenantContextMissingException` → 400 khi `X-Tenant-Id` header missing AND JWT `tenantId` claim absent (`onboarding/controller/OnboardingProgressController.java:107`). Onboarding-progress là resource **tenant-scoped** (checklist per-tenant) → 400 có thể ĐÚNG design, không phải bug. "Bug" thật = FE dashboard gọi endpoint cho owner platform tenantless.
 
-KHÔNG fix mù (đổi BE → 200-empty có thể che misconfiguration owner-không-có-tenant). Cần quyết định KH-1 onboarding design: onboarding tenant-scoped hay platform-scoped cho tenantless owner? 2 hướng: (a) FE skip call khi user không có tenantId; (b) BE trả empty progress cho platform owner. Defer tới KH-1 onboarding scope wave.
+KHÔNG fix mù (đổi BE → 200-empty TRÁI design — `onboarding/api-contract.md` line 88 nói missing tenant → **403 TENANT_CONTEXT_MISSING**, reject là intended).
+
+**Design-first findings (2026-06-16, đọc rules.md + api-contract.md + auth-store):**
+1. **Reject-khi-tenantless = đúng design** (BR-ONBOARD-001 onboarding per-tenant 1:1 tenant_id).
+2. **Status drift:** code trả **400** nhưng contract nói **403 TENANT_CONTEXT_MISSING** → BE status-code drift (quick design-conformance fix khả thi riêng).
+3. **FE-guard không sạch:** `auth-store.ts` `User` type chỉ có `{id,email,role}` — **KHÔNG có tenantId** (tenant context sống trong JWT, gateway inject X-Tenant-Id). FE không biết user có tenant → `enabled: !!tenantId` guard cần thêm tenantId vào auth-store/JWT-decode = **design decision** (where tenant context lives client-side).
+
+**Đề xuất 2 phần (defer KH-1 wave):** (a) BE 400→403 align contract (low-risk conformance); (b) FE tenant-aware: thêm tenantId vào client context → guard fetch + render checklist gracefully cho tenantless owner (hide thay vì error). (b) cần auth-store shape decision.
 
 ## Related
 - Discovered in: Phase-2 browser walk (flow KH-10), 2026-06-16
