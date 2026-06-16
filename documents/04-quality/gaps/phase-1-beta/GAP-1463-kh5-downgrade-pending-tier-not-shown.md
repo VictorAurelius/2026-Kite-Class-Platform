@@ -17,3 +17,6 @@ KH-5 human walk: downgrade (Nâng cấp → chọn gói thấp hơn) hoạt đ�
 
 ## Related
 - Discovered in: 2026-06-16 KH-5 G2 walk
+
+## Update 2026-06-16 (investigation)
+CurrentPlanCard ĐÃ có pending indicator (L113-120 "Gói {pendingTier} sẽ áp dụng từ..."). Downgrade mutation ĐÃ invalidate `['subscriptions']`+`['instances']` (use-subscriptions.ts:143-145). → Có thể đã hoạt động (user thấy stale trước refetch). Cần re-verify browser: downgrade → quay /billing → indicator hiện. Nếu vẫn không hiện → check billing-page subscription GET có trả pendingTier không. Cancel-CTA-deep-link-Danger-tab vẫn defer.

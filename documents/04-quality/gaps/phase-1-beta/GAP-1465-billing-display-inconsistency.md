@@ -1,6 +1,6 @@
 # GAP-1465: KH-5 billing — display gói không đồng nhất /billing vs /billing/upgrade + giá năm sai + cancel-state nhầm
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (format consolidation + double-₫ fixed PR #2456; cancel-state consistency defer)
 **Priority:** 🟠 P2
 **Domain:** Frontend
 **Found:** 2026-06-16 (KH-5 human G2 walk)
