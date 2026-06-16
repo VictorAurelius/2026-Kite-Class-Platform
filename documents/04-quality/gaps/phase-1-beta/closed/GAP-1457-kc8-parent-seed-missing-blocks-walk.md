@@ -1,6 +1,6 @@
 # GAP-1457: KC-8 parent seed thiếu hẳn (0 parents/links/consent/PARENT-credential) → không walk được parent portal
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE (dev-seed-parent-kc8.sql; verified gateway login + facets + IDOR 403)
 **Priority:** 🔴 P1
 **Domain:** DB
 **Found:** 2026-06-16 (Flow Verification Campaign — KC-1/2/3/8 browser re-walk)

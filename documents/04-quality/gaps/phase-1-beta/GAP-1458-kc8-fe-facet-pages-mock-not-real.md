@@ -1,6 +1,6 @@
 # GAP-1458: KC-8 FE parent facet pages (attendance/billing/grades) render MOCK, chỉ transcript+children thật
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (BE facet endpoints verified exist; FE multi-page wiring Phase 1.5)
 **Priority:** 🔴 P2
 **Domain:** Frontend
 **Found:** 2026-06-16 (Flow Verification Campaign — KC-1/2/3/8 browser re-walk)
