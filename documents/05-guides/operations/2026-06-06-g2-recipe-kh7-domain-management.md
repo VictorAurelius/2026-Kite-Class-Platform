@@ -211,3 +211,10 @@ Khi nhận báo cáo, tôi flip campaign §4 dòng KH-7: `🔄 walk-pass-pending
 - Domain verify gọi DNS công cộng thật + serve traffic qua domain custom.
 
 Hiện ngoài phạm vi G2; ghi nhận để chuẩn bị wave sau.
+
+
+---
+
+## 🔄 Re-walk update 2026-06-16 (agent headless browser-walk, nip.io)
+
+- **Verdict:** ✅ FULL PASS (login → add → PENDING_VERIFY → verify → delete + 2 sad-path).\n- **ĐÍNH CHÍNH:** CustomDomainTab FE **CÓ tồn tại** + wired đầy đủ tại `(customer)/settings` tab 'Tên miền' (recipe cũ ghi 'chưa có FE' là SAI).\n- **Credential:** owner@skyedu.vn (PREMIUM). Recipe credential owner.test@test.vn (FREE) chỉ thấy locked state.\n- Access `:3001` resolve tenant qua JWT claim — localhost:3001 production-accurate (không cần subdomain).\n- **Positive:** GAP-1023 cross-tenant IDOR nay **403** (đã fix) → re-verify candidate.\n- Defer: FE nuốt backend reason + BE error English (GAP-1462 P2).
