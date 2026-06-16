@@ -1,6 +1,6 @@
 # GAP-1435: BASIC owner không có đường downgrade hợp lệ — tier thấp hơn duy nhất là FREE bị BE từ chối 400
 
-**Status:** 🟡 PARTIAL
+**Status:** 🟢 DONE
 **Priority:** 🟡 P2
 **Domain:** Mixed
 **Found:** 2026-06-16 (Phase-2 browser walk flow KH-5)

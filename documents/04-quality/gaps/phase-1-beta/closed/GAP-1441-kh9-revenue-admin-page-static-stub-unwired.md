@@ -1,6 +1,6 @@
 # GAP-1441: Revenue admin page là static stub hardcode "0đ" — endpoint /admin/revenue trả data thật bị orphan
 
-**Status:** 🟡 PARTIAL — fix implemented, pending re-walk
+**Status:** 🟢 DONE
 **Priority:** 🟡 P2
 **Domain:** Frontend
 **Found:** 2026-06-16 (Phase-2 browser walk flow KH-9)

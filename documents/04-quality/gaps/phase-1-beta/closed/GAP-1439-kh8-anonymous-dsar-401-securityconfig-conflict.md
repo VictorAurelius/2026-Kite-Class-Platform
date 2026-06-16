@@ -1,6 +1,6 @@
 # GAP-1439: Anonymous DSAR bị 401 — SecurityConfig khóa /api/v1/dsar/** authenticated() mâu thuẫn controller "unauthenticated by design"
 
-**Status:** 🟡 PARTIAL
+**Status:** 🟢 DONE
 **Priority:** 🔴 P1
 **Domain:** Backend
 **Found:** 2026-06-16 (Phase-2 browser walk flow KH-8)

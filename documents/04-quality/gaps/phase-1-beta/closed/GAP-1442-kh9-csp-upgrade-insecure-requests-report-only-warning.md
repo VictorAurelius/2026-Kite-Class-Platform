@@ -1,6 +1,6 @@
 # GAP-1442: CSP console warning — 'upgrade-insecure-requests' bị ignore trong report-only policy (no-op directive)
 
-**Status:** 🟡 PARTIAL — fix implemented, pending re-walk
+**Status:** 🟢 DONE
 **Priority:** 🟢 P3
 **Domain:** Frontend
 **Found:** 2026-06-16 (Phase-2 browser walk flow KH-9)

@@ -1,6 +1,6 @@
 # GAP-1448: Payroll admin FE empty-state leak tên method backend nội bộ ra UI owner
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟢 P3
 **Domain:** Frontend
 **Found:** 2026-06-16 (Phase-2 browser walk flow KC-12)

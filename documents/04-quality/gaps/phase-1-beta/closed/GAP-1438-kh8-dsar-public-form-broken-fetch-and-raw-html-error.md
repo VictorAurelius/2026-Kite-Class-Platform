@@ -1,6 +1,6 @@
 # GAP-1438: DSAR public form vỡ end-to-end — bare relative fetch 404 + catch dump raw HTML vào alert
 
-**Status:** 🟡 PARTIAL
+**Status:** 🟢 DONE
 **Priority:** 🔴 P1
 **Domain:** Frontend
 **Found:** 2026-06-16 (Phase-2 browser walk flow KH-8)

@@ -1,6 +1,6 @@
 # GAP-1447: Wizard redirect dead-end — owner KC click "Mở wizard" bị bounce tới KH :3001 login (chưa có session/SSO)
 
-**Status:** 🟡 PARTIAL
+**Status:** 🟢 DONE
 **Priority:** 🟢 P3
 **Domain:** Frontend
 **Found:** 2026-06-16 (Phase-2 browser walk flow KC-10)

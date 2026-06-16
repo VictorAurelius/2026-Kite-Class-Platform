@@ -1,6 +1,6 @@
 # GAP-1445: Dashboard load trả 400 GET /api/v1/onboarding-progress cho owner không có tenant (KH-1 onboarding scope)
 
-**Status:** 🟡 PARTIAL
+**Status:** 🟢 DONE
 **Priority:** 🟢 P3
 **Domain:** Mixed
 **Found:** 2026-06-16 (Phase-2 browser walk flow KH-10)

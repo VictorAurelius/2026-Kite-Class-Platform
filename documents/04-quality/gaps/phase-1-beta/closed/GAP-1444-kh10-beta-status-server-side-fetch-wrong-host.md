@@ -1,6 +1,6 @@
 # GAP-1444: beta-status FE server-side fetch sai host → fallback vĩnh viễn "Không tải được nội dung trạng thái BE"
 
-**Status:** 🟡 PARTIAL
+**Status:** 🟢 DONE
 **Priority:** 🟡 P2
 **Domain:** Frontend
 **Found:** 2026-06-16 (Phase-2 browser walk flow KH-10)

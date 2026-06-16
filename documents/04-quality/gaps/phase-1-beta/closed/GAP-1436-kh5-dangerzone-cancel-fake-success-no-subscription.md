@@ -1,6 +1,6 @@
 # GAP-1436: DangerZone "Hủy đăng ký" no-op DELETE cho owner không có subscription nhưng vẫn redirect success giả
 
-**Status:** 🟡 PARTIAL
+**Status:** 🟢 DONE
 **Priority:** 🟡 P2
 **Domain:** Frontend
 **Found:** 2026-06-16 (Phase-2 browser walk flow KH-5)

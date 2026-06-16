@@ -1,6 +1,6 @@
 # GAP-1440: Dashboard admin FE↔BE contract drift — KPI/revenue/pending render NaN/undefined dù BE trả data hợp lệ
 
-**Status:** 🟡 PARTIAL — fix implemented, pending re-walk
+**Status:** 🟢 DONE
 **Priority:** 🟠 P1
 **Domain:** Mixed
 **Found:** 2026-06-16 (Phase-2 browser walk flow KH-9)

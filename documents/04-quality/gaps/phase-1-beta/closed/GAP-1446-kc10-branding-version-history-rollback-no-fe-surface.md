@@ -1,6 +1,6 @@
 # GAP-1446: Version-history + rollback branding KC không có FE surface (BE-only) — flow KC-10 quảng cáo nhưng FE chỉ name/colors/logo
 
-**Status:** 🟡 PARTIAL
+**Status:** 🟢 DONE
 **Priority:** 🟡 P2
 **Domain:** Frontend
 **Found:** 2026-06-16 (Phase-2 browser walk flow KC-10)

@@ -1,6 +1,6 @@
 # GAP-1437: generate-theme trả 500 (không 400) khi body rỗng/null — LogoAnalysis thiếu validation
 
-**Status:** 🟡 PARTIAL
+**Status:** 🟢 DONE
 **Priority:** 🟢 P3
 **Domain:** Backend
 **Found:** 2026-06-16 (Phase-2 browser walk flow KH-6)

@@ -1,6 +1,6 @@
 # GAP-1443: SupportMenu + FeedbackWidget mồ côi — feedback & support không có entry point FE trong app
 
-**Status:** 🟡 PARTIAL
+**Status:** 🟢 DONE
 **Priority:** 🔴 P1
 **Domain:** Frontend
 **Found:** 2026-06-16 (Phase-2 browser walk flow KH-10)
