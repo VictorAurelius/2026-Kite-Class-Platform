@@ -33,11 +33,16 @@ export const attendanceApi = {
   /**
    * Mark bulk attendance for a session.
    *
-   * POST /api/v1/attendance/bulk
+   * GAP-1426: BE exposes the bulk mark under the class+session path
+   * (POST /api/v1/attendance/classes/{classId}/sessions/{sessionId}/attendance) —
+   * there is no /attendance/bulk mapping, so the old path 405'd.
    */
-  markBulkAttendance: async (data: BulkAttendanceRequest): Promise<Attendance[]> => {
+  markBulkAttendance: async (
+    classId: number,
+    data: BulkAttendanceRequest
+  ): Promise<Attendance[]> => {
     const response = await apiClient.post<ApiResponse<Attendance[]>>(
-      '/api/v1/attendance/bulk',
+      `/api/v1/attendance/classes/${classId}/sessions/${data.sessionId}/attendance`,
       data
     );
     return response.data.data!;
@@ -90,13 +95,14 @@ export const attendanceApi = {
   /**
    * Update attendance status.
    *
-   * PUT /api/v1/attendance/:id
+   * PATCH /api/v1/attendance/:id
+   * GAP-1429: BE exposes @PatchMapping("/{id}"), FE must use PATCH (was PUT → 405).
    */
   updateAttendanceStatus: async (
     id: number,
     data: UpdateAttendanceStatusRequest
   ): Promise<Attendance> => {
-    const response = await apiClient.put<ApiResponse<Attendance>>(
+    const response = await apiClient.patch<ApiResponse<Attendance>>(
       `/api/v1/attendance/${id}`,
       data
     );

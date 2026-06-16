@@ -24,7 +24,11 @@ export interface Invoice {
 
 export enum InvoiceStatus {
   DRAFT = 'DRAFT',
+  // GAP-1432: BE issues SENT + PARTIAL statuses; without them the FE status map
+  // fell through and action buttons (record-payment etc.) never rendered.
+  SENT = 'SENT',
   PENDING = 'PENDING',
+  PARTIAL = 'PARTIAL',
   PAID = 'PAID',
   OVERDUE = 'OVERDUE',
   CANCELLED = 'CANCELLED',

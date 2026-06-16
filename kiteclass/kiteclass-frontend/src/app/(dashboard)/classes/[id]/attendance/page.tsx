@@ -9,7 +9,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import { use, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Save, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
@@ -59,20 +59,22 @@ export default function TakeAttendancePage({
 
   const markBulkMutation = useMarkBulkAttendance();
 
-  // Auto-select first session if available
-  useState(() => {
+  // Auto-select first session when sessions load (GAP-1427: was useState(initFn)
+  // which only runs once at mount before async data arrives → never selected).
+  useEffect(() => {
     if (sessions && sessions.length > 0 && !selectedSessionId) {
       setSelectedSessionId(sessions[0]!.id);
     }
-  });
+  }, [sessions, selectedSessionId]);
 
   // Initialize attendance state from enrollments
   const [attendanceRows, setAttendanceRows] = useState<StudentAttendanceRow[]>(
     []
   );
 
-  // Initialize rows when enrollments load
-  useState(() => {
+  // Seed rows when enrollments load (GAP-1427: was useState(initFn) → grid stayed
+  // empty because enrollments are fetched async after the initializer ran once).
+  useEffect(() => {
     if (enrollments?.content && attendanceRows.length === 0) {
       setAttendanceRows(
         enrollments.content.map((enrollment) => ({
@@ -83,7 +85,7 @@ export default function TakeAttendancePage({
         }))
       );
     }
-  });
+  }, [enrollments?.content, attendanceRows.length]);
 
   const handleStatusChange = (enrollmentId: number, status: AttendanceStatus) => {
     setAttendanceRows((rows) =>
@@ -128,8 +130,11 @@ export default function TakeAttendancePage({
     }));
 
     await markBulkMutation.mutateAsync({
-      sessionId: selectedSessionId,
-      records,
+      classId,
+      data: {
+        sessionId: selectedSessionId,
+        records,
+      },
     });
 
     // Navigate back to class detail (only if mutation succeeds)

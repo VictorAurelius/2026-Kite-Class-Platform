@@ -129,16 +129,17 @@ export function useMarkBulkAttendance() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: BulkAttendanceRequest) =>
-      attendanceApi.markBulkAttendance(data),
+    // GAP-1426: bulk mark needs classId for the BE class+session path.
+    mutationFn: (vars: { classId: number; data: BulkAttendanceRequest }) =>
+      attendanceApi.markBulkAttendance(vars.classId, vars.data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: [ATTENDANCE_QUERY_KEY] });
       queryClient.invalidateQueries({
-        queryKey: [ATTENDANCE_QUERY_KEY, 'session', variables.sessionId],
+        queryKey: [ATTENDANCE_QUERY_KEY, 'session', variables.data.sessionId],
       });
       toast({
         title: 'Thành công',
-        description: `Đã điểm danh cho ${variables.records.length} học viên`,
+        description: `Đã điểm danh cho ${variables.data.records.length} học viên`,
       });
     },
     onError: (error: AxiosError<{ message?: string; error?: string }>) => {

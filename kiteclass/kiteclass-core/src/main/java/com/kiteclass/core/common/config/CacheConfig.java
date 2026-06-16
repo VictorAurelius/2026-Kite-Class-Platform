@@ -3,8 +3,6 @@ package com.kiteclass.core.common.config;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
-import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
@@ -72,24 +70,23 @@ public class CacheConfig {
         // SHOULD reject unknown fields) is unaffected.
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
-        // Enable default typing to store @class type information in Redis so the
-        // exact concrete type round-trips. MUST be EVERYTHING (not NON_FINAL):
-        // GAP-1421 — cached values are DTO **records** (e.g. CourseResponse), which
-        // are FINAL. NON_FINAL skips final types → no root @class written → the
-        // cache READ throws "missing type id property '@class'" → HTTP 500 on cache
-        // HIT. EVERYTHING types final records too. (Scalars that can't carry a
-        // property fall back to WRAPPER_ARRAY automatically.)
-        PolymorphicTypeValidator typeValidator = BasicPolymorphicTypeValidator.builder()
-                .allowIfBaseType(Object.class)
+        // GAP-1421 + Jackson-2.21 deprecation: store @class type info in Redis so the
+        // exact concrete type round-trips, INCLUDING final DTO **records** (e.g.
+        // CourseResponse). Previously this called
+        // objectMapper.activateDefaultTyping(validator, DefaultTyping.EVERYTHING, ...),
+        // but DefaultTyping.EVERYTHING is @Deprecated since Jackson 2.21, and its only
+        // successor enum NON_FINAL_AND_ENUMS still SKIPS final types → final records
+        // lose their root @class → cache READ throws "missing type id property
+        // '@class'" → HTTP 500 on cache HIT. Spring Data Redis' own builder with
+        // defaultTyping(true) installs a non-deprecated StdTypeResolverBuilder that
+        // writes @class for ALL types (final records included) — same behaviour the
+        // no-arg GenericJackson2JsonRedisSerializer ships, but layered onto our custom
+        // mapper (JavaTimeModule + relaxed unknown-property handling). Cache-only
+        // mapper, so REST request binding is unaffected.
+        return GenericJackson2JsonRedisSerializer.builder()
+                .objectMapper(objectMapper)
+                .defaultTyping(true)
                 .build();
-        objectMapper.activateDefaultTyping(
-                typeValidator,
-                ObjectMapper.DefaultTyping.EVERYTHING,
-                com.fasterxml.jackson.annotation.JsonTypeInfo.As.PROPERTY
-        );
-
-        // Create serializer with configured ObjectMapper
-        return new GenericJackson2JsonRedisSerializer(objectMapper);
     }
 
     @Bean
