@@ -27,7 +27,8 @@ Stack đã rebuild 4 service (kitehub-frontend/subscription/branding + kiteclass
 docker ps --format '{{.Names}}\t{{.Status}}' | grep -E 'kitehub-frontend|kitehub-subscription|kitehub-branding|kiteclass-frontend|kite-gateway'
 # Cả 5 phải (healthy), 4 service đầu uptime < vài phút (đã recreate)
 ```
-- **KH FE = `http://localhost:3001`** · **KC FE = `http://localhost:3000`** · gateway `:9000` (per `kitehub-kiteclass-boundary.md`)
+- **KH FE = `http://localhost:3001`** (platform console — single-domain, KHÔNG subdomain-tenant) · **KC FE = `http://<slug>.127.0.0.1.nip.io:3000`** (multi-tenant — resolve tenant qua Host subdomain; **CẤM `localhost:3000` thuần / `?tenant=`** per `g1-browser-walk-before-flip.md` §3.1/§3.2) · gateway `:9000` (per `kitehub-kiteclass-boundary.md`)
+- **KC tenant slug walk:** `g2-test-center-5` → base `http://g2-test-center-5.127.0.0.1.nip.io:3000`
 - Credentials: `owner.test@test.vn` / `Test@1234` (OWNER) · `admin.test@test.vn` / `Test@1234` (PLATFORM_ADMIN, 2FA-gated — dùng `/admin` login flow)
 - **Seed cần (từ pre-walk artifact `2026-06-16-pre-walk-phase3.md`):**
   - KH-9 revenue (1441): ≥1 payment row trong tháng hiện tại (nếu trống → empty-state, vẫn PASS)
@@ -71,15 +72,15 @@ docker ps --format '{{.Names}}\t{{.Status}}' | grep -E 'kitehub-frontend|kitehub
 2. **Action (1436):** owner **TRIAL/không subscription** → `:3001/settings` → Danger Zone → card "Hủy đăng ký".
    **Expected (PASS):** nút disabled + dòng "Bạn chưa có gói đăng ký để hủy"; KHÔNG mở dialog, KHÔNG redirect `/billing?success=cancelled` (success giả). Owner có sub active → dialog mở bình thường.
 
-### Flow KC-10 — Branding (GAP-1446/1447) · persona: OWNER KC (`:3000`)
-1. **Action (1446):** login owner KC → `:3000` Settings → Branding → cuộn tới "Lịch sử phiên bản".
+### Flow KC-10 — Branding (GAP-1446/1447) · persona: OWNER KC (subdomain nip.io)
+1. **Action (1446):** login owner KC tại `http://g2-test-center-5.127.0.0.1.nip.io:3000/login` → Settings → Branding (`http://g2-test-center-5.127.0.0.1.nip.io:3000/branding`) → cuộn tới "Lịch sử phiên bản".
    **Expected (PASS):** list versions; version active có badge "Đang dùng" + nút "Khôi phục" của nó disabled. Click "Khôi phục" version cũ → ConfirmDialog → confirm → toast success + list refetch.
    **Note:** nếu chưa có version nào → list rỗng graceful (vẫn PASS).
-2. **Action (1447):** mở `:3000/branding/wizard`.
+2. **Action (1447):** mở `http://g2-test-center-5.127.0.0.1.nip.io:3000/branding/wizard`.
    **Expected (PASS):** thấy **hand-off card** + cảnh báo amber "chưa có đăng nhập dùng chung KiteClass↔KiteHub"; link mở KH wizard ở **tab mới** (`target="_blank"`) — KHÔNG auto-bounce/dead-end về `:3001/login`. Tab KC giữ session.
 
-### Flow KC-12 — Payroll (GAP-1448) · persona: OWNER KC (`:3000`)
-1. **Action:** `:3000/admin/payroll` với filter ra empty-state.
+### Flow KC-12 — Payroll (GAP-1448) · persona: OWNER KC (subdomain nip.io)
+1. **Action:** `http://g2-test-center-5.127.0.0.1.nip.io:3000/admin/payroll` với filter ra empty-state.
    **Expected (PASS):** copy empty-state "Kỳ lương sẽ xuất hiện sau khi chạy bảng lương — chức năng 'Chạy bảng lương' sẽ có ở Phase 2". **KHÔNG** còn `PayrollService.calculate(...)`.
 
 ---
