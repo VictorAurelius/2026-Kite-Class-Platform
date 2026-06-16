@@ -83,6 +83,13 @@ module.exports = {
         PORT: 4701,
         HOSTNAME: '127.0.0.1',
 
+        // INTERNAL_API_URL: SERVER-side gateway base for Next.js Server Components
+        // (GAP-1444 — beta-status SSR fetch). On the fe-host the Docker-network
+        // default `kite-gateway:9000` does NOT resolve (PM2 runs node directly,
+        // no compose network), so SSR fetch must target the public gateway domain.
+        // Live-verify post-AWS-restore tracked by GAP-1455.
+        INTERNAL_API_URL: 'https://api.kitehub.me',
+
         // NEXT_TELEMETRY_DISABLED: tắt opt-in telemetry gửi về Vercel.
         // Self-host = không cần dữ liệu Vercel side; tiết kiệm 1 outbound call.
         NEXT_TELEMETRY_DISABLED: '1',
@@ -177,6 +184,12 @@ module.exports = {
         NODE_ENV: 'production',
         PORT: 4700,
         HOSTNAME: '127.0.0.1',
+        // INTERNAL_API_URL: SERVER-side gateway base — kiteclass-frontend SSR
+        // (resolveTenant / landing / public) already reads this in code but the
+        // PM2 env never set it → same latent SSR-fallback class as GAP-1444.
+        // Public gateway domain since `kite-gateway:9000` is Docker-only.
+        // Live-verify post-AWS-restore tracked by GAP-1455.
+        INTERNAL_API_URL: 'https://api.kitehub.me',
         NEXT_TELEMETRY_DISABLED: '1',
         NODE_OPTIONS: '--max-old-space-size=1024',
       },
