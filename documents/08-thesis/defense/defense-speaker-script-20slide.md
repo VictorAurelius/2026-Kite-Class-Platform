@@ -1,145 +1,141 @@
-# Văn nói thuyết trình bảo vệ — 20 slide + demo
+# Văn nói thuyết trình bảo vệ — bám thesis final (ảnh thật)
 
-> Sinh ra từ speaker notes của `KiteHub-baove-khoaluan-20slide.pptx`. Tổng nói ~18–19 phút (chưa tính demo). Mỗi mục = 1 slide.
-
-> Demo chèn tại slide 18, theo kịch bản `defense-demo-script.md` (6 phase ~10–15 phút).
+> Xuất từ speaker notes của `KiteHub-baove-khoaluan-20slide.pptx` (27 slide, 20 ảnh thật từ thesis-v1.docx). Tổng nói ~18–19 phút. Demo chèn tại slide 20 theo `defense-demo-script.md`.
 
 
 ## Slide 1 — Xây dựng hệ thống SaaS cung cấp dịch vụ đào tạo
 
-Chào hội đồng. Em là Nguyễn Văn Kiệt, sinh viên lớp CNTT1-K63 dưới hướng dẫn của thầy Nguyễn Đức Dư. Hôm nay em xin trình bày khóa luận tốt nghiệp với đề tài Xây dựng hệ thống SaaS cung cấp dịch vụ đào tạo, gọi tắt là nền tảng KiteHub. (~30 giây)
+Chào hội đồng. Em là Nguyễn Văn Kiệt, lớp CNTT1-K63, dưới hướng dẫn của thầy Nguyễn Đức Dư. Em xin trình bày khóa luận: Xây dựng hệ thống SaaS cung cấp dịch vụ đào tạo — nền tảng KiteHub. (~30 giây)
 
 
 ## Slide 2 — Nội dung trình bày
 
-Bài trình bày gồm 5 phần: bối cảnh và mục tiêu, khảo sát thị trường và AI, thiết kế kiến trúc, triển khai và kết quả, cuối cùng là demo trực tiếp và kết luận. (~20 giây)
+Bài trình bày bám bốn chương: tổng quan, thiết kế kiến trúc, cài đặt và triển khai, đánh giá kết quả; khép lại bằng demo và kết luận. (~20 giây)
 
 
-## Slide 3 — Bối cảnh và vấn đề thực tế
+## Slide 3 — Bối cảnh và vấn đề (§1.1)
 
-Bối cảnh thúc đẩy đề tài: thị trường lớn, văn bản pháp luật hợp pháp hóa ngành dạy thêm, nhưng phần lớn trung tâm nhỏ vẫn quản lý thủ công vì phần mềm hiện có quá phức tạp hoặc quá đắt. Ba quan sát hội tụ: nhu cầu thị trường, mốc pháp lý, và công nghệ AI vừa đủ chín. (~60 giây)
+Bối cảnh: thị trường lớn, pháp luật hợp pháp hóa dạy thêm, đa số trung tâm nhỏ quản lý thủ công. Ba quan sát hội tụ: nhu cầu, mốc pháp lý cứng, AI vừa đủ chín. (~60 giây)
 
 
-## Slide 4 — Mục tiêu và phạm vi đề tài
+## Slide 4 — Khảo sát hệ thống tương tự (§1.3)
 
-Bốn nhóm mục tiêu: không chỉ làm sản phẩm chạy được mà còn phải đo lường được, tuân thủ pháp luật, và có phương pháp luận chứng minh được. Phạm vi tập trung mức sẵn sàng cho tenant thực tế dùng; các tính năng nâng cao thuộc hướng phát triển sau. (~60 giây)
+Khảo sát 5 hệ thống tham khảo (thêm MISA AMIS). Hầu hết đơn-tenant, không AI. KiteHub khai thác khoảng trống đa-tenant gốc + AI Branding phân khúc giá thấp. (~70 giây)
 
 
-## Slide 5 — Khảo sát hệ thống tương tự và yếu tố khác biệt
+## Slide 5 — Mục tiêu và phạm vi đề tài (§1.7)
 
-Khảo sát bốn sản phẩm tham khảo phổ biến tại Việt Nam. Hầu hết là đơn tenant, không có AI tích hợp. KiteHub khai thác khoảng trống đa-tenant gốc kết hợp AI Branding ở mức giá tier thấp. Chi tiết bốn phương pháp sinh ảnh để ở phụ lục. (~70 giây)
+Bốn nhóm mục tiêu: chức năng, phi chức năng đo được, pháp lý, phương pháp luận. Phạm vi tập trung mức sẵn sàng cho tenant thực tế. (~60 giây)
 
 
-## Slide 6 — Đóng góp 1 — Kỹ thuật AI Branding tự động
+## Slide 6 — Đóng góp 1 — Kỹ thuật AI Branding (§1.4)
 
-Đóng góp thứ nhất: tự động hóa nhận diện thương hiệu. Quyết định không tự host AI là quyết định kiến trúc quan trọng, phù hợp quy mô và ngân sách. Pipeline gồm 6 bước, worker xử lý bất đồng bộ nên không chặn giao diện; có quality gate lọc nội dung và cơ chế dự phòng provider khi bị giới hạn. (~80 giây)
+Đóng góp thứ nhất: tự động hóa nhận diện thương hiệu. Dùng API thương mại thay vì tự host GPU. Pipeline bất đồng bộ không chặn giao diện, có quality gate và dự phòng provider. Bên phải là wizard thực tế. (~80 giây)
 
 
-## Slide 7 — Tuân thủ pháp luật Việt Nam — 3 trụ cột
+## Slide 7 — Tuân thủ pháp luật Việt Nam (§1.5)
 
-Ba trụ cột pháp luật được tích hợp ngay từ thiết kế. PDPL là mốc cứng tháng 7 năm 2026. Luật An ninh mạng có ngưỡng kích hoạt; hiện chưa chạm ngưỡng nhưng có lộ trình. Thông tư 78 về hóa đơn điện tử dùng đối tác chuyên trách. Mapping đầy đủ các điều luật PDPL ở phụ lục. (~60 giây)
+Ba trụ cột pháp luật tích hợp từ thiết kế. PDPL mốc cứng 07/2026. Luật An ninh mạng có ngưỡng, chưa chạm, có lộ trình. Thông tư 78 dùng đối tác. (~60 giây)
 
 
-## Slide 8 — Kiến trúc tổng thể — C4 Level 1
+## Slide 8 — Phương pháp luận hướng chất lượng (§1.6)
 
-Kiến trúc tổng thể chia hai mặt phẳng: KiteHub là control-plane quản lý vòng đời tenant, KiteClass là data-plane phục vụ nghiệp vụ giáo dục. Cả hai dùng chung một PostgreSQL với RLS cô lập theo tenant. Sơ đồ trực quan có trong bản deck đầy đủ. (~70 giây)
+Bốn trụ cột có cơ sở lý thuyết. Trụ cột bốn: mỗi sai sót thành quy tắc có kiểm tra. Kim tự tháp kiểm thử minh họa phân bố ba tầng test. (~50 giây)
 
 
-## Slide 9 — Đóng góp 2 — Chiến lược cô lập đa-tenant
+## Slide 9 — Kiến trúc tổng thể — C4 Level 1 (Hình 2.1)
 
-So sánh bốn mô hình cô lập. Chọn Row-Level Security vì chi phí thấp nhất và được chính database engine ép buộc — không phụ thuộc lập trình viên nhớ thêm điều kiện lọc. Đây là đóng góp thứ hai của đề tài. (~70 giây)
+Kiến trúc tổng thể chia hai mặt phẳng: KiteHub control-plane quản lý vòng đời tenant; KiteClass data-plane phục vụ giáo dục. Chia sẻ một PostgreSQL cô lập bằng RLS. (~70 giây)
 
 
-## Slide 10 — Cài đặt PostgreSQL Row-Level Security
+## Slide 10 — Phân rã container — C4 Level 2 (Hình 2.2)
 
-RLS cài đặt hai lớp: lớp database tạo policy, lớp ứng dụng set biến phiên qua HikariCP. Mỗi truy vấn Postgres tự động đánh giá policy nên ngay cả khi quên lọc cũng không rò dữ liệu chéo tenant. (~70 giây)
+KiteHub 6 microservice vì vòng đời khác nhau; KiteClass modular monolith vì domain giáo dục gắn kết chặt. (~60 giây)
 
 
-## Slide 11 — Bảo mật nhiều lớp — Defense-in-depth
+## Slide 11 — Đóng góp 2 — Cô lập đa-tenant bằng RLS
 
-Nguyên tắc nhiều lớp độc lập. RLS là lớp cuối cùng: ngay cả khi lập trình viên quên kiểm tra ở tầng ứng dụng, Postgres vẫn ép buộc. Đây là khác biệt quan trọng so với cách chỉ lọc ở tầng ứng dụng. (~60 giây)
+So sánh bốn mô hình. Chọn RLS vì chi phí thấp nhất và database engine ép buộc. Đóng góp thứ hai. (~70 giây)
 
 
-## Slide 12 — Công nghệ và phân chia dịch vụ
+## Slide 12 — Bảo mật nhiều lớp — Defense-in-depth (Hình 2.3)
 
-Kiến trúc lai: KiteHub tách 6 microservice vì vòng đời khác nhau (branding bất đồng bộ, email hàng đợi, subscription giao dịch). KiteClass là modular monolith vì domain giáo dục gắn kết chặt. Stack chọn theo bản LTS để giảm rủi ro nâng cấp. (~50 giây)
+Nhiều lớp độc lập. RLS là phòng tuyến cuối: quên kiểm tra tầng ứng dụng, database vẫn ép buộc. Phải thủng cả 5 lớp mới rò. (~60 giây)
 
 
-## Slide 13 — Đóng góp 3 — Trích cài đặt: JWT Auth Filter
+## Slide 13 — Mô hình dữ liệu — ERD KiteClass (Hình 2.6b)
 
-Đoạn code đại diện một trong các trích dẫn trong báo cáo. Mẫu thiết kế: xác thực JWT ở gateway, không lặp ở mỗi dịch vụ; tenant context truyền qua header để dịch vụ set biến phiên trước truy vấn. (~70 giây)
+Mô hình dữ liệu domain giáo dục. ENROLLMENTS phân giải nhiều-nhiều học viên–lớp; điểm danh, điểm, thanh toán gắn quanh đăng ký. Mọi bảng mang tenant_id. (~50 giây)
 
 
-## Slide 14 — Triển khai thực tế — AWS Singapore
+## Slide 14 — Vòng đời tenant — máy trạng thái (Hình 2.8)
 
-Triển khai thực tế trên AWS Singapore. Lý do chọn: đăng ký ổn định, hệ sinh thái trưởng thành, Free Tier 12 tháng cho chi phí gần như 0. Hiện chưa vượt ngưỡng pháp lý, có lộ trình chuyển vùng rõ ràng khi cần. (~60 giây)
+Vòng đời tenant: từ chờ duyệt, sang dùng thử khi cấp magic-link, đến hoạt động chính thức. Sự kiện branding.deploy phát song song dựng template. (~50 giây)
 
 
-## Slide 15 — CI/CD và giám sát vận hành
+## Slide 15 — Triển khai thực tế — AWS Singapore (Hình 4.1a)
 
-CI/CD áp dụng chuẩn hiện đại: artifact bất biến, OIDC thay cho key tĩnh, xác nhận thủ công như một điểm dừng nhận thức. Giám sát ba lớp độc lập; CloudTrail bắt buộc bật trước khi tạo tài nguyên để có audit baseline. (~50 giây)
+Triển khai thực tế AWS Singapore, VPC tách public/private subnet, RDS trong private subnet. Free Tier cho chi phí ~0. Chưa vượt ngưỡng pháp lý, có lộ trình chuyển vùng. (~60 giây)
 
 
-## Slide 16 — Phương pháp luận phát triển hướng chất lượng
+## Slide 16 — CI/CD và giám sát vận hành (Hình 4.2a)
 
-Bốn trụ cột phương pháp luận, có cơ sở lý thuyết Deming, Beck, Poppendieck, IEEE 730. Đặc biệt trụ cột thứ tư: mỗi sai sót trở thành một quy tắc có cơ chế kiểm tra, không chỉ ghi chú lần sau cẩn thận hơn. (~50 giây)
+CI/CD chuẩn hiện đại: artifact bất biến, OIDC thay key tĩnh, xác nhận thủ công. Giám sát ba lớp; CloudTrail bật trước khi tạo tài nguyên. (~50 giây)
 
 
-## Slide 17 — Kết quả đánh giá — các chỉ số chính
+## Slide 17 — Sản phẩm thực tế — giao diện (Chương 3)
 
-Bốn chỉ số chính: hiệu năng 86, bảo mật 93, chất lượng 90 trên 110, đều vượt ngưỡng đạt. Quan trọng: mỗi điểm số có audit report với evidence block làm chứng cứ, và trajectory cho thấy cải tiến liên tục có thể đo được. (~80 giây)
+Ba giao diện thực tế: trang chủ thương hiệu riêng (minh chứng phân giải Tenant→Domain→Landing), dashboard, quản lý học viên. Sản phẩm chạy thật. (~60 giây)
 
 
-## Slide 18 — Demo trực tiếp
+## Slide 18 — Kết quả AI Branding — gói Miễn phí vs Trả phí
 
-Chuyển sang demo trực tiếp theo kịch bản 6 phase: khách tham quan trang công khai, đăng ký onboarding, wizard tạo tenant, chứng minh cô lập đa-tenant bằng hai tài khoản khác tenant, xem audit log. Nếu sự cố sẽ dùng video dự phòng. (~30 giây + demo)
+Minh chứng giá trị AI Branding: bên trái gói Miễn phí mẫu dựng sẵn; bên phải gói Trả phí bộ nhận diện sinh tự động qua AI cho môn Hóa, tông màu khác hẳn. Hai tenant thật, hai thương hiệu riêng. (~70 giây)
 
 
-**>>> CHÈN DEMO TRỰC TIẾP <<<** — chuyển sang trình duyệt, chạy 6 phase theo `defense-demo-script.md`:
-1. Khách tham quan trang công khai → 2. Đăng ký onboarding → 3. Wizard tạo tenant → 4. Chứng minh cô lập đa-tenant (2 tài khoản khác tenant) → 5. Xem audit log → 6. Quay lại slide 19.
-Dự phòng: video `backup-demo.mp4` nếu sự cố mạng/hạ tầng.
+## Slide 19 — Kết quả đánh giá — các chỉ số chính (Chương 4)
 
+Bốn chỉ số: hiệu năng 86, bảo mật 93, chất lượng 90/110, đều vượt ngưỡng đạt. Mỗi điểm số có audit report evidence block; trajectory cho thấy cải tiến đo được. (~80 giây)
 
-## Slide 19 — Hạn chế thừa nhận và hướng phát triển
 
-Thừa nhận hạn chế trung thực kèm lộ trình là cách tiếp cận tốt hơn che giấu rồi bị hội đồng phát hiện. Mỗi hạn chế đều có hướng phát triển tương ứng: nâng cấp hạ tầng, chuyển vùng dữ liệu, mở thanh toán, tích hợp Zalo và hóa đơn điện tử qua đối tác. (~70 giây)
+## Slide 20 — Demo trực tiếp
 
+Chuyển sang demo trực tiếp theo kịch bản 6 phase (defense-demo-script.md): khách tham quan, đăng ký onboarding, wizard tạo tenant, chứng minh cô lập bằng 2 tài khoản khác tenant, xem audit log. Dự phòng video. (~30 giây + demo)
 
-## Slide 20 — Kết luận
 
-Tóm lại ba đóng góp: kỹ thuật AI Branding, kiến trúc đa-tenant RLS, và phương pháp luận hướng chất lượng. Sản phẩm đã triển khai thực tế và đạt các ngưỡng đánh giá. Cảm ơn GVHD và hội đồng, em sẵn sàng nhận câu hỏi. (~40 giây)
+**>>> CHÈN DEMO TRỰC TIẾP <<<** — 6 phase theo `defense-demo-script.md`: khách tham quan → đăng ký onboarding → wizard tạo tenant → cô lập đa-tenant (2 tài khoản khác tenant) → audit log → quay lại slide 21. Dự phòng `backup-demo.mp4`.
 
 
-## Slide 21 — Phụ lục — Slide dự phòng cho phần hỏi đáp
+## Slide 21 — Hạn chế thừa nhận và hướng phát triển
 
-Các slide phụ lục bật khi hội đồng hỏi sâu, theo 4 nhóm: Kiến trúc / Phi chức năng / Nghiệp vụ-Pháp lý / Quy trình.
+Thừa nhận hạn chế kèm lộ trình tốt hơn che giấu. Mỗi hạn chế có hướng phát triển: nâng cấp hạ tầng, chuyển vùng, mở thanh toán, tích hợp Zalo và hóa đơn điện tử qua đối tác. (~70 giây)
 
 
-## Slide 22 — Phụ lục A1 — So sánh 4 phương pháp sinh ảnh
+## Slide 22 — Kết luận
 
-Chọn Stable Diffusion XL vì cân bằng chi phí, chất lượng, độ trễ. DALL-E 3 đắt gấp khoảng 30 lần, không phù hợp tier thấp.
+Tóm ba đóng góp: AI Branding, đa-tenant RLS, phương pháp luận hướng chất lượng. Sản phẩm triển khai thực tế, đạt ngưỡng đánh giá. Cảm ơn GVHD và hội đồng. (~40 giây)
 
 
-## Slide 23 — Phụ lục A2 — PDPL 2023: điều luật → tính năng
+## Slide 23 — Phụ lục — slide dự phòng hỏi đáp
 
-Năm điều luật cốt lõi mapping 1-1 sang tính năng. Điều 11 audit log bất biến là yêu cầu khó nhất, giải bằng bảng không cho sửa/xóa ở cấp database.
+Slide phụ lục bật khi hội đồng hỏi sâu.
 
 
-## Slide 24 — Phụ lục A3 — Luồng xác thực và truy vấn
+## Slide 24 — Phụ lục A1 — Định tuyến Tenant → Domain → Landing (Hình 2.4c)
 
-Toàn bộ luồng không có điều kiện lọc tenant viết tay ở repository — database tự ép buộc.
+Chuỗi định tuyến tenant theo Host: gateway ánh xạ tên miền thành định danh tenant rồi truyền ngữ cảnh xuống lớp dữ liệu cô lập RLS.
 
 
-## Slide 25 — Phụ lục A4 — Phân tích chi phí
+## Slide 25 — Phụ lục A2 — ERD KiteHub control-plane (Hình 2.6a)
 
-Chi phí hạ tầng gần như 0 nhờ Free Tier; chi phí chính là AI Branding khoảng 0,19 USD mỗi lần onboard tenant. Số liệu chính xác tổng hợp khi có dữ liệu vận hành thực tế.
+Mô hình control-plane: INSTANCES quản lý vòng đời tenant, liên kết subscription và các bảng cấu hình.
 
 
-## Slide 26 — Phụ lục A5 — Phân khúc và persona mục tiêu
+## Slide 26 — Phụ lục A3 — PDPL 2023: điều luật → tính năng
 
-Ba persona chính P1-P2-P3 là trọng tâm hiện tại; phụ huynh và học viên hỗ trợ qua giao diện riêng, thuộc hướng phát triển sau.
+Năm điều luật mapping 1-1 sang tính năng. Điều 11 audit log bất biến giải bằng bảng không cho sửa/xóa ở cấp database.
 
 
-## Slide 27 — Phụ lục A6 — Lộ trình mời tenant thực tế
+## Slide 27 — Phụ lục A4 — Phân tích chi phí
 
-Lộ trình mời tenant thực tế nhằm đạt mục tiêu: ít nhất 4 trung tâm ký xác nhận đã sử dụng thực tế — khác biệt giữa thesis demo trên máy và thesis có người dùng thật xác nhận.
+Chi phí hạ tầng gần như 0 nhờ Free Tier; chi phí chính AI Branding ~0,19 USD mỗi lần onboard tenant.
