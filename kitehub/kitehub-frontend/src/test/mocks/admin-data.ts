@@ -99,6 +99,8 @@ export const mockPendingPayments: AdminPayment[] = [
 export const mockEmptyInstances: AdminInstanceSummary[] = [];
 export const mockEmptyPayments: AdminPayment[] = [];
 
+// GAP-1440: pendingPayments is no longer part of the flat DashboardStats view
+// model (the dashboard sources it from the pending-payments list).
 export const mockDashboardStats: DashboardStats = {
   totalInstances: 150,
   activeInstances: 120,
@@ -106,18 +108,26 @@ export const mockDashboardStats: DashboardStats = {
   suspendedInstances: 5,
   totalRevenue: 450000000, // 450 million VND
   monthlyRevenue: 89000000, // 89 million VND
-  pendingPayments: 8,
   newInstancesThisMonth: 12,
 };
 
+// GAP-1441: aligned to the backend RevenueReport shape (revenueByTier +
+// dailyRevenue + mrr/projectedArr/churnImpact).
 export const mockRevenueReport: RevenueReport = {
-  items: [
-    { period: '2026-01', revenue: 75000000, paymentCount: 25 },
-    { period: '2026-02', revenue: 82000000, paymentCount: 28 },
-    { period: '2026-03', revenue: 89000000, paymentCount: 32 },
-  ],
-  totalRevenue: 246000000,
   period: 'MONTHLY',
-  startDate: '2026-01-01',
+  startDate: '2026-03-01',
   endDate: '2026-03-31',
+  totalRevenue: 89000000,
+  revenueByTier: [
+    { tier: 'BASIC', revenue: 30000000, subscriptionCount: 30 },
+    { tier: 'PREMIUM', revenue: 59000000, subscriptionCount: 20 },
+  ],
+  dailyRevenue: [
+    { date: '2026-03-01', revenue: 2870000 },
+    { date: '2026-03-02', revenue: 2870000 },
+    { date: '2026-03-03', revenue: 2870000 },
+  ],
+  mrr: 89000000,
+  projectedArr: 1068000000,
+  churnImpact: 5000000,
 };

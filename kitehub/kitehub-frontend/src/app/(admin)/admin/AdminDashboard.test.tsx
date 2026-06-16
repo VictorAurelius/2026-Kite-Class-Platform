@@ -15,10 +15,12 @@ import { mockDashboardStats } from '@/test/mocks/admin-data';
 // Mock the hooks
 const mockUseAdminDashboard = vi.fn();
 const mockUseAdminRevenue = vi.fn();
+const mockUseAdminPendingPayments = vi.fn();
 
 vi.mock('@/hooks/use-admin', () => ({
   useAdminDashboard: () => mockUseAdminDashboard(),
   useAdminRevenue: () => mockUseAdminRevenue(),
+  useAdminPendingPayments: () => mockUseAdminPendingPayments(),
 }));
 
 describe('AdminDashboardPage', () => {
@@ -34,6 +36,14 @@ describe('AdminDashboardPage', () => {
 
     mockUseAdminRevenue.mockReturnValue({
       data: null,
+      isLoading: false,
+      error: null,
+    });
+
+    // GAP-1440: dashboard derives the pending-payments KPI from this list.
+    // 8 entries → "Thanh toán chờ xác nhận" shows 8.
+    mockUseAdminPendingPayments.mockReturnValue({
+      data: new Array(8).fill(null),
       isLoading: false,
       error: null,
     });

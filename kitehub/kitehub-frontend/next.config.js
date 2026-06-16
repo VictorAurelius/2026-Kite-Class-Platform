@@ -67,7 +67,11 @@ const nextConfig = {
       "base-uri 'self'",
       "form-action 'self'",
       "object-src 'none'",
-      "upgrade-insecure-requests",
+      // GAP-1442: `upgrade-insecure-requests` is IGNORED in a report-only policy
+      // (browsers log a console warning on every page). It is omitted here while
+      // we ship CSP in Report-Only mode. Transport-level HTTPS is already enforced
+      // via the Strict-Transport-Security header below. Re-add this directive when
+      // the header flips to the enforcing `Content-Security-Policy` (Phase 1.5).
     ].join('; ');
     return [
       {
