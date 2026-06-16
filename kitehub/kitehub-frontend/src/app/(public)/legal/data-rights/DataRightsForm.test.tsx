@@ -44,7 +44,7 @@ describe('DataRightsForm', () => {
     fireEvent.click(screen.getByRole('button', { name: /Gửi yêu cầu/i }));
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
-    const calledUrl = String(fetchMock.mock.calls[0][0]);
+    const calledUrl = String(fetchMock.mock.calls[0]![0]);
     // Must hit the gateway absolute URL, not a bare relative path served by FE origin.
     expect(calledUrl).toMatch(/^https?:\/\//);
     expect(calledUrl).toContain('/api/v1/dsar/request');

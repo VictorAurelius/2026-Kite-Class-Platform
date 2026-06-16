@@ -43,7 +43,7 @@ describe('TierSelector — GAP-1435 downgrade-to-FREE guidance', () => {
 
     // Click the FREE plan card title region — FREE is disabled, must not select.
     // ("Miễn phí" appears as both card title + price label → take the title.)
-    const freeTitle = screen.getAllByText('Miễn phí')[0];
+    const freeTitle = screen.getAllByText('Miễn phí')[0]!;
     fireEvent.click(freeTitle);
     expect(onSelect).not.toHaveBeenCalledWith('FREE');
   });

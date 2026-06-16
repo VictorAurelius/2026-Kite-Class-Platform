@@ -23,7 +23,7 @@ vi.mock('next/navigation', () => ({
   }),
 }));
 
-const deleteMock = vi.fn(() => Promise.resolve({ data: {} }));
+const deleteMock = vi.fn((..._args: unknown[]) => Promise.resolve({ data: {} }));
 vi.mock('@/lib/api/client', () => ({
   default: {
     delete: (...args: unknown[]) => deleteMock(...args),
