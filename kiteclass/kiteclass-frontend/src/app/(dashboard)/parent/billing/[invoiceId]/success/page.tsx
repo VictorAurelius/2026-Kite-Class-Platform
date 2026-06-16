@@ -8,20 +8,72 @@
 
 export const dynamic = 'force-dynamic';
 
+import { useCallback, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { CheckCircle2, Download, Home } from 'lucide-react';
+import { CheckCircle2, Download, Home, Loader2 } from 'lucide-react';
 import { ParentShell } from '@/components/parent/parent-shell';
 import {
   MOCK_INVOICES,
   formatVN,
 } from '@/components/parent/parent-mock-data';
+import { documentsApi } from '@/lib/api/documents';
+import { toast } from '@/hooks/use-toast';
 
 export default function ParentBillingSuccessPage() {
   const params = useParams<{ invoiceId: string }>();
   const invoiceId = params?.invoiceId;
   const invoice =
     MOCK_INVOICES.find((i) => i.id === invoiceId) ?? MOCK_INVOICES[0]!;
+
+  const [downloading, setDownloading] = useState(false);
+
+  // GAP-1434: wire the receipt button to the real document-gen API
+  // (POST /api/v1/documents/pdf/download, template `invoice`) → fetch the
+  // branded PDF blob → trigger a browser download. Branding + tenant are
+  // resolved server-side; we only map the receipt fields into the template
+  // data shape (invoiceNumber/issueDate/buyer/items/totals).
+  const handleDownloadReceipt = useCallback(async () => {
+    setDownloading(true);
+    try {
+      const blob = await documentsApi.download('pdf', {
+        templateId: 'invoice',
+        data: {
+          invoiceNumber: invoice.id.toUpperCase(),
+          issueDate: new Date().toLocaleDateString('vi-VN'),
+          buyerName: invoice.childName,
+          subtotal: invoice.amount,
+          vatRate: 0,
+          vatAmount: 0,
+          total: invoice.amount,
+          items: [
+            {
+              description: invoice.title,
+              qty: 1,
+              unitPrice: invoice.amount,
+              lineTotal: invoice.amount,
+            },
+          ],
+        },
+      });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `bien-lai-${invoice.id}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch {
+      toast({
+        title: 'Lỗi tải biên lai',
+        description: 'Không thể tải biên lai PDF. Vui lòng thử lại sau.',
+        variant: 'destructive',
+      });
+    } finally {
+      setDownloading(false);
+    }
+  }, [invoice]);
 
   return (
     <ParentShell title="Thanh toán thành công" subtitle="Cảm ơn quý phụ huynh">
@@ -60,11 +112,17 @@ export default function ParentBillingSuccessPage() {
       <section className="mx-4 mt-4 space-y-2">
         <button
           type="button"
-          className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl border bg-card text-sm font-semibold transition-colors hover:bg-muted/40"
+          onClick={handleDownloadReceipt}
+          disabled={downloading}
+          className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl border bg-card text-sm font-semibold transition-colors hover:bg-muted/40 disabled:cursor-not-allowed disabled:opacity-60"
           data-testid="parent-billing-download-receipt"
         >
-          <Download className="h-4 w-4" aria-hidden />
-          Tải biên lai (PDF)
+          {downloading ? (
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+          ) : (
+            <Download className="h-4 w-4" aria-hidden />
+          )}
+          {downloading ? 'Đang tải biên lai…' : 'Tải biên lai (PDF)'}
         </button>
         <Link
           href="/parent"

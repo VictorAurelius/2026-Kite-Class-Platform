@@ -21,6 +21,7 @@ import {
   getOnboardingProgress,
   type OnboardingProgressResponse,
 } from '@/lib/api/onboarding';
+import { getTenantIdFromToken } from '@/lib/auth/jwt-storage';
 
 export interface OnboardingDashboardCTAProps {
   /** Inject for tests / SSR — skip the first fetch. */
@@ -32,6 +33,10 @@ export function OnboardingDashboardCTA({ initialState }: OnboardingDashboardCTAP
 
   useEffect(() => {
     if (initialState) return;
+    // GAP-1445: onboarding is per-tenant — skip the fetch for a tenantless
+    // platform owner (no tenantId JWT claim) so the dashboard doesn't fire a
+    // request the tenant-scoped endpoint will reject. CTA stays hidden.
+    if (!getTenantIdFromToken()) return;
     let cancelled = false;
     void (async () => {
       try {

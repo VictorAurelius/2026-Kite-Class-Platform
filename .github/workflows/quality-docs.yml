@@ -366,3 +366,36 @@ jobs:
           # Existing 177 grandfathered subdirs surface as WARN — rule applies
           # prospectively per `rule-change-process.md` convention.
           bash scripts/check-docs-subfolder-maturity.sh --warn
+
+  walk-recipe-access-mode:
+    name: Walk-recipe access-mode (g1-browser-walk §3.1/§3.2 — KC tenant URL nip.io)
+    needs: changes
+    if: needs.changes.outputs.workflow == 'true' || always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Self-test detector (bad fixture caught, nip.io clean)
+        run: |
+          set -e
+          mkdir -p /tmp/wr-fix/documents/05-guides/operations
+          # Bad URL must be caught; prose-mention + nip.io must NOT.
+          cat > documents/05-guides/operations/zzz-wr-selftest-g2-recipe.md <<'EOF'
+          Bad: http://localhost:3000/login and http://localhost:3000/x?tenant=sky
+          Good: http://g2-test-center-5.127.0.0.1.nip.io:3000/login
+          Prose ban (no flag): CẤM `localhost:3000` / `?tenant=`
+          EOF
+          if bash scripts/check-walk-recipe-access-mode.sh --strict; then
+            echo "SELF-TEST FAIL: detector did not catch bad fixture"; rm -f documents/05-guides/operations/zzz-wr-selftest-g2-recipe.md; exit 1
+          fi
+          rm -f documents/05-guides/operations/zzz-wr-selftest-g2-recipe.md
+          echo "self-test OK (bad fixture caught)"
+
+      - name: Detect KC tenant-URL access-mode violations (WARN)
+        run: |
+          # Per `g1-browser-walk-before-flip.md` §3.1/§3.2 (recurrence #2, 2026-06-16).
+          # KC (:3000, subdomain-resolved) tenant-flow URLs must use nip.io subdomain,
+          # NOT bare localhost:3000 / ?tenant=. WARN: ~34 pre-existing recipes
+          # grandfathered (follow-up gap) — rule applies prospectively.
+          bash scripts/check-walk-recipe-access-mode.sh --warn

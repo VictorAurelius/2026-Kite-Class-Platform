@@ -222,12 +222,21 @@ public class AttendanceController {
     /**
      * Get attendance statistics for a student.
      *
+     * <p><strong>OWASP A01 per-resource guard (GAP-1428):</strong> student attendance
+     * stats are an OWNED resource — previously this endpoint had NO {@code @PreAuthorize},
+     * so an unauthenticated GET returned 200 with real data (no-auth leak, KC-5).
+     * Now guarded by {@code @authz.hasAccessToStudent(#studentId)} for consistency with
+     * the class-scoped sibling {@link #getClassStats(Long)} (which uses
+     * {@code @authz.hasAccessToClass}). STAFF bypass mirrors the class endpoint.
+     *
      * @param studentId student ID
      * @return attendance statistics
      */
     @GetMapping("/stats/student/{studentId}")
+    @PreAuthorize("hasAnyRole('STAFF') or @authz.hasAccessToStudent(#studentId)")
     @Operation(summary = "Get attendance statistics for a student",
-               description = "Returns aggregated attendance statistics including rates and counts.")
+               description = "Returns aggregated attendance statistics including rates and counts. "
+                       + "Per-resource authz via @authz.hasAccessToStudent (OWASP A01) — GAP-1428 KC-5 no-auth leak fix.")
     public ResponseEntity<AttendanceStatsResponse> getStudentStats(
             @Parameter(description = "Student ID") @PathVariable Long studentId) {
         log.debug("GET /api/v1/attendance/stats/student/{}", studentId);

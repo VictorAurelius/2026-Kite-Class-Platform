@@ -58,7 +58,7 @@ describe('Utils', () => {
 
     it('should handle invalid date gracefully', () => {
       const result = formatDate('invalid-date');
-      expect(result).toContain('Invalid Date');
+      expect(result).toBe('—');
     });
   });
 
@@ -81,7 +81,7 @@ describe('Utils', () => {
 
     it('should handle invalid datetime gracefully', () => {
       const result = formatDateTime('invalid-datetime');
-      expect(result).toContain('Invalid Date');
+      expect(result).toBe('—');
     });
   });
 });

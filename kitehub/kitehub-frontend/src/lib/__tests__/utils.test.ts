@@ -45,12 +45,12 @@ describe('utils', () => {
       expect(result).toBe('01/01/2026');
     });
 
-    it('returns Invalid Date for invalid input', () => {
-      expect(formatDate('not-a-date')).toBe('Invalid Date');
+    it('returns placeholder for invalid input', () => {
+      expect(formatDate('not-a-date')).toBe('—');
     });
 
-    it('returns Invalid Date for empty string', () => {
-      expect(formatDate('')).toBe('Invalid Date');
+    it('returns placeholder for empty string', () => {
+      expect(formatDate('')).toBe('—');
     });
 
     it('handles leap year date', () => {
@@ -71,8 +71,8 @@ describe('utils', () => {
       expect(result).toBe('00:00 15/03/2026');
     });
 
-    it('returns Invalid Date for invalid input', () => {
-      expect(formatDateTime('invalid')).toBe('Invalid Date');
+    it('returns placeholder for invalid input', () => {
+      expect(formatDateTime('invalid')).toBe('—');
     });
 
     it('handles end of day time', () => {

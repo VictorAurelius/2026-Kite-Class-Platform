@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { paymentsApi } from '@/lib/api/payments';
+import { paymentRecordsApi } from '@/lib/api/payment-records';
 import type {
   CreatePaymentRequest,
   PaymentSearchParams,
@@ -9,6 +10,7 @@ import type {
 import type { AxiosError } from 'axios';
 
 const PAYMENTS_KEY = 'payments';
+const PAYMENT_RECORDS_KEY = 'payment-records';
 
 export function usePayment(id: number) {
   return useQuery({
@@ -22,6 +24,22 @@ export function useInvoicePayments(invoiceId: number) {
   return useQuery({
     queryKey: [PAYMENTS_KEY, 'invoice', invoiceId],
     queryFn: () => paymentsApi.getByInvoice(invoiceId),
+    enabled: !!invoiceId,
+  });
+}
+
+/**
+ * GAP-1433 — Manual payment records cho 1 hóa đơn.
+ *
+ * Khác `useInvoicePayments` (gateway/SePay payments qua `/payments/invoice/{id}`):
+ * hook này đọc `/api/v1/invoices/{id}/payment-records` — nơi lưu phiếu thu thủ công
+ * (tiền mặt / chuyển khoản / VietQR / MoMo) tạo qua `record-payment`. Billing
+ * timeline merge cả hai nguồn để phiếu thu thủ công cũng hiển thị.
+ */
+export function useInvoicePaymentRecords(invoiceId: number) {
+  return useQuery({
+    queryKey: [PAYMENT_RECORDS_KEY, 'invoice', invoiceId],
+    queryFn: () => paymentRecordsApi.list(invoiceId),
     enabled: !!invoiceId,
   });
 }

@@ -14,6 +14,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.FieldError;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.util.ArrayList;
@@ -353,6 +355,47 @@ public class GlobalExceptionHandler {
                 path);
 
         return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(response);
+    }
+
+    /**
+     * Multipart upload thieu phan 'file' bat buoc (@RequestParam MultipartFile)
+     * - tra HTTP 400 thay vi 500. Phai dat TRUOC catch-all (GAP-1424: bulk-import
+     * preview/commit goi khong co file part roi vao catch-all 500).
+     */
+    @ExceptionHandler(MissingServletRequestPartException.class)
+    public ResponseEntity<ErrorResponse> handleMissingRequestPart(
+            MissingServletRequestPartException ex,
+            HttpServletRequest request) {
+
+        log.warn("Missing request part at {}: {}", request.getRequestURI(), ex.getMessage());
+
+        String path = request.getRequestURI();
+        ErrorResponse response = ErrorResponse.of(
+                "MISSING_REQUEST_PART",
+                String.format("Required upload part '%s' is missing.", ex.getRequestPartName()),
+                path);
+
+        return ResponseEntity.badRequest().body(response);
+    }
+
+    /**
+     * Content-Type khong duoc ho tro (vd POST khong phai multipart/form-data toi
+     * endpoint upload) - tra HTTP 415 thay vi 500. Phai dat TRUOC catch-all (GAP-1424).
+     */
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<ErrorResponse> handleUnsupportedMediaType(
+            HttpMediaTypeNotSupportedException ex,
+            HttpServletRequest request) {
+
+        log.warn("Unsupported media type at {}: {}", request.getRequestURI(), ex.getMessage());
+
+        String path = request.getRequestURI();
+        ErrorResponse response = ErrorResponse.of(
+                "UNSUPPORTED_MEDIA_TYPE",
+                "The request Content-Type is not supported for this endpoint.",
+                path);
+
+        return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body(response);
     }
 
     @ExceptionHandler(Exception.class)

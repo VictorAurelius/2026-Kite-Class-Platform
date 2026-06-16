@@ -46,37 +46,92 @@ export interface AdminPayment {
 }
 
 /**
- * Dashboard statistics.
+ * Dashboard statistics — FE flat view model.
+ *
+ * GAP-1440: the backend (`GET /api/platform/admin/dashboard`,
+ * {@code com.kitehub.admin.dto.DashboardStats}) returns a NESTED shape
+ * (`instancesByStatus` map + `mrr`/`arr`). This flat type is the mapped view the
+ * dashboard page consumes; mapping lives in `mapDashboardStats` (use-admin.ts).
+ *
+ * Note: `pendingPayments` is NOT part of the dashboard endpoint — the dashboard
+ * page sources that count from the pending-payments list
+ * (`useAdminPendingPayments`).
  */
 export interface DashboardStats {
   totalInstances: number;
   activeInstances: number;
   trialInstances: number;
   suspendedInstances: number;
-  totalRevenue: number;
-  monthlyRevenue: number;
-  pendingPayments: number;
-  newInstancesThisMonth: number;
+  totalRevenue: number;   // mapped from BE `arr` (annual recurring revenue)
+  monthlyRevenue: number; // mapped from BE `mrr` (monthly recurring revenue)
+  newInstancesThisMonth: number; // mapped from BE `newSignupsLast30Days`
 }
 
 /**
- * Revenue report item.
+ * Backend dashboard stats response — the nested shape returned by
+ * `GET /api/platform/admin/dashboard` (kitehub-admin
+ * `AnalyticsService.getDashboardStats()`).
+ *
+ * Contract source of truth: {@code com.kitehub.admin.dto.DashboardStats}.
+ * Keep this in sync with that DTO — `mapDashboardStats` + its contract test
+ * (`use-admin-dashboard.test.tsx`) guard the FE side against drift.
  */
-export interface RevenueReportItem {
-  period: string;                      // Date or month string
+export interface DashboardStatsResponse {
+  totalInstances: number;
+  /** Keys: TRIAL / ACTIVE / SUSPENDED / EXPIRED / DELETED. */
+  instancesByStatus: Record<string, number>;
+  /** Keys: FREE / BASIC / PREMIUM / ENTERPRISE. */
+  instancesByTier: Record<string, number>;
+  mrr: number;
+  arr: number;
+  churnRate: number;
+  conversionRate: number;
+  newSignupsLast30Days: number;
+  totalActiveUsers: number;
+  revenueByTier: Record<string, number>;
+  calculatedAt: string;
+}
+
+/**
+ * Revenue-by-tier breakdown entry.
+ *
+ * Contract source: {@code com.kitehub.admin.dto.RevenueReport.RevenueTierBreakdown}.
+ */
+export interface RevenueTierBreakdown {
+  tier: string;                        // FREE / BASIC / PREMIUM / ENTERPRISE
   revenue: number;
-  paymentCount: number;
+  subscriptionCount: number;
+}
+
+/**
+ * Daily revenue data point (for charts).
+ *
+ * Contract source: {@code com.kitehub.admin.dto.RevenueReport.DailyRevenue}.
+ */
+export interface DailyRevenue {
+  date: string;                        // ISO date (yyyy-MM-dd)
+  revenue: number;
 }
 
 /**
  * Revenue report response.
+ *
+ * GAP-1441: aligned to the backend shape returned by
+ * `GET /api/platform/admin/revenue` (kitehub-admin
+ * `AnalyticsService.getRevenueReport()` → {@code com.kitehub.admin.dto.RevenueReport}).
+ * The prior FE shape (`items: RevenueReportItem[]`) drifted from the BE DTO
+ * which exposes `revenueByTier` + `dailyRevenue` + `mrr`/`projectedArr`/`churnImpact`.
  */
 export interface RevenueReport {
-  items: RevenueReportItem[];
-  totalRevenue: number;
-  period: 'DAILY' | 'MONTHLY' | 'YEARLY';
+  period: string;                      // DAILY / WEEKLY / MONTHLY / QUARTERLY / YEARLY
   startDate: string;
   endDate: string;
+  totalRevenue: number;
+  revenueByTier: RevenueTierBreakdown[];
+  dailyRevenue: DailyRevenue[];
+  mrr: number;
+  projectedArr: number;
+  churnImpact: number;
 }
 
 /**

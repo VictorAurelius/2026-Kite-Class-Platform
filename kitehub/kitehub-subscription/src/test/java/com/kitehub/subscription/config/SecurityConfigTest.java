@@ -78,7 +78,10 @@ class SecurityConfigTest {
         "/api/v1/admin/instances,               401",
         "/api/v1/staff/list,                    401",
         "/api/v1/notifications/preferences,     401",
-        "/api/v1/dsar/tickets,                  401",
+        // GAP-1439: GET /api/v1/dsar/* (1 segment) is anonymous lookup → 404 (passes auth).
+        "/api/v1/dsar/some-ticket-id,           404",
+        // A 2-segment dsar path (future admin export) stays default-deny → 401.
+        "/api/v1/dsar/admin/export,             401",
         // GAP-794: /consent/v2/** (ImmutableConsent, userId-keyed) stays authenticated.
         // GET /consent/v2/{userId} = 2 segments → NOT matched by /consent/* → default-deny 401.
         "/api/v1/consent/v2/some-user-id,       401",
@@ -127,6 +130,30 @@ class SecurityConfigTest {
             .andExpect(status().isUnauthorized());
     }
 
+    @Test
+    @DisplayName("GAP-1439: anonymous POST /api/v1/dsar/request is NOT 401 (passes auth gate)")
+    void anonymousDsarSubmitPostNotUnauthorized() throws Exception {
+        // permitAll matched → passes auth gate → 404 (no controller in this harness), NOT 401.
+        // Pre-fix: /api/v1/dsar/** .authenticated() → anonymous submit → 401.
+        mockMvc.perform(post("/api/v1/dsar/request"))
+            .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("GAP-1439: anonymous GET /api/v1/dsar/{ticketId} is NOT 401 (passes auth gate)")
+    void anonymousDsarLookupGetNotUnauthorized() throws Exception {
+        mockMvc.perform(get("/api/v1/dsar/00000000-0000-0000-0000-000000000000"))
+            .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("GAP-1439: POST /api/v1/dsar/{ticketId} (non-/request) stays default-deny → 401")
+    void dsarNonRequestPostStaysAuthenticated() throws Exception {
+        // Only POST /request + GET /* are public; POST to a ticket path is not → default-deny.
+        mockMvc.perform(post("/api/v1/dsar/some-ticket-id"))
+            .andExpect(status().isUnauthorized());
+    }
+
     /**
      * Mirrors the production {@code @Profile("!test")} chain in
      * {@link SecurityConfig#securityFilterChain(HttpSecurity)}. The shape MUST
@@ -161,11 +188,15 @@ class SecurityConfigTest {
                     .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                     .requestMatchers("/api/v1/payments/webhook").permitAll()
                     .requestMatchers("/api/v1/payments/webhook/**").permitAll()
+                    // GAP-1439: anonymous DSAR submit/lookup (HttpMethod-specific, mirrors consent).
+                    .requestMatchers(org.springframework.http.HttpMethod.POST,
+                            "/api/v1/dsar/request").permitAll()
+                    .requestMatchers(org.springframework.http.HttpMethod.GET,
+                            "/api/v1/dsar/*").permitAll()
                     .requestMatchers("/api/v1/admin/**").authenticated()
                     .requestMatchers("/api/v1/onboarding-progress/**").authenticated()
                     .requestMatchers("/api/v1/staff/**").authenticated()
                     .requestMatchers("/api/v1/notifications/**").authenticated()
-                    .requestMatchers("/api/v1/dsar/**").authenticated()
                     .anyRequest().authenticated())
                 .exceptionHandling(eh -> eh
                     .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)));

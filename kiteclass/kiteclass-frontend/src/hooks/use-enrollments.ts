@@ -56,9 +56,12 @@ export function useCreateEnrollment() {
 
   return useMutation({
     mutationFn: (req: CreateEnrollmentRequest) => enrollmentsApi.createEnrollment(req),
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       // Refresh roster + active-enrollment lists for the class.
       queryClient.invalidateQueries({ queryKey: [ENROLLMENTS_QUERY_KEY] });
+      // GAP-1425: also refresh the class detail so the header sĩ số (current_enrolled)
+      // updates immediately after enroll instead of staying stale until page reload.
+      queryClient.invalidateQueries({ queryKey: ['classes', variables.classId] });
     },
   });
 }

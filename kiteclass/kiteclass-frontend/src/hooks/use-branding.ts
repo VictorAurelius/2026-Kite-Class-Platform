@@ -12,6 +12,7 @@ import type { UpdateBrandingRequest } from '@/types/branding';
 import type { AxiosError } from 'axios';
 
 const BRANDING_KEY = 'branding';
+const BRANDING_VERSIONS_KEY = 'branding-versions';
 
 export function useBranding() {
   return useQuery({
@@ -85,6 +86,44 @@ export function useUploadFavicon() {
       toast({
         title: 'Lỗi',
         description: error.response?.data?.message || 'Không thể tải lên favicon',
+        variant: 'destructive',
+      });
+    },
+  });
+}
+
+// GAP-1446: branding version history — BE BrandingVersionController đã sẵn
+// (GET /api/v1/branding/{instanceId}/versions) nhưng trước đây không có FE surface.
+// Query disabled khi chưa có instanceId (tenantId) để tránh fetch với path rỗng.
+export function useBrandingVersions(instanceId: string | null) {
+  return useQuery({
+    queryKey: [BRANDING_VERSIONS_KEY, instanceId],
+    queryFn: () => brandingApi.listVersions(instanceId as string),
+    enabled: !!instanceId,
+  });
+}
+
+// GAP-1446: rollback branding về 1 version — tạo version mới (append-only) restore snapshot.
+// Invalidate cả branding hiện tại + danh sách version sau khi rollback thành công.
+export function useRollbackBranding(instanceId: string | null) {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: (versionNumber: number) =>
+      brandingApi.rollback(instanceId as string, versionNumber),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [BRANDING_KEY] });
+      queryClient.invalidateQueries({ queryKey: [BRANDING_VERSIONS_KEY, instanceId] });
+      toast({
+        title: 'Thành công',
+        description: 'Đã khôi phục branding về phiên bản đã chọn',
+      });
+    },
+    onError: (error: AxiosError<{ message?: string }>) => {
+      toast({
+        title: 'Lỗi',
+        description: error.response?.data?.message || 'Không thể khôi phục phiên bản',
         variant: 'destructive',
       });
     },

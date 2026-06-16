@@ -74,3 +74,10 @@ Khi G2 xong, báo lại 1 trong 4:
 | STAFF mời được staff khác (không 403) | RBAC chưa enforce → báo blocker |
 
 **G3 production parity (Phase tiếp):** staff-invitation schema migrate sạch RDS + email gửi thật SES (link prod-domain đúng khi prod) + gateway JWT→header + RBAC enforce đúng tenant scope. Gated GAP-612 (AWS).
+
+
+---
+
+## 🔄 Re-walk update 2026-06-16 (agent headless browser-walk, nip.io)
+
+- **Verdict:** ⚠️ mostly-pass (RBAC solid 3 lớp, 0 blocker).\n- **FM-1 FIXED:** email accept link nay trỏ `http://localhost:3001` (env KITEHUB_STAFF_INVITATION_BASE_URL, PR #2456).\n- **Idempotency:** re-invite PENDING trả **201** (auto-revoke), KHÔNG phải 409 như recipe cũ ghi.\n- **Credential:** owner@skyedu.vn/SkyEdu@2026 (PREMIUM owns sky-education). CẤM trap `owner.sky@test.vn` (403 TENANT_CONTEXT_MISSING).\n- Platform-side `:3001` (không nip.io).\n- Defer: STAFF dashboard owner-widget 403 (GAP-1459 Phase 2), /docs 404 (GAP-1460), email org stub Phase 1.5.

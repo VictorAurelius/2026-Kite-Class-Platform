@@ -60,8 +60,10 @@ describe('DataRightsForm', () => {
     await user.click(screen.getByRole('button', { name: /Gửi yêu cầu DSAR/ }));
 
     await waitFor(() => {
+      // GAP-1438: form now posts to the gateway absolute URL (not a bare relative
+      // path served by the FE origin) — assert the endpoint suffix.
       expect(fetchMock).toHaveBeenCalledWith(
-        '/api/v1/dsar/request',
+        expect.stringContaining('/api/v1/dsar/request'),
         expect.objectContaining({ method: 'POST' }),
       );
     });

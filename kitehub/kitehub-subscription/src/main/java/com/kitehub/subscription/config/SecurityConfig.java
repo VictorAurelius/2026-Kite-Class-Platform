@@ -164,12 +164,26 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/staff-invitations/by-token/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.POST,
                                 "/api/v1/staff-invitations/*/accept").permitAll()
+                        // PDPL self-service DSAR (Wave 26 GAP-353c; anonymous fix GAP-1439).
+                        // DsarController javadoc: "Both endpoints are unauthenticated by
+                        // design — DSAR submitters are not logged-in users by definition.
+                        // Identity verification happens out-of-band via national_id_last4 +
+                        // DPO callback (BR-PDPL-DSAR-003)." The blanket
+                        // /api/v1/dsar/** .authenticated() contradicted this → anonymous
+                        // submit/lookup hit anyRequest().authenticated() default-deny 401.
+                        // HttpMethod-specific matchers mirror the consent carve-out above
+                        // (least-privilege): only POST /request + GET /{ticketId} are public;
+                        // any other dsar path (future admin export, 2-segment) falls to the
+                        // default-deny tail. GET response is redacted public-safe by design.
+                        .requestMatchers(org.springframework.http.HttpMethod.POST,
+                                "/api/v1/dsar/request").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET,
+                                "/api/v1/dsar/*").permitAll()
                         // ── Authenticated surface — role enforced per-method via @PreAuthorize ──
                         .requestMatchers("/api/v1/admin/**").authenticated()
                         .requestMatchers("/api/v1/onboarding-progress/**").authenticated()
                         .requestMatchers("/api/v1/staff/**").authenticated()
                         .requestMatchers("/api/v1/notifications/**").authenticated()
-                        .requestMatchers("/api/v1/dsar/**").authenticated()
                         // ── Default-deny everything else (GAP-552 / OWASP A05 + A01) ──
                         .anyRequest().authenticated()
                 )

@@ -89,3 +89,10 @@ Mỗi request gửi header `X-Tenant-Id: <instance_id>`. G2 ưu tiên walk qua U
 - **404 cho cả own-access (sky GET course 10 → 404/500):** kiểm tra Redis cache poisoning (GAP-986) — flush: `docker exec kite-redis sh -c "redis-cli --scan --pattern 'courses*' | xargs -r redis-cli del; redis-cli --scan --pattern 'teacher*' | xargs -r redis-cli del"`.
 - **Gateway 503 cold-start:** thử lại sau 5-10s (lazy bean init), hoặc gọi thẳng core 8088.
 - **G3 preview (production parity):** sau khi G2 PASS local, G3 verify trên AWS (post GAP-612 restore) — multi-tenant isolation + RLS layer (GAP-985) + Flyway-migrated DB. RLS defense-in-depth (lớp 2 độc lập @Filter) còn hở — track GAP-985 trước khi tin tưởng production isolation hoàn toàn.
+
+
+---
+
+## 🔄 Re-walk update 2026-06-16 (agent headless browser-walk, nip.io)
+
+- **Verdict:** ✅ PASS-with-notes (course→class→schedule walkable).\n- **Credential:** owner+074901@skyedu.vn/SkyEdu@2026 (tenant sky-education-074901 TRIAL, 2 courses + 7 classes). nip.io subdomain.\n- Pre-walk refuted: teacher dropdown populated (2 teachers), /classes có guard (không crash).\n- **Niên khóa:** không có nav UI (GAP-982 — academicyear 0-controller); schedule = recurrence-panel trong form (không trang riêng).\n- BUG-KC3-2 (dashboard 'Học viên mới nhất' Invalid Date) **FIXED** PR #2456.
