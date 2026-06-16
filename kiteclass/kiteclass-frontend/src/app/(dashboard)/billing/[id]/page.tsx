@@ -16,6 +16,7 @@
 import { useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useQueryClient } from '@tanstack/react-query';
 import { CreditCard, XCircle, AlertTriangle, AlertCircle, Receipt } from 'lucide-react';
 import {
@@ -50,7 +51,14 @@ import type { Payment } from '@/types/payment';
 import { PaymentStatus } from '@/types/payment';
 import type { PaymentRecord } from '@/types/payment-record';
 import { PAYMENT_RECORD_METHOD_LABELS } from '@/types/payment-record';
-import { RecordPaymentModal } from '@/components/billing/record-payment-modal';
+
+// GAP-1431 — RecordPaymentModal (react-hook-form + zod + Dialog ~7.5KB) chỉ mở khi
+// click "Ghi nhận thanh toán" → code-split khỏi First Load JS (giữ /billing/[id]
+// dưới bundle budget 250KB; pattern GAP-236). ssr:false vì modal client-only.
+const RecordPaymentModal = dynamic(
+  () => import('@/components/billing/record-payment-modal').then((m) => m.RecordPaymentModal),
+  { ssr: false },
+);
 
 /** Map KC `Invoice` (backend DTO) → shared-ui G6 `InvoiceData`. */
 function toG6Invoice(invoice: Invoice): InvoiceData {
@@ -415,14 +423,17 @@ export default function InvoiceDetailPage() {
         <DynamicInvoiceDetailPanels invoice={invoice} payments={payments} />
       </div>
 
-      {/* GAP-1431 — modal ghi nhận phiếu thu thủ công, mặc định điền sẵn số dư còn lại. */}
-      <RecordPaymentModal
-        invoiceId={id}
-        defaultAmount={invoice.balanceDue}
-        isOpen={recordModalOpen}
-        onClose={() => setRecordModalOpen(false)}
-        onSuccess={handleRecordSuccess}
-      />
+      {/* GAP-1431 — modal ghi nhận phiếu thu thủ công, mặc định điền sẵn số dư còn lại.
+          Render có điều kiện: dynamic chunk chỉ tải khi owner mở modal (giữ First Load JS thấp). */}
+      {recordModalOpen && (
+        <RecordPaymentModal
+          invoiceId={id}
+          defaultAmount={invoice.balanceDue}
+          isOpen={recordModalOpen}
+          onClose={() => setRecordModalOpen(false)}
+          onSuccess={handleRecordSuccess}
+        />
+      )}
     </DashboardLayout>
   );
 }
