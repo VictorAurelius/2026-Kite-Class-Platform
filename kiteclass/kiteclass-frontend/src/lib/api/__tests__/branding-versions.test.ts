@@ -62,7 +62,7 @@ describe('brandingApi version history (GAP-1446)', () => {
       );
       // Raw Page returned (NOT unwrapped from an ApiResponse envelope).
       expect(result).toEqual(samplePage);
-      expect(result.content[0].versionNumber).toBe(3);
+      expect(result.content[0]!.versionNumber).toBe(3);
     });
 
     it('forwards explicit page + size params', async () => {
