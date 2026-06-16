@@ -95,13 +95,14 @@ export const attendanceApi = {
   /**
    * Update attendance status.
    *
-   * PUT /api/v1/attendance/:id
+   * PATCH /api/v1/attendance/:id
+   * GAP-1429: BE exposes @PatchMapping("/{id}"), FE must use PATCH (was PUT → 405).
    */
   updateAttendanceStatus: async (
     id: number,
     data: UpdateAttendanceStatusRequest
   ): Promise<Attendance> => {
-    const response = await apiClient.put<ApiResponse<Attendance>>(
+    const response = await apiClient.patch<ApiResponse<Attendance>>(
       `/api/v1/attendance/${id}`,
       data
     );

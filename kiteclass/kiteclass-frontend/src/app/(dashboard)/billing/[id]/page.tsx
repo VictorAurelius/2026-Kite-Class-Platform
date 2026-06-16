@@ -13,10 +13,11 @@
 
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { CreditCard, XCircle, AlertTriangle, AlertCircle } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
+import { CreditCard, XCircle, AlertTriangle, AlertCircle, Receipt } from 'lucide-react';
 import {
   InvoiceDetail,
   PaymentStatusTimeline,
@@ -41,12 +42,15 @@ import {
   useApplyLateFees,
   useCancelInvoice,
 } from '@/hooks/use-invoices';
-import { useInvoicePayments } from '@/hooks/use-payments';
+import { useInvoicePayments, useInvoicePaymentRecords } from '@/hooks/use-payments';
 import { formatDate } from '@/lib/utils';
 import type { Invoice, InvoiceItem } from '@/types/invoice';
 import { InvoiceStatus as KCInvoiceStatus, InvoiceAdjustmentType } from '@/types/invoice';
 import type { Payment } from '@/types/payment';
 import { PaymentStatus } from '@/types/payment';
+import type { PaymentRecord } from '@/types/payment-record';
+import { PAYMENT_RECORD_METHOD_LABELS } from '@/types/payment-record';
+import { RecordPaymentModal } from '@/components/billing/record-payment-modal';
 
 /** Map KC `Invoice` (backend DTO) → shared-ui G6 `InvoiceData`. */
 function toG6Invoice(invoice: Invoice): InvoiceData {
@@ -107,8 +111,19 @@ function toG6Invoice(invoice: Invoice): InvoiceData {
   };
 }
 
-/** Map KC payments → G10 timeline events + state derivation. */
-function toG10Timeline(invoice: Invoice, payments: Payment[] | undefined): {
+/**
+ * Map KC payments → G10 timeline events + state derivation.
+ *
+ * GAP-1433 — merge cả hai nguồn thanh toán:
+ *  - `payments`: gateway/SePay payment (`/payments/invoice/{id}`)
+ *  - `paymentRecords`: phiếu thu thủ công (`/invoices/{id}/payment-records`, tạo qua record-payment)
+ * Trước đây timeline chỉ đọc gateway payments → phiếu thu thủ công không hiện.
+ */
+function toG10Timeline(
+  invoice: Invoice,
+  payments: Payment[] | undefined,
+  paymentRecords: PaymentRecord[] | undefined,
+): {
   state: PaymentTimelineState;
   events: TimelineEvent[];
 } {
@@ -158,6 +173,18 @@ function toG10Timeline(invoice: Invoice, payments: Payment[] | undefined): {
     }
   }
 
+  // GAP-1433 — phiếu thu thủ công (CASH/BANK_TRANSFER/VIETQR/MOMO) ghi qua
+  // record-payment. Mỗi phiếu = 1 sự kiện PAYMENT_RECEIVED trên timeline.
+  for (const r of paymentRecords ?? []) {
+    events.push({
+      step: 'PAYMENT_RECEIVED',
+      at: new Date(r.paidAt),
+      note: r.note || 'Phiếu thu thủ công',
+      actor: PAYMENT_RECORD_METHOD_LABELS[r.method] ?? r.method,
+      amount: r.amount,
+    });
+  }
+
   if (invoice.status === KCInvoiceStatus.PAID && invoice.paidAt) {
     events.push({
       step: 'COMPLETED',
@@ -166,6 +193,9 @@ function toG10Timeline(invoice: Invoice, payments: Payment[] | undefined): {
       actor: 'Hệ thống',
     });
   }
+
+  // Sắp xếp toàn bộ sự kiện theo thời gian (gateway + thủ công xen kẽ đúng thứ tự).
+  events.sort((a, b) => a.at.getTime() - b.at.getTime());
 
   let state: PaymentTimelineState = 'pending';
   if (invoice.status === KCInvoiceStatus.PAID) state = 'paid';
@@ -179,16 +209,34 @@ function toG10Timeline(invoice: Invoice, payments: Payment[] | undefined): {
 export default function InvoiceDetailPage() {
   const params = useParams();
   const id = parseInt(params.id as string);
+  const queryClient = useQueryClient();
   const { data: invoice, isLoading, error } = useInvoice(id);
   const { data: payments } = useInvoicePayments(id);
+  // GAP-1433 — phiếu thu thủ công để merge vào timeline.
+  const { data: paymentRecords } = useInvoicePaymentRecords(id);
   const applyLateFeesMutation = useApplyLateFees(id);
   const cancelMutation = useCancelInvoice(id);
+
+  // GAP-1431 — modal "Ghi nhận thanh toán" (RecordPaymentModal) cho phiếu thu thủ công.
+  const [recordModalOpen, setRecordModalOpen] = useState(false);
+
+  /**
+   * GAP-1431 — sau khi ghi nhận phiếu thu thành công, invalidate cả invoice
+   * (status/balanceDue đổi sau khi BE reconcile) lẫn payment-records (timeline)
+   * để UI tự cập nhật mà không cần reload trang.
+   */
+  const handleRecordSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: ['invoices', id] });
+    queryClient.invalidateQueries({ queryKey: ['invoices'] });
+    queryClient.invalidateQueries({ queryKey: ['payment-records', 'invoice', id] });
+    queryClient.invalidateQueries({ queryKey: ['payments', 'invoice', id] });
+  };
 
   // Map KC types → G6/G10 props (memo so empty arrays don't churn).
   const g6Invoice = useMemo(() => (invoice ? toG6Invoice(invoice) : null), [invoice]);
   const timeline = useMemo<Pick<PaymentStatusTimelineProps, 'state' | 'events'> | null>(
-    () => (invoice ? toG10Timeline(invoice, payments) : null),
-    [invoice, payments],
+    () => (invoice ? toG10Timeline(invoice, payments, paymentRecords) : null),
+    [invoice, payments, paymentRecords],
   );
 
   if (isLoading)
@@ -247,6 +295,22 @@ export default function InvoiceDetailPage() {
                 </Button>
               </Link>
             )}
+            {/*
+              GAP-1431 — nút "Ghi nhận thanh toán" mở RecordPaymentModal để ghi
+              phiếu thu thủ công (tiền mặt / chuyển khoản / VietQR / MoMo). Hiện
+              khi hóa đơn còn dư nợ và chưa ở trạng thái kết thúc (PAID/CANCELLED/
+              DRAFT) — bao gồm PENDING/OVERDUE và các trạng thái SENT/PARTIAL nếu
+              được bổ sung (GAP-1432).
+            */}
+            {invoice.balanceDue > 0 &&
+              invoice.status !== KCInvoiceStatus.PAID &&
+              invoice.status !== KCInvoiceStatus.CANCELLED &&
+              invoice.status !== KCInvoiceStatus.DRAFT && (
+                <Button variant="outline" onClick={() => setRecordModalOpen(true)}>
+                  <Receipt className="mr-2 h-4 w-4" />
+                  Ghi nhận thanh toán
+                </Button>
+              )}
             {invoice.status === KCInvoiceStatus.PENDING && (
               <>
                 <Button
@@ -350,6 +414,15 @@ export default function InvoiceDetailPage() {
         {/* Items + Adjustments + Payment History — lazy-loaded panels */}
         <DynamicInvoiceDetailPanels invoice={invoice} payments={payments} />
       </div>
+
+      {/* GAP-1431 — modal ghi nhận phiếu thu thủ công, mặc định điền sẵn số dư còn lại. */}
+      <RecordPaymentModal
+        invoiceId={id}
+        defaultAmount={invoice.balanceDue}
+        isOpen={recordModalOpen}
+        onClose={() => setRecordModalOpen(false)}
+        onSuccess={handleRecordSuccess}
+      />
     </DashboardLayout>
   );
 }
