@@ -39,6 +39,10 @@ export function DangerZone({ instance }: DangerZoneProps) {
 
   const instanceName = instance?.organizationName || instance?.subdomain || '';
   const canDelete = confirmInstanceName === instanceName;
+  // GAP-1436: only an active subscription can be cancelled. Owners on TRIAL/FREE
+  // (no subscriptionId) must NOT see the cancel card open a dialog that fakes a
+  // "đã hủy" success — there is nothing to cancel.
+  const hasActiveSubscription = Boolean(instance?.subscriptionId);
 
   const resetCancelWizard = (open: boolean) => {
     setCancelDialogOpen(open);
@@ -70,11 +74,16 @@ export function DangerZone({ instance }: DangerZoneProps) {
   };
 
   const handleCancelSubscription = async () => {
+    // GAP-1436: defensive guard — never redirect to a fake "đã hủy" success when
+    // there is no active subscription to cancel. The card is disabled in that
+    // state (see render below), so this is a belt-and-suspenders check.
+    if (!instance?.subscriptionId) {
+      resetCancelWizard(false);
+      return;
+    }
     setIsCanceling(true);
     try {
-      if (instance?.subscriptionId) {
-        await apiClient.delete(endpoints.subscriptions.cancel(instance.subscriptionId));
-      }
+      await apiClient.delete(endpoints.subscriptions.cancel(instance.subscriptionId));
       resetCancelWizard(false);
       router.push('/billing?success=cancelled');
     } catch (error) {
@@ -125,6 +134,20 @@ export function DangerZone({ instance }: DangerZoneProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {!hasActiveSubscription ? (
+            // GAP-1436: no active subscription → don't open the cancel dialog
+            // (which would redirect to a fake "đã hủy" success). Show a clear
+            // "chưa có gói để hủy" message + a disabled button instead.
+            <div className="space-y-2" data-testid="no-subscription-to-cancel">
+              <Button variant="destructive" disabled>
+                <XCircle className="h-4 w-4 mr-2" />
+                Hủy đăng ký
+              </Button>
+              <p className="text-sm text-muted-foreground">
+                Bạn chưa có gói đăng ký để hủy.
+              </p>
+            </div>
+          ) : (
           <Dialog open={cancelDialogOpen} onOpenChange={resetCancelWizard}>
             <DialogTrigger asChild>
               <Button variant="destructive">
@@ -224,6 +247,7 @@ export function DangerZone({ instance }: DangerZoneProps) {
               )}
             </DialogContent>
           </Dialog>
+          )}
         </CardContent>
       </Card>
 
