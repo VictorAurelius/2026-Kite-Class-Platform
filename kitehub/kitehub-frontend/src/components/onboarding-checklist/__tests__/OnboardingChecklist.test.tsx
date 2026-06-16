@@ -13,16 +13,40 @@ import { server } from '@/test/msw/server';
 import { resetOnboardingHandlerState } from '@/test/msw/handlers/onboarding';
 import { OnboardingChecklist } from '../OnboardingChecklist';
 
+/** Build a 3-part JWT whose payload carries the given claims (no real signature). */
+const makeJwt = (claims: Record<string, unknown>) =>
+  `eyJhbGciOiJIUzI1NiJ9.${btoa(JSON.stringify(claims))}.sig`;
+
+// GAP-1445: OnboardingChecklist now skips the fetch when the JWT has no tenantId
+// claim (onboarding is per-tenant). Tests of the fetch path need a token that
+// carries one.
+const TENANT_JWT = makeJwt({ tenantId: '00000000-0000-0000-0000-000000000001' });
+
 beforeEach(() => {
   resetOnboardingHandlerState();
   // Provide a bearer token so MSW handler doesn't 401.
   // GAP-599 Wave 92 Bucket B: api client reads from sessionStorage (per-tab isolation).
   if (typeof sessionStorage !== 'undefined') {
-    sessionStorage.setItem('accessToken', 'test-jwt');
+    sessionStorage.setItem('accessToken', TENANT_JWT);
   }
 });
 
 describe('OnboardingChecklist', () => {
+  it('GAP-1445: renders nothing when JWT has no tenantId (tenantless owner skips fetch)', async () => {
+    // Onboarding is per-tenant; a platform owner with no tenant context must not
+    // hit the tenant-scoped endpoint (would reject TENANT_CONTEXT_MISSING).
+    sessionStorage.setItem('accessToken', makeJwt({ sub: 'owner-1' })); // no tenantId
+
+    const { container } = render(<OnboardingChecklist />);
+
+    // No fetch fired → no checklist, no loading spinner, no error alert.
+    await waitFor(() => {
+      expect(screen.queryByTestId('onboarding-checklist')).not.toBeInTheDocument();
+    });
+    expect(screen.queryByTestId('onboarding-checklist-error')).not.toBeInTheDocument();
+    expect(container).toBeEmptyDOMElement();
+  });
+
   it('renders 5 steps in canonical order after fetch', async () => {
     render(<OnboardingChecklist />);
     await waitFor(() => {
