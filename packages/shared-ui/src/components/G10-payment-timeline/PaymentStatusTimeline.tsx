@@ -242,6 +242,7 @@ export function PaymentStatusTimeline(
     totalAmount,
     orientation = 'auto',
     lang = 'vi',
+    embedded = false,
   } = props;
 
   const currentStep = explicitCurrent ?? deriveCurrentStep(state);
@@ -265,9 +266,17 @@ export function PaymentStatusTimeline(
       data-testid="payment-timeline-root"
       lang={lang}
       data-orientation={orientation}
-      className="min-h-full bg-muted/30 text-foreground"
+      className={
+        embedded ? 'text-foreground' : 'min-h-full bg-muted/30 text-foreground'
+      }
     >
-      <main className="mx-auto w-full max-w-3xl space-y-5 px-4 py-6 sm:px-6">
+      <main
+        className={
+          embedded
+            ? 'w-full space-y-5'
+            : 'mx-auto w-full max-w-3xl space-y-5 px-4 py-6 sm:px-6'
+        }
+      >
         {isOverdue && (
           <div
             role="alert"

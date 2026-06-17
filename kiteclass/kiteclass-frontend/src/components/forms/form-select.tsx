@@ -57,7 +57,7 @@ export const FormSelect = forwardRef<HTMLButtonElement, FormSelectProps>(
             aria-invalid={!!error}
             aria-describedby={error ? `${selectId}-error` : helperText ? `${selectId}-helper` : undefined}
           >
-            <SelectValue placeholder={placeholder || 'Select an option'} />
+            <SelectValue placeholder={placeholder || 'Chọn...'} />
           </SelectTrigger>
           <SelectContent>
             {options.map((option) => (

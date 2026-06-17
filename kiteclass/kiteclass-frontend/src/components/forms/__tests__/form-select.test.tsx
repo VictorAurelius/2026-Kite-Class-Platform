@@ -84,7 +84,7 @@ describe('FormSelect', () => {
   it('should render default placeholder when not provided', () => {
     render(<FormSelect label="Status" options={mockOptions} />);
 
-    expect(screen.getByText('Select an option')).toBeInTheDocument();
+    expect(screen.getByText('Chọn...')).toBeInTheDocument();
   });
 
   it('should call onValueChange when value changes', async () => {
