@@ -80,13 +80,13 @@ export function PendingPaymentBanner({ pending }: PendingPaymentBannerProps) {
             Đang chờ xác nhận thanh toán
           </p>
           <p className="text-sm text-amber-800 dark:text-amber-200">
-            Yêu cầu chuyển khoản <strong>{formatVnd(pending.amountVnd)}</strong> của bạn
+            Yêu cầu chuyển khoản <strong>{formatVnd(pending.amount)}</strong> của bạn
             đang chờ quản trị viên đối soát sao kê ngân hàng rồi xác nhận. Gói mới chỉ
             được kích hoạt sau khi xác nhận.
           </p>
           <p className="text-sm text-amber-800 dark:text-amber-200">
             Thời gian xử lý dự kiến:{' '}
-            <strong>{pending.adminConfirmSla ?? 'trong vòng 24 giờ làm việc'}</strong>.
+            <strong>{`trong vòng ${pending.adminConfirmSlaHours ?? 24} giờ làm việc`}</strong>.
             {expiryLabel ? ` Nội dung chuyển khoản có hiệu lực đến ${expiryLabel}.` : ''}
           </p>
         </div>
@@ -119,7 +119,7 @@ export function PendingPaymentBanner({ pending }: PendingPaymentBannerProps) {
             <AlertDialogHeader>
               <AlertDialogTitle>Hủy yêu cầu thanh toán?</AlertDialogTitle>
               <AlertDialogDescription>
-                Yêu cầu chuyển khoản <strong>{formatVnd(pending.amountVnd)}</strong> đang chờ
+                Yêu cầu chuyển khoản <strong>{formatVnd(pending.amount)}</strong> đang chờ
                 sẽ bị hủy. Gói đăng ký hiện tại của bạn không thay đổi. Bạn có thể tạo lại yêu
                 cầu thanh toán bất cứ lúc nào.
               </AlertDialogDescription>

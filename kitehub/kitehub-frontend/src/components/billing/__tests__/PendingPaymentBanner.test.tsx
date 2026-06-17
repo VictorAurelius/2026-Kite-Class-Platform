@@ -34,10 +34,10 @@ vi.mock('sonner', () => ({
 const pendingFixture: PendingPaymentStatus = {
   subscriptionId: 'sub-123',
   pendingPaymentId: 'pay-1',
-  amountVnd: 500_000,
+  amount: 500_000,
   status: 'PENDING',
   expiresAt: null,
-  adminConfirmSla: 'trong vòng 24 giờ làm việc',
+  adminConfirmSlaHours: 24,
 };
 
 describe('PendingPaymentBanner — GAP-1471 cancel affordance', () => {
