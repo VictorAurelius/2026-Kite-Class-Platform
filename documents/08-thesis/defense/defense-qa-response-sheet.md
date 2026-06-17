@@ -9,9 +9,9 @@ last-reviewed: 2026-06-17
 
 # Tài liệu câu hỏi phản biện — câu hỏi chuẩn bị
 
-**Mục tiêu:** chuẩn bị câu trả lời cô đọng (≤120 từ mỗi câu) cho 41 câu hỏi dự kiến từ hội đồng, phân nhóm theo 4 archetype người chấm. Mỗi câu trả lời trích dẫn bằng chứng cụ thể (đường dẫn tệp, báo cáo audit, mục chương, phiên bản migration) để chứng minh có cơ sở. Từ Q27 trở đi là nhóm câu **lý thuyết khoa học máy tính / mẫu thiết kế / cơ sở dữ liệu** chuyên sâu; ngoài ra cuối tài liệu có mục **Danh mục thuật ngữ** giải thích các khái niệm dùng xuyên suốt cho người đọc là dev mới.
+**Mục tiêu:** chuẩn bị câu trả lời cô đọng (≤120 từ mỗi câu) cho 51 câu hỏi dự kiến từ hội đồng, phân nhóm theo 4 archetype người chấm. Mỗi câu trả lời trích dẫn bằng chứng cụ thể (đường dẫn tệp, báo cáo audit, mục chương, phiên bản migration) để chứng minh có cơ sở. Từ Q27 trở đi là nhóm câu **lý thuyết khoa học máy tính / mẫu thiết kế / cơ sở dữ liệu** chuyên sâu; ngoài ra cuối tài liệu có mục **Danh mục thuật ngữ** giải thích các khái niệm dùng xuyên suốt cho người đọc là dev mới.
 
-**Nguồn câu hỏi:** outside-in audit `documents/04-quality/audits/persona-review/2026-05-18-thesis-defense-failure-mode-matrix.md` (mô phỏng 4 archetype × 5 câu hỏi) + 6 câu bổ sung 2026-06-17 cho các tính năng đã hoàn thiện (thanh toán, Zalo OA, AI Branding, pen-test, solo-dev, data localization) + 15 câu lý thuyết/kiến trúc/cơ sở dữ liệu chuyên sâu 2026-06-17 (Q27-Q41) + Danh mục thuật ngữ.
+**Nguồn câu hỏi:** outside-in audit `documents/04-quality/audits/persona-review/2026-05-18-thesis-defense-failure-mode-matrix.md` (mô phỏng 4 archetype × 5 câu hỏi) + 6 câu bổ sung 2026-06-17 cho các tính năng đã hoàn thiện (thanh toán, Zalo OA, AI Branding, pen-test, solo-dev, data localization) + 15 câu lý thuyết/kiến trúc/cơ sở dữ liệu chuyên sâu 2026-06-17 (Q27-Q41) + 10 câu nghiệp vụ SaaS KiteHub / nghiệp vụ KiteClass / schema & quan hệ bảng 2026-06-17 (Q42-Q51) + Danh mục thuật ngữ.
 
 **Cách sử dụng khi bảo vệ:**
 1. Lắng nghe câu hỏi đầy đủ, gạch chân từ khóa
@@ -541,6 +541,111 @@ Em chọn **PostgreSQL 15** thay vì MySQL chủ yếu vì kiến trúc multi-te
 **Bằng chứng:**
 - Chương 2 §2.2.3 (Pool model phụ thuộc RLS) + §2.2.4 (RLS + GUC PostgreSQL native)
 - So sánh PostgreSQL vs MySQL: lập luận thiết kế, chưa nêu tường minh trong báo cáo
+
+---
+
+## Câu hỏi nghiệp vụ & dữ liệu (bổ sung 2026-06-17)
+
+Nhóm câu này tập trung vào **nghiệp vụ SaaS của KiteHub** (control-plane), **nghiệp vụ giáo dục của KiteClass** (domain-plane) và **schema/quan hệ các bảng cụ thể**. Đáp án bám ERD §2.3.2 + thiết kế cơ sở dữ liệu §2.3.3 (Bảng 2.7-2.9), thừa nhận thẳng phần báo cáo chưa khai báo schema chi tiết.
+
+### Nghiệp vụ SaaS KiteHub (control-plane)
+
+### Q42: "Vòng đời một tenant trong KiteHub diễn ra thế nào, từ đăng ký đến hoạt động?" — **[CÂU MỚI — nghiệp vụ & dữ liệu]**
+
+**Trả lời:**
+
+Người dùng tiềm năng gửi form beta → ghi `beta_access_requests` status `PENDING`. Quản trị duyệt → quy trình provision: tạo bản ghi `instances` (PK `id` UUID, chính là định danh tenant) status `TRIAL` + user vai trò `P2_CENTER_OWNER` + phát sự kiện `branding.deploy` dựng bộ template mặc định + gửi magic-link (JWG one-time 24h) qua `kitehub-email`. Chủ trung tâm click link → đặt mật khẩu lần đầu → đăng nhập, tenant ở `TRIAL` (mặc định 14 ngày). Khi thanh toán gói thành công → `ACTIVE`. Mọi thao tác duyệt ghi vào `admin_audit_logs` bất biến (PDPL Điều 11).
+
+**Bằng chứng:**
+- Chương 2 §2.3.4 (Sequence cấp phát tenant: beta_requests → provision → magic-link)
+- Bảng 2.7 (`instances` status TRIAL/ACTIVE/SUSPENDED/CANCELLED, `trial_expires_at`) + Hình 2.6a
+
+### Q43: "Gia hạn gói và thanh toán thất bại xử lý ra sao? Có những trạng thái nào?" — **[CÂU MỚI — nghiệp vụ & dữ liệu]**
+
+**Trả lời:**
+
+`subscriptions.auto_renew` mặc định true, gia hạn hằng tháng. Khi thanh toán thất bại, `subscriptions.status` chuyển `PAST_DUE` với **ân hạn (grace period) 3 ngày**; quá hạn thì `instances.status` chuyển `SUSPENDED` (tenant không đăng nhập được) nhưng **dữ liệu được giữ 7 ngày** qua cờ `deleted` (soft delete — xoá mềm) trước khi `CANCELLED`. `pending_payment_id` trỏ tới payment đang chờ. Trạng thái: subscription = TRIAL/ACTIVE/PAST_DUE/CANCELLED; instance = TRIAL/ACTIVE/SUSPENDED/CANCELLED.
+
+**Bằng chứng:**
+- Bảng 2.8 (`subscriptions` status + `auto_renew` + `pending_payment_id`)
+- Bảng 2.7 (`instances.deleted` soft delete) + Chương 2 §2.1.1 (ân hạn 3 ngày, giữ data 7 ngày)
+
+### Q44: "Bảng `instances` và `subscriptions` khác nhau gì, vì sao tách hai bảng quan hệ 1-1?" — **[CÂU MỚI — nghiệp vụ & dữ liệu]**
+
+**Trả lời:**
+
+`instances` lưu metadata + **vòng đời tenant** (subdomain, custom_domain, owner_id, tier, status, hạn trial/subscription, `database_url`/`database_password` mã hoá AES-256-GCM) — source-of-truth lifecycle + routing. `subscriptions` là source-of-truth **billing** (tier, `price_vnd` BIGINT, status, auto_renew, chu kỳ), quan hệ **1-1** với instance và **1-N** tới `payments` (lịch sử giao dịch). Tách vì hai mối quan tâm khác nhau: lifecycle/routing vs billing/lịch sử; cho phép đổi gói (bản ghi subscription mới) mà không đụng metadata + routing của tenant.
+
+**Bằng chứng:**
+- Bảng 2.7 (`instances`) + Bảng 2.8 (`subscriptions`)
+- Hình 2.6a (INSTANCES 1-1 SUBSCRIPTIONS, SUBSCRIPTIONS 1-N PAYMENTS)
+
+### Nghiệp vụ KiteClass (domain-plane)
+
+### Q45: "Đăng ký học sinh vào lớp xử lý thế nào? Quan hệ nhiều-nhiều phân giải ra sao?" — **[CÂU MỚI — nghiệp vụ & dữ liệu]**
+
+**Trả lời:**
+
+`COURSES` 1-N `CLASSES` (FK `course_id`). Quan hệ **nhiều-nhiều** giữa `STUDENTS` và `CLASSES` được phân giải qua **bảng nối (junction) `ENROLLMENTS`** với hai khoá ngoại `student_id` + `class_id`: một học sinh đăng ký nhiều lớp, một lớp có nhiều học sinh. Mỗi bản ghi enrollment là một lượt đăng ký, đóng vai trò ngữ cảnh để gắn điểm danh, điểm số và học phí. Mọi bảng đều mang `instance_id` UUID (FK tới `instances`) bắt buộc để RLS cô lập theo tenant.
+
+**Bằng chứng:**
+- Hình 2.6b (ENROLLMENTS phân giải M-N STUDENTS↔CLASSES) + Chương 2 §2.3.2
+
+### Q46: "Điểm danh và điểm số lưu thế nào, quan hệ với học sinh và lớp ra sao?" — **[CÂU MỚI — nghiệp vụ & dữ liệu]**
+
+**Trả lời:**
+
+`ATTENDANCE` và `GRADES` đều có khoá ngoại `student_id` + `class_id` (cardinality 1-N từ cả `STUDENTS` lẫn `CLASSES`), gắn quanh ngữ cảnh lớp-học-sinh đã enroll. Điểm danh ghi trạng thái có mặt theo buổi; điểm số theo thang trung tâm cấu hình. Cả hai mang `instance_id` để RLS cô lập theo tenant. Em xin thừa nhận báo cáo §2.3.3 chỉ trình bày schema chi tiết cột cho 3 bảng đại diện (`instances`, `subscriptions`, `students`); chi tiết cột `attendance`/`grades` em sẽ bổ sung phụ lục.
+
+**Bằng chứng:**
+- Hình 2.6b (ATTENDANCE/GRADES FK student_id + class_id) + Chương 2 §2.3.3 (3 bảng đại diện)
+
+### Q47: "Thanh toán học phí trong KiteClass khác thanh toán gói subscription của KiteHub thế nào?" — **[CÂU MỚI — nghiệp vụ & dữ liệu]**
+
+**Trả lời:**
+
+Hai khái niệm thanh toán ở hai tầng. (i) **Control-plane (KiteHub):** trung tâm trả phí nền tảng — `subscriptions` → `payments`, qua VietQR + đối soát thủ công. (ii) **Domain-plane (KiteClass):** học sinh/phụ huynh trả **học phí** cho trung tâm — miền Payment trong `kiteclass-core`, gắn theo enrollment. Khác nguồn, khác bảng, khác schema (kitehub schema vs kiteclass_shared schema). Em xin thừa nhận §2.3.3 chỉ chi tiết 3 bảng đại diện; schema học phí KiteClass nằm trong chuỗi migration `kiteclass_shared` — bổ sung phụ lục nếu hội đồng cần.
+
+**Bằng chứng:**
+- Chương 2 §2.3.3 (2 cụm migration: kitehub 57, kiteclass_shared 76) + miền Payment trong `kiteclass-core`
+
+### Bảng cụ thể & quan hệ
+
+### Q48: "Schema phân tách giữa KiteHub và KiteClass thế nào? Bao nhiêu bảng?" — **[CÂU MỚI — nghiệp vụ & dữ liệu]**
+
+**Trả lời:**
+
+Hai cụm schema theo bounded context. **Control-plane** (`kitehub-subscription`, ~57 migration Flyway): `instances`, `subscriptions`, `payments`, `branding_templates`, `consent_records`, `admin_audit_logs`, `beta_access_requests`, users... **Domain-plane** (`kiteclass-core`, schema `kiteclass_shared`, 76 migration): `students`, `courses`, `classes`, `enrollments`, `attendance`, `grades`... `INSTANCES` là bảng gốc, mọi bảng nghiệp vụ tham chiếu qua `instance_id`. Mỗi service có chuỗi migration riêng để tách bounded context, triển khai độc lập.
+
+**Bằng chứng:**
+- Chương 2 §2.3.3 (kitehub 57 + kiteclass_shared 76 migration) + Hình 2.6a/2.6b
+
+### Q49: "Vì sao mọi bảng nghiệp vụ đều có cột `instance_id`? Quan hệ với RLS?" — **[CÂU MỚI — nghiệp vụ & dữ liệu]**
+
+**Trả lời:**
+
+`instance_id` (UUID, FK tới `instances.id`, NOT NULL) là cột mang **ranh giới multi-tenant** trên mọi bảng nghiệp vụ, cardinality 1..N từ `INSTANCES` — không bản ghi nào tồn tại ngoài ngữ cảnh tenant. RLS policy dùng đúng cột này: `USING (instance_id = current_setting('app.current_tenant_id')::uuid)`, kèm `FORCE ROW LEVEL SECURITY` và chính sách NULL force-fail (chưa set tenant → trả 0 dòng). Nhờ vậy chính database engine ép lọc theo tenant ở mọi truy vấn, không phụ thuộc lập trình viên nhớ điều kiện `WHERE`. Hiện RLS bật trên 51/91 bảng.
+
+**Bằng chứng:**
+- Chương 2 §2.2.4 (RLS policy + GUC `current_setting` + NULL force-fail) + §2.3.2 (instance_id FK 1..N) + Bảng 2.7-2.9
+
+### Q50: "Bảng `instances` dùng UUID nhưng `students` dùng BIGSERIAL — vì sao khác?" — **[CÂU MỚI — nghiệp vụ & dữ liệu]**
+
+**Trả lời:**
+
+Khoá chính chọn theo phạm vi lộ-ra của định danh. **Control-plane** `instances` dùng **UUID** vì định danh tenant lộ ra subdomain/URL/JWT claim, cần không-đoán-được + an toàn + thân thiện phân tán. **Domain-plane** `students` (và các bảng nghiệp vụ trong tenant) dùng **BIGSERIAL** (tự tăng) vì id chỉ nội bộ một tenant, đã được `instance_id` + RLS cô lập nên không lo đoán chéo tenant; BIGSERIAL đơn giản, index gọn, join nhanh hơn UUID. Đây là lựa chọn có chủ đích theo từng tầng, không phải thiếu nhất quán.
+
+**Bằng chứng:**
+- Bảng 2.7 (`instances.id` UUID) + Bảng 2.9 (`students.id` BIGSERIAL) + Chương 2 §2.2.4 (RLS cô lập)
+
+### Q51: "Bảng `students` chứa dữ liệu cá nhân — em xử lý PDPL/DSAR thế nào?" — **[CÂU MỚI — nghiệp vụ & dữ liệu]**
+
+**Trả lời:**
+
+`students` là bảng nhạy cảm nhất (name, email, phone, date_of_birth, address). Tuân thủ PDPL 2023 Điều 11: `consent_records` ghi nhận đồng ý của chủ thể; quy trình DSAR cho phép truy xuất/xoá dữ liệu cá nhân; `admin_audit_logs` bất biến ghi mọi truy cập. Hiện cho trung tâm dạy thêm vừa-nhỏ không lưu trường nhạy cảm cao (CMND/CCCD, mã định danh học sinh quốc gia); khi mở rộng sang K-12 ở lộ trình phát triển sau sẽ bổ sung trường mã hoá riêng cho thông tin trẻ vị thành niên cùng yêu cầu DPO/DPIA.
+
+**Bằng chứng:**
+- Bảng 2.9 (`students` trường cá nhân) + Hình 2.6a (`consent_records`, `admin_audit_logs`) + Chương 2 §2.1.2 (PDPL)
 
 ---
 
