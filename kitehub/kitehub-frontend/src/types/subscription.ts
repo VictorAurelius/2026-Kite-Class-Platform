@@ -37,6 +37,12 @@ export interface TierChangeRequest {
  * the FE show an "awaiting confirmation" screen with the admin-confirm SLA.
  */
 export interface PendingPaymentStatus {
+  /**
+   * GAP-1471 — subscription owning the pending payment; used to cancel it via
+   * DELETE /subscriptions/{subscriptionId}/pending-payment. BE populates this in
+   * `OwnerBillingService.getPendingPaymentStatus` (`.subscriptionId(sub.getId())`).
+   */
+  subscriptionId: string;
   pendingPaymentId: string;
   amountVnd: number;
   status: 'PENDING' | 'COMPLETED' | 'FAILED' | 'EXPIRED';

@@ -717,4 +717,129 @@ class SubscriptionServiceTest {
         assertThat(instance.getTier()).isEqualTo(PricingTier.BASIC);
         verify(instanceRepository).save(any(Instance.class));
     }
+
+    @Test
+    @DisplayName("GAP-1471: cancel pending payment clears pending state + soft-cancels payment (upgrade-flow ACTIVE)")
+    void shouldCancelPendingPayment() {
+        // Given — an ACTIVE BASIC subscription with a pending PREMIUM upgrade payment in flight
+        UUID subscriptionId = UUID.randomUUID();
+        UUID paymentId = UUID.randomUUID();
+        Subscription subscription = new Subscription();
+        subscription.setId(subscriptionId);
+        subscription.setInstanceId(instanceId);
+        subscription.setTier(PricingTier.BASIC);
+        subscription.setPendingTier(PricingTier.PREMIUM);
+        subscription.setPendingPaymentId(paymentId);
+        subscription.setStatus(SubscriptionStatus.ACTIVE);
+
+        Payment payment = new Payment();
+        payment.setId(paymentId);
+        payment.setSubscriptionId(subscriptionId);
+        payment.setStatus(PaymentStatus.PENDING);
+
+        when(subscriptionRepository.findById(subscriptionId)).thenReturn(Optional.of(subscription));
+        when(paymentRepository.findById(paymentId)).thenReturn(Optional.of(payment));
+        when(subscriptionRepository.save(any(Subscription.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
+
+        // When
+        SubscriptionResponse response = subscriptionService.cancelPendingPayment(subscriptionId);
+
+        // Then — pending state cleared, current tier + ACTIVE status preserved
+        assertThat(response.getPendingTier()).isNull();
+        assertThat(response.getPendingPaymentId()).isNull();
+        assertThat(response.getTier()).isEqualTo(PricingTier.BASIC);
+        assertThat(response.getStatus()).isEqualTo(SubscriptionStatus.ACTIVE);
+        // Payment soft-cancelled (status CANCELLED + deleted=true).
+        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.CANCELLED);
+        assertThat(payment.isDeleted()).isTrue();
+        verify(paymentRepository).save(payment);
+    }
+
+    @Test
+    @DisplayName("GAP-1471: cancel pending payment on a create-flow PENDING subscription cancels it (owner can retry)")
+    void shouldCancelCreateFlowSubscriptionOnPendingPaymentCancel() {
+        // Given — a create-flow subscription (PENDING/FREE, pendingTier=BASIC) awaiting first payment
+        UUID subscriptionId = UUID.randomUUID();
+        UUID paymentId = UUID.randomUUID();
+        Subscription subscription = new Subscription();
+        subscription.setId(subscriptionId);
+        subscription.setInstanceId(instanceId);
+        subscription.setTier(PricingTier.FREE);
+        subscription.setPendingTier(PricingTier.BASIC);
+        subscription.setPendingPaymentId(paymentId);
+        subscription.setStatus(SubscriptionStatus.PENDING);
+        subscription.setAutoRenew(true);
+
+        Payment payment = new Payment();
+        payment.setId(paymentId);
+        payment.setStatus(PaymentStatus.PENDING);
+
+        when(subscriptionRepository.findById(subscriptionId)).thenReturn(Optional.of(subscription));
+        when(paymentRepository.findById(paymentId)).thenReturn(Optional.of(payment));
+        when(subscriptionRepository.save(any(Subscription.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
+
+        // When
+        SubscriptionResponse response = subscriptionService.cancelPendingPayment(subscriptionId);
+
+        // Then — subscription CANCELLED so the GAP-1080 create-idempotency guard no longer re-blocks
+        assertThat(response.getStatus()).isEqualTo(SubscriptionStatus.CANCELLED);
+        assertThat(response.getPendingTier()).isNull();
+        assertThat(response.getPendingPaymentId()).isNull();
+        assertThat(response.getAutoRenew()).isFalse();
+        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.CANCELLED);
+        assertThat(payment.isDeleted()).isTrue();
+    }
+
+    @Test
+    @DisplayName("GAP-1471: cancel pending payment rejects when no payment is pending")
+    void shouldRejectCancelPendingPaymentWhenNoPending() {
+        // Given — an ACTIVE subscription with no pending payment
+        UUID subscriptionId = UUID.randomUUID();
+        Subscription subscription = new Subscription();
+        subscription.setId(subscriptionId);
+        subscription.setInstanceId(instanceId);
+        subscription.setTier(PricingTier.BASIC);
+        subscription.setStatus(SubscriptionStatus.ACTIVE);
+        // pendingPaymentId left null
+
+        when(subscriptionRepository.findById(subscriptionId)).thenReturn(Optional.of(subscription));
+
+        // When & Then — 400 via IllegalArgumentException, nothing mutated
+        assertThatThrownBy(() -> subscriptionService.cancelPendingPayment(subscriptionId))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Không có yêu cầu thanh toán");
+        verify(paymentRepository, never()).save(any(Payment.class));
+        verify(subscriptionRepository, never()).save(any(Subscription.class));
+    }
+
+    @Test
+    @DisplayName("GAP-1471: cancel pending payment rejects when the payment is already confirmed (COMPLETED)")
+    void shouldRejectCancelPendingPaymentWhenPaymentCompleted() {
+        // Given — a confirmed payment (admin already reconciled) — owner cannot retract it
+        UUID subscriptionId = UUID.randomUUID();
+        UUID paymentId = UUID.randomUUID();
+        Subscription subscription = new Subscription();
+        subscription.setId(subscriptionId);
+        subscription.setInstanceId(instanceId);
+        subscription.setTier(PricingTier.BASIC);
+        subscription.setPendingTier(PricingTier.PREMIUM);
+        subscription.setPendingPaymentId(paymentId);
+        subscription.setStatus(SubscriptionStatus.ACTIVE);
+
+        Payment payment = new Payment();
+        payment.setId(paymentId);
+        payment.setStatus(PaymentStatus.COMPLETED);
+
+        when(subscriptionRepository.findById(subscriptionId)).thenReturn(Optional.of(subscription));
+        when(paymentRepository.findById(paymentId)).thenReturn(Optional.of(payment));
+
+        // When & Then — 400 via IllegalArgumentException, nothing mutated
+        assertThatThrownBy(() -> subscriptionService.cancelPendingPayment(subscriptionId))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("đã được xác nhận");
+        verify(paymentRepository, never()).save(any(Payment.class));
+        verify(subscriptionRepository, never()).save(any(Subscription.class));
+    }
 }

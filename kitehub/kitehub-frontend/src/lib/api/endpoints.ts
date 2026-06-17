@@ -28,6 +28,11 @@ export const endpoints = {
     upgrade: (id: string) => `${API_BASE}/subscriptions/${id}/upgrade`,
     downgrade: (id: string) => `${API_BASE}/subscriptions/${id}/downgrade`,
     cancel: (id: string) => `${API_BASE}/subscriptions/${id}`,
+    // GAP-1471 — cancel the in-flight PENDING tier-change/creation payment (keyed by
+    // subscription id) so the owner can request a fresh one. Distinct from `cancel`
+    // above (DELETE /{id}) which ends the WHOLE subscription.
+    cancelPendingPayment: (id: string) =>
+      `${API_BASE}/subscriptions/${id}/pending-payment`,
     // GAP-1257-FE — "Đang chờ xác nhận" pending-payment status (VietQR manual,
     // SUB-19 admin confirm). Code-to-contract: BE-4 adds this endpoint.
     // 404 = no pending payment (normal) → hook returns null gracefully.

@@ -1,8 +1,21 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Clock, ArrowRight } from 'lucide-react';
+import { Clock, ArrowRight, X } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { useCancelPendingPayment } from '@/hooks/use-subscriptions';
 import { formatVnd } from '@/lib/pricing';
 import type { PendingPaymentStatus } from '@/types/subscription';
 
@@ -24,8 +37,23 @@ interface PendingPaymentBannerProps {
  */
 export function PendingPaymentBanner({ pending }: PendingPaymentBannerProps) {
   const router = useRouter();
+  const cancelPendingPayment = useCancelPendingPayment();
 
   if (pending.status !== 'PENDING') return null;
+
+  // GAP-1471 — abandon the in-flight pending payment so the owner can request a fresh one.
+  // On success the ['subscriptions'] invalidation re-fetches pending-payment-status → null,
+  // so this banner unmounts.
+  const handleCancel = () => {
+    cancelPendingPayment.mutate(pending.subscriptionId, {
+      onSuccess: () => {
+        toast.success('Đã hủy yêu cầu thanh toán. Bạn có thể tạo lại.');
+      },
+      onError: () => {
+        toast.error('Không thể hủy yêu cầu thanh toán. Vui lòng thử lại.');
+      },
+    });
+  };
 
   const expiryLabel = pending.expiresAt
     ? new Date(pending.expiresAt).toLocaleString('vi-VN', {
@@ -63,7 +91,7 @@ export function PendingPaymentBanner({ pending }: PendingPaymentBannerProps) {
           </p>
         </div>
       </div>
-      <div className="mt-4">
+      <div className="mt-4 flex flex-wrap gap-2">
         <Button
           variant="outline"
           size="sm"
@@ -73,6 +101,40 @@ export function PendingPaymentBanner({ pending }: PendingPaymentBannerProps) {
           Xem thông tin chuyển khoản
           <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
+
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-amber-800 hover:text-amber-900 dark:text-amber-200 dark:hover:text-amber-100"
+              disabled={cancelPendingPayment.isPending}
+              data-testid="pending-payment-cancel-cta"
+            >
+              <X className="mr-2 h-4 w-4" />
+              {cancelPendingPayment.isPending ? 'Đang hủy…' : 'Hủy yêu cầu thanh toán'}
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Hủy yêu cầu thanh toán?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Yêu cầu chuyển khoản <strong>{formatVnd(pending.amountVnd)}</strong> đang chờ
+                sẽ bị hủy. Gói đăng ký hiện tại của bạn không thay đổi. Bạn có thể tạo lại yêu
+                cầu thanh toán bất cứ lúc nào.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Giữ lại</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleCancel}
+                data-testid="pending-payment-cancel-confirm"
+              >
+                Hủy yêu cầu
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
