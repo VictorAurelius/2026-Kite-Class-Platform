@@ -425,9 +425,11 @@ test.describe('Critical Journey: Class Lifecycle', () => {
   test('should display class sessions correctly', async ({ page }) => {
     await navigateToClassDetail(page);
 
-    // Sessions heading: CardTitle "Buổi học"
+    // Sessions heading: CardTitle "Buổi học". GAP-1468 added a "Tạo lại buổi học
+    // theo lịch" button which also matches /buổi học/i → use .first() to target the
+    // heading and avoid a strict-mode 2-element violation.
     await expect(
-      page.getByText(/buổi học|sessions/i)
+      page.getByText(/buổi học|sessions/i).first()
     ).toBeVisible({ timeout: 5000 });
 
     // Wait for async sessions fetch to resolve
