@@ -16,11 +16,18 @@
  * book_append_sheet) — the same dependency the bulk-import feature relies on
  * for spreadsheet handling.
  *
+ * Bundle-budget note (GAP-1478): `xlsx` (SheetJS) is heavy and MUST NOT land in
+ * the report route's First Load JS. So this module only `import type`s xlsx
+ * (erased at build time) — the runtime library is pulled lazily via
+ * `await import('xlsx')` inside {@link exportAttendanceXlsx}, which only fires
+ * when the user clicks "Export". `buildAttendanceWorkbook` takes the loaded
+ * `xlsx` module as a parameter so it stays synchronous + unit-testable.
+ *
  * @author KiteClass Team
  * @since 2.7.0 (wave-flow-kc3, GAP-1478)
  */
 
-import * as XLSX from 'xlsx';
+import type * as XLSX from 'xlsx';
 import { AttendanceStatusLabels, type AttendanceStatus } from '@/types/attendance';
 
 /**
@@ -271,10 +278,16 @@ export function buildSummaryRows(
  * Build a workbook with one sheet per selected criterion. Criteria are emitted
  * in a stable order (detail → session → student → summary) regardless of pick
  * order. Falls back to all four when `criteria` is empty.
+ *
+ * The `xlsx` runtime module is passed in (not imported at module scope) so this
+ * function stays synchronous + unit-testable AND so the heavy SheetJS bundle
+ * never lands in the report route's First Load JS (GAP-1478). Callers obtain it
+ * via `await import('xlsx')` — see {@link exportAttendanceXlsx}.
  */
 export function buildAttendanceWorkbook(
   input: AttendanceExportInput,
   criteria: AttendanceExportCriterion[],
+  xlsx: typeof import('xlsx'),
 ): XLSX.WorkBook {
   const selected = criteria.length > 0 ? criteria : ATTENDANCE_CRITERION_ORDER;
   const picked = ATTENDANCE_CRITERION_ORDER.filter((c) => selected.includes(c));
@@ -282,7 +295,7 @@ export function buildAttendanceWorkbook(
   const stats = input.stats ?? computeClassStats(input.records);
   const studentStats = input.studentStats ?? computeStudentStats(input.records);
 
-  const wb = XLSX.utils.book_new();
+  const wb = xlsx.utils.book_new();
 
   for (const criterion of picked) {
     let aoa: (string | number)[][];
@@ -300,8 +313,8 @@ export function buildAttendanceWorkbook(
         aoa = buildSummaryRows(input.className, stats, studentStats);
         break;
     }
-    const ws = XLSX.utils.aoa_to_sheet(aoa);
-    XLSX.utils.book_append_sheet(wb, ws, ATTENDANCE_SHEET_NAMES[criterion]);
+    const ws = xlsx.utils.aoa_to_sheet(aoa);
+    xlsx.utils.book_append_sheet(wb, ws, ATTENDANCE_SHEET_NAMES[criterion]);
   }
 
   return wb;
@@ -333,12 +346,17 @@ export function attendanceExportFilename(className: string, date: Date = new Dat
  * Build the workbook and trigger a browser download. Uses XLSX.write(type:
  * 'array') + Blob + anchor (instead of XLSX.writeFile) so no Node `fs` path is
  * pulled into the client bundle.
+ *
+ * Async because the heavy `xlsx` library is loaded lazily via dynamic import at
+ * click time (GAP-1478) — keeps it out of the report route's First Load JS as a
+ * separate chunk.
  */
-export function exportAttendanceXlsx(
+export async function exportAttendanceXlsx(
   input: AttendanceExportInput,
   criteria: AttendanceExportCriterion[],
-): void {
-  const wb = buildAttendanceWorkbook(input, criteria);
+): Promise<void> {
+  const XLSX = await import('xlsx');
+  const wb = buildAttendanceWorkbook(input, criteria, XLSX);
   const buffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' }) as ArrayBuffer;
   const blob = new Blob([buffer], {
     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',

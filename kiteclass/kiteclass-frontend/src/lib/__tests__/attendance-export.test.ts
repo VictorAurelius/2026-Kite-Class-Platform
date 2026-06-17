@@ -113,7 +113,7 @@ describe('computeSessionStats', () => {
 
 describe('buildAttendanceWorkbook', () => {
   it('emits one sheet per selected criterion in stable order', () => {
-    const wb = buildAttendanceWorkbook(input, ['student', 'detail', 'summary', 'session']);
+    const wb = buildAttendanceWorkbook(input, ['student', 'detail', 'summary', 'session'], XLSX);
     expect(wb.SheetNames).toEqual([
       ATTENDANCE_SHEET_NAMES.detail,
       ATTENDANCE_SHEET_NAMES.session,
@@ -123,17 +123,17 @@ describe('buildAttendanceWorkbook', () => {
   });
 
   it('falls back to all four sheets when criteria is empty', () => {
-    const wb = buildAttendanceWorkbook(input, []);
+    const wb = buildAttendanceWorkbook(input, [], XLSX);
     expect(wb.SheetNames).toHaveLength(4);
   });
 
   it('emits a single sheet when one criterion is picked', () => {
-    const wb = buildAttendanceWorkbook(input, ['student']);
+    const wb = buildAttendanceWorkbook(input, ['student'], XLSX);
     expect(wb.SheetNames).toEqual([ATTENDANCE_SHEET_NAMES.student]);
   });
 
   it('writes Vietnamese headers + data in the detail sheet', () => {
-    const wb = buildAttendanceWorkbook(input, ['detail']);
+    const wb = buildAttendanceWorkbook(input, ['detail'], XLSX);
     const ws = wb.Sheets[ATTENDANCE_SHEET_NAMES.detail]!;
     expect(cell(ws, 'A1')).toBe('Học viên');
     expect(cell(ws, 'C1')).toBe('Trạng thái');
@@ -146,7 +146,7 @@ describe('buildAttendanceWorkbook', () => {
   });
 
   it('writes per-student aggregates with attendance-rate cell', () => {
-    const wb = buildAttendanceWorkbook(input, ['student']);
+    const wb = buildAttendanceWorkbook(input, ['student'], XLSX);
     const ws = wb.Sheets[ATTENDANCE_SHEET_NAMES.student]!;
     expect(cell(ws, 'A1')).toBe('Học viên');
     expect(cell(ws, 'H1')).toBe('Tỷ lệ có mặt');
@@ -157,7 +157,7 @@ describe('buildAttendanceWorkbook', () => {
   });
 
   it('writes the class-summary KPI block', () => {
-    const wb = buildAttendanceWorkbook(input, ['summary']);
+    const wb = buildAttendanceWorkbook(input, ['summary'], XLSX);
     const ws = wb.Sheets[ATTENDANCE_SHEET_NAMES.summary]!;
     expect(cell(ws, 'A1')).toBe('Báo cáo điểm danh — Tổng hợp lớp');
     expect(cell(ws, 'A2')).toBe('Lớp học');
@@ -178,6 +178,7 @@ describe('buildAttendanceWorkbook', () => {
         ],
       },
       ['summary'],
+      XLSX,
     );
     const ws = wb.Sheets[ATTENDANCE_SHEET_NAMES.summary]!;
     expect(cell(ws, 'B6')).toBe(99); // total from precomputed stats

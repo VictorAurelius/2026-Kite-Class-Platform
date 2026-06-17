@@ -119,7 +119,9 @@ export default function AttendanceReportsPage() {
   const selectedClass = classes.find((c: Class) => c.id === selectedClassId);
 
   // Export the selected criteria to a single XLSX workbook (one sheet per criterion).
-  const handleExportXlsx = () => {
+  // Async because `xlsx` is loaded lazily at click time (GAP-1478) so the heavy
+  // SheetJS bundle stays out of this route's First Load JS.
+  const handleExportXlsx = async () => {
     if (!attendanceData?.content || attendanceData.content.length === 0) {
       alert('Không có dữ liệu để xuất');
       return;
@@ -129,7 +131,7 @@ export default function AttendanceReportsPage() {
       alert('Vui lòng chọn ít nhất một nội dung để xuất');
       return;
     }
-    exportAttendanceXlsx(
+    await exportAttendanceXlsx(
       {
         className: selectedClass?.name ?? 'lop',
         records: attendanceData.content,
@@ -160,7 +162,7 @@ export default function AttendanceReportsPage() {
           </div>
           <div className="flex items-center gap-2">
             <Button
-              onClick={handleExportXlsx}
+              onClick={() => void handleExportXlsx()}
               disabled={!selectedClassId || stats.total === 0 || selectedCount === 0}
             >
               <Download className="mr-2 h-4 w-4" />
