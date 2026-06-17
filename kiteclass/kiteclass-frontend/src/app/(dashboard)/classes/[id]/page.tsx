@@ -21,6 +21,7 @@ import {
   Copy,
   Calendar,
   CalendarClock,
+  CalendarPlus,
   MapPin,
   Users,
   UserPlus,
@@ -30,6 +31,7 @@ import { DashboardLayout } from '@/components/layout';
 import { StatusBadge, LoadingSpinner, ErrorAlert } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { RecurrenceForm } from '@/components/forms/recurrence-form';
 import {
   useClass,
   useDeleteClass,
@@ -39,6 +41,7 @@ import {
   useRescheduleClass,
   useClassSessions,
   useGenerateClassCode,
+  useGenerateSessionsFromRecurrence,
 } from '@/hooks/use-classes';
 import { formatDate, formatDateTime } from '@/lib/utils';
 import {
@@ -86,6 +89,7 @@ export default function ClassDetailPage({
   >('');
   const [rescheduleReasonNotes, setRescheduleReasonNotes] = useState('');
   const [showAddStudentDialog, setShowAddStudentDialog] = useState(false);
+  const [showGenerateSessionsDialog, setShowGenerateSessionsDialog] = useState(false);
 
   const { data: classData, isLoading, error } = useClass(classId);
   const { data: sessions } = useClassSessions(classId);
@@ -96,6 +100,7 @@ export default function ClassDetailPage({
   const cancelMutation = useCancelClass();
   const rescheduleMutation = useRescheduleClass();
   const generateCodeMutation = useGenerateClassCode();
+  const generateSessionsMutation = useGenerateSessionsFromRecurrence();
 
   const handleDelete = () => {
     if (window.confirm('Xóa lớp học này? Hành động không thể hoàn tác.')) {
@@ -214,6 +219,11 @@ export default function ClassDetailPage({
   const isDraft = classData.status === 'DRAFT';
   const isScheduled = classData.status === 'SCHEDULED';
   const isInProgress = classData.status === 'IN_PROGRESS';
+
+  // Session generation is only meaningful while the class is still active
+  // (not COMPLETED/CANCELLED) — backend regenerates future SCHEDULED sessions.
+  const canManageSessions = isDraft || isScheduled || isInProgress;
+  const hasSessions = !!sessions && sessions.length > 0;
 
   return (
     <DashboardLayout>
@@ -453,6 +463,34 @@ export default function ClassDetailPage({
           onOpenChange={setShowAddStudentDialog}
         />
 
+        {/* Generate-sessions-from-recurrence dialog (GAP-1468 — post-creation
+            session management). Reuses RecurrenceForm + generateFromRecurrence;
+            backend preserves attended/past sessions, regenerates future ones. */}
+        {showGenerateSessionsDialog && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Tạo buổi học theo lịch</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="mb-4 text-sm text-muted-foreground">
+                Chọn các ngày trong tuần và khoảng thời gian để tự động tạo các
+                buổi học cho lớp này.
+              </p>
+              <RecurrenceForm
+                hasExistingSessions={hasSessions}
+                isSubmitting={generateSessionsMutation.isPending}
+                onCancel={() => setShowGenerateSessionsDialog(false)}
+                onSubmit={(rule) =>
+                  generateSessionsMutation.mutate(
+                    { id: classId, rule },
+                    { onSuccess: () => setShowGenerateSessionsDialog(false) }
+                  )
+                }
+              />
+            </CardContent>
+          </Card>
+        )}
+
         {/* Info Card */}
         <Card>
           <CardHeader>
@@ -548,16 +586,32 @@ export default function ClassDetailPage({
           </CardContent>
         </Card>
 
-        {/* Sessions Card */}
+        {/* Sessions Card — quản lý lịch học / buổi học (GAP-1468) */}
         <Card>
-          <CardHeader>
-            <CardTitle>Buổi học</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Quản lý lịch học / Buổi học</CardTitle>
+            {canManageSessions && hasSessions && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowGenerateSessionsDialog(true)}
+              >
+                <CalendarPlus className="mr-2 h-4 w-4" />
+                Tạo lại buổi học theo lịch
+              </Button>
+            )}
           </CardHeader>
           <CardContent>
             {!sessions || sessions.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">
-                Chưa có buổi học nào được tạo
-              </p>
+              <div className="flex flex-col items-center gap-4 py-8 text-center">
+                <p className="text-muted-foreground">Chưa có buổi học nào</p>
+                {canManageSessions && (
+                  <Button onClick={() => setShowGenerateSessionsDialog(true)}>
+                    <CalendarPlus className="mr-2 h-4 w-4" />
+                    Tạo buổi học theo lịch
+                  </Button>
+                )}
+              </div>
             ) : (
               <div className="space-y-2">
                 {sessions.map((session) => (
