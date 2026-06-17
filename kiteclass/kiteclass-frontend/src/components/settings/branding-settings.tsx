@@ -69,6 +69,8 @@ export function BrandingSettings() {
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -294,10 +296,25 @@ export function BrandingSettings() {
                   <Input
                     id="primaryColor"
                     type="color"
-                    {...register('primaryColor')}
+                    value={watch('primaryColor') || '#000000'}
+                    onChange={(e) =>
+                      setValue('primaryColor', e.target.value, {
+                        shouldValidate: true,
+                        shouldDirty: true,
+                      })
+                    }
                     className="h-10 w-20"
                   />
-                  <Input {...register('primaryColor')} className="flex-1" />
+                  <Input
+                    value={watch('primaryColor') ?? ''}
+                    onChange={(e) =>
+                      setValue('primaryColor', e.target.value, {
+                        shouldValidate: true,
+                        shouldDirty: true,
+                      })
+                    }
+                    className="flex-1"
+                  />
                 </div>
                 {errors.primaryColor && (
                   <p className="text-sm text-destructive">{errors.primaryColor.message}</p>
@@ -310,10 +327,25 @@ export function BrandingSettings() {
                   <Input
                     id="secondaryColor"
                     type="color"
-                    {...register('secondaryColor')}
+                    value={watch('secondaryColor') || '#000000'}
+                    onChange={(e) =>
+                      setValue('secondaryColor', e.target.value, {
+                        shouldValidate: true,
+                        shouldDirty: true,
+                      })
+                    }
                     className="h-10 w-20"
                   />
-                  <Input {...register('secondaryColor')} className="flex-1" />
+                  <Input
+                    value={watch('secondaryColor') ?? ''}
+                    onChange={(e) =>
+                      setValue('secondaryColor', e.target.value, {
+                        shouldValidate: true,
+                        shouldDirty: true,
+                      })
+                    }
+                    className="flex-1"
+                  />
                 </div>
                 {errors.secondaryColor && (
                   <p className="text-sm text-destructive">{errors.secondaryColor.message}</p>
@@ -326,10 +358,25 @@ export function BrandingSettings() {
                   <Input
                     id="accentColor"
                     type="color"
-                    {...register('accentColor')}
+                    value={watch('accentColor') || '#000000'}
+                    onChange={(e) =>
+                      setValue('accentColor', e.target.value, {
+                        shouldValidate: true,
+                        shouldDirty: true,
+                      })
+                    }
                     className="h-10 w-20"
                   />
-                  <Input {...register('accentColor')} className="flex-1" />
+                  <Input
+                    value={watch('accentColor') ?? ''}
+                    onChange={(e) =>
+                      setValue('accentColor', e.target.value, {
+                        shouldValidate: true,
+                        shouldDirty: true,
+                      })
+                    }
+                    className="flex-1"
+                  />
                 </div>
                 {errors.accentColor && (
                   <p className="text-sm text-destructive">{errors.accentColor.message}</p>
