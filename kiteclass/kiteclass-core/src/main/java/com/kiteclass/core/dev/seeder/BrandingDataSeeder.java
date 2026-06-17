@@ -47,7 +47,11 @@ import java.util.UUID;
  * <p>Tracking: GAP-235 Sub-PR F.
  */
 @Component
-@Profile("dev")
+// Demo-trio landing seed runs on `dev` OR the `demo-seed` profile — activate
+// `demo-seed` on any env (incl production: SPRING_PROFILES_ACTIVE=prod,demo-seed)
+// to reproduce demo landing content identically. Idempotent upsert (cache evict
+// per GAP-1203). Run AFTER kitehub DemoTrioInstanceSeeder.
+@Profile({"dev", "demo-seed"})
 @RequiredArgsConstructor
 @Slf4j
 public class BrandingDataSeeder {

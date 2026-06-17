@@ -37,7 +37,7 @@ import {
   Tablet,
   Monitor,
   Info,
-  Maximize2,
+  ExternalLink,
   Pencil,
   ShieldCheck,
   CheckCircle2,
@@ -45,7 +45,6 @@ import {
 } from 'lucide-react';
 import { ThemePreview } from '@kite/shared-ui';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { ResourceToggle, type ApprovableResource } from './ResourceToggle';
 import { TEMPLATES } from './TemplateGrid';
 import { RegenerateCounter } from './RegenerateCounter';
@@ -406,11 +405,6 @@ export function Step6Preview({
   const allApproved = approvedCount === totalResources;
 
   // -------------------------------------------------------------------------
-  // GAP-1136 — full-screen preview mode + prior-decisions summary panel
-  // -------------------------------------------------------------------------
-
-  const [fullscreenOpen, setFullscreenOpen] = useState(false);
-
   const portraitCount = portraitUrls.length;
 
   // GAP-1142: tier drives FULL_AI eligibility in the mode selector.
@@ -468,7 +462,6 @@ export function Step6Preview({
   );
 
   const handleJumpToStep = (step: WizardStep) => {
-    setFullscreenOpen(false);
     dispatch({ type: 'GO_TO_STEP', step });
   };
 
@@ -609,12 +602,12 @@ export function Step6Preview({
           type="button"
           variant="outline"
           size="sm"
-          onClick={() => setFullscreenOpen(true)}
-          data-testid="step6-fullscreen-open"
+          onClick={() => window.open(previewSrc, '_blank', 'noopener,noreferrer')}
+          data-testid="step6-preview-newtab"
           className="shrink-0"
         >
-          <Maximize2 className="mr-2 h-4 w-4" aria-hidden="true" />
-          Toàn màn hình
+          <ExternalLink className="mr-2 h-4 w-4" aria-hidden="true" />
+          Mở preview (tab mới)
         </Button>
       </div>
 
@@ -891,89 +884,6 @@ export function Step6Preview({
           Triển khai &amp; lên sóng
         </Button>
       </div>
-
-      {/* GAP-1136 — full-screen live preview + side panel (summary + approve). */}
-      <Dialog
-        open={fullscreenOpen}
-        onOpenChange={(next) => {
-          if (!next) setFullscreenOpen(false);
-        }}
-      >
-        <DialogContent
-          className="max-w-6xl w-[96vw] p-4 md:p-6"
-          data-testid="step6-fullscreen-dialog"
-        >
-          <DialogTitle className="sr-only">Xem trước toàn màn hình</DialogTitle>
-          <div className="grid gap-4 lg:grid-cols-[1.5fr_1fr]">
-            <div className="space-y-2">
-              <div className="overflow-hidden rounded-lg border bg-white shadow-sm">
-                <div className="flex items-center gap-3 border-b bg-slate-50 px-3 py-2">
-                  <div className="flex gap-1" aria-hidden="true">
-                    <span className="h-2.5 w-2.5 rounded-full bg-rose-400" />
-                    <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
-                    <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
-                  </div>
-                  <span className="flex-1 truncate font-mono text-xs text-muted-foreground">
-                    https://{wizardState.slug || 'tenant-slug'}.kitehub.me
-                  </span>
-                </div>
-                <iframe
-                  src={previewSrc}
-                  title="Xem trước toàn màn hình"
-                  data-testid="step6-fullscreen-iframe"
-                  className="w-full border-0 bg-white"
-                  style={{ height: '70vh', minHeight: 360 }}
-                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-                />
-              </div>
-            </div>
-
-            <div className="max-h-[78vh] space-y-4 overflow-y-auto">
-              <DecisionSummary rows={decisionRows} onJump={handleJumpToStep} />
-
-              <div>
-                <h3 className="mb-2 text-sm font-bold">
-                  Phê duyệt từng tài nguyên ({approvedCount}/{totalResources})
-                </h3>
-                <div className="space-y-2">
-                  {RESOURCES.map((r) => {
-                    const approved = wizardState.approvedResources.includes(r.id);
-                    return (
-                      <ResourceToggle
-                        key={r.id}
-                        resource={r.id}
-                        title={r.title}
-                        description={r.description({
-                          templateCode: selectedTemplate?.code ?? null,
-                          templateName: selectedTemplate?.name ?? null,
-                          primary: brandColors?.primary ?? FALLBACK_BRAND.primary,
-                          secondary: brandColors?.secondary ?? FALLBACK_BRAND.secondary,
-                        })}
-                        approved={approved}
-                        dispatch={dispatch}
-                      />
-                    );
-                  })}
-                </div>
-              </div>
-
-              <Button
-                type="button"
-                className="w-full"
-                onClick={() => {
-                  setFullscreenOpen(false);
-                  handleDeployClick();
-                }}
-                disabled={!allApproved || !wizardState.jobId}
-                data-testid="step6-fullscreen-deploy"
-              >
-                <Rocket className="mr-2 h-4 w-4" aria-hidden="true" />
-                Triển khai &amp; lên sóng
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

@@ -28,17 +28,14 @@ import type { Course } from '@/types/course';
 
 const PAGE_SIZE = 60;
 
-type GradeKey = 'all' | 'lop4' | 'lop5' | 'onthi';
+// GradeKey is dynamic: 'all' | `lop-<N>` | `onthi-<N>`, derived per-tenant from the
+// actual course names (see deriveGradeChips). The grade chips used to be hardcoded
+// to tiểu-học levels (Lớp 4 / Lớp 5 / Ôn thi vào 6) which were WRONG for any
+// non-tiểu-học tenant (Hóa THCS → lớp 8/9 + vào 10; GDCD THPT → lớp 10/11/12).
+type GradeKey = string;
 type LevelKey = 'all' | 'co-ban' | 'nang-cao';
 type SortKey = 'newest' | 'price-asc' | 'price-desc' | 'name';
 type RecoKey = 'mat-goc' | 'theo-kip' | 'thi-vao-6';
-
-const GRADE_CHIPS: { key: GradeKey; label: string }[] = [
-  { key: 'all', label: 'Tất cả' },
-  { key: 'lop4', label: 'Lớp 4' },
-  { key: 'lop5', label: 'Lớp 5' },
-  { key: 'onthi', label: 'Ôn thi vào 6' },
-];
 
 const LEVEL_CHIPS: { key: LevelKey; label: string }[] = [
   { key: 'all', label: 'Tất cả' },
@@ -46,10 +43,13 @@ const LEVEL_CHIPS: { key: LevelKey; label: string }[] = [
   { key: 'nang-cao', label: 'Nâng cao' },
 ];
 
+// Generic learning situations (subject/level-agnostic) — the 3rd used to be
+// tiểu-học-specific "Chuẩn bị thi vào 6"; now generic exam-prep so it fits THCS
+// (vào 10) / THPT (tốt nghiệp) tenants too. Keys stay internal.
 const RECO_OPTIONS: { key: RecoKey; label: string; sub: string }[] = [
   { key: 'mat-goc', label: 'Con đang mất gốc', sub: 'Cần lấy lại nền tảng' },
   { key: 'theo-kip', label: 'Học theo kịp lớp', sub: 'Củng cố đều đặn' },
-  { key: 'thi-vao-6', label: 'Chuẩn bị thi vào 6', sub: 'Mục tiêu trường tốt' },
+  { key: 'thi-vao-6', label: 'Ôn luyện thi cử', sub: 'Mục tiêu kỳ thi quan trọng' },
 ];
 
 function formatPrice(price?: number | null): string {
@@ -74,18 +74,44 @@ const isBasic = (c: Course) => c.level === 'Beginner';
 const isAdvanced = (c: Course) => c.level === 'Advanced' || c.level === 'Intermediate';
 const haystack = (c: Course) => `${c.name} ${c.description ?? ''}`.toLowerCase();
 
-function matchesGrade(c: Course, grade: GradeKey): boolean {
+// Derive a grade token from the course name/description (Course has no grade field).
+// "... vào (lớp) N ..." → `onthi-N` (exam-prep, takes precedence); "... lớp N ..." →
+// `lop-N`. Adapts per subject: Toán tiểu học → lop-3/4/5 + onthi-6; Hóa THCS →
+// lop-8/9 + onthi-10; GDCD THPT → lop-10/11/12.
+function extractGrade(c: Course): string | null {
   const h = haystack(c);
-  switch (grade) {
-    case 'lop4':
-      return /lớp\s*4|lop\s*4/.test(h);
-    case 'lop5':
-      return /lớp\s*5|lop\s*5/.test(h);
-    case 'onthi':
-      return /ôn thi|vào 6|vào lớp 6|chuyển cấp/.test(h);
-    default:
-      return true;
+  const vao = h.match(/vào\s*(?:lớp\s*)?(\d{1,2})/);
+  if (vao) return `onthi-${vao[1]}`;
+  const lop = h.match(/lớp\s*(\d{1,2})/);
+  if (lop) return `lop-${lop[1]}`;
+  return null;
+}
+
+function matchesGrade(c: Course, grade: GradeKey): boolean {
+  if (grade === 'all') return true;
+  return extractGrade(c) === grade;
+}
+
+/**
+ * Build the "Cấp lớp" filter chips from the tenant's actual courses — no hardcoded
+ * tiểu-học levels. Returns just [{all}] when no course exposes a parseable grade
+ * (caller hides the filter group then).
+ */
+function deriveGradeChips(courses: Course[]): { key: GradeKey; label: string }[] {
+  const found = new Map<string, { label: string; order: number }>();
+  for (const c of courses) {
+    const g = extractGrade(c);
+    if (!g) continue;
+    if (g.startsWith('onthi-')) {
+      const n = g.slice('onthi-'.length);
+      found.set(g, { label: `Ôn thi vào ${n}`, order: 1000 + Number(n) });
+    } else {
+      const n = g.slice('lop-'.length);
+      found.set(g, { label: `Lớp ${n}`, order: Number(n) });
+    }
   }
+  const sorted = [...found.entries()].sort((a, b) => a[1].order - b[1].order);
+  return [{ key: 'all', label: 'Tất cả' }, ...sorted.map(([key, v]) => ({ key, label: v.label }))];
 }
 
 function matchesLevel(c: Course, level: LevelKey): boolean {
@@ -100,9 +126,9 @@ function recommend(courses: Course[], reco: RecoKey): Course | null {
   if (reco === 'mat-goc') return courses.find(isBasic) ?? courses[0] ?? null;
   if (reco === 'theo-kip')
     return courses.find((c) => c.level === 'Intermediate') ?? courses.find(isBasic) ?? courses[0] ?? null;
-  // thi-vao-6
+  // exam-prep (generic): luyện/ôn thi, vào lớp (any), tốt nghiệp, chuyên, nâng cao
   return (
-    courses.find((c) => /ôn thi|vào 6|nâng cao/.test(haystack(c))) ??
+    courses.find((c) => /ôn thi|luyện thi|vào lớp|vào \d|tốt nghiệp|chuyên|nâng cao/.test(haystack(c))) ??
     courses.find(isAdvanced) ??
     courses[0] ??
     null
@@ -123,6 +149,9 @@ export default function CatalogPage() {
   });
 
   const allCourses = useMemo(() => data?.content ?? [], [data]);
+
+  // Per-tenant grade chips derived from the loaded courses (not hardcoded).
+  const gradeChips = useMemo(() => deriveGradeChips(allCourses), [allCourses]);
 
   const visible = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
@@ -203,11 +232,12 @@ export default function CatalogPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+            {gradeChips.length > 1 && (
             <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Lọc theo cấp lớp">
               <span className="text-xs font-extrabold uppercase tracking-wide text-muted-foreground">
                 Cấp lớp
               </span>
-              {GRADE_CHIPS.map((chip) => (
+              {gradeChips.map((chip) => (
                 <button
                   key={chip.key}
                   type="button"
@@ -223,6 +253,7 @@ export default function CatalogPage() {
                 </button>
               ))}
             </div>
+            )}
             <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Lọc theo trình độ">
               <span className="text-xs font-extrabold uppercase tracking-wide text-muted-foreground">
                 Trình độ

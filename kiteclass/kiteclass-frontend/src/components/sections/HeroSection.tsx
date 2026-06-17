@@ -124,7 +124,7 @@ export function HeroSection({ slots, title, subtitle, tagline }: HeroSectionProp
               {urgencyBadge}
               <p
                 aria-hidden
-                className="text-4xl font-extrabold leading-[1.1] tracking-tight md:text-5xl lg:text-6xl"
+                className="text-balance text-4xl font-extrabold leading-[1.15] tracking-tight md:text-5xl lg:text-[3.25rem]"
               >
                 {heroTitle}
               </p>

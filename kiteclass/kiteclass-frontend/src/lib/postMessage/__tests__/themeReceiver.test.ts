@@ -134,6 +134,28 @@ describe('Theme Receiver', () => {
       expect(mockCallback).not.toHaveBeenCalled();
     });
 
+    it('should accept messages from same origin (self-post)', () => {
+      // A page posting a theme message to itself (sendThemeToChild defaults to
+      // window.parent === window on a standalone tenant landing). Same-origin is
+      // inherently trusted regardless of dev/production build — covers production
+      // tenant subdomains without enumerating them in the static allowlist.
+      cleanup = initThemeReceiver(mockCallback);
+
+      const validMessage: ThemeMessage = {
+        type: 'APPLY_THEME',
+        theme: DEFAULT_THEME,
+      };
+
+      const event = new MessageEvent('message', {
+        data: validMessage,
+        origin: window.location.origin, // self / same-origin
+      });
+
+      window.dispatchEvent(event);
+
+      expect(mockCallback).toHaveBeenCalledWith(DEFAULT_THEME);
+    });
+
     it('should accept messages from localhost:4701 (KiteHub)', () => {
       cleanup = initThemeReceiver(mockCallback);
 

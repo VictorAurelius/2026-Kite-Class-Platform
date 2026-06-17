@@ -81,7 +81,12 @@ import java.util.UUID;
  * <p>Tracking: GAP-1190..1193.
  */
 @Component
-@Profile("dev")
+// Demo-trio academic seed runs on `dev` OR the `demo-seed` profile — activate
+// `demo-seed` on any env (incl production: SPRING_PROFILES_ACTIVE=prod,demo-seed)
+// to reproduce academic data (Hà 12HV / Nhì 35HV, academic-accurate stats)
+// identically. Idempotent. Run AFTER kitehub DemoTrioInstanceSeeder + same boot
+// as BrandingDataSeeder.
+@Profile({"dev", "demo-seed"})
 @Order(Ordered.LOWEST_PRECEDENCE)
 @RequiredArgsConstructor
 @Slf4j

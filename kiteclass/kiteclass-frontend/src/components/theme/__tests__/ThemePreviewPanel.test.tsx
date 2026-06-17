@@ -144,10 +144,12 @@ describe('ThemePreviewPanel', () => {
     const resetButton = screen.getByRole('button', { name: /Reset/i });
     await user.click(resetButton);
 
-    // Verify CSS variables reset to default (Blue: #3B82F6 → 59 130 246)
+    // Reset removes the inline `--theme-*` override so the globals.css / SSR
+    // ThemeSync default cascade takes over (no inline clobber). The inline
+    // custom color (magenta) must be cleared, not replaced with an inline default.
     await waitFor(() => {
       const primaryVar = document.documentElement.style.getPropertyValue('--theme-primary');
-      expect(primaryVar).toBe('59 130 246');
+      expect(primaryVar).toBe('');
     });
 
     // Verify localStorage cleared

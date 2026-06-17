@@ -81,6 +81,13 @@ export type ThemeUpdateCallback = (theme: ThemeConfig) => void;
  * @returns True if origin is in allowed list
  */
 function isAllowedOrigin(origin: string): boolean {
+  // Same-origin is inherently trusted: a page posting a message to itself
+  // (sendThemeToChild defaults to window.parent, which === window on a standalone
+  // tenant landing → self-post). Allowing it fixes the "untrusted origin" console
+  // spam on production builds (where isDevOrigin is disabled) AND correctly permits
+  // real production tenant subdomains (e.g. <slug>.kitehub.me) to self-preview theme
+  // without enumerating every subdomain in the static allowlist.
+  if (typeof window !== 'undefined' && origin === window.location.origin) return true;
   return ALLOWED_ORIGINS.includes(origin) || isDevOrigin(origin);
 }
 

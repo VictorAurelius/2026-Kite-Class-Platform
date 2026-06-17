@@ -52,7 +52,12 @@ import java.util.List;
  * <p>Tracking: GAP-1180.</p>
  */
 @Component
-@Profile("dev")
+// Demo-trio seed runs on `dev` (every local boot) OR the `demo-seed` profile —
+// activate `demo-seed` on any environment (incl production:
+// SPRING_PROFILES_ACTIVE=prod,demo-seed) to reproduce the demo identically.
+// Idempotent upsert → safe to re-run. Order on prod: this (instances) BEFORE
+// kiteclass-core BrandingDataSeeder + DemoAcademicSeeder (which need the rows).
+@Profile({"dev", "demo-seed"})
 @RequiredArgsConstructor
 @Slf4j
 public class DemoTrioInstanceSeeder {

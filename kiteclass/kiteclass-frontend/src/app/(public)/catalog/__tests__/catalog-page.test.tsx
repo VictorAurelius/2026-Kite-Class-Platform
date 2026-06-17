@@ -122,8 +122,8 @@ describe('CatalogPage', () => {
 
     await waitFor(() => expect(screen.getByText(/gợi ý cho con anh\/chị/i)).toBeInTheDocument());
 
-    // "Chuẩn bị thi vào 6" → should surface the ôn-thi course in the reco panel.
-    await user.click(screen.getByRole('button', { name: /chuẩn bị thi vào 6/i }));
+    // "Ôn luyện thi cử" (generic exam-prep) → should surface the exam-prep course.
+    await user.click(screen.getByRole('button', { name: /ôn luyện thi cử/i }));
     const recoRegion = screen.getByText(/xem khóa/i).closest('div');
     expect(recoRegion).toBeTruthy();
     await waitFor(() =>
