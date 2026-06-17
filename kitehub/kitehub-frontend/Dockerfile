@@ -23,9 +23,14 @@ COPY kitehub/kitehub-frontend ./kitehub/kitehub-frontend
 # Safe defaults for local development - override in docker-compose for production
 ARG NEXT_PUBLIC_API_URL=http://localhost:9000
 ARG NEXT_PUBLIC_KITECLASS_URL_PATTERN=http://localhost:3000?tenant={subdomain}
+# NEXT_PUBLIC_KITECLASS_URL — base KiteClass app URL (sso.ts + branding wizard
+# preview iframe). Without this baked, code falls back to http://localhost:3000 →
+# CSP frame-src block in production. Prod value = https://app.kitehub.me.
+ARG NEXT_PUBLIC_KITECLASS_URL=http://localhost:3000
 ARG NEXT_PUBLIC_BETA_PAYMENT_OVERRIDE=false
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_KITECLASS_URL_PATTERN=$NEXT_PUBLIC_KITECLASS_URL_PATTERN
+ENV NEXT_PUBLIC_KITECLASS_URL=$NEXT_PUBLIC_KITECLASS_URL
 ENV NEXT_PUBLIC_BETA_PAYMENT_OVERRIDE=$NEXT_PUBLIC_BETA_PAYMENT_OVERRIDE
 ENV NEXT_TELEMETRY_DISABLED=1
 

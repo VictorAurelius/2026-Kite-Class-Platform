@@ -179,7 +179,9 @@ jobs:
             # so kite/kitehub-frontend + kite/kiteclass-frontend are deploy-ready.
             NEXT_PUBLIC_API_URL=https://api.kitehub.me
             NEXT_PUBLIC_KITECLASS_URL_PATTERN=https://{subdomain}.kitehub.me
-            NEXT_PUBLIC_BETA_PAYMENT_OVERRIDE=false
+            NEXT_PUBLIC_KITECLASS_URL=https://app.kitehub.me
+            NEXT_PUBLIC_KITEHUB_URL=https://kitehub.me
+            NEXT_PUBLIC_BETA_PAYMENT_OVERRIDE=true
 
       - name: Build summary
         if: steps.dockerfile_check.outputs.exists == 'true'
@@ -332,7 +334,9 @@ jobs:
             # so kite/kitehub-frontend + kite/kiteclass-frontend are deploy-ready.
             NEXT_PUBLIC_API_URL=https://api.kitehub.me
             NEXT_PUBLIC_KITECLASS_URL_PATTERN=https://{subdomain}.kitehub.me
-            NEXT_PUBLIC_BETA_PAYMENT_OVERRIDE=false
+            NEXT_PUBLIC_KITECLASS_URL=https://app.kitehub.me
+            NEXT_PUBLIC_KITEHUB_URL=https://kitehub.me
+            NEXT_PUBLIC_BETA_PAYMENT_OVERRIDE=true
 
       - name: Image digest
         run: echo "${{ matrix.service }} digest=${{ steps.build_push.outputs.digest }}"

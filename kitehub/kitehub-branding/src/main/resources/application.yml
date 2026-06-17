@@ -206,8 +206,12 @@ branding:
 # Storage Configuration
 storage:
   s3:
-    access-key: ${AWS_ACCESS_KEY_ID:mock-access-key}
-    secret-key: ${AWS_SECRET_ACCESS_KEY:mock-secret-key}
+    # Blank defaults → S3Config falls back to the default credentials provider
+    # chain (EC2 instance role in production). Set explicitly only for MinIO local
+    # dev (e.g. AWS_ACCESS_KEY_ID=minioadmin). Was mock-access-key/mock-secret-key
+    # which broke instance-role auth when mock-mode=false (prod logo upload fail).
+    access-key: ${AWS_ACCESS_KEY_ID:}
+    secret-key: ${AWS_SECRET_ACCESS_KEY:}
     region: ${AWS_REGION:ap-southeast-1}
     bucket: ${S3_BUCKET:kitehub-assets}
     endpoint: ${S3_ENDPOINT:} # For MinIO/LocalStack (internal, used for upload PutObject)

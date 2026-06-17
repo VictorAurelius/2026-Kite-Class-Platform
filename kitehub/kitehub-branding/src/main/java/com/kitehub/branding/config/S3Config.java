@@ -57,7 +57,10 @@ public class S3Config {
         }
 
         // Set credentials
-        if (accessKey != null && secretKey != null) {
+        // Only use static credentials when BOTH are set + non-blank (MinIO/LocalStack).
+        // Blank → leave default credentials provider chain (EC2 instance role / IAM)
+        // so production S3 works without static keys. Matches kiteclass-core S3Config.
+        if (accessKey != null && !accessKey.isBlank() && secretKey != null && !secretKey.isBlank()) {
             AwsBasicCredentials credentials = AwsBasicCredentials.create(accessKey, secretKey);
             builder.credentialsProvider(StaticCredentialsProvider.create(credentials));
         }
@@ -95,7 +98,10 @@ public class S3Config {
             builder.endpointOverride(URI.create(presignEndpoint));
         }
 
-        if (accessKey != null && secretKey != null) {
+        // Only use static credentials when BOTH are set + non-blank (MinIO/LocalStack).
+        // Blank → leave default credentials provider chain (EC2 instance role / IAM)
+        // so production S3 works without static keys. Matches kiteclass-core S3Config.
+        if (accessKey != null && !accessKey.isBlank() && secretKey != null && !secretKey.isBlank()) {
             AwsBasicCredentials credentials = AwsBasicCredentials.create(accessKey, secretKey);
             builder.credentialsProvider(StaticCredentialsProvider.create(credentials));
         }
