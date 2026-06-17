@@ -5,6 +5,7 @@ import com.kitehub.subscription.billing.dto.DowngradePreviewResponse;
 import com.kitehub.subscription.billing.dto.PendingPaymentStatusResponse;
 import com.kitehub.subscription.billing.dto.ReactivateResponse;
 import com.kitehub.subscription.billing.service.OwnerBillingService;
+import com.kitehub.subscription.dto.SubscriptionResponse;
 import com.kitehub.subscription.service.SubscriptionRenewalService;
 import com.kitehub.subscription.service.SubscriptionService;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -91,5 +93,42 @@ class SubscriptionControllerTest {
         assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(resp.getBody()).isSameAs(stub);
         verify(ownerBillingService).reactivate(instanceId);
+    }
+
+    @Test
+    @DisplayName("GAP-1471: cancel-pending-payment delegates to SubscriptionService and returns 200")
+    void cancelPendingPayment_delegates() {
+        UUID subscriptionId = UUID.randomUUID();
+        // requireOwnedSubscription → getSubscription → ownership guard (instanceId == tenantHeader passes)
+        SubscriptionResponse owned = SubscriptionResponse.builder()
+            .id(subscriptionId).instanceId(instanceId).build();
+        SubscriptionResponse updated = SubscriptionResponse.builder()
+            .id(subscriptionId).instanceId(instanceId).build();
+        when(subscriptionService.getSubscription(subscriptionId)).thenReturn(owned);
+        when(subscriptionService.cancelPendingPayment(subscriptionId)).thenReturn(updated);
+
+        ResponseEntity<SubscriptionResponse> resp =
+            controller.cancelPendingPayment(tenantHeader, subscriptionId);
+
+        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getBody()).isSameAs(updated);
+        verify(subscriptionService).cancelPendingPayment(subscriptionId);
+    }
+
+    @Test
+    @DisplayName("GAP-1471: cancel-pending-payment propagates 'no pending' as IllegalArgumentException (→ 400 via GlobalExceptionHandler)")
+    void cancelPendingPayment_noPending_propagatesBadRequest() {
+        UUID subscriptionId = UUID.randomUUID();
+        SubscriptionResponse owned = SubscriptionResponse.builder()
+            .id(subscriptionId).instanceId(instanceId).build();
+        when(subscriptionService.getSubscription(subscriptionId)).thenReturn(owned);
+        when(subscriptionService.cancelPendingPayment(subscriptionId))
+            .thenThrow(new IllegalArgumentException("Không có yêu cầu thanh toán nào đang chờ"));
+
+        // GlobalExceptionHandler maps IllegalArgumentException → HTTP 400 (asserted at the unit
+        // boundary here, consistent with this module's direct-call controller-test convention).
+        assertThatThrownBy(() -> controller.cancelPendingPayment(tenantHeader, subscriptionId))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Không có yêu cầu thanh toán");
     }
 }

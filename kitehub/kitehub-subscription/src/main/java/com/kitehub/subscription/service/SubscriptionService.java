@@ -357,6 +357,89 @@ public class SubscriptionService {
         log.info("Cancelled subscription: {}", subscriptionId);
     }
 
+    /**
+     * Cancel the in-flight pending tier-change/creation payment for a subscription (GAP-1471).
+     *
+     * <p>Phase 1 BETA uses manual VietQR transfers (SUB-11). When the owner initiates an
+     * upgrade/downgrade/creation, a PENDING {@link Payment} is created and the subscription
+     * stores {@code pendingPaymentId} + {@code pendingTier}. Before this method there was NO
+     * owner-facing way to abandon that in-flight payment — {@link #upgradeSubscription} rejects
+     * a fresh request with {@code "Subscription already has a pending upgrade payment"} and the
+     * only cancel was {@link #cancelSubscription}, which ends the WHOLE subscription (drops to
+     * FREE). Discovered at KH-3 G2 walk 2026-06-17: a payment created in mock-mode baked a
+     * stale/wrong QR URL and the owner was hard-blocked from creating a fresh one.</p>
+     *
+     * <p>Behavior mirrors the admin-reject path {@link #clearPendingUpgrade} but is owner-initiated:
+     * the PENDING payment is soft-cancelled (status {@code CANCELLED} + {@code deleted=true}) and
+     * the subscription's {@code pendingTier}/{@code pendingPaymentId} are cleared. The current tier
+     * is left unchanged — an upgrade-flow ACTIVE subscription stays at its current tier (the in-flight
+     * tier change is abandoned). A create-flow subscription (status {@code PENDING}, tier {@code FREE},
+     * no prior ACTIVE state) is additionally marked {@code CANCELLED} so the owner can create a fresh
+     * paid subscription cleanly — otherwise the lingering {@code PENDING} row would re-trigger the
+     * GAP-1080 create-idempotency conflict and re-block the very flow this method unblocks.</p>
+     *
+     * <p>Error mapping mirrors the sibling lifecycle methods, which use {@link IllegalArgumentException}
+     * (→ HTTP 400). No 404 path here: the controller's {@code requireOwnedSubscription} guard already
+     * resolves (and 400s) a missing subscription before this method runs.</p>
+     *
+     * @param subscriptionId Subscription UUID
+     * @return Updated subscription response ({@code pendingTier}/{@code pendingPaymentId} cleared)
+     * @throws IllegalArgumentException if the subscription is missing, has no pending payment
+     *                                  ("Không có yêu cầu thanh toán nào đang chờ"), or the pending
+     *                                  payment is already confirmed ("Không thể hủy thanh toán đã
+     *                                  được xác nhận")
+     */
+    @Transactional
+    public SubscriptionResponse cancelPendingPayment(UUID subscriptionId) {
+        log.info("Owner cancelling pending payment for subscription {}", subscriptionId);
+
+        Subscription subscription = subscriptionRepository.findById(subscriptionId)
+            .orElseThrow(() -> new IllegalArgumentException("Subscription not found: " + subscriptionId));
+
+        if (subscription.getPendingPaymentId() == null) {
+            throw new IllegalArgumentException("Không có yêu cầu thanh toán nào đang chờ");
+        }
+
+        Payment payment = paymentRepository.findById(subscription.getPendingPaymentId()).orElse(null);
+
+        // Only a PENDING payment may be cancelled. A COMPLETED payment means the admin already
+        // reconciled the transfer — the owner cannot retract it.
+        if (payment != null && payment.getStatus() == PaymentStatus.COMPLETED) {
+            throw new IllegalArgumentException("Không thể hủy thanh toán đã được xác nhận");
+        }
+
+        if (payment != null && payment.getStatus() == PaymentStatus.PENDING) {
+            payment.cancel();      // status -> CANCELLED
+            payment.softDelete();  // deleted = true (mirror Payment soft-delete usage; repo filters deleted)
+            paymentRepository.save(payment);
+        } else if (payment == null) {
+            // Dangling pointer (payment purged) — clear the subscription's pending state anyway
+            // rather than leave the owner blocked. Mirrors getPendingPaymentStatus's null guard.
+            log.warn("Subscription {} references missing pending payment {}; clearing pending state only",
+                subscriptionId, subscription.getPendingPaymentId());
+        }
+        // else: payment in a terminal non-COMPLETED state (FAILED/REFUNDED/CANCELLED) — idempotent clear.
+
+        boolean isCreateFlow = subscription.getStatus() == SubscriptionStatus.PENDING;
+
+        subscription.setPendingTier(null);
+        subscription.setPendingPaymentId(null);
+        if (isCreateFlow) {
+            // SUB-20 create-flow: no prior ACTIVE state to fall back to. Mirror clearPendingUpgrade's
+            // admin-reject branch — CANCELLED + autoRenew off so the owner can submit a fresh paid
+            // subscription and the GAP-1080 create-idempotency PENDING guard no longer re-blocks them.
+            subscription.setStatus(SubscriptionStatus.CANCELLED);
+            subscription.setAutoRenew(false);
+        }
+
+        Subscription updated = subscriptionRepository.save(subscription);
+
+        log.info("Owner cancelled pending payment for subscription {} (create-flow={}, payment={})",
+            subscriptionId, isCreateFlow, payment != null ? payment.getId() : null);
+
+        return SubscriptionResponse.fromEntity(updated);
+    }
+
     // GAP-1096: removed dead-code activateSubscription(UUID). It had 0 production callers
     // (superseded by applyPendingUpgrade create-flow per SUB-20) and set status without
     // syncing instances.tier — a latent split-brain (same class as GAP-1090) if ever

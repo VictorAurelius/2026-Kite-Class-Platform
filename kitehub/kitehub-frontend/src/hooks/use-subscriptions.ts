@@ -187,6 +187,34 @@ export function useCreateSubscription() {
 }
 
 /**
+ * GAP-1471 — Cancel the in-flight PENDING tier-change/creation payment.
+ *
+ * Abandons the pending VietQR payment + clears the subscription's pendingTier/
+ * pendingPaymentId so the owner can request a fresh payment (e.g. after a stale/wrong
+ * QR was baked, discovered at KH-3 G2 walk 2026-06-17). This is keyed by the
+ * subscription id and does NOT end the subscription — distinct from
+ * `useCancelSubscription` (DELETE /{id}). BE returns the updated SubscriptionResponse.
+ */
+export function useCancelPendingPayment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (subscriptionId: string) => {
+      const { data } = await apiClient.delete<Subscription>(
+        endpoints.subscriptions.cancelPendingPayment(subscriptionId)
+      );
+      return data;
+    },
+    onSuccess: () => {
+      // Banner reads ['subscriptions'] (pending-payment-status); dashboard tier + trial
+      // bar read ['instances']. Invalidate both so the banner disappears + state refreshes.
+      queryClient.invalidateQueries({ queryKey: ['subscriptions'] });
+      queryClient.invalidateQueries({ queryKey: ['instances'] });
+    },
+  });
+}
+
+/**
  * Cancel subscription
  * Cancels at end of current billing cycle
  */

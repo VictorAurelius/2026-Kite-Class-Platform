@@ -37,12 +37,22 @@ export interface TierChangeRequest {
  * the FE show an "awaiting confirmation" screen with the admin-confirm SLA.
  */
 export interface PendingPaymentStatus {
+  /**
+   * GAP-1471 — subscription owning the pending payment; used to cancel it via
+   * DELETE /subscriptions/{subscriptionId}/pending-payment. BE populates this in
+   * `OwnerBillingService.getPendingPaymentStatus` (`.subscriptionId(sub.getId())`).
+   */
+  subscriptionId: string;
   pendingPaymentId: string;
-  amountVnd: number;
+  /** GAP-1473 — BE serializes this as `amount` (PendingPaymentStatusResponse.amount). */
+  amount: number;
   status: 'PENDING' | 'COMPLETED' | 'FAILED' | 'EXPIRED';
   expiresAt: string | null;
-  /** Human-readable SLA, e.g. "trong vòng 24 giờ làm việc". */
-  adminConfirmSla: string | null;
+  /**
+   * GAP-1473 — admin-confirm SLA in hours (BE sends `adminConfirmSlaHours: long`,
+   * NOT a pre-formatted string). Render as "trong vòng {n} giờ làm việc".
+   */
+  adminConfirmSlaHours: number;
 }
 
 export interface PlanDetails {

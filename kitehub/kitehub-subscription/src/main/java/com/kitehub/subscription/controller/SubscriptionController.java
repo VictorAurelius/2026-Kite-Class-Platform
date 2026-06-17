@@ -206,6 +206,30 @@ public class SubscriptionController {
     }
 
     /**
+     * Cancel the in-flight pending tier-change/creation payment (GAP-1471).
+     *
+     * <p>Abandons the PENDING VietQR payment and clears the subscription's
+     * {@code pendingTier}/{@code pendingPaymentId} so the owner can request a fresh payment
+     * (e.g. after a stale/wrong QR was baked). This is keyed by the subscription id, mirroring
+     * {@link #upgradeSubscription}/{@link #downgradeSubscription}. It is distinct from
+     * {@link #cancelSubscription} ({@code DELETE /{id}}) which ends the WHOLE subscription —
+     * here the current tier/lifecycle are preserved. Discovered at KH-3 G2 walk 2026-06-17.</p>
+     *
+     * @param id Subscription UUID
+     * @return Updated subscription response (pending state cleared)
+     */
+    @DeleteMapping("/{id}/pending-payment")
+    @PreAuthorize(OWNER_AUTHZ)
+    public ResponseEntity<SubscriptionResponse> cancelPendingPayment(
+        @RequestHeader(value = "X-Tenant-Id", required = false) String tenantHeader,
+        @PathVariable UUID id
+    ) {
+        requireOwnedSubscription(id, tenantHeader);
+        SubscriptionResponse response = subscriptionService.cancelPendingPayment(id);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
      * Manually renew subscription.
      * Creates new billing cycle and reactivates suspended instance if needed.
      *

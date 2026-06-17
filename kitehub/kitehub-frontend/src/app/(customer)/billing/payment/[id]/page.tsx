@@ -17,7 +17,19 @@ const QRCodeDisplay = dynamic(
 );
 import { ErrorAlert } from '@/components/common/ErrorAlert';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, CreditCard } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { useCancelPendingPayment } from '@/hooks/use-subscriptions';
+import { ArrowLeft, CreditCard, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function PaymentPage() {
@@ -26,6 +38,23 @@ export default function PaymentPage() {
   const paymentId = params.id as string;
 
   const { data: payment, isLoading, error } = usePayment(paymentId);
+  const cancelPendingPayment = useCancelPendingPayment();
+
+  // GAP-1471 — abandon this in-flight pending payment (keyed by subscription id) so the owner
+  // can request a fresh one. On success the payment is soft-deleted (this page would 404), so
+  // redirect back to /billing.
+  const handleCancelPending = () => {
+    if (!payment) return;
+    cancelPendingPayment.mutate(payment.subscriptionId, {
+      onSuccess: () => {
+        toast.success('Đã hủy yêu cầu thanh toán. Bạn có thể tạo lại.');
+        router.push('/billing');
+      },
+      onError: () => {
+        toast.error('Không thể hủy yêu cầu thanh toán. Vui lòng thử lại.');
+      },
+    });
+  };
 
   // Redirect to billing page when payment is completed
   useEffect(() => {
@@ -107,13 +136,46 @@ export default function PaymentPage() {
         <PaymentInfo payment={payment} />
       </div>
 
-      {/* Auto-refresh indicator for PENDING status */}
+      {/* Auto-refresh indicator + cancel affordance for PENDING status */}
       {payment.status === 'PENDING' && (
-        <div className="text-center">
+        <div className="space-y-3 text-center">
           <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
             <span className="inline-block w-2 h-2 bg-blue-600 rounded-full animate-pulse"></span>
             Tự động kiểm tra trạng thái thanh toán mỗi 5 giây
           </p>
+          {/* GAP-1471 — hủy yêu cầu thanh toán (vd khi QR sai/cũ) để tạo lại */}
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground"
+                disabled={cancelPendingPayment.isPending}
+                data-testid="payment-cancel-pending-cta"
+              >
+                <X className="mr-2 h-4 w-4" />
+                {cancelPendingPayment.isPending ? 'Đang hủy…' : 'Hủy yêu cầu thanh toán'}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Hủy yêu cầu thanh toán?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Yêu cầu chuyển khoản đang chờ sẽ bị hủy. Gói đăng ký hiện tại của bạn không
+                  thay đổi. Bạn có thể tạo lại yêu cầu thanh toán bất cứ lúc nào.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Giữ lại</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleCancelPending}
+                  data-testid="payment-cancel-pending-confirm"
+                >
+                  Hủy yêu cầu
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       )}
 
