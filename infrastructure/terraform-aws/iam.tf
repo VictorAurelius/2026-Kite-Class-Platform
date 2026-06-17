@@ -65,6 +65,10 @@ resource "aws_iam_role_policy" "ec2_secrets_s3" {
         Resource = [
           aws_s3_bucket.assets.arn,
           "${aws_s3_bucket.assets.arn}/*",
+          # kiteclass-core file storage (MinIO->S3 prod parity) — accessed via EC2
+          # instance role (S3Config uses DefaultCredentialsProvider when access-key blank).
+          aws_s3_bucket.kiteclass_files.arn,
+          "${aws_s3_bucket.kiteclass_files.arn}/*",
         ]
       },
       # GAP-608 (Wave 91 Bucket B): SES SendEmail permission for kitehub-email
