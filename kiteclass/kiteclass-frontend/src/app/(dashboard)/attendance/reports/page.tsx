@@ -61,8 +61,12 @@ export default function AttendanceReportsPage() {
       }
     : { total: 0, present: 0, absent: 0, late: 0, excused: 0, makeup: 0 };
 
-  const presentRate = stats.total > 0 ? (stats.present / stats.total) * 100 : 0;
-  const absentRate = stats.total > 0 ? (stats.absent / stats.total) * 100 : 0;
+  // GAP-1476: zero-guard division — when a class has 0 attendance records,
+  // stats.total === 0 → bare `n / stats.total` renders "NaN%". Always go
+  // through safePct so the status-distribution shows 0% (not NaN%).
+  const safePct = (n: number) => (stats.total > 0 ? (n / stats.total) * 100 : 0);
+  const presentRate = safePct(stats.present);
+  const absentRate = safePct(stats.absent);
 
   // Group by student for student-level stats
   const studentStats = attendanceData?.content
@@ -260,11 +264,11 @@ export default function AttendanceReportsPage() {
                   <div className="flex justify-between text-sm">
                     <span className="text-green-600 font-medium">Có mặt</span>
                     <span className="text-muted-foreground">
-                      {stats.present} ({((stats.present / stats.total) * 100).toFixed(1)}%)
+                      {stats.present} ({(safePct(stats.present)).toFixed(1)}%)
                     </span>
                   </div>
                   <Progress
-                    value={(stats.present / stats.total) * 100}
+                    value={safePct(stats.present)}
                     className="h-2 bg-green-100"
                   />
                 </div>
@@ -273,11 +277,11 @@ export default function AttendanceReportsPage() {
                   <div className="flex justify-between text-sm">
                     <span className="text-red-600 font-medium">Vắng</span>
                     <span className="text-muted-foreground">
-                      {stats.absent} ({((stats.absent / stats.total) * 100).toFixed(1)}%)
+                      {stats.absent} ({(safePct(stats.absent)).toFixed(1)}%)
                     </span>
                   </div>
                   <Progress
-                    value={(stats.absent / stats.total) * 100}
+                    value={safePct(stats.absent)}
                     className="h-2 bg-red-100"
                   />
                 </div>
@@ -286,11 +290,11 @@ export default function AttendanceReportsPage() {
                   <div className="flex justify-between text-sm">
                     <span className="text-yellow-600 font-medium">Đi trễ</span>
                     <span className="text-muted-foreground">
-                      {stats.late} ({((stats.late / stats.total) * 100).toFixed(1)}%)
+                      {stats.late} ({(safePct(stats.late)).toFixed(1)}%)
                     </span>
                   </div>
                   <Progress
-                    value={(stats.late / stats.total) * 100}
+                    value={safePct(stats.late)}
                     className="h-2 bg-yellow-100"
                   />
                 </div>
@@ -299,11 +303,11 @@ export default function AttendanceReportsPage() {
                   <div className="flex justify-between text-sm">
                     <span className="text-blue-600 font-medium">Có phép</span>
                     <span className="text-muted-foreground">
-                      {stats.excused} ({((stats.excused / stats.total) * 100).toFixed(1)}%)
+                      {stats.excused} ({(safePct(stats.excused)).toFixed(1)}%)
                     </span>
                   </div>
                   <Progress
-                    value={(stats.excused / stats.total) * 100}
+                    value={safePct(stats.excused)}
                     className="h-2 bg-blue-100"
                   />
                 </div>
@@ -312,11 +316,11 @@ export default function AttendanceReportsPage() {
                   <div className="flex justify-between text-sm">
                     <span className="text-purple-600 font-medium">Học bù</span>
                     <span className="text-muted-foreground">
-                      {stats.makeup} ({((stats.makeup / stats.total) * 100).toFixed(1)}%)
+                      {stats.makeup} ({(safePct(stats.makeup)).toFixed(1)}%)
                     </span>
                   </div>
                   <Progress
-                    value={(stats.makeup / stats.total) * 100}
+                    value={safePct(stats.makeup)}
                     className="h-2 bg-purple-100"
                   />
                 </div>

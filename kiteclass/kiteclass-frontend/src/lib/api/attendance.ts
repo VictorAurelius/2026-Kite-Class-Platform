@@ -85,11 +85,16 @@ export const attendanceApi = {
     sessionId: number,
     params: AttendanceSearchParams = {}
   ): Promise<PaginatedResponse<Attendance>> => {
-    const response = await apiClient.get<ApiResponse<PaginatedResponse<Attendance>>>(
+    // GAP-1476: BE getAttendanceBySessionId returns ResponseEntity<Page<...>>
+    // UNWRAPPED (no { success, data } envelope, unlike the classes API). The old
+    // `response.data.data!` was therefore `undefined`, so callers that aggregate
+    // (getAttendanceByClass → result.content) threw → attendance reports showed
+    // "Không thể tải dữ liệu". `response.data` IS the page.
+    const response = await apiClient.get<PaginatedResponse<Attendance>>(
       `/api/v1/attendance/session/${sessionId}`,
       { params }
     );
-    return response.data.data!;
+    return response.data;
   },
 
   /**
