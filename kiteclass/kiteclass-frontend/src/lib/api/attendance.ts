@@ -14,7 +14,7 @@ import type {
   AttendanceStatsResponse,
   AttendanceSearchParams,
 } from '@/types/attendance';
-import type { ApiResponse, PaginatedResponse } from '@/types/api';
+import type { PaginatedResponse } from '@/types/api';
 
 export const attendanceApi = {
   /**
@@ -23,11 +23,14 @@ export const attendanceApi = {
    * POST /api/v1/attendance
    */
   markAttendance: async (data: CreateAttendanceRequest): Promise<Attendance> => {
-    const response = await apiClient.post<ApiResponse<Attendance>>(
+    // GAP-1477: BE markAttendance returns ResponseEntity<AttendanceResponse>
+    // UNWRAPPED (no { success, data } envelope, like the rest of AttendanceController).
+    // The old `response.data.data!` was therefore `undefined`. `response.data` IS the record.
+    const response = await apiClient.post<Attendance>(
       '/api/v1/attendance',
       data
     );
-    return response.data.data!;
+    return response.data;
   },
 
   /**
@@ -41,11 +44,13 @@ export const attendanceApi = {
     classId: number,
     data: BulkAttendanceRequest
   ): Promise<Attendance[]> => {
-    const response = await apiClient.post<ApiResponse<Attendance[]>>(
+    // GAP-1477: BE markBulkAttendance returns ResponseEntity<List<AttendanceResponse>>
+    // UNWRAPPED. `response.data` IS the list.
+    const response = await apiClient.post<Attendance[]>(
       `/api/v1/attendance/classes/${classId}/sessions/${data.sessionId}/attendance`,
       data
     );
-    return response.data.data!;
+    return response.data;
   },
 
   /**
@@ -54,10 +59,11 @@ export const attendanceApi = {
    * GET /api/v1/attendance/:id
    */
   getAttendance: async (id: number): Promise<Attendance> => {
-    const response = await apiClient.get<ApiResponse<Attendance>>(
+    // GAP-1477: BE getAttendance returns ResponseEntity<AttendanceResponse> UNWRAPPED.
+    const response = await apiClient.get<Attendance>(
       `/api/v1/attendance/${id}`
     );
-    return response.data.data!;
+    return response.data;
   },
 
   /**
@@ -69,11 +75,13 @@ export const attendanceApi = {
     enrollmentId: number,
     params: AttendanceSearchParams = {}
   ): Promise<PaginatedResponse<Attendance>> => {
-    const response = await apiClient.get<ApiResponse<PaginatedResponse<Attendance>>>(
+    // GAP-1477: BE getAttendanceByEnrollment returns ResponseEntity<Page<...>> UNWRAPPED.
+    // `response.data` IS the page.
+    const response = await apiClient.get<PaginatedResponse<Attendance>>(
       `/api/v1/attendance/enrollment/${enrollmentId}`,
       { params }
     );
-    return response.data.data!;
+    return response.data;
   },
 
   /**
@@ -107,11 +115,12 @@ export const attendanceApi = {
     id: number,
     data: UpdateAttendanceStatusRequest
   ): Promise<Attendance> => {
-    const response = await apiClient.patch<ApiResponse<Attendance>>(
+    // GAP-1477: BE updateAttendanceStatus returns ResponseEntity<AttendanceResponse> UNWRAPPED.
+    const response = await apiClient.patch<Attendance>(
       `/api/v1/attendance/${id}`,
       data
     );
-    return response.data.data!;
+    return response.data;
   },
 
   /**
@@ -129,10 +138,11 @@ export const attendanceApi = {
    * GET /api/v1/attendance/stats/student/:studentId
    */
   getStudentStats: async (studentId: number): Promise<AttendanceStatsResponse> => {
-    const response = await apiClient.get<ApiResponse<AttendanceStatsResponse>>(
+    // GAP-1477: BE getStudentStats returns ResponseEntity<AttendanceStatsResponse> UNWRAPPED.
+    const response = await apiClient.get<AttendanceStatsResponse>(
       `/api/v1/attendance/stats/student/${studentId}`
     );
-    return response.data.data!;
+    return response.data;
   },
 
   /**
@@ -141,10 +151,11 @@ export const attendanceApi = {
    * GET /api/v1/attendance/stats/class/:classId
    */
   getClassStats: async (classId: number): Promise<AttendanceStatsResponse> => {
-    const response = await apiClient.get<ApiResponse<AttendanceStatsResponse>>(
+    // GAP-1477: BE getClassStats returns ResponseEntity<AttendanceStatsResponse> UNWRAPPED.
+    const response = await apiClient.get<AttendanceStatsResponse>(
       `/api/v1/attendance/stats/class/${classId}`
     );
-    return response.data.data!;
+    return response.data;
   },
 
   /**
