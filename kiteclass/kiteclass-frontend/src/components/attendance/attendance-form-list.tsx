@@ -25,6 +25,13 @@ interface AttendanceFormListProps {
   onNotesChange: (enrollmentId: number, notes: string) => void;
   title?: string;
   showCount?: boolean;
+  /**
+   * GAP-1474: number of PENDING_PAYMENT enrollments in the class. When the
+   * ACTIVE-only attendance roster is empty (BR-ATTEND-001) but this is > 0, the
+   * empty state explains that students are awaiting payment confirmation —
+   * instead of a silent "no students" message that hides the real reason.
+   */
+  pendingPaymentCount?: number;
 }
 
 export function AttendanceFormList({
@@ -33,6 +40,7 @@ export function AttendanceFormList({
   onNotesChange,
   title = 'Danh sách học viên',
   showCount = true,
+  pendingPaymentCount = 0,
 }: AttendanceFormListProps) {
   return (
     <Card>
@@ -56,12 +64,26 @@ export function AttendanceFormList({
             />
           ))}
 
-          {rows.length === 0 && (
-            <div className="py-12 text-center text-muted-foreground">
-              <Users className="mx-auto h-12 w-12 opacity-20" />
-              <p className="mt-4">Không có học viên nào trong lớp này</p>
-            </div>
-          )}
+          {rows.length === 0 &&
+            (pendingPaymentCount > 0 ? (
+              // GAP-1474 Part B: explain the silent empty roster — students exist
+              // but are PENDING_PAYMENT, excluded from attendance per BR-ATTEND-001.
+              <div className="py-12 text-center text-muted-foreground">
+                <Users className="mx-auto h-12 w-12 opacity-20" />
+                <p className="mt-4 font-medium text-foreground">
+                  Chưa có học sinh nào đã kích hoạt để điểm danh
+                </p>
+                <p className="mx-auto mt-2 max-w-md text-sm">
+                  {pendingPaymentCount} học sinh đang chờ xác nhận thanh toán. Hãy
+                  xác nhận thanh toán để đưa học sinh vào danh sách điểm danh.
+                </p>
+              </div>
+            ) : (
+              <div className="py-12 text-center text-muted-foreground">
+                <Users className="mx-auto h-12 w-12 opacity-20" />
+                <p className="mt-4">Không có học viên nào trong lớp này</p>
+              </div>
+            ))}
         </div>
       </CardContent>
     </Card>

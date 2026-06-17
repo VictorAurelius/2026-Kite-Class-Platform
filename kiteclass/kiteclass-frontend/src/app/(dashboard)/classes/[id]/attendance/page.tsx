@@ -9,7 +9,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import { use, useEffect, useState } from 'react';
+import { use, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Save, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
@@ -26,7 +26,11 @@ import {
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { useClass, useClassSessions } from '@/hooks/use-classes';
-import { useActiveEnrollmentsByClass } from '@/hooks/use-enrollments';
+import {
+  useActiveEnrollmentsByClass,
+  usePendingPaymentEnrollmentsByClass,
+} from '@/hooks/use-enrollments';
+import { useStudents } from '@/hooks/use-students';
 import { useMarkBulkAttendance } from '@/hooks/use-attendance';
 import {
   AttendanceStatus,
@@ -53,6 +57,25 @@ export default function TakeAttendancePage({
   const { data: sessions, isLoading: sessionsLoading } = useClassSessions(classId);
   const { data: enrollments, isLoading: enrollmentsLoading } =
     useActiveEnrollmentsByClass(classId, { size: 100 });
+  // GAP-1474: students awaiting payment are excluded from the attendance roster
+  // (BR-ATTEND-001 ACTIVE-only). Surface the count so the empty-state can explain.
+  const { data: pendingEnrollments } = usePendingPaymentEnrollmentsByClass(
+    classId,
+    { size: 100 }
+  );
+  const pendingPaymentCount = pendingEnrollments?.totalElements ?? 0;
+  // The class-roster endpoint returns only studentId, not the name — resolve names
+  // client-side so the attendance grid shows real student names (GAP-1474).
+  const { data: studentsPage, isLoading: studentsLoading } = useStudents({
+    size: 200,
+  });
+  const studentNameById = useMemo(() => {
+    const map = new Map<number, string>();
+    for (const s of studentsPage?.content ?? []) {
+      map.set(s.id, s.name);
+    }
+    return map;
+  }, [studentsPage?.content]);
 
   // Selected session for attendance
   const [selectedSessionId, setSelectedSessionId] = useState<number | null>(null);
@@ -74,18 +97,23 @@ export default function TakeAttendancePage({
 
   // Seed rows when enrollments load (GAP-1427: was useState(initFn) → grid stayed
   // empty because enrollments are fetched async after the initializer ran once).
+  // GAP-1474: wait for the students query to settle (!studentsLoading) so names
+  // resolve from studentNameById; the roster endpoint returns only studentId.
   useEffect(() => {
-    if (enrollments?.content && attendanceRows.length === 0) {
+    if (enrollments?.content && !studentsLoading && attendanceRows.length === 0) {
       setAttendanceRows(
         enrollments.content.map((enrollment) => ({
           enrollmentId: enrollment.id,
-          studentName: enrollment.studentName,
+          studentName:
+            enrollment.studentName ||
+            studentNameById.get(enrollment.studentId) ||
+            `Học sinh #${enrollment.studentId}`,
           status: AttendanceStatus.PRESENT,
           notes: '',
         }))
       );
     }
-  }, [enrollments?.content, attendanceRows.length]);
+  }, [enrollments?.content, studentsLoading, studentNameById, attendanceRows.length]);
 
   const handleStatusChange = (enrollmentId: number, status: AttendanceStatus) => {
     setAttendanceRows((rows) =>
@@ -247,6 +275,7 @@ export default function TakeAttendancePage({
           rows={attendanceRows}
           onStatusChange={handleStatusChange}
           onNotesChange={handleNotesChange}
+          pendingPaymentCount={pendingPaymentCount}
         />
       </div>
     </DashboardLayout>

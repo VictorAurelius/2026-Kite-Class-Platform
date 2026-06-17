@@ -51,6 +51,7 @@ import {
 } from '@/types/class';
 import { toast } from '@/hooks/use-toast';
 import { AddStudentToClassDialog } from '@/components/enrollment/add-student-to-class-dialog';
+import { ClassRosterSection } from '@/components/enrollment/class-roster-section';
 
 const statusVariants: Record<
   ClassStatus,
@@ -585,6 +586,12 @@ export default function ClassDetailPage({
             </div>
           </CardContent>
         </Card>
+
+        {/* Class roster — danh sách học sinh đã ghi danh + trạng thái enrollment
+            (GAP-1474). Owner/Admin/Staff (page is role-gated) thấy ai trong lớp;
+            ACTIVE = "Đang học", PENDING_PAYMENT = "Chờ thanh toán" → giải thích
+            vì sao Sĩ số đếm nhưng điểm danh (ACTIVE-only) có thể trống. */}
+        <ClassRosterSection classId={classId} />
 
         {/* Sessions Card — quản lý lịch học / buổi học (GAP-1468) */}
         <Card>

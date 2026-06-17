@@ -46,6 +46,29 @@ export function useActiveEnrollmentsByClass(
 }
 
 /**
+ * Get PENDING_PAYMENT enrollments by class ID (GAP-1474).
+ *
+ * Used by the attendance page to explain why the ACTIVE-only attendance roster
+ * (BR-ATTEND-001) is empty: N students are still awaiting payment confirmation,
+ * so the empty-state can say so instead of silently showing "no students".
+ */
+export function usePendingPaymentEnrollmentsByClass(
+  classId: number,
+  params: EnrollmentSearchParams = {}
+) {
+  return useQuery({
+    queryKey: [ENROLLMENTS_QUERY_KEY, 'class', classId, 'PENDING_PAYMENT', params],
+    queryFn: () =>
+      enrollmentsApi.getEnrollmentsByClassAndStatus(
+        classId,
+        'PENDING_PAYMENT' as EnrollmentStatus,
+        params
+      ),
+    enabled: !!classId,
+  });
+}
+
+/**
  * Enroll a single student into a class (GAP-1103).
  *
  * On success, invalidates the enrollment queries so the class roster + attendance
