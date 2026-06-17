@@ -77,6 +77,22 @@ public class TeacherServiceImpl implements TeacherService {
         Teacher saved = teacherRepository.save(teacher);
 
         log.info("Created teacher with ID: {}, instanceId: {}", saved.getId(), saved.getInstanceId());
+
+        // Wave flow-kc3 (GAP-1124): opt-in auto-provision login credential at create
+        // time. When the caller supplies an initialPassword, provision a KC-native
+        // login (entity_type=TEACHER) in the SAME transaction so the teacher can log
+        // in immediately via POST /api/v1/tenant-auth/login. Absent → unchanged
+        // behaviour (no credential). Reuses the guarded provisioning service (UPSERT
+        // + 409 cross-tenant / entity-mismatch guards). Password already validated by
+        // bean validation on the request DTO (AuthPasswordPolicy).
+        if (request.initialPassword() != null && !request.initialPassword().isBlank()) {
+            credentialProvisioning.setPassword(
+                    AuthCredentialProvisioningService.ROLE_TEACHER,
+                    saved.getId(), saved.getEmail(), tenantId, request.initialPassword());
+            log.info("Auto-provisioned login credential at create for teacher id={}, tenant={}",
+                    saved.getId(), tenantId);
+        }
+
         return teacherMapper.toResponse(saved);
     }
 

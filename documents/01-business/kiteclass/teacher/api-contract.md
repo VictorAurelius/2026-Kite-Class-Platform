@@ -6,13 +6,16 @@
 **Use Case:** UC-TCH-01  |  **Auth:** Bearer token  |  **Role:** ADMIN
 ```json
 // Request
-{ "name": "string", "email": "string", "phoneNumber": "string", "specialization": "string", "bio": "string", "qualification": "string", "experienceYears": "int" }
+{ "name": "string", "email": "string", "phoneNumber": "string", "specialization": "string", "bio": "string", "qualification": "string", "experienceYears": "int",
+  "initialPassword": "string (optional, 8-100 chars + letter/digit/special) — Wave flow-kc3 GAP-1124" }
 // Response 200
 { "success": true, "data": { "id": "long", "name": "string", "email": "string", "phoneNumber": "string", "specialization": "string", "bio": "string", "qualification": "string", "experienceYears": "int", "avatarUrl": "string", "status": "string" } }
 ```
+**`initialPassword` (optional, opt-in — Wave flow-kc3 GAP-1124):** Khi present → auto-provision KC-native login (entity_type=TEACHER) cùng transaction tạo teacher, validate theo `AuthPasswordPolicy` (bean-validation, chỉ khi non-null). Vắng → KHÔNG tạo credential (hành vi cũ). Chi tiết: `tenant-auth/api-contract.md` §2c.
+
 | Status | Code | Message |
 |--------|------|---------|
-| 400 | VALIDATION_ERROR | "Name is required" |
+| 400 | VALIDATION_ERROR | "Name is required" / "Mật khẩu phải từ 8-100 ký tự..." (nếu `initialPassword` không hợp lệ) |
 | 409 | DUPLICATE_EMAIL | "Email already exists" |
 
 ### POST /api/v1/teachers/{id}/credentials

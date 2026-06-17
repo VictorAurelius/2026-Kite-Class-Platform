@@ -84,6 +84,26 @@ public class StudentServiceImpl implements StudentService {
         Student saved = studentRepository.save(student);
 
         log.info("Created student with ID: {}, instanceId: {}", saved.getId(), saved.getInstanceId());
+
+        // Wave flow-kc3 (GAP-1277): opt-in auto-provision login credential at create
+        // time. When the caller supplies an initialPassword, provision a KC-native
+        // login (entity_type=STUDENT) in the SAME transaction so the student can log
+        // in immediately via POST /api/v1/tenant-auth/login. Absent → unchanged
+        // behaviour (no credential). Login is email-keyed, so a student with no email
+        // cannot be provisioned → fail loud (400 STUDENT_EMAIL_REQUIRED), do NOT swallow.
+        // Reuses the guarded provisioning service (UPSERT + 409 cross-tenant guards).
+        if (request.initialPassword() != null && !request.initialPassword().isBlank()) {
+            if (saved.getEmail() == null || saved.getEmail().isBlank()) {
+                log.warn("Cannot auto-provision login for student id={} — no email on record", saved.getId());
+                throw new BusinessException("STUDENT_EMAIL_REQUIRED", HttpStatus.BAD_REQUEST);
+            }
+            credentialProvisioning.setPassword(
+                    AuthCredentialProvisioningService.ROLE_STUDENT,
+                    saved.getId(), saved.getEmail(), tenantId, request.initialPassword());
+            log.info("Auto-provisioned login credential at create for student id={}, tenant={}",
+                    saved.getId(), tenantId);
+        }
+
         return studentMapper.toResponse(saved);
     }
 

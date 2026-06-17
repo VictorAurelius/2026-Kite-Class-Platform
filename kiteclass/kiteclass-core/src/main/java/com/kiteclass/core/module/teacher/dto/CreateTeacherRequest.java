@@ -1,5 +1,6 @@
 package com.kiteclass.core.module.teacher.dto;
 
+import com.kiteclass.core.module.auth.AuthPasswordPolicy;
 import jakarta.validation.constraints.*;
 
 /**
@@ -14,6 +15,10 @@ import jakarta.validation.constraints.*;
  *   <li>Bio: max 2000 characters</li>
  *   <li>Qualification: max 200 characters</li>
  *   <li>Experience years: >= 0</li>
+ *   <li>Initial password (optional): when present, auto-provisions a KC-native
+ *       login credential for the teacher in the same create call (Wave flow-kc3,
+ *       GAP-1124). Validated against {@link AuthPasswordPolicy} only when non-null
+ *       (Bean Validation skips {@code @Size}/{@code @Pattern} on null).</li>
  * </ul>
  *
  * @param name Teacher's full name (required)
@@ -23,6 +28,8 @@ import jakarta.validation.constraints.*;
  * @param bio Teacher's biography
  * @param qualification Teacher's qualification
  * @param experienceYears Years of teaching experience
+ * @param initialPassword Optional initial login password — when present, provisions
+ *        a KC-native login credential at create time (opt-in). Null = no credential.
  * @author KiteClass Team
  * @since 2.3.1
  */
@@ -49,6 +56,24 @@ public record CreateTeacherRequest(
         String qualification,
 
         @Min(value = 0, message = "Số năm kinh nghiệm phải >= 0")
-        Integer experienceYears
+        Integer experienceYears,
+
+        @Size(min = AuthPasswordPolicy.MIN_LENGTH, max = AuthPasswordPolicy.MAX_LENGTH,
+                message = "Mật khẩu phải từ 8-100 ký tự")
+        @Pattern(regexp = AuthPasswordPolicy.PATTERN, message = AuthPasswordPolicy.MESSAGE)
+        String initialPassword
 ) {
+    /**
+     * Backward-compatible convenience constructor (pre-{@code initialPassword} arity).
+     * Delegates to the canonical constructor with {@code initialPassword = null} so
+     * existing call sites (RowValidator, seeders, tests) compile unchanged and create
+     * a teacher WITHOUT auto-provisioning a login. Jackson binds request bodies via the
+     * canonical (all-args) record constructor, so {@code initialPassword} still arrives
+     * from JSON.
+     */
+    public CreateTeacherRequest(String name, String email, String phoneNumber,
+                                String specialization, String bio, String qualification,
+                                Integer experienceYears) {
+        this(name, email, phoneNumber, specialization, bio, qualification, experienceYears, null);
+    }
 }

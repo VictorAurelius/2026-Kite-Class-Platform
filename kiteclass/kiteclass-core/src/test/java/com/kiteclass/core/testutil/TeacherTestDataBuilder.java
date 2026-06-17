@@ -108,6 +108,26 @@ public class TeacherTestDataBuilder {
     }
 
     /**
+     * Creates a default CreateTeacherRequest carrying an initial login password
+     * (Wave flow-kc3, GAP-1124) — triggers auto-provisioning at create time.
+     *
+     * @param initialPassword the initial login password
+     * @return CreateTeacherRequest with default fields + initialPassword
+     */
+    public static CreateTeacherRequest createCreateRequestWithPassword(String initialPassword) {
+        return new CreateTeacherRequest(
+                "Jane Doe",
+                "jane.doe@example.com",
+                "0987654321",
+                "Mathematics",
+                "Passionate math teacher",
+                "Master of Science in Mathematics",
+                8,
+                initialPassword
+        );
+    }
+
+    /**
      * Creates a CreateTeacherRequest with custom name.
      *
      * @param name the teacher name

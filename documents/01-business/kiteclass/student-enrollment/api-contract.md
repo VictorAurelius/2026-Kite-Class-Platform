@@ -97,7 +97,8 @@ Endpoint tenant-facing để admissions staff + admin quản lý hồ sơ học 
   "dateOfBirth": "2010-05-14",
   "gender": "FEMALE",
   "address": "123 Lê Lợi, Q.1, TP.HCM",
-  "note": "Lớp Anh ngữ 5A1"
+  "note": "Lớp Anh ngữ 5A1",
+  "initialPassword": "optional — Wave flow-kc3 GAP-1277; khi present → auto-provision KC-native login"
 }
 // Response 201 (StudentResponse)
 {
@@ -428,15 +429,19 @@ Endpoint bulk-import học sinh qua xlsx upload. SLO tier-d. Stateless MVP (lỗ
 **Response status:** `HTTP 201 CREATED`
 **Location header:** `/api/v1/students/bulk-import/jobs/<jobId>`
 
-**Form field:** `file` (multipart xlsx)
+**Form fields:**
+- `file` (multipart xlsx) — bắt buộc
+- `initialPassword` (optional, batch-level — Wave flow-kc3 GAP-1277) — khi present + hợp lệ (`AuthPasswordPolicy`), mỗi học sinh tạo thành công CÓ email được auto-provision KC-native login cùng batch. KHÔNG phải cột trong xlsx.
 
 **Response 201:** `ApiResponse<BulkImportResult>` với `jobId != null`
 
 **Partial-success behavior:**
 - Valid rows được tạo Student record (mỗi row độc lập — không all-or-nothing)
 - Invalid rows skip + ghi vào error report
-- Response include `successCount` + `errorCount` + first 10 errors inline
+- Response include `successCount` + `errorCount` + `credentialsProvisioned` + first 10 errors inline
 - `BulkImportJob` row persist trong DB cho audit trail
+
+**`credentialsProvisioned` (Wave flow-kc3 GAP-1277):** số login credential auto-provision (≤ `successCount`; 0 nếu không kèm `initialPassword`). Provision-fail 1 dòng (vd email cross-tenant) → ghi row error field `credential`, KHÔNG hủy create + KHÔNG abort chunk. Invalid batch password → HTTP 400 `BULK_IMPORT_INVALID_PASSWORD` (trước mọi DB write). Chi tiết: `tenant-auth/api-contract.md` §2c.
 
 **Validation per row:** Cùng bộ rules như `CreateStudentRequest` (BR-STU-001..003).
 
