@@ -1,6 +1,6 @@
 # GAP-1477: Toàn bộ Attendance API envelope drift — FE `.data.data!` vs BE unwrapped `ResponseEntity<X>`
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL
 **Priority:** 🟠 P2
 **Domain:** Frontend
 **Found:** 2026-06-17 (cross-flow sweep từ GAP-1476)
@@ -28,9 +28,27 @@ FE-side (cùng hướng GAP-1476 — KHÔNG wrap BE để tránh phá fix GAP-14
 
 ## Acceptance Criteria
 
-- [ ] 7 fn attendance.ts trả đúng data (không undefined).
-- [ ] admin/attendance/stats + student attendance + điểm danh save verify live.
-- [ ] `pnpm build` + test PASS.
+- [x] 7 fn attendance.ts trả đúng data (không undefined) — `apiClient.METHOD<ApiResponse<X>>` → `<X>` + `return response.data`. Verified per-fn vs BE controller return type (xem §Fix evidence) + vitest 7/7.
+- [ ] admin/attendance/stats + student attendance + điểm danh save verify live (human G2 walk pending per `feature-ship-runtime-walk-mandate.md`).
+- [x] `pnpm --filter kiteclass-frontend build` PASS (exit 0) + vitest `attendance.test.ts` 7/7 PASS + eslint 0 errors.
+
+## Fix evidence (2026-06-17, wave-flow-kc3)
+
+Per-fn BE return type confirmed UNWRAPPED `ResponseEntity<X>` (NOT `ResponseEntity<ApiResponse<X>>`) trong `AttendanceController.java`:
+
+| FE fn | endpoint | BE return type (line) | Verdict |
+|---|---|---|---|
+| `markAttendance` | POST /attendance | `ResponseEntity<AttendanceResponse>` (L88) | ✅ unwrapped → fixed |
+| `markBulkAttendance` | POST /classes/{}/sessions/{}/attendance | `ResponseEntity<List<AttendanceResponse>>` (L112) | ✅ unwrapped → fixed |
+| `getAttendance` | GET /attendance/{id} | `ResponseEntity<AttendanceResponse>` (L133) | ✅ unwrapped → fixed |
+| `getAttendanceByEnrollment` | GET /attendance/enrollment/{id} | `ResponseEntity<Page<AttendanceResponse>>` (L151) | ✅ unwrapped → fixed |
+| `getStudentStats` | GET /attendance/stats/student/{id} | `ResponseEntity<AttendanceStatsResponse>` (L240) | ✅ unwrapped → fixed |
+| `getClassStats` | GET /attendance/stats/class/{id} | `ResponseEntity<AttendanceStatsResponse>` (L263) | ✅ unwrapped → fixed |
+| `updateAttendanceStatus` | PATCH /attendance/{id} | `ResponseEntity<AttendanceResponse>` (L286) | ✅ unwrapped → fixed |
+
+0/7 wrapped → all 7 fixed FE-side (cùng hướng GAP-1476, KHÔNG sửa BE). Unused `ApiResponse` import removed.
+
+**Caller regression check:** `markAttendance`/`markBulkAttendance`/`updateAttendanceStatus` consumers (`hooks/use-attendance.ts` mutations) dùng `onSuccess: (_, variables) => ...` / `() => ...` → bỏ qua return value, refetch via invalidate → 0 regression (broken `undefined` → real data, không ai phụ thuộc undefined). `getClassStats`/`getStudentStats`/`getAttendanceByEnrollment` query consumers giờ nhận data thật thay vì undefined (stats aggregate trong `useSystemAttendanceStats` đổi từ 0 → giá trị thật — fix, không phải regression).
 
 ## Related
 
