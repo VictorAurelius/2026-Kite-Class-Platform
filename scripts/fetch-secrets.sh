@@ -194,6 +194,21 @@ SPRING_DATASOURCE_URL=jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
 SPRING_DATASOURCE_USERNAME=${DB_USERNAME}
 SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
 
+# Admin datasource for per-tenant DB provisioning (handoff 2026-06-18 Gap 3).
+# kitehub-subscription application-production.yml sets database.lifecycle.enabled=true,
+# so DatabaseConnectionService opens an admin connection (DATABASE_ADMIN_URL, default
+# jdbc:postgresql://localhost:5433/postgres) to CREATE per-tenant databases on
+# beta-signup completion. Without these overrides the admin conn defaults to
+# localhost:5433 -> Connection refused -> beta-signup 500. Point at the RDS master
+# (the postgres maintenance DB) using the same master creds — master user has
+# CREATE DATABASE. Binds application.yml lines 254-259 (DATABASE_MASTER_HOST/PORT,
+# DATABASE_ADMIN_URL/USERNAME/PASSWORD) read by DatabaseConnectionService.java:22.
+DATABASE_MASTER_HOST=${DB_HOST}
+DATABASE_MASTER_PORT=${DB_PORT}
+DATABASE_ADMIN_URL=jdbc:postgresql://${DB_HOST}:${DB_PORT}/postgres
+DATABASE_ADMIN_USERNAME=${DB_USERNAME}
+DATABASE_ADMIN_PASSWORD=${DB_PASSWORD}
+
 # Redis (self-hosted on EC2)
 REDIS_HOST=kite-redis
 REDIS_PORT=6379

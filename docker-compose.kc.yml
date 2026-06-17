@@ -79,6 +79,16 @@ services:
       JAVA_OPTS: "-Xmx384m -Xms192m -XX:+UseSerialGC"
       SPRING_PROFILES_ACTIVE: production
       SERVER_PORT: 8081
+      # Datasource override (handoff 2026-06-18 Gap 1): kiteclass-core owns its
+      # OWN database `kiteclass_shared`, NOT subscription's `kitehub` DB. The shared
+      # env_file (/etc/kite/.env, written by fetch-secrets.sh) carries a single
+      # SPRING_DATASOURCE_URL pointing at `kitehub` (subscription's DB) — connecting
+      # there sees subscription's Flyway history -> checksum mismatch + V76
+      # (landing_sections needs landing_pages) fails -> crash-loop. This explicit
+      # `environment:` entry overrides the env_file value so kiteclass-core migrates
+      # V1..V100 cleanly against its own DB. Username/password still come from
+      # /etc/kite/.env (RDS master user has access to kiteclass_shared).
+      SPRING_DATASOURCE_URL: jdbc:postgresql://kitehub-postgres.c3awuqw4ugex.ap-southeast-1.rds.amazonaws.com:5432/kiteclass_shared
       # S3 storage (MinIO->S3 production parity). Blank endpoint -> SDK default
       # regional endpoint; blank access/secret -> EC2 instance role via S3Config
       # DefaultCredentialsProvider. Bucket grant in terraform-aws/iam.tf.
