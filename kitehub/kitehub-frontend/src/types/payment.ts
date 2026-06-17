@@ -30,6 +30,9 @@ export interface Payment {
   accountNumber: string | null;
   accountName: string | null;
   paymentContent: string | null;
+  // GAP-1472: BE PaymentResponse exposes txnRef (gateway reference). Nullable —
+  // not every payment method populates it.
+  txnRef: string | null;
   paidAt: string | null;
   expiresAt: string | null;       // QR code expiry
   createdAt: string;
