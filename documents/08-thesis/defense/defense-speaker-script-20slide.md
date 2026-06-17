@@ -1,105 +1,113 @@
 # Văn nói thuyết trình bảo vệ — bản chi tiết nguyên văn (23 slide, mẫu UTC)
 
-> Văn nói đầy đủ cho từng slide (đọc/thuộc được), bám nội dung khóa luận + bộ chương 1-4. Deck gồm **19 slide chính + 1 slide ngăn Phụ lục + 3 slide phụ lục dự phòng** (tổng 23) trên nền mẫu UTC, sơ đồ nền trắng. Tổng thời lượng nói phần chính khoảng **16-17 phút** (chưa tính demo). Demo trực tiếp chèn tại **slide 17**, chạy trên hệ thống production thật tại `kitehub.me` theo `defense-demo-script.md`.
->
-> Bố cục mới (theo góp ý hội đồng): nêu **bài toán ngay slide 3** và **cách giải quyết tổng quan ngay slide 4**, rồi mới đi vào chi tiết từng đóng góp. Ba slide chi tiết (phân rã container C4 L2, vòng đời tenant, CI/CD) đẩy xuống **Phụ lục (slide 21-23)**, chỉ bật khi hội đồng hỏi sâu.
->
-> Cách dùng: mỗi slide là một đoạn nói hoàn chỉnh. Dấu `(~XX giây)` cuối mỗi slide là thời lượng mục tiêu. Các slide trọng tâm (3, 4, 7, 11, 12, 15, 16) nói kỹ hơn.
-
 ## Slide 1 — XÂY DỰNG HỆ THỐNG SAAS CUNG CẤP DỊCH VỤ ĐÀO TẠO
 
-Kính chào thầy chủ tịch hội đồng cùng quý thầy cô trong hội đồng. Em là Nguyễn Văn Kiệt, sinh viên lớp Công nghệ thông tin 1 khóa 63, dưới sự hướng dẫn của thầy Tiến sĩ Nguyễn Đức Dư. Hôm nay em xin phép trình bày khóa luận tốt nghiệp với đề tài: Xây dựng hệ thống SaaS cung cấp dịch vụ đào tạo — nền tảng KiteHub. Đây là một nền tảng phần mềm dạng dịch vụ đa người thuê, tích hợp trí tuệ nhân tạo để tự động hóa nhận diện thương hiệu, hướng tới các trung tâm dạy thêm vừa và nhỏ tại Việt Nam. Em xin được bắt đầu phần trình bày. (~30 giây)
+Kính chào thầy chủ tịch hội đồng cùng quý thầy cô trong hội đồng. Em là Nguyễn Văn Kiệt, sinh viên lớp cử nhân Công nghệ thông tin 1 khóa 63, dưới sự hướng dẫn của thầy Tiến sĩ Nguyễn Đức Dư. Hôm nay em xin phép trình bày khóa luận tốt nghiệp với đề tài: Xây dựng hệ thống SaaS cung cấp dịch vụ đào tạo. Đây là một nền tảng phần mềm dạng dịch vụ đa người thuê, tích hợp trí tuệ nhân tạo để tự động hóa nhận diện thương hiệu, hướng tới các trung tâm dạy thêm vừa và nhỏ tại Việt Nam. Em xin được bắt đầu phần trình bày. (~30 giây)
 
 ## Slide 2 — Nội dung trình bày
 
-Trước khi đi vào chi tiết, em xin giới thiệu bố cục bài trình bày. Em sẽ bắt đầu thẳng từ bài toán và cách giải quyết tổng quan, để hội đồng nắm ngay vấn đề và hướng tiếp cận. Sau đó là khảo sát thị trường, mục tiêu và phạm vi. Tiếp theo là ba đóng góp chính của đề tài cùng phương pháp luận. Phần kế là thiết kế kiến trúc đa người thuê và cơ chế cô lập dữ liệu. Cuối cùng là triển khai thực tế, sản phẩm, kết quả, rồi demo trực tiếp và kết luận. Em xin đi vào bài toán. (~20 giây)
+Trước khi đi vào chi tiết, em xin giới thiệu bố cục của phần trình bày. Em xin bắt đầu từ giới thiệu tổng quan bài toán, từ đó phân tích thiết kế hệ thống, xây dựng sản phẩm và triển khai sản phẩm. Cuối cùng là kết quả vận hành, demo sản phẩm và kết luận.
 
-## Slide 3 — Bài toán — thị trường bùng nổ nhưng vẫn quản lý bằng tay
+## Slide 3, 4 — Bài toán — thị trường bùng nổ nhưng vẫn quản lý bằng tay
 
-Em xin mở đầu bằng bài toán, và đây là một nghịch lý. Thị trường quản lý trung tâm dạy thêm đang bùng nổ: hơn năm mươi nghìn trung tâm sau khi Thông tư 29 năm 2024 chính thức hóa dạy thêm có thu phí; phụ huynh chi mười lăm đến hai mươi phần trăm thu nhập cho học thêm; hơn chín mươi phần trăm phụ huynh đô thị dùng Zalo làm kênh chính. Nhưng phần lớn trung tâm nhỏ và vừa vẫn quản lý bằng Excel, nhóm Zalo, thậm chí sổ ghi tay. Lý do: phần mềm hiện có hoặc quá phức tạp vì hướng trường công, hoặc thiếu trải nghiệm tiếng Việt vì là sản phẩm quốc tế, hoặc quá đắt; chưa kể trung tâm mới còn chưa có thương hiệu số. Đó chính là khoảng trống mà đề tài hướng tới: một nền tảng vừa rẻ, vừa đúng nghiệp vụ dạy thêm, vừa thuần Việt, vừa tự tạo thương hiệu. (~70 giây)
+Em xin mở đầu bằng bài toán. Thị trường quản lý trung tâm dạy thêm đang bùng nổ: hơn năm mươi nghìn trung tâm sau khi Thông tư 29 năm 2024 chính thức hóa dạy thêm có thu phí; trong văn hóa trọng giáo dục hiện nay, phụ huynh chi mười lăm đến hai mươi phần trăm thu nhập cho học thêm; hơn chín mươi phần trăm phụ huynh đô thị dùng Zalo làm kênh giao tiếp chính. 
+Nhưng phần lớn trung tâm nhỏ và vừa vẫn quản lý bằng Excel, nhóm Zalo, thậm chí sổ ghi tay. Lý do: phần mềm hiện có hoặc quá phức tạp vì hướng tới mô hình trường công lập, hoặc thiếu trải nghiệm tiếng Việt vì là sản phẩm quốc tế, hoặc chi phí quá đắt đỏ; chưa kể trung tâm mới còn chưa có thương hiệu số. Đó chính là khoảng trống mà đề tài hướng tới: một nền tảng vừa đảm bảo chi phí hợp lý, vừa đúng nghiệp vụ quản lý giáo dục, có tương tác tốt với người dùng Việt, và tự động xây dựng được thương hiệu cho khách hàng. (~70 giây)
 
-## Slide 4 — Giải pháp — KiteHub: SaaS đa-tenant + AI cho trung tâm dạy thêm
+## Slide 5 — Giải pháp — KiteHub: SaaS đa-tenant + AI cho trung tâm dạy thêm
 
-Bốn trụ giải pháp không phải tính năng rời rạc — mỗi trụ đáp đúng một lý do khiến trung tâm hiện chưa số hóa được. Trụ một, nền tảng SaaS đa người thuê chia sẻ hạ tầng, trị đúng cái quá đắt: một hạ tầng phục vụ hàng trăm trung tâm, mở từ một lên nhiều chi nhánh không cần thiết kế lại. Trụ hai, AI Branding, trị cái không có thương hiệu số: sinh bộ nhận diện từ một mô tả ngắn, rút từ vài tuần xuống vài ngày. Trụ ba, đúng nghiệp vụ dạy thêm cộng tiếng Việt cộng tuân thủ pháp luật, trị cái phức tạp và thiếu trải nghiệm Việt. Trụ bốn, phương pháp luận hướng chất lượng, bảo đảm tin cậy dù phát triển một mình. Đây là mạch xuyên suốt cho phần còn lại của bài trình bày. (~70 giây)
+Từ đó, em đưa ra giải pháp gồm 4 nội dung chính. Thứ nhất, nền tảng SaaS đa người thuê, cùng chia sẻ hạ tầng, người dùng có thể thao tác dễ dàng, nhanh chóng để tạo ra 1 tenant, tức 1 trang web riêng cho mục đích giáo dục, giảng dạy của khách hàng.
 
-## Slide 5 — Khảo sát hệ thống tương tự (§1.2)
+Thứ hai, AI Branding, phục vụ cho mục đích thương hiệu số: có thể tự động sinh nhận diện thương hiệu từ một mô tả ngắn, rút từ vài tuần xuống vài ngày.
 
-Để định vị sản phẩm, em đã khảo sát bốn hệ thống tham khảo tiêu biểu trên thị trường. BeeClass là ứng dụng game hóa quản lý điểm thi đua, nhẹ và miễn phí, nhưng không có nghiệp vụ quản lý kinh doanh. Ba hệ thống còn lại — Mona eLMS với khoảng tám trăm khách hàng, Easy Edu với hơn một nghìn bốn trăm trung tâm, và DotB hướng phân khúc tầm trung — đều là phần mềm quản lý trung tâm đầy đủ tính năng. Điểm chung của cả bốn là kiến trúc đơn người thuê, mỗi trung tâm một bản cài đặt riêng, và không hệ thống nào có khả năng tự sinh nhận diện thương hiệu bằng trí tuệ nhân tạo. Qua khảo sát, em nhận thấy hai khoảng trống rõ rệt: kiến trúc đa người thuê nguyên bản, và tính năng AI Branding ở phân khúc giá thấp. Đây chính là hai hướng mà hệ thống của em khai thác. (~50 giây)
+Thứ ba, tuân thủ pháp luật Việt Nam: Nghị định 13 năm 2023 về bảo vệ dữ liệu cá nhân, Luật An ninh mạng 2018, Thông tư 78 năm 2021 về hóa đơn điện tử, và quy định bảo vệ dữ liệu trẻ em theo Luật Trẻ em 2016.
 
-## Slide 6 — Mục tiêu và phạm vi nghiên cứu (Mở đầu §2–§3)
+Thứ tư, giao diện sản phẩm thân thiện với người dùng Việt, dễ tiếp cận cho nhóm người dùng không có chuyên môn về hệ thống IT.
 
-Từ bài toán và khảo sát đó, đề tài đặt ra bốn mục tiêu nghiên cứu, tương ứng với bốn trụ cột vừa giới thiệu. Một là xây dựng nền tảng SaaS đa người thuê chia sẻ hạ tầng. Hai là tích hợp tính năng AI Branding tự động sinh nhận diện thương hiệu. Ba là tuân thủ pháp luật Việt Nam ngay từ thiết kế. Bốn là áp dụng phương pháp luận phát triển hướng chất lượng. Về phạm vi, hệ thống hiện được triển khai thực tế trên hạ tầng AWS khu vực Singapore, đã đưa vào sử dụng với hai giáo viên độc lập, phục vụ ba nhóm người dùng đại diện là giáo viên độc lập, chủ sở hữu trung tâm và quản lý trung tâm. Riêng nhóm trường phổ thông K-12 được lùi sang lộ trình phát triển sau, vì nhóm này đòi hỏi cán bộ bảo vệ dữ liệu và đánh giá tác động bảo vệ dữ liệu theo quy định pháp lý chặt chẽ hơn. Em xin đi vào đóng góp đầu tiên. (~50 giây)
+## Slide 6 — Kiến trúc tổng thể — C4 Level 1 (Hình 2.1)
 
-## Slide 7 — Khác biệt — AI Branding tự động (§1.3 · §3.1.2)
+Tiếp đến với phần phân tích và thiết kế hệ thống, em xin trình bày kiến trúc theo mô hình C4 của Simon Brown, một chuẩn công nghiệp cho tài liệu kiến trúc microservices. 
 
-Đóng góp thứ nhất, cũng là tính năng chủ lực của hệ thống, là tự động hóa nhận diện thương hiệu bằng trí tuệ nhân tạo. Với AI Branding, chủ sở hữu trung tâm chỉ cần điền một biểu mẫu ngắn gồm tên trung tâm, lĩnh vực, phong cách và màu thương hiệu; sau khoảng ba mươi đến sáu mươi giây, hệ thống tự sinh ra logo, ảnh nền trang chủ và banner mạng xã hội. Về mặt kỹ thuật, hệ thống sinh ảnh bằng mô hình Stable Diffusion XL qua nền tảng Replicate, với chi phí rất thấp chỉ khoảng hơn một phần nghìn đô la mỗi ảnh, cùng phương án dự phòng là Stable Diffusion XL Turbo trên Hugging Face. Có hai nguyên tắc thiết kế quan trọng. Thứ nhất là ưu tiên mẫu có sẵn: hệ thống chỉ gọi mô hình AI khi thực sự cần, nhằm kiểm soát chi phí. Thứ hai là cơ chế xem trước bắt buộc: mọi tài nguyên trước khi triển khai đều phải đạt chuẩn truy cập WCAG mức AA và đi qua bộ phân loại an toàn nội dung tự động. Sơ đồ bên phải minh họa trình hướng dẫn thực tế trong sản phẩm. Nhờ cách tiếp cận này, một trung tâm có thể có bộ nhận diện chuyên nghiệp chỉ trong vài phút mà gần như không tốn chi phí thiết kế. (~80 giây)
+Sơ đồ ngữ cảnh ở mức một cho thấy hệ thống tương tác với tám nhóm người dùng và quản trị, cùng sáu hệ thống bên ngoài như dịch vụ email, thanh toán VietQR, Zalo và Cloudflare. Có hai nguyên tắc thiết kế đáng chú ý. Thứ nhất, mọi người dùng đều truy cập qua giao thức HTTPS với TLS từ phiên bản 1.2 trở lên. Thứ hai, mọi hệ thống bên ngoài đều được cô lập qua mẫu adapter — ví dụ giao diện NotificationChannel cho email và PaymentProcessor cho thanh toán — nên có thể thay nhà cung cấp mà không phải sửa lõi. Đặc biệt, không một người dùng nào chạm trực tiếp vào cơ sở dữ liệu; tất cả đều đi qua biên tin cậy là gateway. 
 
-## Slide 8 — Khác biệt — Tuân thủ pháp luật VN theo thiết kế (§1.3 · §2.1.2)
+## Slide 7 — Khác biệt — Cô lập đa-tenant bằng RLS (§2.2.3)
 
-Đóng góp thứ hai là tuân thủ pháp luật Việt Nam ngay từ thiết kế, dựa trên ba trụ cột pháp lý. Trụ cột thứ nhất là Luật Bảo vệ Dữ liệu Cá nhân năm 2023, có hiệu lực từ ngày một tháng bảy năm 2026 — đây là một mốc cứng. Hệ thống đáp ứng bằng ba cơ chế cụ thể: bảng ghi nhận sự đồng ý của người dùng, quy trình tiếp nhận yêu cầu truy cập dữ liệu cá nhân, và nhật ký kiểm toán bất biến phục vụ Điều 11 của luật. Trụ cột thứ hai là Luật An ninh mạng năm 2018 cùng quy định về bản địa hóa dữ liệu; quy mô hiện tại chưa chạm ngưỡng kích hoạt, và em đã có lộ trình chuyển dữ liệu về vùng trong nước khi mở rộng. Trụ cột thứ ba là quy định hóa đơn điện tử theo Thông tư 78, được giải quyết qua hợp tác với nhà cung cấp đã được Tổng cục Thuế cấp phép là MISA. Điểm mấu chốt là các biện pháp này được tích hợp ngay từ kiến trúc, không phải vá lại về sau. Em xin chuyển sang phương pháp luận. (~55 giây)
+Tiếp theo em xin đi vào trọng tâm thiết kế thứ nhất là mô hình cô lập đa người thuê. 
 
-## Slide 9 — Phương pháp luận hướng chất lượng (Mở đầu §4 · §3.2)
+Đây là quyết định kiến trúc trọng tâm của đề tài. Em đã đánh giá sáu mô hình cô lập đa người thuê khác nhau, và lựa chọn mô hình: một cơ sở dữ liệu dùng chung, mỗi bảng mang cột định danh tenant, kết hợp cơ chế bảo mật mức dòng Row-Level Security của PostgreSQL.
 
-Đóng góp thứ ba liên quan tới cách làm: đề tài áp dụng phương pháp luận hướng chất lượng. Phương pháp nghiên cứu kết hợp giữa lý thuyết, qua việc so sánh với các hệ thống tham khảo, và thực nghiệm, qua việc xây dựng sản phẩm chạy thật. Ba trụ cột thực hành đều có cơ sở học thuật: phát triển hướng kiểm thử theo Kent Beck, thiết kế hướng miền nghiệp vụ theo Eric Evans, và chu trình cải tiến liên tục PDCA theo Deming; toàn bộ tuân theo chuẩn đảm bảo chất lượng phần mềm IEEE 730. Kim tự tháp kiểm thử bên cạnh minh họa cách phân bố khoảng chín trăm tám mươi lăm bài kiểm thử thành ba tầng. Việc đặt chất lượng làm trọng tâm giúp sản phẩm tránh được lối "phát hành trước, sửa sau" thường gặp. Em xin sang chương hai về kiến trúc. (~45 giây)
+Đây tương ứng với mô hình Pool theo khung tham chiếu AWS SaaS Lens. Em chọn mô hình này vì hai lý do chính. 
+Thứ nhất là chi phí: mô hình mỗi tenant một cơ sở dữ liệu riêng, lược đồ riêng sẽ tiêu tốn chi phí cao hơn rất nhiều so với nhiều tenant dùng chung các tài nguyên này. 
 
-## Slide 10 — Kiến trúc tổng thể — C4 Level 1 (Hình 2.1)
+Thứ hai, và quan trọng hơn, là an toàn: với Row-Level Security, chính database engine ép buộc việc lọc dữ liệu theo tenant, thay vì phụ thuộc vào việc lập trình viên nhớ thêm điều kiện lọc trong mỗi câu truy vấn. Một lỗi quên điều kiện ở tầng ứng dụng sẽ không gây rò rỉ dữ liệu chéo, vì tầng cơ sở dữ liệu vẫn chặn lại. Bảng bên cạnh rút gọn 6 mô hình tiêu biểu để so sánh. Em xin trình bày sâu hơn cách cơ chế cô lập này hoạt động qua nhiều lớp. (~85 giây)
 
-Sang chương hai, em trình bày kiến trúc theo mô hình C4 của Simon Brown, một chuẩn công nghiệp cho tài liệu kiến trúc microservices. Sơ đồ ngữ cảnh ở mức một cho thấy Kite Platform tương tác với tám nhóm người dùng và quản trị, cùng sáu hệ thống bên ngoài như dịch vụ email, thanh toán VietQR, Zalo và Cloudflare. Có hai nguyên tắc thiết kế đáng chú ý. Thứ nhất, mọi người dùng đều truy cập qua giao thức HTTPS với TLS từ phiên bản 1.2 trở lên. Thứ hai, mọi hệ thống bên ngoài đều được cô lập qua mẫu adapter — ví dụ giao diện NotificationChannel cho email và PaymentProcessor cho thanh toán — nên có thể thay nhà cung cấp mà không phải sửa lõi. Đặc biệt, không một người dùng nào chạm trực tiếp vào cơ sở dữ liệu; tất cả đều đi qua biên tin cậy là gateway. Em xin đi vào đóng góp thứ tư, cũng là trọng tâm kỹ thuật — cô lập đa người thuê. (~50 giây)
+## Slide 8 — Bảo mật nhiều lớp — Defense-in-depth (Hình 2.3)
 
-## Slide 11 — Khác biệt — Cô lập đa-tenant bằng RLS (§2.2.3)
+Mô hình multi-tenant không chỉ dựa vào một cơ chế duy nhất, mà được tổ chức thành năm lớp phòng thủ độc lập, theo nguyên tắc phòng thủ chiều sâu. 
 
-Đây là quyết định kiến trúc trọng tâm của đề tài. Em đã đánh giá sáu mô hình cô lập đa người thuê khác nhau, và lựa chọn mô hình: một cơ sở dữ liệu dùng chung, mỗi bảng mang cột định danh tenant, kết hợp cơ chế bảo mật mức dòng Row-Level Security của PostgreSQL. Đây tương ứng với mô hình Pool theo khung tham chiếu AWS SaaS Lens. Em chọn mô hình này vì hai lý do chính. Thứ nhất là chi phí: mô hình mỗi tenant một cơ sở dữ liệu riêng tốn khoảng hai trăm chín mươi lăm đô la mỗi tháng cho mười tenant, trong khi mô hình của em chỉ khoảng mười lăm đô la — chênh nhau khoảng hai mươi lần. Thứ hai, và quan trọng hơn, là an toàn: với Row-Level Security, chính database engine ép buộc việc lọc dữ liệu theo tenant, thay vì phụ thuộc vào việc lập trình viên nhớ thêm điều kiện lọc trong mỗi câu truy vấn. Một lỗi quên điều kiện ở tầng ứng dụng sẽ không gây rò rỉ dữ liệu chéo, vì tầng cơ sở dữ liệu vẫn chặn lại. Bảng bên cạnh rút gọn bốn mô hình tiêu biểu để so sánh. Em xin trình bày sâu hơn cách cơ chế cô lập này hoạt động qua nhiều lớp. (~85 giây)
+Lớp thứ nhất, tại biên gateway, thực hiện xác thực chữ ký JWT và rút trích định danh tenant. 
+Lớp thứ hai, tại dịch vụ, kiểm tra vai trò bằng cơ chế phân quyền của Spring Security. Lớp thứ ba thiết lập biến ngữ cảnh tenant trên kết nối cơ sở dữ liệu trong phạm vi từng giao dịch. 
+Lớp thứ tư là chính sách Row-Level Security của PostgreSQL. 
+Lớp thứ năm là ràng buộc cột định danh tenant không được rỗng trên mọi bảng nghiệp vụ. Điểm quan trọng nhất nằm ở chính sách gọi là "buộc thất bại khi rỗng": nếu biến ngữ cảnh tenant chưa được thiết lập, truy vấn sẽ trả về không có dòng nào, thay vì vô tình trả về tất cả — nhờ vậy lỗi lập tức lộ ra ngay trong khâu kiểm thử thay vì âm thầm gây rò rỉ. 
 
-## Slide 12 — Bảo mật nhiều lớp — Defense-in-depth (Hình 2.3)
+Ý nghĩa là: kẻ tấn công phải xuyên thủng cả năm lớp mới có thể rò rỉ dữ liệu chéo giữa các tenant. Để thấy rõ lớp thứ nhất hoạt động thế nào trong thực tế, em xin trình bày cách một yêu cầu được định tuyến tới đúng tenant. (~75 giây)
 
-Cô lập đa người thuê không chỉ dựa vào một cơ chế duy nhất, mà được tổ chức thành năm lớp phòng thủ độc lập, theo nguyên tắc phòng thủ chiều sâu. Lớp thứ nhất, tại biên gateway, xác thực chữ ký JWT và rút trích định danh tenant. Lớp thứ hai, tại dịch vụ, kiểm tra vai trò bằng cơ chế phân quyền của Spring Security. Lớp thứ ba thiết lập biến ngữ cảnh tenant trên kết nối cơ sở dữ liệu trong phạm vi từng giao dịch. Lớp thứ tư là chính sách Row-Level Security của PostgreSQL. Lớp thứ năm là ràng buộc cột định danh tenant không được rỗng trên mọi bảng nghiệp vụ. Điểm tinh tế nhất nằm ở chính sách mà em gọi là "buộc thất bại khi rỗng": nếu biến ngữ cảnh tenant chưa được thiết lập, truy vấn sẽ trả về không có dòng nào, thay vì vô tình trả về tất cả — nhờ vậy lỗi lập tức lộ ra ngay trong khâu kiểm thử thay vì âm thầm gây rò rỉ. Ý nghĩa là: kẻ tấn công phải xuyên thủng cả năm lớp mới có thể rò rỉ dữ liệu chéo giữa các tenant. Em xin sang phần mô hình dữ liệu. (~75 giây)
+## Slide 9 — Chuỗi định tuyến tenant — Tenant đến Domain đến Landing (Hình 2.4c, 2.4d)
 
-## Slide 13 — Mô hình dữ liệu — ERD KiteClass (Hình 2.6b)
+Đây là phần trả lời cho câu hỏi: cùng một mã nguồn, làm sao mỗi trung tâm lại có một trang chủ riêng? Đây cũng chính là nơi lớp phòng thủ thứ nhất — phân giải định danh tenant tại gateway — hoạt động.
 
-Slide này trình bày mô hình dữ liệu của miền nghiệp vụ giáo dục. Trung tâm của mô hình là bảng nối ENROLLMENTS, dùng để phân giải quan hệ nhiều-nhiều giữa học viên và lớp học: một học viên có thể đăng ký nhiều lớp, và một lớp có nhiều học viên. Xoay quanh đăng ký này là các bảng điểm danh, điểm số và thanh toán. Một điểm thiết kế nhất quán: mọi bảng nghiệp vụ đều mang cột định danh tenant, chính là cột phục vụ cho cơ chế Row-Level Security vừa trình bày. Nhờ vậy, ranh giới dữ liệu giữa các tenant được bảo đảm ngay tại tầng lưu trữ. Em xin sang phần triển khai thực tế. (~40 giây)
+Mỗi trung tâm có một trang chủ công khai riêng, truy cập qua tên miền phụ dạng tên-trung-tâm chấm kitehub chấm me. Tất cả tenant dùng chung một mã nguồn giao diện và một cơ sở dữ liệu; thứ quyết định nội dung và thương hiệu hiển thị chính là trường Host của yêu cầu.
 
-## Slide 14 — Triển khai thực tế — AWS Singapore (Hình 4.1a)
+Chuỗi định tuyến đi qua bốn chặng. Trình duyệt gửi yêu cầu tới tên miền phụ; Cloudflare phân giải tên miền về gateway. Tại gateway, bộ lọc phân giải tenant đọc trường Host, tách lấy phần tên miền phụ, rồi tra ra định danh tenant. Sau khi xác định được tenant, gateway gắn header định danh tenant và chuyển tiếp xuống dịch vụ lõi; dịch vụ lõi thiết lập ngữ cảnh tenant, và từ đây mọi truy vấn đều được Row-Level Security lọc đúng theo tenant đó. Kết quả trả về là dữ liệu trang chủ riêng của tenant: tiêu đề, bảng màu, danh sách giáo viên.
 
-Hệ thống được triển khai thực tế trên AWS khu vực Singapore, mã ap-southeast-1. Về mạng, em thiết kế một mạng riêng ảo VPC tách thành hai tầng: tầng public chứa bộ cân bằng tải và hai máy chủ ứng dụng EC2, còn tầng private cô lập cơ sở dữ liệu RDS, vốn không có địa chỉ public và chỉ chấp nhận kết nối nội bộ. Về quy trình, hệ thống dùng tích hợp và triển khai liên tục qua GitHub Actions với cơ chế OIDC sinh thông tin xác thực tạm thời, và Terraform theo nguyên tắc xem kế hoạch trước khi áp dụng — phần chi tiết em để ở phụ lục. Về chi phí, nhờ tận dụng gói miễn phí AWS Free Tier, tổng chi phí được giữ trong khoảng mười lăm đến ba mươi đô la mỗi tháng; cụ thể, phần máy chủ EC2 vượt ngưỡng bảy trăm năm mươi giờ tốn khoảng bảy phẩy ba tám đô la, còn mỗi ảnh sinh nhận diện thương hiệu bằng Stable Diffusion XL qua Replicate chỉ khoảng hơn một phần nghìn đô la, gần như không đáng kể. Quy mô hiện tại chưa chạm ngưỡng quy định về bản địa hóa dữ liệu, và em đã có lộ trình chuyển về vùng trong nước khi cần. Em xin sang phần sản phẩm thực tế. (~55 giây)
+Có một điểm an toàn quan trọng: gateway là biên tin cậy duy nhất. Header định danh tenant do client tự gửi lên luôn bị loại bỏ và thay bằng giá trị do chính gateway phát hành sau khi phân giải Host — nhờ vậy không ai có thể giả mạo định danh tenant để xem dữ liệu của trung tâm khác. Đây chính là lý do một mã nguồn duy nhất phục vụ được hàng trăm trang chủ khác nhau mà vẫn cô lập dữ liệu tuyệt đối. (~60 giây)
+
+
+## Slide 10 — Khác biệt — AI Branding tự động (§1.3 · §3.1.2)
+
+Tiếp đến là tính năng xây dựng thương hiệu số, là tính năng chủ lực của hệ thống, tự động hóa nhận diện thương hiệu bằng trí tuệ nhân tạo. 
+
+Với AI Branding, chủ sở hữu trung tâm chỉ cần điền một biểu mẫu ngắn gồm tên trung tâm, lĩnh vực, phong cách và màu thương hiệu; sau khoảng ba mươi đến sáu mươi giây, hệ thống tự sinh ra logo, ảnh nền trang chủ và banner mạng xã hội. 
+
+Có hai nguyên tắc thiết kế quan trọng. Thứ nhất là ưu tiên mẫu có sẵn: hệ thống chỉ gọi mô hình AI khi thực sự cần, nhằm kiểm soát chi phí. Thứ hai là cơ chế xem trước bắt buộc: mọi tài nguyên trước khi triển khai đều phải đạt chuẩn truy cập WCAG mức AA và đi qua bộ phân loại an toàn nội dung tự động. Sơ đồ bên phải minh họa trình hướng dẫn thực tế trong sản phẩm. Nhờ cách tiếp cận này, một trung tâm có thể có bộ nhận diện chuyên nghiệp chỉ trong vài phút mà gần như không tốn chi phí thiết kế. (~80 giây)
+
+## Slide 11 — Vòng đời tenant (máy trạng thái, Hình 2.8)
+
+Tiếp theo, em trình bày về các vòng đời của 1 tenant:
+Vòng đời của mỗi tenant được mô hình hóa thành một máy trạng thái. Khi một người dùng tiềm năng gửi yêu cầu, tenant ở trạng thái chờ duyệt. Sau khi quản trị duyệt và hệ thống gửi liên kết kích hoạt magic-link, tenant chuyển sang trạng thái dùng thử mười bốn ngày. Khi thanh toán thành công, tenant chuyển sang hoạt động chính thức; còn nếu thanh toán thất bại quá thời gian gia hạn, tenant bị tạm ngưng nhưng dữ liệu vẫn được giữ trong bảy ngày. Một chi tiết đáng chú ý là khi duyệt yêu cầu, hệ thống đồng thời phát một sự kiện bất đồng bộ để dựng sẵn bộ nhận diện thương hiệu mặc định, nhờ đó rút ngắn thời gian chờ khi người dùng đăng nhập lần đầu. (~50 giây)
+
+## Slide 12 — Phân rã container C4 Level 2 (Hình 2.2)
+
+Từ phân tích yêu cầu chức năng, phi chức năng, hệ thống được tổ chức thành bốn cụm. 
+
+Cụm giao diện gồm hai ứng dụng Next.js: kitehub-frontend ở cổng 3001 phục vụ marketing và quản trị, còn kiteclass-frontend ở cổng 3000 phục vụ nghiệp vụ giáo dục.
+Cụm gateway là một ứng dụng Spring Cloud Gateway ở cổng 9000, đóng vai trò điểm vào duy nhất. 
+Cụm dịch vụ gồm sáu dịch vụ KiteHub cùng lõi kiteclass-core. 
+Cụm hạ tầng dùng chung gồm PostgreSQL, Redis, RabbitMQ và MinIO (S3). Tính tổng trên tất cả các cụm, nền tảng gồm mười bảy thành phần tách biệt, cho phép triển khai và mở rộng từng dịch vụ một cách độc lập. (~55 giây)
+
+## Slide 13 — Triển khai thực tế — AWS Singapore (Hình 4.1a)
+
+Hệ thống được triển khai thực tế trên AWS khu vực Singapore, mã ap-southeast-1. 
+
+Về mạng, em thiết kế một mạng riêng ảo VPC tách thành hai tầng: tầng public chứa bộ cân bằng tải và hai máy chủ ứng dụng EC2, còn tầng private cô lập cơ sở dữ liệu RDS, vốn không có địa chỉ public và chỉ chấp nhận kết nối nội bộ.
+
+## Slide 14 — CI/CD và giám sát vận hành (Hình 4.2a)
+
+Về quy trình tích hợp và triển khai liên tục, hệ thống áp dụng các thực hành hiện đại. Mỗi lần triển khai dùng một ảnh Docker bất biến gắn theo mã commit. 
+
+Việc cấp quyền lên AWS dùng cơ chế OIDC sinh thông tin xác thực tạm thời theo từng lần chạy, thay cho khóa tĩnh nhúng cứng — qua đó giảm rủi ro lộ khóa. Trước khi triển khai có một cổng xác nhận thủ công, người vận hành phải nhập đúng từ khóa xác nhận để tránh triển khai nhầm. 
+
+Về giám sát, hệ thống dùng ba lớp: CloudTrail kiểm toán mọi lệnh gọi API AWS, CloudWatch thu thập log JSON và cảnh báo, Prometheus cùng Grafana theo dõi metric ứng dụng. Đặc biệt nhật ký kiểm toán CloudTrail được bật trước khi tạo tài nguyên, nhằm có đường cơ sở kiểm toán đầy đủ ngay từ đầu. (~50 giây)
 
 ## Slide 15 — Sản phẩm thực tế — giao diện và AI Branding (Miễn phí vs Trả phí)
 
-Đây là phần em muốn nhấn mạnh: sản phẩm chạy thật, không phải mô hình. Hàng trên là ba giao diện vận hành thực tế trên hạ tầng AWS vừa trình bày. Thứ nhất là trang chủ công khai mang thương hiệu riêng của tenant — đây chính là kết quả của cơ chế phân giải Tenant đến Domain đến Landing: cùng một mã nguồn giao diện nhưng render nội dung và theme khác nhau theo từng tenant, dựa trên trường Host của yêu cầu. Thứ hai là dashboard tổng quan sau đăng nhập với bốn thẻ chỉ số: tổng học viên, giáo viên, khóa học và lớp học. Thứ ba là giao diện quản lý danh sách học viên với dữ liệu mẫu mang phong cách Việt Nam, hỗ trợ tìm kiếm, sắp xếp và nhập học viên hàng loạt. Hàng dưới minh chứng trực tiếp giá trị của AI Branding qua hai giáo viên độc lập thật. Bên trái là cô Nguyễn Thị Hà dùng gói Miễn phí: trang chủ dùng bộ nhận diện tông xanh dương được dựng sẵn từ mẫu có kiểm định, phù hợp lớp Toán tiểu học. Bên phải là thầy Nguyễn Đình Nhì dùng gói Trả phí: bộ nhận diện tông xanh lá được sinh tự động qua trình hướng dẫn AI Branding cho môn Hóa học, với tông màu hoàn toàn khác biệt. Điểm mấu chốt là: hai tenant này dùng chung một mã nguồn và một cơ sở dữ liệu, nhưng có hai thương hiệu riêng biệt — vừa chứng minh kiến trúc đa người thuê hoạt động đúng, vừa cho thấy AI Branding tạo giá trị khác biệt thật giữa hai phân khúc. Em xin sang kết quả kiểm thử. (~85 giây)
+Sản phẩm đã được thử nghiệm bởi 2 thầy cô. Trên đây là hình ảnh trang chủ công khai mang thương hiệu riêng của tenant — đây chính là kết quả của cơ chế phân giải Tenant đến Domain đến Landing: cùng một mã nguồn giao diện nhưng render nội dung và theme khác nhau theo từng tenant, dựa trên trường Host của yêu cầu. Bên trái là cô Nguyễn Thị Hà dùng gói Miễn phí: trang chủ dùng bộ nhận diện tông xanh dương được dựng sẵn từ mẫu có kiểm định, phù hợp lớp Toán tiểu học. Bên phải là thầy Nguyễn Đình Nhì dùng gói Trả phí: bộ nhận diện tông xanh lá được sinh tự động qua trình hướng dẫn AI Branding cho môn Hóa học, với tông màu hoàn toàn khác biệt. Điểm mấu chốt là: hai tenant này dùng chung một mã nguồn và một cơ sở dữ liệu, nhưng có hai thương hiệu riêng biệt — vừa chứng minh kiến trúc đa người thuê hoạt động đúng, vừa cho thấy AI Branding tạo giá trị khác biệt thật giữa hai phân khúc.
 
-## Slide 16 — Kết quả kiểm thử và đánh giá chất lượng (§3.2)
+## Slide 16 — Demo trực tiếp
 
-Về kiểm thử, hệ thống có tổng cộng khoảng chín trăm tám mươi lăm bài kiểm thử, phân bố theo kim tự tháp: khoảng tám trăm năm mươi bài kiểm thử đơn vị, một trăm hai mươi bài kiểm thử tích hợp, và mười lăm đến hai mươi lăm bài kiểm thử đầu-cuối. Tỷ lệ đạt trên nhánh chính từ chín mươi chín phẩy năm phần trăm trở lên, và độ phủ dòng lệnh trên các module nghiệp vụ từ bảy mươi lăm phần trăm trở lên. Một quyết định kỹ thuật quan trọng: các bài kiểm thử tích hợp dùng Testcontainers khởi tạo PostgreSQL thật, chứ không dùng cơ sở dữ liệu trong bộ nhớ H2, vì các tính năng đặc thù như Row-Level Security và biến ngữ cảnh chỉ có thể kiểm chứng đúng trên PostgreSQL thật. Bên cạnh kiểm thử tự động, em duy trì quy trình đánh giá chất lượng định kỳ trên nhiều chiều theo chuẩn IEEE 730: kết quả gần nhất cho thấy bảo mật đạt chín mươi ba trên một trăm, hiệu năng tám mươi sáu trên một trăm, và điểm chất lượng tổng thể ở mức tốt khoảng chín mươi. Mỗi đợt đánh giá sinh ra các phát hiện được theo dõi và sửa trong chu kỳ kế tiếp, tạo thành vòng cải tiến liên tục. Em xin chuyển sang phần demo trực tiếp. (~80 giây)
+Sau đó, em xin phép chuyển sang demo trực tiếp trên hệ thống đang chạy thật tại địa chỉ kitehub.me. Em sẽ đi qua sáu bước: bắt đầu từ trang của một khách tham quan ẩn danh, sang luồng đăng ký và tiếp nhận tenant, đến trình hướng dẫn tạo tenant, sau đó chứng minh khả năng cô lập dữ liệu bằng hai tài khoản thuộc hai tenant khác nhau.
 
-## Slide 17 — Demo trực tiếp
+## Slide 17 — Cảm ơn
 
-Đến đây, thay vì chỉ trình bày trên slide, em xin phép chuyển sang demo trực tiếp trên hệ thống đang chạy thật tại địa chỉ kitehub.me. Em sẽ đi qua sáu bước: bắt đầu từ trang của một khách tham quan ẩn danh, sang luồng đăng ký và tiếp nhận tenant, đến trình hướng dẫn tạo tenant, sau đó chứng minh khả năng cô lập dữ liệu bằng hai tài khoản thuộc hai tenant khác nhau, và cuối cùng là xem nhật ký kiểm toán. Em cũng đã chuẩn bị video dự phòng cho trường hợp sự cố mạng. Em xin bắt đầu demo. (~30 giây + demo trực tiếp)
+Em xin chân thành cảm ơn thầy hướng dẫn Tiến sĩ Nguyễn Đức Dư đã tận tình hướng dẫn, cảm ơn quý thầy cô trong hội đồng đã lắng nghe. Sau đây, em xin sẵn sàng nhận câu hỏi từ hội đồng. (~45 giây)
 
-## Slide 18 — Hạn chế thừa nhận và hướng phát triển
-
-Sau phần demo, em xin thẳng thắn thừa nhận một số hạn chế hiện tại, vì em tin rằng thừa nhận hạn chế kèm lộ trình thì tốt hơn là che giấu. Hạn chế thứ nhất là hạ tầng còn ở quy mô nhỏ trên hai máy chủ t3.micro; hướng phát triển là nâng cấp lên triển khai nhiều vùng khả dụng. Thứ hai, dữ liệu hiện đặt tại Singapore; hướng phát triển là chuyển về vùng trong nước khi quy mô tăng. Thứ ba, thanh toán hiện chủ yếu qua VietQR đối soát thủ công; hướng phát triển là mở cổng thanh toán tự động như VNPay và MoMo. Ngoài ra, em sẽ hoàn thiện tích hợp Zalo và hóa đơn điện tử qua đối tác. Mỗi hạn chế đều gắn với một hướng phát triển cụ thể và khả thi. Em xin sang phần kết luận. (~50 giây)
-
-## Slide 19 — Kết luận
-
-Tóm lại, đề tài đã xây dựng thành công một nền tảng SaaS đào tạo đa người thuê gồm bảy dịch vụ backend và hai ứng dụng giao diện, triển khai thực tế trên AWS Singapore. Hệ thống cô lập dữ liệu giữa các tenant bằng Row-Level Security với phòng thủ năm lớp, hiện thực bốn yếu tố khác biệt là kiến trúc đa người thuê nguyên bản, AI Branding tự động, tuân thủ pháp luật theo thiết kế và phương pháp luận hướng chất lượng. Hệ thống đáp ứng các yêu cầu của Luật Bảo vệ Dữ liệu Cá nhân, Luật An ninh mạng và Thông tư 78, được kiểm chứng qua khoảng chín trăm tám mươi lăm bài kiểm thử nhiều tầng, và mã nguồn được công khai. Em xin chân thành cảm ơn thầy hướng dẫn Tiến sĩ Nguyễn Đức Dư đã tận tình hướng dẫn, cảm ơn quý thầy cô trong hội đồng đã lắng nghe. Em xin sẵn sàng nhận câu hỏi từ hội đồng. (~45 giây)
-
----
-
-# PHỤ LỤC — slide dự phòng (chỉ bật khi hội đồng hỏi sâu)
-
-> Ba slide sau **không nằm trong mạch trình bày chính**. Chỉ chuyển tới khi hội đồng đặt câu hỏi sâu về phân rã container, vòng đời tenant, hoặc quy trình CI/CD và giám sát. Văn nói dưới đây dùng khi được hỏi.
-
-## Slide 20 — Phụ lục — slide dự phòng cho phần hỏi đáp
-
-(Slide ngăn — không cần nói. Chuyển nhanh tới slide phụ lục phù hợp với câu hỏi của hội đồng.)
-
-## Slide 21 — Phụ lục 1 — Phân rã container C4 Level 2 (Hình 2.2)
-
-Phóng to vào bên trong ở mức hai, hệ thống được tổ chức thành bốn cụm. Cụm giao diện gồm hai ứng dụng Next.js: kitehub-frontend ở cổng 3001 phục vụ marketing và quản trị, còn kiteclass-frontend ở cổng 3000 phục vụ nghiệp vụ giáo dục, với khoảng tám mươi lăm phần trăm phiên truy cập từ thiết bị di động. Cụm gateway là một ứng dụng Spring Cloud Gateway ở cổng 9000, đóng vai trò điểm vào duy nhất. Cụm dịch vụ gồm sáu dịch vụ KiteHub cùng lõi kiteclass-core. Cụm hạ tầng dùng chung gồm bốn thành phần mang tiền tố kite — đó là PostgreSQL, Redis, RabbitMQ và MinIO. Tính tổng trên tất cả các cụm, nền tảng gồm mười bảy thành phần tách biệt, cho phép triển khai và mở rộng từng dịch vụ một cách độc lập. (~55 giây)
-
-## Slide 22 — Phụ lục 2 — Vòng đời tenant (máy trạng thái, Hình 2.8)
-
-Vòng đời của mỗi tenant được mô hình hóa thành một máy trạng thái. Khi một người dùng tiềm năng gửi yêu cầu, tenant ở trạng thái chờ duyệt. Sau khi quản trị duyệt và hệ thống gửi liên kết kích hoạt magic-link, tenant chuyển sang trạng thái dùng thử mười bốn ngày. Khi thanh toán thành công, tenant chuyển sang hoạt động chính thức; còn nếu thanh toán thất bại quá thời gian ân hạn, tenant bị tạm ngưng nhưng dữ liệu vẫn được giữ trong bảy ngày. Một chi tiết đáng chú ý là khi duyệt yêu cầu, hệ thống đồng thời phát một sự kiện bất đồng bộ để dựng sẵn bộ nhận diện thương hiệu mặc định, nhờ đó rút ngắn thời gian chờ khi người dùng đăng nhập lần đầu. (~50 giây)
-
-## Slide 23 — Phụ lục 3 — CI/CD và giám sát vận hành (Hình 4.2a)
-
-Về quy trình tích hợp và triển khai liên tục, hệ thống áp dụng các thực hành hiện đại. Mỗi lần triển khai dùng một ảnh Docker bất biến gắn theo mã commit. Việc cấp quyền lên AWS dùng cơ chế OIDC sinh thông tin xác thực tạm thời theo từng lần chạy, thay cho khóa tĩnh nhúng cứng — qua đó giảm rủi ro lộ khóa. Trước khi triển khai có một cổng xác nhận thủ công, người vận hành phải nhập đúng từ khóa xác nhận để tránh triển khai nhầm. Về giám sát, hệ thống dùng ba lớp: CloudTrail kiểm toán mọi lệnh gọi API AWS, CloudWatch thu thập log JSON và cảnh báo, Prometheus cùng Grafana theo dõi metric ứng dụng. Đặc biệt nhật ký kiểm toán CloudTrail được bật trước khi tạo tài nguyên, nhằm có đường cơ sở kiểm toán đầy đủ ngay từ đầu. (~50 giây)
+![alt text](image-1.png)
