@@ -184,8 +184,10 @@ marked = 0
 for j, s in enumerate(past_sessions):
     sid = s['id']
     records = [{"enrollmentId": eid, "status": status_for(i, j)} for i, eid in enumerate(eids)]
+    # Mark as OWNER (X-User-Id:1): teacher-created class has teacherId=None so the teacher
+    # token hits 403 TEACHER_NOT_IN_CLASS; owner/admin can mark attendance for any class.
     if post(f"/api/v1/attendance/classes/{clid}/sessions/{sid}/attendance",
-            {"sessionId": sid, "records": records}, ttok):
+            {"sessionId": sid, "records": records}, otok, owner_hdr=True):
         marked += 1
 print(f"{marked}/{len(past_sessions)} buổi đã điểm danh | {len(eids)} hs ACTIVE")
 PY
