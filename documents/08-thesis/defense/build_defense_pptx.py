@@ -6,7 +6,8 @@ THẬT, ÁP ĐÚNG THIẾT KẾ TEMPLATE UTC (3 ảnh nền: bìa / nội dung /
 - Nền template: defense/assets/tpl-bg-{cover,content,section}.jpg (trích từ
   template gốc — band xanh + logo UTC + sóng). Tiêu đề đặt DƯỚI band.
 - Ảnh thesis: defense/assets/fig-*.png (31 figure final từ thesis-v1.docx).
-- KHÔNG dùng phụ lục — nội dung trình bày hết ở slide chính.
+- Bài toán + cách giải quyết nêu ngay đầu deck; 3 slide chi tiết (C4 L2 /
+  vòng đời tenant / CI-CD) đẩy xuống Phụ lục, bật khi hội đồng hỏi sâu.
 
 Chạy:  ../.venv/bin/python defense/build_defense_pptx.py   (từ 08-thesis)
 Output: defense/KiteHub-baove-khoaluan-20slide.pptx
@@ -289,32 +290,67 @@ notes(s, "Chào hội đồng. Em là Nguyễn Văn Kiệt, lớp CNTT1-K63, dư
 # ═══ 2. Nội dung ═══
 s = content_slide("Nội dung trình bày")
 agenda_bars(s, [
-    "Tổng quan: bối cảnh, khảo sát thị trường, mục tiêu  (Chương 1)",
-    "Kỹ thuật AI, khung pháp lý, phương pháp luận  (Chương 1)",
-    "Phân tích và thiết kế kiến trúc đa-tenant  (Chương 2)",
-    "Cài đặt, triển khai AWS và kết quả  (Chương 3 & 4)",
-    "Demo trực tiếp, hạn chế và kết luận",
+    "Bài toán và cách giải quyết tổng quan  (Chương 1)",
+    "Khảo sát thị trường, mục tiêu và phạm vi  (Chương 1)",
+    "Ba đóng góp: AI Branding · pháp luật VN · phương pháp chất lượng",
+    "Thiết kế kiến trúc đa-tenant và cô lập dữ liệu  (Chương 2)",
+    "Triển khai AWS, sản phẩm thật, kết quả · demo · kết luận  (Chương 3 & 4)",
 ])
-notes(s, "Bài trình bày bám bốn chương: tổng quan, thiết kế kiến trúc, cài đặt "
-         "và triển khai, đánh giá kết quả; khép lại bằng demo và kết luận. (~20 giây)")
+notes(s, "Bài trình bày bắt đầu thẳng từ bài toán và cách giải quyết tổng quan, "
+         "rồi tới khảo sát thị trường và mục tiêu, ba đóng góp chính, thiết kế "
+         "kiến trúc đa-tenant, triển khai AWS và kết quả; khép lại bằng demo và "
+         "kết luận. (~20 giây)")
 
-# ═══ 3. Bối cảnh ═══
-s = content_slide("Bối cảnh và vấn đề (§1.1)")
+# ═══ 3. Bài toán ═══
+s = content_slide("Bài toán (§1.1)")
 bullets(s, [
-    ("Thông tư 29/2024/TT-BGDĐT chính thức hóa hoạt động dạy thêm có thu phí", 0, False, None),
-    ("Hơn 50.000 trung tâm dạy thêm tư nhân đang hoạt động tại Việt Nam", 0, False, None),
-    ("Phần lớn trung tâm vừa và nhỏ vẫn quản lý bằng Excel và nhóm Zalo", 0, False, None),
-    ("Ba quan sát thúc đẩy đề tài:", 0, True, NAVY),
-    ("Khoảng trống thị trường: trung tâm 100–2000 học viên cần phần mềm 0,5–1,5 triệu đồng/tháng, đa-tenant gốc", 1, False, None),
-    ("Mốc pháp lý: Luật Bảo vệ dữ liệu cá nhân 2023 hiệu lực 07/2026 — tích hợp tuân thủ ngay từ thiết kế", 1, False, None),
-    ("Công nghệ AI trưởng thành: API thương mại cho phép tự động hóa nhận diện thương hiệu chi phí thấp", 1, False, None),
-], top=1.85, base=16)
-caption(s, "Nguồn: Magenest EdTech 2024; 6Wresearch 2024–2030; VECITA 2024.", top=6.45)
-notes(s, "Bối cảnh: thị trường lớn, pháp luật hợp pháp hóa dạy thêm, đa số trung "
-         "tâm nhỏ quản lý thủ công. Ba quan sát hội tụ: nhu cầu, mốc pháp lý cứng, "
-         "AI vừa đủ chín. (~60 giây)")
+    ("Vấn đề cốt lõi:", 0, True, RED),
+    ("Hàng chục nghìn trung tâm dạy thêm vừa và nhỏ tại Việt Nam vẫn quản lý bằng Excel và nhóm Zalo — thiếu một nền tảng số đúng nhu cầu", 1, False, None),
+    ("Thiếu thương hiệu số (logo, trang chủ riêng) vì thuê thiết kế tốn kém và mất thời gian", 1, False, None),
+    ("Phần mềm quản lý hiện có hoặc quá đắt, hoặc quá phức tạp, hoặc thiếu trải nghiệm tiếng Việt", 1, False, None),
+    ("Ba yếu tố thị trường hội tụ thúc đẩy đề tài:", 0, True, NAVY),
+    ("Nhu cầu: Thông tư 29/2024 hợp pháp hóa dạy thêm có thu phí; hơn 50.000 trung tâm tư nhân đang hoạt động", 1, False, None),
+    ("Mốc pháp lý cứng: Luật Bảo vệ dữ liệu cá nhân 2023 hiệu lực 07/2026", 1, False, None),
+    ("AI trưởng thành: API thương mại cho phép tự động hóa nhận diện thương hiệu chi phí thấp", 1, False, None),
+], top=1.8, base=16)
+caption(s, "Nguồn: Magenest EdTech 2024; 6Wresearch 2024–2030; VECITA 2024.", top=6.5)
+notes(s, "Bài toán cốt lõi: hàng chục nghìn trung tâm dạy thêm vừa và nhỏ tại "
+         "Việt Nam vẫn quản lý thủ công bằng Excel và nhóm Zalo, thiếu một nền "
+         "tảng số đúng nhu cầu, thiếu thương hiệu số giá rẻ, trong khi phần mềm "
+         "hiện có hoặc quá đắt, hoặc quá phức tạp, hoặc thiếu trải nghiệm tiếng "
+         "Việt. Ba yếu tố thị trường hội tụ thúc đẩy đề tài: nhu cầu lớn sau "
+         "Thông tư 29, mốc pháp lý cứng của Luật Bảo vệ dữ liệu cá nhân, và công "
+         "nghệ AI vừa đủ chín. (~60 giây)")
 
-# ═══ 4. Khảo sát (ảnh grid) ═══
+# ═══ 4. Cách giải quyết — tổng quan ═══
+s = content_slide("Cách giải quyết — bốn trụ cột (tổng quan)")
+tb = s.shapes.add_textbox(Inches(0.75), Inches(1.55), Inches(11.9), Inches(0.55))
+tb.text_frame.word_wrap = True
+_pr = tb.text_frame.paragraphs[0].add_run()
+_pr.text = "Hệ thống giải bài toán trên bằng bốn trụ cột, mỗi trụ đáp đúng một khía cạnh:"
+_pr.font.size = Pt(17); _pr.font.bold = True; _pr.font.color.rgb = NAVY
+bullets(s, [
+    ("Nền tảng SaaS đa-tenant chia sẻ hạ tầng (PostgreSQL RLS, mô hình Pool)", 0, True, NAVY),
+    ("Chi phí thấp — giải bài toán phần mềm hiện có quá đắt", 1, False, None),
+    ("Tự động hóa nhận diện thương hiệu bằng AI (AI Branding)", 0, True, NAVY),
+    ("Có thương hiệu số mà không cần thuê thiết kế — giải bài toán thiếu thương hiệu giá rẻ", 1, False, None),
+    ("Tuân thủ pháp luật VN theo thiết kế (PDPL 2023, An ninh mạng, Thông tư 78)", 0, True, NAVY),
+    ("Tin cậy ngay từ kiến trúc, không vá lại về sau", 1, False, None),
+    ("Phương pháp luận hướng chất lượng (đánh giá /100, kiểm thử nhiều tầng)", 0, True, NAVY),
+    ("Đảm bảo chất lượng dù phát triển một mình", 1, False, None),
+], top=2.2, base=17)
+notes(s, "Để giải bài toán trên, hệ thống được dựng quanh bốn trụ cột, mỗi trụ "
+         "đáp đúng một khía cạnh của vấn đề. Trụ thứ nhất là nền tảng SaaS đa "
+         "người thuê chia sẻ hạ tầng, dùng PostgreSQL Row-Level Security theo mô "
+         "hình Pool, giúp chi phí thấp để giải bài toán phần mềm hiện có quá đắt. "
+         "Trụ thứ hai là tự động hóa nhận diện thương hiệu bằng AI, cho phép một "
+         "trung tâm có thương hiệu số mà không cần thuê thiết kế. Trụ thứ ba là "
+         "tuân thủ pháp luật Việt Nam ngay từ thiết kế, tạo niềm tin từ kiến "
+         "trúc. Trụ thứ tư là phương pháp luận hướng chất lượng, bảo đảm chất "
+         "lượng dù phát triển một mình. Bốn trụ này là mạch xuyên suốt phần còn "
+         "lại của bài trình bày. (~60 giây)")
+
+# ═══ 5. Khảo sát (ảnh grid) ═══
 s = content_slide("Khảo sát hệ thống tương tự (§1.2)")
 add_pic_fit(s, A("fig-1.1-beeclass.png"), 0.6, 1.85, 5.9, 2.25)
 add_pic_fit(s, A("fig-1.2-mona.png"), 6.8, 1.85, 5.9, 2.25)
@@ -326,7 +362,7 @@ notes(s, "Khảo sát bốn hệ thống tham khảo: BeeClass (gamification nh�
          "Easy Edu, DotB (quản lý trung tâm). Đều đơn-tenant, không AI. KiteHub khai "
          "thác khoảng trống đa-tenant gốc + AI Branding phân khúc giá thấp. (~70 giây)")
 
-# ═══ 5. Mục tiêu + Phạm vi (Mở đầu §2–§3) ═══
+# ═══ 6. Mục tiêu + Phạm vi (Mở đầu §2–§3) ═══
 s = content_slide("Mục tiêu và phạm vi nghiên cứu (Mở đầu §2–§3)")
 bullets(s, [
     ("Bốn mục tiêu nghiên cứu:", 0, True, NAVY),
@@ -341,23 +377,23 @@ notes(s, "Bốn mục tiêu (Mở đầu §2): SaaS đa-tenant, AI Branding, tu�
          "phương pháp luận chất lượng. Phạm vi (§3): AWS Singapore, hai giáo viên thật, "
          "ba nhóm người dùng; nhóm K-12 lùi sau do cần DPO/DPIA. (~60 giây)")
 
-# ═══ 6. AI Branding (ảnh) ═══
+# ═══ 7. AI Branding (ảnh) ═══
 s = content_slide("Khác biệt — AI Branding tự động (§1.3 · §3.1.2)")
 bullets(s, [
     ("Tự sinh logo + ảnh bìa từ prompt văn bản + màu thương hiệu khi tenant khởi tạo", 0, False, None),
-    ("OpenAI GPT-4 Vision + DALL-E 3 (vận hành) · Ollama tự host (phát triển)", 0, False, None),
+    ("Stable Diffusion XL qua Replicate (chính) · SDXL Turbo trên Hugging Face (dự phòng)", 0, False, None),
     ("Ưu tiên mẫu (template-first): chỉ gọi AI khi cần; xem trước bắt buộc đạt WCAG AA", 0, False, None),
     ("Bộ phân loại an toàn nội dung trước khi triển khai; gói FREE tạo lại tối đa 3 lần/ngày", 0, False, None),
-    ("Chi phí ~0,04 USD/ảnh DALL-E 3 — không hệ tham khảo nào có tính năng này", 0, True, GREEN),
+    ("Chi phí ~0,0012 USD/ảnh (SDXL) — không hệ tham khảo nào có tính năng này", 0, True, GREEN),
 ], left=0.55, top=1.85, width=6.7, base=15)
 diagram(s, A("fig-3.4-ai-wizard.png"), 7.2, 1.8, 5.85, 4.7)
 caption(s, "Hình 3.4 — Trình hướng dẫn AI Branding cho chủ trung tâm.", top=6.55, left=7.0, width=6.0)
 notes(s, "Yếu tố khác biệt thứ hai (§1.3): tự động hóa nhận diện thương hiệu. "
-         "Vận hành dùng OpenAI GPT-4 Vision + DALL-E 3, phát triển dùng Ollama tự "
-         "host. Ưu tiên mẫu, chỉ gọi AI khi cần; xem trước bắt buộc đạt WCAG AA + "
+         "Sinh ảnh dùng Stable Diffusion XL qua Replicate (chính), dự phòng SDXL "
+         "Turbo trên Hugging Face. Ưu tiên mẫu, chỉ gọi AI khi cần; xem trước bắt buộc đạt WCAG AA + "
          "qua bộ phân loại an toàn nội dung. Bên phải là wizard thực tế. (~80 giây)")
 
-# ═══ 7. Pháp luật VN ═══
+# ═══ 8. Pháp luật VN ═══
 s = content_slide("Khác biệt — Tuân thủ pháp luật VN theo thiết kế (§1.3 · §2.1.2)")
 table(s, [
     ["Văn bản", "Yêu cầu chính", "Cách hiện thực"],
@@ -371,7 +407,7 @@ notes(s, "Ba trụ cột pháp luật tích hợp từ thiết kế. PDPL mốc 
          "An ninh mạng có ngưỡng chưa chạm, có lộ trình. Thông tư 78 dùng đối "
          "tác MISA. (~70 giây)")
 
-# ═══ 8. Phương pháp luận (ảnh) ═══
+# ═══ 9. Phương pháp luận (ảnh) ═══
 s = content_slide("Phương pháp luận hướng chất lượng (Mở đầu §4 · §3.2)")
 bullets(s, [
     ("Kết hợp nghiên cứu lý thuyết (so sánh 4 hệ thống) + thực nghiệm (thiết kế + hiện thực)", 0, False, None),
@@ -387,7 +423,7 @@ notes(s, "Phương pháp luận kết hợp lý thuyết (so sánh hệ tham kh�
          "theo chuẩn SQA IEEE 730. Kim tự tháp kiểm thử minh họa phân bố ba tầng "
          "test (~985 test). (~50 giây)")
 
-# ═══ 9. C4 context ═══
+# ═══ 10. C4 context ═══
 s = content_slide("Kiến trúc tổng thể — C4 Level 1 (Hình 2.1)")
 diagram(s, A("fig-2.1-c4-context.png"))
 caption(s, "Hình 2.1 — Ngữ cảnh C4 L1: 8 nhóm actor + 6 hệ thống ngoài; mọi truy cập qua HTTPS, không actor nào chạm DB trực tiếp.", top=6.5)
@@ -396,16 +432,6 @@ notes(s, "Sơ đồ ngữ cảnh C4 Level 1 (Brown): Kite Platform tương tác 
          "thống ngoài cô lập qua adapter pattern (NotificationChannel cho email, "
          "PaymentProcessor cho VietQR). Không actor nào chạm DB trực tiếp — đều "
          "qua biên trust gateway. (~70 giây)")
-
-# ═══ 10. C4 container ═══
-s = content_slide("Phân rã container — C4 Level 2 (Hình 2.2)")
-diagram(s, A("fig-2.2-c4-container.png"))
-caption(s, "Hình 2.2 — Container C4 L2: 4 cụm — Frontend (2 Next.js) · Gateway · 6 service KiteHub + KiteClass core · 4 hạ tầng kite-.", top=6.5)
-notes(s, "Sơ đồ container C4 Level 2: bốn cụm. Frontend gồm hai Next.js (kitehub "
-         "cổng 3001 marketing/quản trị, kiteclass cổng 3000 giáo dục, ~85% mobile). "
-         "Gateway (Spring Cloud Gateway cổng 9000) là điểm vào duy nhất. Cụm dịch "
-         "vụ: 6 service KiteHub + kiteclass-core. Hạ tầng dùng chung 4 container "
-         "kite- (Postgres/Redis/RabbitMQ/MinIO). Tổng 17 thành phần. (~60 giây)")
 
 # ═══ 11. RLS ═══
 s = content_slide("Khác biệt — Cô lập đa-tenant bằng RLS (§2.2.3)")
@@ -441,15 +467,7 @@ notes(s, "Mô hình dữ liệu domain giáo dục. ENROLLMENTS phân giải nhi
          "học viên–lớp; điểm danh, điểm, thanh toán gắn quanh đăng ký. Mọi bảng "
          "mang tenant_id phục vụ RLS. (~50 giây)")
 
-# ═══ 14. Tenant state ═══
-s = content_slide("Vòng đời tenant — máy trạng thái (Hình 2.8)")
-diagram(s, A("fig-2.8-tenant-state.png"))
-caption(s, "Hình 2.8 — PENDING → TRIAL → ACTIVE → SUSPEND; cấp phát tenant + magic-link kích hoạt.", top=6.5)
-notes(s, "Vòng đời tenant: từ chờ duyệt, sang dùng thử khi cấp magic-link, đến "
-         "hoạt động chính thức. Sự kiện branding.deploy phát song song dựng "
-         "template mặc định. (~50 giây)")
-
-# ═══ 15. AWS ═══
+# ═══ 14. AWS ═══
 s = content_slide("Triển khai thực tế — AWS Singapore (Hình 4.1a)")
 diagram(s, A("fig-4.1a-vpc-topology.png"), 0.5, 1.8, 7.7, 4.7)
 bullets(s, [
@@ -457,51 +475,41 @@ bullets(s, [
     ("Public subnet: ALB + 2× EC2 t3.micro", 1, False, None),
     ("Private subnet: RDS PostgreSQL cô lập", 1, False, None),
     ("Phụ trợ: S3, SES, Secrets Manager, ECR, CloudWatch", 1, False, None),
+    ("CI/CD: GitHub Actions + OIDC, Terraform plan-trước-apply (chi tiết ở Phụ lục)", 0, False, None),
     ("Free Tier 12 tháng → tổng chi phí ~15–30 USD/tháng (≈360–720 nghìn đồng)", 0, True, GREEN),
     ("Chưa chạm ngưỡng PDPL Đ28 (10k) / NĐ53 (1 triệu user); có lộ trình chuyển vùng trong nước", 0, False, GREY),
-], left=8.35, top=1.95, width=4.7, base=14)
+], left=8.35, top=1.95, width=4.7, base=13)
 caption(s, "Hình 4.1a — Topology VPC (10.0.0.0/16).", top=6.55, left=0.55, width=7.6)
 notes(s, "Triển khai thực tế AWS Singapore (ap-southeast-1), VPC tách public/"
          "private subnet, RDS trong private subnet. Free Tier giữ tổng chi phí "
-         "~15–30 USD/tháng (EC2 vượt 750h tính ~7,38 USD; AI DALL-E 3 ~0,04 USD/"
+         "~15–30 USD/tháng (EC2 vượt 750h tính ~7,38 USD; AI SDXL qua Replicate ~0,0012 USD/"
          "ảnh). Chưa vượt ngưỡng pháp lý, có lộ trình chuyển vùng. (~60 giây)")
 
-# ═══ 16. CI/CD ═══
-s = content_slide("CI/CD và giám sát vận hành (Hình 4.2a)")
-diagram(s, A("fig-4.2a-ci-build.png"), 0.5, 1.8, 7.6, 4.7)
-bullets(s, [
-    ("GitHub Actions + OIDC — không lưu access key tĩnh", 0, False, None),
-    ("Docker tag bất biến theo SHA; Terraform plan-trước-apply + xác nhận thủ công", 0, False, None),
-    ("Giám sát 3 lớp:", 0, True, NAVY),
-    ("CloudTrail — audit mọi AWS API call", 1, False, None),
-    ("CloudWatch — log JSON + cảnh báo", 1, False, None),
-    ("Prometheus + Grafana — metric ứng dụng", 1, False, None),
-], left=8.25, top=1.95, width=4.8, base=14)
-caption(s, "Hình 4.2a — Pha build: CI verify → OIDC → push ECR.", top=6.55, left=0.55, width=7.5)
-notes(s, "CI/CD chuẩn hiện đại: artifact bất biến, OIDC thay key tĩnh, xác nhận "
-         "thủ công. Giám sát ba lớp; CloudTrail bật trước khi tạo tài nguyên để "
-         "có audit baseline. (~50 giây)")
+# ═══ 15. Sản phẩm thực tế — giao diện + AI Branding (gộp Hình 3.1/3.3/3.5 + 4.3/4.4) ═══
+s = content_slide("Sản phẩm thực tế — giao diện và AI Branding (Miễn phí vs Trả phí)")
+# Hàng trên: 3 giao diện vận hành thật
+add_pic_fit(s, A("fig-3.1-tenant-landing.png"), 0.45, 1.55, 4.05, 1.95)
+add_pic_fit(s, A("fig-3.3-dashboard.png"), 4.62, 1.55, 4.05, 1.95)
+add_pic_fit(s, A("fig-3.5-student-mgmt.png"), 8.79, 1.55, 4.05, 1.95)
+caption(s, "Hình 3.1 / 3.3 / 3.5 — Trang chủ thương hiệu riêng theo tenant · Dashboard · Quản lý học viên.", top=3.58, size=10)
+# Hàng dưới: minh chứng AI Branding gói Miễn phí vs Trả phí
+add_pic_fit(s, A("fig-4.3-landing-free.png"), 0.6, 3.8, 6.0, 2.5)
+add_pic_fit(s, A("fig-4.4-landing-paid.png"), 6.8, 3.8, 6.0, 2.5)
+caption(s, "Hình 4.3 Miễn phí (mẫu dựng sẵn, tông xanh dương) vs Hình 4.4 Trả phí (AI sinh tự động, tông xanh lá) — hai tenant thật, chung một mã nguồn.", top=6.42, size=10)
+notes(s, "Đây là phần em muốn nhấn mạnh: sản phẩm chạy thật, không phải mô hình. "
+         "Hàng trên là ba giao diện vận hành thực tế trên AWS: trang chủ thương "
+         "hiệu riêng theo tenant — minh chứng cơ chế phân giải Tenant đến Domain "
+         "đến Landing, dashboard tổng quan, và quản lý học viên với dữ liệu mẫu "
+         "phong cách Việt Nam. Hàng dưới minh chứng trực tiếp giá trị AI Branding "
+         "qua hai giáo viên độc lập thật: bên trái cô Nguyễn Thị Hà dùng gói Miễn "
+         "phí với mẫu dựng sẵn tông xanh dương; bên phải thầy Nguyễn Đình Nhì "
+         "dùng gói Trả phí với bộ nhận diện tông xanh lá sinh tự động qua AI cho "
+         "môn Hóa. Hai tenant này dùng chung một mã nguồn và một cơ sở dữ liệu "
+         "nhưng có hai thương hiệu riêng biệt — vừa chứng minh kiến trúc đa người "
+         "thuê hoạt động đúng, vừa cho thấy AI Branding tạo giá trị khác biệt "
+         "thật giữa hai phân khúc. (~90 giây)")
 
-# ═══ 17. Giao diện thật ═══
-s = content_slide("Sản phẩm thực tế — giao diện (Chương 3)")
-add_pic_fit(s, A("fig-3.1-tenant-landing.png"), 0.5, 1.85, 4.1, 4.4)
-add_pic_fit(s, A("fig-3.3-dashboard.png"), 4.7, 1.85, 4.1, 4.4)
-add_pic_fit(s, A("fig-3.5-student-mgmt.png"), 8.9, 1.85, 4.1, 4.4)
-caption(s, "Hình 3.1 / 3.3 / 3.5 — Trang chủ thương hiệu riêng theo tenant · Dashboard tổng quan · Quản lý học viên.", top=6.45)
-notes(s, "Ba giao diện thực tế: trang chủ thương hiệu riêng (minh chứng phân "
-         "giải Tenant→Domain→Landing), dashboard, quản lý học viên. Sản phẩm "
-         "chạy thật, không phải mô hình. (~60 giây)")
-
-# ═══ 18. AI free vs paid ═══
-s = content_slide("Kết quả AI Branding — gói Miễn phí vs Trả phí")
-add_pic_fit(s, A("fig-4.3-landing-free.png"), 0.6, 1.85, 6.0, 4.5)
-add_pic_fit(s, A("fig-4.4-landing-paid.png"), 6.8, 1.85, 6.0, 4.5)
-caption(s, "Hình 4.3 (Miễn phí — mẫu dựng sẵn, tông xanh dương) vs Hình 4.4 (Trả phí — AI sinh tự động, tông xanh lá).", top=6.5)
-notes(s, "Minh chứng giá trị AI Branding: bên trái gói Miễn phí mẫu dựng sẵn; "
-         "bên phải gói Trả phí bộ nhận diện sinh tự động qua AI cho môn Hóa, "
-         "tông màu khác hẳn. Hai tenant thật, hai thương hiệu riêng. (~70 giây)")
-
-# ═══ 19. KPI ═══
+# ═══ 16. KPI ═══
 s = content_slide("Kết quả kiểm thử và đánh giá chất lượng (§3.2)")
 kpi_cards(s, [
     ("~985", "Test case", "850 unit·120 IT·15-25 E2E"),
@@ -518,7 +526,7 @@ notes(s, "Tổng ~985 test (850 unit + 120 integration + 15-25 E2E), pass ≥99,
          "Testcontainers Postgres thật (không H2) cho RLS/GUC. Audit định kỳ 4 "
          "chiều theo IEEE 730, vòng cải tiến liên tục. (~80 giây)")
 
-# ═══ 20. DEMO ═══
+# ═══ 17. DEMO ═══
 s = section_slide("Demo trực tiếp",
                   "Khách tham quan → đăng ký onboarding → wizard tạo tenant → cô lập đa-tenant · dự phòng video")
 notes(s, "Chuyển sang demo trực tiếp theo kịch bản 6 phase (defense-demo-script.md): "
@@ -526,7 +534,7 @@ notes(s, "Chuyển sang demo trực tiếp theo kịch bản 6 phase (defense-de
          "lập bằng 2 tài khoản khác tenant, xem audit log. Dự phòng video. "
          "(~30 giây + demo)")
 
-# ═══ 21. Hạn chế ═══
+# ═══ 18. Hạn chế ═══
 s = content_slide("Hạn chế thừa nhận và hướng phát triển")
 bullets(s, [
     ("Hạn chế hiện tại:", 0, True, RED),
@@ -542,7 +550,7 @@ notes(s, "Thừa nhận hạn chế kèm lộ trình tốt hơn che giấu. Mỗ
          "phát triển: nâng cấp hạ tầng, chuyển vùng, mở thanh toán, tích hợp "
          "Zalo và hóa đơn điện tử qua đối tác. (~70 giây)")
 
-# ═══ 22. Kết luận (nền section) ═══
+# ═══ 19. Kết luận (nền section) ═══
 s = prs.slides.add_slide(L_BLANK); _idx[0] += 1
 set_bg(s, BG_SECTION)
 title_box(s, "Kết luận")
@@ -559,6 +567,49 @@ notes(s, "Tóm kết quả: nền tảng 7 microservice + 2 FE trên AWS Singapo
          "đa-tenant RLS, bốn yếu tố khác biệt, đáp ứng PDPL/An ninh mạng/TT78, "
          "kiểm chứng qua kiểm thử nhiều tầng, mã nguồn công khai. Cảm ơn GVHD và "
          "hội đồng, em sẵn sàng nhận câu hỏi. (~40 giây)")
+
+# ═══════════════════════ PHỤ LỤC (slide dự phòng cho Q&A) ═══════════════════════
+
+# ═══ Phụ lục — divider ═══
+s = section_slide("Phụ lục — slide dự phòng cho phần hỏi đáp",
+                  "Sơ đồ chi tiết: phân rã container C4 L2 · vòng đời tenant · CI/CD và giám sát vận hành")
+notes(s, "Phần trình bày chính đã kết thúc. Các slide sau là phụ lục dự phòng, "
+         "em chỉ bật khi hội đồng muốn đi sâu vào phân rã container, vòng đời "
+         "tenant, hoặc quy trình CI/CD và giám sát vận hành.")
+
+# ═══ PL1. C4 container ═══
+s = content_slide("Phụ lục 1 — Phân rã container C4 Level 2 (Hình 2.2)")
+diagram(s, A("fig-2.2-c4-container.png"))
+caption(s, "Hình 2.2 — Container C4 L2: 4 cụm — Frontend (2 Next.js) · Gateway · 6 service KiteHub + KiteClass core · 4 hạ tầng kite-.", top=6.5)
+notes(s, "Sơ đồ container C4 Level 2: bốn cụm. Frontend gồm hai Next.js (kitehub "
+         "cổng 3001 marketing/quản trị, kiteclass cổng 3000 giáo dục, ~85% mobile). "
+         "Gateway (Spring Cloud Gateway cổng 9000) là điểm vào duy nhất. Cụm dịch "
+         "vụ: 6 service KiteHub + kiteclass-core. Hạ tầng dùng chung 4 container "
+         "kite- (Postgres/Redis/RabbitMQ/MinIO). Tổng 17 thành phần. (~60 giây)")
+
+# ═══ PL2. Vòng đời tenant ═══
+s = content_slide("Phụ lục 2 — Vòng đời tenant (máy trạng thái, Hình 2.8)")
+diagram(s, A("fig-2.8-tenant-state.png"))
+caption(s, "Hình 2.8 — PENDING → TRIAL → ACTIVE → SUSPEND; cấp phát tenant + magic-link kích hoạt.", top=6.5)
+notes(s, "Vòng đời tenant: từ chờ duyệt, sang dùng thử khi cấp magic-link, đến "
+         "hoạt động chính thức. Sự kiện branding.deploy phát song song dựng "
+         "template mặc định. (~50 giây)")
+
+# ═══ PL3. CI/CD ═══
+s = content_slide("Phụ lục 3 — CI/CD và giám sát vận hành (Hình 4.2a)")
+diagram(s, A("fig-4.2a-ci-build.png"), 0.5, 1.8, 7.6, 4.7)
+bullets(s, [
+    ("GitHub Actions + OIDC — không lưu access key tĩnh", 0, False, None),
+    ("Docker tag bất biến theo SHA; Terraform plan-trước-apply + xác nhận thủ công", 0, False, None),
+    ("Giám sát 3 lớp:", 0, True, NAVY),
+    ("CloudTrail — audit mọi AWS API call", 1, False, None),
+    ("CloudWatch — log JSON + cảnh báo", 1, False, None),
+    ("Prometheus + Grafana — metric ứng dụng", 1, False, None),
+], left=8.25, top=1.95, width=4.8, base=14)
+caption(s, "Hình 4.2a — Pha build: CI verify → OIDC → push ECR.", top=6.55, left=0.55, width=7.5)
+notes(s, "CI/CD chuẩn hiện đại: artifact bất biến, OIDC thay key tĩnh, xác nhận "
+         "thủ công. Giám sát ba lớp; CloudTrail bật trước khi tạo tài nguyên để "
+         "có audit baseline. (~50 giây)")
 
 # --- Áp font tường minh cho MỌI run (title/bullet/table/caption) trước khi lưu ---
 def _apply_font(prs, name):
