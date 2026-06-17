@@ -265,4 +265,32 @@ describe('<PaymentStatusTimeline>', () => {
     const root = screen.getByTestId('payment-timeline-root');
     expect(root).toHaveAttribute('lang', 'vi');
   });
+
+  it('standalone mode (default) keeps page-chrome (bg-muted/30 + min-h-full) on root', () => {
+    renderG10('pending');
+    const root = screen.getByTestId('payment-timeline-root');
+    expect(root.className).toContain('bg-muted/30');
+    expect(root.className).toContain('min-h-full');
+  });
+
+  it('embedded mode drops standalone page-chrome (bg-muted/30 + min-h-full + max-w-3xl)', () => {
+    render(
+      <PaymentStatusTimeline
+        invoiceNumber="KC-2026-10-0042"
+        state="pending"
+        events={buildEvents('pending')}
+        totalAmount={1_500_000}
+        embedded
+      />,
+    );
+    const root = screen.getByTestId('payment-timeline-root');
+    expect(root.className).not.toContain('bg-muted/30');
+    expect(root.className).not.toContain('min-h-full');
+
+    // <main> must fill full width — no centering / max-width island.
+    const main = root.querySelector('main');
+    expect(main).not.toBeNull();
+    expect(main?.className).not.toContain('max-w-3xl');
+    expect(main?.className).not.toContain('mx-auto');
+  });
 });

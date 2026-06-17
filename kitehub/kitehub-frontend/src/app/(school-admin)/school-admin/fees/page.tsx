@@ -117,6 +117,7 @@ export default function FeesPage() {
             invoiceNumber="KH-2026-10-0042"
             state="partial-paid"
             totalAmount={4500000}
+            embedded
             events={[
               {
                 step: 'CREATED',

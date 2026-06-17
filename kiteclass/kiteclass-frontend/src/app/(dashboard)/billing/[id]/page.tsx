@@ -408,6 +408,7 @@ export default function InvoiceDetailPage() {
               state={timeline.state}
               events={timeline.events}
               totalAmount={invoice.total}
+              embedded
             />
           </section>
         )}

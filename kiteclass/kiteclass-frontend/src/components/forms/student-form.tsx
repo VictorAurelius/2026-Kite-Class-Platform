@@ -106,6 +106,7 @@ export function StudentForm({
 
         <FormSelect
           label="Giới tính"
+          placeholder="Chọn giới tính"
           options={genderOptions}
           error={errors.gender?.message}
           disabled={isSubmitting}

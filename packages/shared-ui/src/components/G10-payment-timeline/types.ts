@@ -118,4 +118,12 @@ export type PaymentStatusTimelineProps = {
    * `'en'` falls back to `'vi'` for v1 (Vietnamese-first per CLAUDE.md).
    */
   lang?: 'vi' | 'en';
+  /**
+   * Embedded trong dashboard section → bỏ standalone page-chrome
+   * (max-width / centering / bg / min-h). Default `false` = standalone full-page
+   * (giữ backward-compat cho parent-page design tương lai). Khi nhúng vào dashboard
+   * `/billing/[id]` hoặc card section, set `embedded` để component fill full width
+   * + bỏ `bg-muted/30 min-h-full` island; dashboard tự lo padding + background.
+   */
+  embedded?: boolean;
 };
