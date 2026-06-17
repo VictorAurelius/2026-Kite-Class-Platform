@@ -1,6 +1,7 @@
 package com.kiteclass.core.module.student.bulkimport.service;
 
 import com.kiteclass.core.common.exception.BusinessException;
+import com.kiteclass.core.module.auth.AuthPasswordPolicy;
 import com.kiteclass.core.module.student.bulkimport.dto.BulkImportResult;
 import com.kiteclass.core.module.student.bulkimport.dto.BulkImportRow;
 import com.kiteclass.core.module.student.bulkimport.dto.RowError;
@@ -97,6 +98,7 @@ public class StudentBulkImportService {
                 rows.size(),
                 success,
                 failedRows,
+                0, // preview never provisions credentials (no DB writes)
                 truncate(errorList)
         );
     }
@@ -105,12 +107,45 @@ public class StudentBulkImportService {
      * Commit phase: parse + validate + create. Persists a {@link BulkImportJob}
      * row regardless of outcome so administrators can audit past imports.
      *
+     * <p>Backward-compatible overload — commit WITHOUT auto-provisioning login
+     * credentials (pre-Wave-flow-kc3 behaviour). Delegates with
+     * {@code initialPassword = null}.
+     *
      * @param file     the uploaded xlsx
      * @param tenantId tenant instance ID
      * @return summary with per-row errors and the generated {@code jobId}
      */
     public BulkImportResult commit(MultipartFile file, UUID tenantId) {
+        return commit(file, tenantId, null);
+    }
+
+    /**
+     * Commit phase: parse + validate + create. Persists a {@link BulkImportJob}
+     * row regardless of outcome so administrators can audit past imports.
+     *
+     * <p>When {@code initialPassword} is supplied (Wave flow-kc3, GAP-1277), each
+     * successfully-created student with an email gets a KC-native login credential
+     * auto-provisioned so the imported batch is login-ready. The password is validated
+     * ONCE at batch level against {@link AuthPasswordPolicy} — an invalid batch password
+     * fails the whole request loudly (HTTP 400 {@code BULK_IMPORT_INVALID_PASSWORD}),
+     * never silently. Absent/blank → unchanged behaviour (no credentials provisioned).
+     *
+     * @param file            the uploaded xlsx
+     * @param tenantId        tenant instance ID
+     * @param initialPassword optional batch login password — when present, valid per
+     *                        {@link AuthPasswordPolicy} and applied to every created student
+     * @return summary with per-row errors, the generated {@code jobId}, and the count of
+     *         login credentials auto-provisioned
+     */
+    public BulkImportResult commit(MultipartFile file, UUID tenantId, String initialPassword) {
         assertFilePresent(file);
+        boolean provisionCredentials = initialPassword != null && !initialPassword.isBlank();
+        if (provisionCredentials && !AuthPasswordPolicy.isValid(initialPassword)) {
+            // Validate ONCE at batch level — fail loud, do not silently skip provisioning.
+            throw new BusinessException(
+                    "BULK_IMPORT_INVALID_PASSWORD", HttpStatus.BAD_REQUEST,
+                    AuthPasswordPolicy.MESSAGE);
+        }
         List<BulkImportRow> rows = parseSafely(file);
         assertRowLimit(rows.size());
 
@@ -129,6 +164,7 @@ public class StudentBulkImportService {
         }
 
         int successCount = 0;
+        int provisionedCount = 0;
         for (int from = 0; from < rows.size(); from += CHUNK_SIZE) {
             int to = Math.min(from + CHUNK_SIZE, rows.size());
             List<BulkImportRow> chunk = new ArrayList<>(rows.subList(from, to));
@@ -136,22 +172,24 @@ public class StudentBulkImportService {
             if (chunk.isEmpty()) {
                 continue;
             }
-            BulkImportChunkExecutor.ChunkResult r = chunkExecutor.processChunk(chunk, tenantId);
+            BulkImportChunkExecutor.ChunkResult r = chunkExecutor.processChunk(chunk, tenantId, initialPassword);
             successCount += r.successCount();
+            provisionedCount += r.provisionedCount();
             allErrors.addAll(r.errors());
         }
 
         int failedRows = countFailedRows(allErrors);
         chunkExecutor.finalizeJob(job.getId(), tenantId, successCount, failedRows);
 
-        log.info("Bulk-import commit done: jobId={}, tenantId={}, total={}, success={}, failedRows={}",
-                job.getId(), tenantId, rows.size(), successCount, failedRows);
+        log.info("Bulk-import commit done: jobId={}, tenantId={}, total={}, success={}, failedRows={}, credentialsProvisioned={}",
+                job.getId(), tenantId, rows.size(), successCount, failedRows, provisionedCount);
 
         return new BulkImportResult(
                 job.getId(),
                 rows.size(),
                 successCount,
                 failedRows,
+                provisionedCount,
                 truncate(allErrors)
         );
     }

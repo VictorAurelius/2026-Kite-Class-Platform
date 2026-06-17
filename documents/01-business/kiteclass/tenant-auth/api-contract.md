@@ -100,6 +100,29 @@ Provision/UPSERT credential `auth_credentials` (entity_type=STUDENT, entity_id=s
 
 ---
 
+## 2c. Auto-provision login at create / bulk-import (Wave flow-kc3, GAP-1124 / GAP-1277)
+
+Bổ sung **opt-in auto-provision**: thay vì 2 bước (tạo entity → gọi `POST .../credentials`), caller có thể cấp login NGAY lúc tạo bằng cách kèm `initialPassword`. KHÔNG đổi design Hướng B (entity tách credential) — chỉ AUTO-gọi `AuthCredentialProvisioningService.setPassword(...)` trong cùng transaction tạo entity. Vắng `initialPassword` → hành vi cũ y nguyên (KHÔNG tạo credential).
+
+### POST /api/v1/teachers — create teacher (+ optional initialPassword)
+Field optional `initialPassword` trong `CreateTeacherRequest`. Khi present → provision `auth_credentials` (entity_type=TEACHER, entity_id=teacher.id, email=teacher.email) cùng transaction. Validate theo `AuthPasswordPolicy` (8-100 ký tự + chữ hoa/thường/số/đặc biệt) — chỉ khi non-null (Bean Validation bỏ qua null).
+
+### POST /api/v1/students — create student (+ optional initialPassword)
+Field optional `initialPassword` trong `CreateStudentRequest`. Khi present → provision (entity_type=STUDENT). Login email-keyed → student KHÔNG có email + có `initialPassword` ⇒ HTTP 400 `STUDENT_EMAIL_REQUIRED` (fail loud, KHÔNG nuốt).
+
+### POST /api/v1/students/bulk-import/commit — bulk import (+ optional initialPassword)
+Form field optional `initialPassword` (batch-level, KHÔNG phải cột trong xlsx). Khi present + hợp lệ → mỗi học sinh tạo thành công CÓ email được provision login cùng batch. Response `BulkImportResult.credentialsProvisioned` = số credential đã cấp (≤ `successCount`; 0 cho preview + commit không kèm password). Validate password 1 lần ở batch-level → invalid ⇒ HTTP 400 `BULK_IMPORT_INVALID_PASSWORD` (trước mọi DB write). Provision-fail 1 dòng (vd email cross-tenant) → ghi row error, KHÔNG hủy create + KHÔNG abort chunk.
+
+| Status | Code | Nguyên nhân |
+|--------|------|-------------|
+| 400 | VALIDATION_ERROR | `initialPassword` không đạt `AuthPasswordPolicy` (create teacher/student — bean-validation) |
+| 400 | STUDENT_EMAIL_REQUIRED | create student có `initialPassword` nhưng student không email |
+| 400 | BULK_IMPORT_INVALID_PASSWORD | bulk-import batch `initialPassword` không đạt `AuthPasswordPolicy` |
+
+**Phase-2 enhancement (NGOÀI scope hiện tại):** random-per-student password + force-reset-on-first-login + teacher email-invite self-serve full-flow (GAP-1124) + FE student-shell (GAP-1277).
+
+---
+
 ## 3. Anti-Spoof Header Contract (Gateway)
 
 `X-User-Reference-Id` là header **gateway-only-trusted** (giống `X-User-Id`):

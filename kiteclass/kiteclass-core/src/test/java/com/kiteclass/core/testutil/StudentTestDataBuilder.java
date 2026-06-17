@@ -99,6 +99,26 @@ public class StudentTestDataBuilder {
     }
 
     /**
+     * Creates a default CreateStudentRequest carrying an initial login password
+     * (Wave flow-kc3, GAP-1277) — triggers auto-provisioning at create time.
+     *
+     * @param initialPassword the initial login password
+     * @return CreateStudentRequest with default fields + initialPassword
+     */
+    public static CreateStudentRequest createCreateRequestWithPassword(String initialPassword) {
+        return new CreateStudentRequest(
+                "Tran Thi B",
+                "tranthib@example.com",
+                "0987654321",
+                LocalDate.of(2012, 5, 15),
+                Gender.FEMALE,
+                "456 Test Avenue, HCMC",
+                "Test note",
+                initialPassword
+        );
+    }
+
+    /**
      * Creates a CreateStudentRequest with custom name.
      *
      * @param name the student name

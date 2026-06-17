@@ -137,6 +137,66 @@ class StudentServiceTest {
         verify(studentRepository, never()).save(any());
     }
 
+    // ── Wave flow-kc3 — provision-on-create (GAP-1277) ──────────────────────
+
+    @Test
+    void createStudent_shouldNotProvisionCredential_whenNoInitialPassword() {
+        // Given — default create request has no initialPassword (opt-in, absent → no credential)
+        when(studentRepository.existsByEmailAndInstanceIdAndDeletedFalse(anyString(), any())).thenReturn(false);
+        when(studentRepository.existsByPhoneAndInstanceIdAndDeletedFalse(anyString(), any())).thenReturn(false);
+        when(studentMapper.toEntity(any(CreateStudentRequest.class))).thenReturn(student);
+        when(studentRepository.save(any(Student.class))).thenReturn(student);
+        when(studentMapper.toResponse(any(Student.class))).thenReturn(studentResponse);
+
+        // When
+        studentService.createStudent(createRequest, UUID.randomUUID());
+
+        // Then — design preserved: creating an entity does NOT create a login credential
+        verify(credentialProvisioning, never()).setPassword(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void createStudent_shouldProvisionCredential_whenInitialPasswordPresent() {
+        // Given — Wave flow-kc3 (GAP-1277): opt-in initialPassword auto-provisions login
+        UUID tenantId = UUID.randomUUID();
+        CreateStudentRequest requestWithPw =
+                StudentTestDataBuilder.createCreateRequestWithPassword("Password1!");
+        when(studentRepository.existsByEmailAndInstanceIdAndDeletedFalse(anyString(), any())).thenReturn(false);
+        when(studentRepository.existsByPhoneAndInstanceIdAndDeletedFalse(anyString(), any())).thenReturn(false);
+        when(studentMapper.toEntity(any(CreateStudentRequest.class))).thenReturn(student);
+        when(studentRepository.save(any(Student.class))).thenReturn(student);
+        when(studentMapper.toResponse(any(Student.class))).thenReturn(studentResponse);
+
+        // When
+        studentService.createStudent(requestWithPw, tenantId);
+
+        // Then — credential provisioned with STUDENT entity_type + saved id/email + tenant
+        verify(studentRepository).save(any(Student.class));
+        verify(credentialProvisioning).setPassword(
+                eq(AuthCredentialProvisioningService.ROLE_STUDENT),
+                eq(student.getId()), eq(student.getEmail()), eq(tenantId), eq("Password1!"));
+    }
+
+    @Test
+    void createStudent_shouldThrowBusinessException_whenInitialPasswordButNoEmail() {
+        // Given — student with no email cannot get an email-keyed login provisioned
+        Student noEmailStudent = StudentTestDataBuilder.createDefaultStudent();
+        noEmailStudent.setEmail(null);
+        CreateStudentRequest requestWithPwNoEmail = new CreateStudentRequest(
+                "Le Van C", null, "0911111111", null, null, null, null, "Password1!");
+        when(studentRepository.existsByPhoneAndInstanceIdAndDeletedFalse(anyString(), any())).thenReturn(false);
+        when(studentMapper.toEntity(any(CreateStudentRequest.class))).thenReturn(noEmailStudent);
+        when(studentRepository.save(any(Student.class))).thenReturn(noEmailStudent);
+
+        // When / Then
+        assertThatThrownBy(() -> studentService.createStudent(requestWithPwNoEmail, UUID.randomUUID()))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("code", "STUDENT_EMAIL_REQUIRED")
+                .hasFieldOrPropertyWithValue("status", HttpStatus.BAD_REQUEST);
+
+        verify(credentialProvisioning, never()).setPassword(any(), any(), any(), any(), any());
+    }
+
     @Test
     void getStudentById_shouldReturnStudent_whenExists() {
         // Given

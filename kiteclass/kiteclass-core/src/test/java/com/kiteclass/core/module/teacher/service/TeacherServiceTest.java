@@ -114,6 +114,41 @@ class TeacherServiceTest {
     }
 
     @Test
+    void createTeacher_shouldNotProvisionCredential_whenNoInitialPassword() {
+        // Given — default create request has no initialPassword (opt-in, absent → no credential)
+        when(teacherRepository.existsByEmailAndInstanceIdAndDeletedFalse(anyString(), any(UUID.class))).thenReturn(false);
+        when(teacherMapper.toEntity(any(CreateTeacherRequest.class))).thenReturn(teacher);
+        when(teacherRepository.save(any(Teacher.class))).thenReturn(teacher);
+        when(teacherMapper.toResponse(any(Teacher.class))).thenReturn(teacherResponse);
+
+        // When
+        teacherService.createTeacher(createRequest);
+
+        // Then — design preserved: creating an entity does NOT create a login credential
+        verify(credentialProvisioning, never()).setPassword(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void createTeacher_shouldProvisionCredential_whenInitialPasswordPresent() {
+        // Given — Wave flow-kc3 (GAP-1124): opt-in initialPassword auto-provisions login
+        CreateTeacherRequest requestWithPw =
+                com.kiteclass.core.testutil.TeacherTestDataBuilder.createCreateRequestWithPassword("Password1!");
+        when(teacherRepository.existsByEmailAndInstanceIdAndDeletedFalse(anyString(), any(UUID.class))).thenReturn(false);
+        when(teacherMapper.toEntity(any(CreateTeacherRequest.class))).thenReturn(teacher);
+        when(teacherRepository.save(any(Teacher.class))).thenReturn(teacher);
+        when(teacherMapper.toResponse(any(Teacher.class))).thenReturn(teacherResponse);
+
+        // When
+        teacherService.createTeacher(requestWithPw);
+
+        // Then — credential provisioned with TEACHER entity_type + saved id/email + tenant
+        verify(teacherRepository).save(any(Teacher.class));
+        verify(credentialProvisioning).setPassword(
+                eq(com.kiteclass.core.module.auth.service.AuthCredentialProvisioningService.ROLE_TEACHER),
+                eq(teacher.getId()), eq(teacher.getEmail()), eq(testTenantId), eq("Password1!"));
+    }
+
+    @Test
     void createTeacher_shouldThrowDuplicateResourceException_whenEmailExists() {
         // Given
         when(teacherRepository.existsByEmailAndInstanceIdAndDeletedFalse(anyString(), any(UUID.class))).thenReturn(true);

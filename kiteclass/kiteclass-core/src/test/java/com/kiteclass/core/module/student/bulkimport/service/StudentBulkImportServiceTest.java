@@ -47,6 +47,9 @@ class StudentBulkImportServiceTest {
     @Mock
     private BulkImportJobRepository jobRepository;
 
+    @Mock
+    private com.kiteclass.core.module.auth.service.AuthCredentialProvisioningService credentialProvisioning;
+
     @InjectMocks
     private BulkImportChunkExecutor chunkExecutor;
 
@@ -61,7 +64,7 @@ class StudentBulkImportServiceTest {
         ErrorReportGenerator generator = new ErrorReportGenerator();
         XlsxTemplateGenerator templateGenerator = new XlsxTemplateGenerator();
         // Manually build service — @InjectMocks is already used for the chunk executor.
-        chunkExecutor = new BulkImportChunkExecutor(validator, studentService, jobRepository);
+        chunkExecutor = new BulkImportChunkExecutor(validator, studentService, jobRepository, credentialProvisioning);
         service = new StudentBulkImportService(parser, validator, chunkExecutor, generator, templateGenerator);
     }
 
@@ -118,7 +121,61 @@ class StudentBulkImportServiceTest {
         assertThat(result.successCount()).isEqualTo(3);
         assertThat(result.errorCount()).isZero();
         assertThat(result.jobId()).isEqualTo(42L);
+        // No batch password → no credential provisioning (opt-in)
+        assertThat(result.credentialsProvisioned()).isZero();
         verify(studentService, times(3)).createStudent(any(), eq(tenantId));
+        verify(credentialProvisioning, times(0)).setPassword(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("commit(initialPassword) auto-provisions a login credential per created student (Wave flow-kc3)")
+    void commitWithInitialPasswordProvisionsCredentials() throws IOException {
+        MockMultipartFile file = file(new String[][]{
+                {"name", "email", "phone"},
+                {"Alice", "alice@test.com", "0901111111"},
+                {"Bob", "bob@test.com", "0902222222"}
+        });
+
+        when(jobRepository.save(any())).thenAnswer(inv -> {
+            BulkImportJob job = inv.getArgument(0);
+            if (job.getId() == null) {
+                job.setId(55L);
+            }
+            return job;
+        });
+        when(jobRepository.findByIdAndInstanceIdAndDeletedFalse(eq(55L), any()))
+                .thenAnswer(inv -> java.util.Optional.of(BulkImportJob.builder().build()));
+        when(studentService.createStudent(any(CreateStudentRequest.class), eq(tenantId)))
+                .thenReturn(stubResponse());
+
+        BulkImportResult result = service.commit(file, tenantId, "Password1!");
+
+        assertThat(result.successCount()).isEqualTo(2);
+        assertThat(result.credentialsProvisioned()).isEqualTo(2);
+        assertThat(result.errorCount()).isZero();
+        // Credential provisioned for each created student: STUDENT role + batch password
+        verify(credentialProvisioning, times(2)).setPassword(
+                eq(com.kiteclass.core.module.auth.service.AuthCredentialProvisioningService.ROLE_STUDENT),
+                any(), any(), eq(tenantId), eq("Password1!"));
+    }
+
+    @Test
+    @DisplayName("commit() rejects an invalid batch initialPassword with HTTP 400 (no DB write)")
+    void commitRejectsInvalidBatchPassword() throws IOException {
+        MockMultipartFile file = file(new String[][]{
+                {"name", "email", "phone"},
+                {"Alice", "alice@test.com", "0901111111"}
+        });
+
+        // "weak" fails AuthPasswordPolicy (no uppercase/digit/special, <8) → 400 before any DB write
+        assertThatThrownBy(() -> service.commit(file, tenantId, "weak"))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("BULK_IMPORT_INVALID_PASSWORD")
+                .extracting("status")
+                .isEqualTo(HttpStatus.BAD_REQUEST);
+        verify(jobRepository, times(0)).save(any());
+        verify(studentService, times(0)).createStudent(any(), any());
+        verify(credentialProvisioning, times(0)).setPassword(any(), any(), any(), any(), any());
     }
 
     @Test

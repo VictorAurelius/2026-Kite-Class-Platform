@@ -83,21 +83,30 @@ public class BulkImportController {
      * {@code BulkImportJob} row. Returns HTTP 201 with {@code Location} header
      * pointing to the job resource.
      *
-     * @param file     multipart xlsx file
-     * @param tenantId tenant instance ID
-     * @return summary with {@code jobId}; inline errors truncated to 10
+     * <p>Optional {@code initialPassword} form field (Wave flow-kc3, GAP-1277):
+     * when supplied, every successfully-created student with an email gets a
+     * KC-native login credential auto-provisioned so the imported batch is
+     * login-ready. Invalid batch password → HTTP 400 {@code BULK_IMPORT_INVALID_PASSWORD}.
+     *
+     * @param file            multipart xlsx file
+     * @param tenantId        tenant instance ID
+     * @param initialPassword optional batch login password (opt-in auto-provisioning)
+     * @return summary with {@code jobId} + {@code credentialsProvisioned}; inline errors truncated to 10
      */
     @PostMapping(value = "/commit", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(
             summary = "Commit bulk-import xlsx",
-            description = "Parse + validate + create. Valid rows persisted; invalid rows skipped and reported."
+            description = "Parse + validate + create. Valid rows persisted; invalid rows skipped and reported. "
+                    + "Optional initialPassword form field auto-provisions KC-native login for each created student."
     )
     public ResponseEntity<ApiResponse<BulkImportResult>> commit(
             @RequestParam("file") MultipartFile file,
-            @RequestHeader("X-Tenant-Id") UUID tenantId) {
-        log.info("REST request bulk-import commit: file={}, tenantId={}",
-                file != null ? file.getOriginalFilename() : "<null>", tenantId);
-        BulkImportResult result = service.commit(file, tenantId);
+            @RequestHeader("X-Tenant-Id") UUID tenantId,
+            @RequestParam(value = "initialPassword", required = false) String initialPassword) {
+        log.info("REST request bulk-import commit: file={}, tenantId={}, provisionCredentials={}",
+                file != null ? file.getOriginalFilename() : "<null>", tenantId,
+                initialPassword != null && !initialPassword.isBlank());
+        BulkImportResult result = service.commit(file, tenantId, initialPassword);
         URI location = URI.create("/api/v1/students/bulk-import/jobs/" + result.jobId());
         return ResponseEntity
                 .status(HttpStatus.CREATED)

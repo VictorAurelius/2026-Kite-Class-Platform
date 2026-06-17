@@ -12,6 +12,10 @@ import java.util.List;
  * @param totalRows    total data rows detected in the file
  * @param successCount rows that would be (or were) created successfully
  * @param errorCount   rows that failed validation or duplicate checks
+ * @param credentialsProvisioned KC-native login credentials auto-provisioned for
+ *        created students when the batch supplied an {@code initialPassword}
+ *        (Wave flow-kc3, GAP-1277). 0 for preview and for commits without a batch
+ *        password. ≤ {@code successCount}.
  * @param errors       first {@value #MAX_RETURNED_ERRORS} errors (inline preview)
  * @author KiteClass Team
  * @since 2.4.0
@@ -21,6 +25,7 @@ public record BulkImportResult(
         int totalRows,
         int successCount,
         int errorCount,
+        int credentialsProvisioned,
         List<RowError> errors
 ) {
 

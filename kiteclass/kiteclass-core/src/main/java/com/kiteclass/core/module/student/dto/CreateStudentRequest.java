@@ -1,6 +1,7 @@
 package com.kiteclass.core.module.student.dto;
 
 import com.kiteclass.core.common.constant.Gender;
+import com.kiteclass.core.module.auth.AuthPasswordPolicy;
 import jakarta.validation.constraints.*;
 
 import java.time.LocalDate;
@@ -14,6 +15,10 @@ import java.time.LocalDate;
  *   <li>Email: valid email format, max 255 characters</li>
  *   <li>Phone: Vietnamese format (10 digits starting with 0)</li>
  *   <li>Address: max 1000 characters</li>
+ *   <li>Initial password (optional): when present, auto-provisions a KC-native
+ *       login credential for the student in the same create call (Wave flow-kc3,
+ *       GAP-1277). Requires the student to have an email (login is email-keyed).
+ *       Validated against {@link AuthPasswordPolicy} only when non-null.</li>
  * </ul>
  *
  * @param name        Student's full name (required)
@@ -23,6 +28,8 @@ import java.time.LocalDate;
  * @param gender      Student's gender
  * @param address     Student's address
  * @param note        Additional notes
+ * @param initialPassword Optional initial login password — when present, provisions
+ *        a KC-native login credential at create time (opt-in). Null = no credential.
  * @author KiteClass Team
  * @since 2.3.0
  */
@@ -46,6 +53,23 @@ public record CreateStudentRequest(
         @Size(max = 1000)
         String address,
 
-        String note
+        String note,
+
+        @Size(min = AuthPasswordPolicy.MIN_LENGTH, max = AuthPasswordPolicy.MAX_LENGTH,
+                message = "Mật khẩu phải từ 8-100 ký tự")
+        @Pattern(regexp = AuthPasswordPolicy.PATTERN, message = AuthPasswordPolicy.MESSAGE)
+        String initialPassword
 ) {
+    /**
+     * Backward-compatible convenience constructor (pre-{@code initialPassword} arity).
+     * Delegates to the canonical constructor with {@code initialPassword = null} so
+     * existing call sites (RowValidator bulk-import, seeders, tests) compile unchanged
+     * and create a student WITHOUT auto-provisioning a login. Jackson binds request
+     * bodies via the canonical (all-args) record constructor, so {@code initialPassword}
+     * still arrives from JSON.
+     */
+    public CreateStudentRequest(String name, String email, String phone, LocalDate dateOfBirth,
+                                Gender gender, String address, String note) {
+        this(name, email, phone, dateOfBirth, gender, address, note, null);
+    }
 }

@@ -2,12 +2,14 @@ package com.kiteclass.core.module.student.bulkimport.service;
 
 import com.kiteclass.core.common.exception.BusinessException;
 import com.kiteclass.core.common.exception.DuplicateResourceException;
+import com.kiteclass.core.module.auth.service.AuthCredentialProvisioningService;
 import com.kiteclass.core.module.student.bulkimport.dto.BulkImportRow;
 import com.kiteclass.core.module.student.bulkimport.dto.RowError;
 import com.kiteclass.core.module.student.bulkimport.entity.BulkImportJob;
 import com.kiteclass.core.module.student.bulkimport.entity.BulkImportStatus;
 import com.kiteclass.core.module.student.bulkimport.repository.BulkImportJobRepository;
 import com.kiteclass.core.module.student.dto.CreateStudentRequest;
+import com.kiteclass.core.module.student.dto.StudentResponse;
 import com.kiteclass.core.module.student.service.StudentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +39,7 @@ public class BulkImportChunkExecutor {
     private final RowValidator rowValidator;
     private final StudentService studentService;
     private final BulkImportJobRepository jobRepository;
+    private final AuthCredentialProvisioningService credentialProvisioning;
 
     /**
      * Persists a fresh {@link BulkImportJob} row in its own transaction.
@@ -74,13 +77,23 @@ public class BulkImportChunkExecutor {
      * duplicate-collision errors are collected as {@link RowError}s rather than
      * aborting the chunk.
      *
-     * @param chunk    rows to process
-     * @param tenantId tenant instance ID
-     * @return tuple of success count and per-row errors
+     * <p>When {@code initialPassword} is non-blank (Wave flow-kc3, GAP-1277), each
+     * successfully-created student that has an email gets a KC-native login credential
+     * auto-provisioned (entity_type=STUDENT) so the batch is login-ready. Provisioning
+     * runs in the same chunk transaction; a per-row provisioning failure is recorded as
+     * a {@link RowError} but does NOT undo the student create (best-effort add-on) and
+     * does NOT abort the chunk.
+     *
+     * @param chunk           rows to process
+     * @param tenantId        tenant instance ID
+     * @param initialPassword optional batch password — null/blank skips provisioning
+     * @return tuple of success count, provisioned-credential count, and per-row errors
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public ChunkResult processChunk(List<BulkImportRow> chunk, UUID tenantId) {
+    public ChunkResult processChunk(List<BulkImportRow> chunk, UUID tenantId, String initialPassword) {
+        boolean provisionCredentials = initialPassword != null && !initialPassword.isBlank();
         int success = 0;
+        int provisioned = 0;
         List<RowError> errors = new ArrayList<>();
         for (BulkImportRow row : chunk) {
             RowValidator.ValidationResult result = rowValidator.validate(row);
@@ -90,8 +103,21 @@ public class BulkImportChunkExecutor {
             }
             try {
                 CreateStudentRequest request = result.request();
-                studentService.createStudent(request, tenantId);
+                StudentResponse created = studentService.createStudent(request, tenantId);
                 success++;
+                if (provisionCredentials && created.email() != null && !created.email().isBlank()) {
+                    try {
+                        credentialProvisioning.setPassword(
+                                AuthCredentialProvisioningService.ROLE_STUDENT,
+                                created.id(), created.email(), tenantId, initialPassword);
+                        provisioned++;
+                    } catch (BusinessException be) {
+                        // Student created OK but credential provisioning failed (e.g. email
+                        // already owned cross-tenant) — record, don't undo create or abort chunk.
+                        errors.add(new RowError(row.rowNumber(), "credential",
+                                "Tạo học viên thành công nhưng cấp tài khoản đăng nhập lỗi: " + be.getCode()));
+                    }
+                }
             } catch (DuplicateResourceException dup) {
                 errors.add(toRowError(row.rowNumber(), dup));
             } catch (BusinessException be) {
@@ -103,7 +129,7 @@ public class BulkImportChunkExecutor {
                         "Lỗi không xác định: " + e.getClass().getSimpleName()));
             }
         }
-        return new ChunkResult(success, errors);
+        return new ChunkResult(success, provisioned, errors);
     }
 
     private static RowError toRowError(int rowNumber, DuplicateResourceException dup) {
@@ -120,9 +146,11 @@ public class BulkImportChunkExecutor {
     /**
      * Per-chunk aggregation tuple.
      *
-     * @param successCount rows created successfully in this chunk
-     * @param errors       row-level errors (validation + duplicate) for this chunk
+     * @param successCount      rows created successfully in this chunk
+     * @param provisionedCount  login credentials auto-provisioned in this chunk
+     *                          (Wave flow-kc3, GAP-1277); ≤ {@code successCount}
+     * @param errors            row-level errors (validation + duplicate + credential) for this chunk
      */
-    public record ChunkResult(int successCount, List<RowError> errors) {
+    public record ChunkResult(int successCount, int provisionedCount, List<RowError> errors) {
     }
 }
