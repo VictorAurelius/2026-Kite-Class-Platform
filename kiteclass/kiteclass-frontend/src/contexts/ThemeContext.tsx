@@ -152,8 +152,16 @@ export function ThemeProvider({ children, initialTheme }: ThemeProviderProps) {
   // Check if current theme is default
   const isDefaultTheme = areThemesEqual(theme, DEFAULT_THEME);
 
-  // Apply theme variables when theme changes
+  // Apply theme variables when theme changes.
+  // Skip the DEFAULT fallback: applying it sets inline `--theme-*` on
+  // documentElement, which OVERRIDES the SSR-inline ThemeSync (<style
+  // data-theme-sync>:root{...}</style>) per-tenant theme on the public landing —
+  // so a tenant's green/blue/gold would flip to DEFAULT purple after hydration
+  // (GAP: theme "reset về tím"). globals.css already provides the default and the
+  // SSR ThemeSync provides the per-tenant theme; only apply an EXPLICIT theme
+  // (localStorage restore or user setTheme / postMessage preview), which != DEFAULT.
   useEffect(() => {
+    if (areThemesEqual(theme, DEFAULT_THEME)) return;
     applyThemeVariables(theme);
   }, [theme]);
 
