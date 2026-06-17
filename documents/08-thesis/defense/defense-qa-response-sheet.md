@@ -9,9 +9,9 @@ last-reviewed: 2026-06-17
 
 # Tài liệu câu hỏi phản biện — câu hỏi chuẩn bị
 
-**Mục tiêu:** chuẩn bị câu trả lời cô đọng (≤120 từ mỗi câu) cho 26 câu hỏi dự kiến từ hội đồng, phân nhóm theo 4 archetype người chấm. Mỗi câu trả lời trích dẫn bằng chứng cụ thể (đường dẫn tệp, báo cáo audit, mục chương, phiên bản migration) để chứng minh có cơ sở.
+**Mục tiêu:** chuẩn bị câu trả lời cô đọng (≤120 từ mỗi câu) cho 41 câu hỏi dự kiến từ hội đồng, phân nhóm theo 4 archetype người chấm. Mỗi câu trả lời trích dẫn bằng chứng cụ thể (đường dẫn tệp, báo cáo audit, mục chương, phiên bản migration) để chứng minh có cơ sở. Từ Q27 trở đi là nhóm câu **lý thuyết khoa học máy tính / mẫu thiết kế / cơ sở dữ liệu** chuyên sâu; ngoài ra cuối tài liệu có mục **Danh mục thuật ngữ** giải thích các khái niệm dùng xuyên suốt cho người đọc là dev mới.
 
-**Nguồn câu hỏi:** outside-in audit `documents/04-quality/audits/persona-review/2026-05-18-thesis-defense-failure-mode-matrix.md` (mô phỏng 4 archetype × 5 câu hỏi) + 6 câu bổ sung 2026-06-17 cho các tính năng đã hoàn thiện (thanh toán, Zalo OA, AI Branding, pen-test, solo-dev, data localization).
+**Nguồn câu hỏi:** outside-in audit `documents/04-quality/audits/persona-review/2026-05-18-thesis-defense-failure-mode-matrix.md` (mô phỏng 4 archetype × 5 câu hỏi) + 6 câu bổ sung 2026-06-17 cho các tính năng đã hoàn thiện (thanh toán, Zalo OA, AI Branding, pen-test, solo-dev, data localization) + 15 câu lý thuyết/kiến trúc/cơ sở dữ liệu chuyên sâu 2026-06-17 (Q27-Q41) + Danh mục thuật ngữ.
 
 **Cách sử dụng khi bảo vệ:**
 1. Lắng nghe câu hỏi đầy đủ, gạch chân từ khóa
@@ -355,6 +355,195 @@ Phương pháp luận hướng chất lượng là đóng góp methodology chín
 
 ---
 
+## Câu hỏi lý thuyết / kiến trúc / cơ sở dữ liệu chuyên sâu (bổ sung 2026-06-17)
+
+Nhóm câu này tập trung vào kiến thức khoa học máy tính, mẫu thiết kế và cơ sở dữ liệu, phân vào Archetype 1 (Kiến trúc) và Archetype 2 (NFR-DB-DevOps). Mỗi đáp án nêu phần biết chắc kèm bằng chứng + thừa nhận thẳng phần báo cáo chưa khai báo tường minh.
+
+### Archetype 1 (Kiến trúc) — câu lý thuyết chuyên sâu
+
+### Q27: "Em dùng những design pattern nào trong hệ thống? Kể tên và giải thích tại sao." — **[CÂU MỚI — lý thuyết]**
+
+**Trả lời:**
+
+Hệ thống dùng nhiều mẫu thiết kế (GoF). (i) **Adapter** cô lập hệ thống ngoài sau một interface chung: `NotificationChannel` cho email với hai adapter `SESEmailService` (chính) và `ResendEmailService` (dự phòng); `PaymentProcessor` cho thanh toán (VietQR hiện tại, khung VNPay). Đổi nhà cung cấp không cần sửa code nghiệp vụ. (ii) **Outbox pattern** cho email: ghi bản ghi việc-cần-gửi cùng transaction nghiệp vụ, một dispatcher poll định kỳ phát qua RabbitMQ `email.exchange`, tránh mất email khi broker lỗi. (iii) **Template Method** qua lớp trừu tượng `BaseEntity` (cột audit chung `createdAt`/`updatedAt`/`deleted`). Mẫu Strategy/Factory dùng ngầm qua cơ chế của Spring nhưng em chưa khai báo tường minh trong báo cáo, xin tiếp thu bổ sung phụ lục.
+
+**Bằng chứng:**
+- Chương 2 §2.2.1 (`NotificationChannel`, `PaymentProcessor` adapter) + §2.2.2 (SES/Resend adapter)
+- Chương 2 §2.1.1 + §2.3.6 (kitehub-subscription "outbox + webhook", RabbitMQ async)
+- Chương 2 §2.3.1 (lớp trừu tượng `BaseEntity`)
+
+---
+
+### Q28: "Em áp dụng SOLID ở đâu? Dependency Injection trong Spring hoạt động thế nào trong dự án?" — **[CÂU MỚI — lý thuyết]**
+
+**Trả lời:**
+
+SOLID thể hiện rõ nhất ở: **SRP** (Single Responsibility) — mỗi service một trách nhiệm tách biệt (subscription / branding / email, §2.3.6); **OCP + DIP** (Open-Closed + Dependency Inversion) — nghiệp vụ phụ thuộc interface `NotificationChannel`/`PaymentProcessor` chứ không phụ thuộc lớp cụ thể, thêm provider mới không sửa code cũ; **ISP** — interface nhỏ theo vai trò. **Dependency Injection** dùng cơ chế của Spring (constructor injection), container tự khởi tạo và tiêm bean, quản lý vòng đời; `kitehub-platform` là starter JAR dùng chung, tiêm sẵn auth filter + tenant context vào mọi service. Em xin nói thẳng: báo cáo chưa có mục riêng phân tích từng nguyên lý SOLID kèm ví dụ code, đây là phần em sẽ bổ sung phụ lục nếu hội đồng cần.
+
+**Bằng chứng:**
+- Chương 2 §2.3.6 (phân rã service theo trách nhiệm — SRP)
+- Chương 2 §2.2.1 (interface adapter — OCP/DIP) + §2.2.2 (`kitehub-platform` JAR dùng chung)
+
+---
+
+### Q29: "Tại sao em chọn REST API mà không phải GraphQL hay gRPC?" — **[CÂU MỚI — lý thuyết]**
+
+**Trả lời:**
+
+Em chọn **REST** vì ba lý do phù hợp phạm vi: (i) **đơn giản + phổ cập** — solo dev, REST + JSON dễ debug bằng curl/trình duyệt, mọi client web/mobile hỗ trợ sẵn; (ii) **versioning + caching rõ ràng** — định phiên bản theo URL `/api/v1/...`, tận dụng HTTP cache của Cloudflare CDN; (iii) **ăn khớp gateway** — Spring Cloud Gateway route theo path REST tự nhiên. **GraphQL** mạnh khi client cần truy vấn linh hoạt tránh over-fetch, nhưng thêm độ phức tạp schema và rủi ro N+1 resolver; **gRPC** tối ưu giao tiếp nội bộ service-to-service hiệu năng cao nhưng khó debug và chưa cần ở quy mô hiện tại. Em chấp nhận trade-off REST đôi khi over-fetch để đổi lấy sự đơn giản. Phần so sánh này là design intent, em chưa benchmark định lượng.
+
+**Bằng chứng:**
+- Chương 2 §2.2.2 (gateway route theo path) + §2.1.2 Maintainability (versioning URL `/api/v1/`)
+- So sánh GraphQL/gRPC: lập luận thiết kế, chưa có trong báo cáo (lộ trình phát triển sau)
+
+---
+
+### Q30: "Vì sao email và branding xử lý bất đồng bộ qua RabbitMQ? Em đảm bảo không mất và không gửi trùng thế nào?" — **[CÂU MỚI — lý thuyết]**
+
+**Trả lời:**
+
+Luồng đồng bộ (sync) cho thao tác người dùng cần phản hồi ngay (đăng nhập, đọc danh sách); luồng bất đồng bộ (async) cho tác vụ phụ trợ không nên chặn request. Gửi email và dựng branding đi qua RabbitMQ (`email.exchange`, `branding.deploy.exchange` kiểu fanout), nên request trả về nhanh dù SES chậm. **Không mất (at-least-once):** kết hợp **Outbox pattern** — ghi bản ghi outbox cùng transaction nghiệp vụ, dispatcher poll phát message; phát lỗi sẽ retry. **Không gửi trùng (idempotency):** consumer kiểm tra khoá nghiệp vụ (đã gửi email cho event này chưa, tra `email_logs`) trước khi gửi. Cơ chế dedupe phía consumer chặt hơn (idempotency key tường minh) là phần em đang củng cố, chưa mô tả đầy đủ trong báo cáo.
+
+**Bằng chứng:**
+- Chương 2 §2.1.1 (email async qua RabbitMQ + nhật ký `email_logs`) + §2.2.2 (các exchange)
+- Chương 2 §2.3.6 (kitehub-subscription outbox); idempotency key dedupe: lộ trình củng cố thêm
+
+---
+
+### Q31: "Bounded context trong DDD là gì? Em phân chia 6 service KiteHub và monolith kiteclass-core theo nó thế nào?" — **[CÂU MỚI — lý thuyết]**
+
+**Trả lời:**
+
+Theo DDD, **bounded context** là một ranh giới mô hình hoá độc lập với ngôn ngữ chung (ubiquitous language) riêng, tránh trộn lẫn khái niệm giữa các miền. Em phân hai context lớn theo hai schema: **control-plane** (`kitehub`, 32 bảng) quản lý vòng đời tenant + billing + branding; **domain-plane** (`kiteclass_shared`, 59 bảng) quản lý nghiệp vụ giáo dục. Trong KiteHub, tách microservice khi context có lifecycle riêng (branding async + AI, email outbox, subscription billing). `kiteclass-core` giữ dạng **modular monolith** vì các miền Student/Class/Attendance/Grade/Payment gắn kết chặt, nhiều transaction span qua nhiều miền — tách ra sẽ phải distributed transaction phức tạp, không phù hợp một người vận hành. Hai context chia sẻ khoá `tenant_id` nhưng tách schema, tránh coupling chéo.
+
+**Bằng chứng:**
+- Chương 2 §2.3.3 (hai schema `kitehub` 32 bảng / `kiteclass_shared` 59 bảng) + §2.3.6 (phân rã service)
+- Chương 2 §2.2.2 (kiteclass-core gồm Student/Class/Attendance/Grade/Payment)
+
+---
+
+### Q32: "JWT stateless là gì, vì sao chọn? Nhược điểm thu hồi token em xử lý ra sao?" — **[CÂU MỚI — lý thuyết]**
+
+**Trả lời:**
+
+JWT **stateless** nghĩa là server không lưu session; mọi thông tin xác thực (`sub`, `role`, `tenantId`) nằm trong token có chữ ký HS256, gateway chỉ cần verify chữ ký mà không truy vấn DB. Lợi ích: scale ngang dễ vì không cần session store dùng chung. **Refresh token** TTL 30 ngày đổi lấy access token TTL 15 phút, giảm rủi ro nếu access token lộ. **Nhược điểm lớn nhất là thu hồi:** access token đã phát không hủy được trước khi hết hạn. Em xử lý: (i) TTL access ngắn 15 phút; (ii) blacklist refresh token trên Redis khi logout/đổi mật khẩu, xoay vòng (rotation) mỗi lần dùng; (iii) 2FA TOTP cho vai trò Owner. Token revocation tức thì hoàn toàn (ví dụ token introspection tập trung) thuộc lộ trình phát triển sau.
+
+**Bằng chứng:**
+- Chương 2 §2.1.2 Bảng 2.3 mục A07 (JWT HS256 access 15 phút + refresh 30 ngày rotation + blacklist Redis + 2FA TOTP Owner)
+- Chương 2 §2.2.5 (gateway là biên trust duy nhất verify JWT)
+
+---
+
+### Archetype 2 (NFR-DB-DevOps) — câu lý thuyết chuyên sâu
+
+### Q33: "ACID là gì? Hệ thống dùng transaction isolation level nào? Chỗ nào cần mức cao hơn?" — **[CÂU MỚI — lý thuyết]**
+
+**Trả lời:**
+
+ACID gồm Atomicity (toàn bộ hoặc không), Consistency (ràng buộc luôn thoả), Isolation (giao dịch không nhiễu nhau), Durability (đã commit là bền vững) — PostgreSQL bảo đảm đầy đủ qua WAL + MVCC. Hệ thống dùng transaction của Spring (`@Transactional`); riêng ngữ cảnh tenant đặt bằng `SET LOCAL app.current_tenant_id` nên tự reset khi commit/rollback (§2.2.4), chứng tỏ thao tác chạy trong transaction. PostgreSQL mặc định mức cô lập **READ COMMITTED** (chỉ thấy dữ liệu đã commit), đủ cho phần lớn nghiệp vụ. Chỗ cần chặt hơn (trừ hạn mức quota, đối soát thanh toán tránh double-spend) nên dùng `SERIALIZABLE` hoặc khoá `SELECT ... FOR UPDATE`. Em xin thừa nhận báo cáo chưa khai báo tường minh mức isolation cho từng luồng, đây là điểm em sẽ bổ sung.
+
+**Bằng chứng:**
+- Chương 2 §2.2.4 (`SET LOCAL` giới hạn theo transaction)
+- Mức READ COMMITTED + SERIALIZABLE per-flow: kiến thức nền PostgreSQL, chưa khai báo tường minh trong báo cáo
+
+---
+
+### Q34: "Giải thích cơ chế RLS hoạt động nội bộ: policy USING, GUC, FORCE, NULL force-fail." — **[CÂU MỚI — lý thuyết]**
+
+**Trả lời:**
+
+RLS hoạt động ngay tại PostgreSQL engine. Mỗi bảng tenant bật `ENABLE` + `FORCE ROW LEVEL SECURITY` (FORCE để cả chủ sở hữu bảng cũng bị áp, không bỏ qua). Chính sách `CREATE POLICY ... USING (...)` lọc hàng khi đọc, `WITH CHECK (...)` chặn ghi sai tenant. Điều kiện so khớp `tenant_id = current_setting('app.current_tenant_id', true)::uuid`. Giá trị tenant truyền qua **GUC** (biến cấu hình session/transaction) đặt bằng `SET LOCAL` đầu transaction. **NULL force-fail:** thêm `AND current_setting(...) IS NOT NULL`, vì nếu quên set GUC thì `tenant_id = NULL` trong SQL trả NULL (không lọc) gây lộ toàn bộ; điều kiện IS NOT NULL khiến truy vấn trả 0 hàng, buộc bug lộ ngay trong test. Lập trình viên không thể quên `WHERE tenant_id`.
+
+**Bằng chứng:**
+- Chương 2 §2.2.4 (mẫu SQL policy `classes`: ENABLE/FORCE + USING/WITH CHECK + NULL force-fail + `current_setting`)
+- Chương 2 §2.2.5 Hình 2.4b (RLS enforce `tenant_id = current_setting`)
+
+---
+
+### Q35: "Index trên tenant_id loại gì? Vai trò trong query plan thế nào?" — **[CÂU MỚI — lý thuyết]**
+
+**Trả lời:**
+
+Mỗi bảng tenant có chỉ mục **B-tree** trên `tenant_id` (ví dụ `idx_classes_tenant_id ON classes(tenant_id)`, §2.2.4). Vai trò: chính sách RLS thêm điều kiện `tenant_id = ?` vào mọi truy vấn, nên planner dùng index này để **index scan** thay vì **sequential scan** toàn bảng, giữ độ trễ ổn định khi dữ liệu tenant khác phình to. Với truy vấn lọc nhiều cột (ví dụ dashboard lọc `status` + `tier`), **composite index** `(tenant_id, status)` tối ưu hơn nhờ quy tắc left-most prefix. Bảng `instances` đã có index trên `subdomain`/`owner_id`/`status`/`tier` + partial index `deleted=false` (§2.3.3) để dashboard quản trị đạt P95 < 100ms. Việc rà soát composite index theo `EXPLAIN ANALYZE` thực tế là phần em sẽ làm sâu hơn ở lộ trình tối ưu.
+
+**Bằng chứng:**
+- Chương 2 §2.2.4 (`CREATE INDEX idx_classes_tenant_id`) + §2.3.3 (index `instances` + partial index `deleted=false`)
+- Composite index theo query plan thực tế: lộ trình tối ưu, chưa nêu trong báo cáo
+
+---
+
+### Q36: "Cơ sở dữ liệu chuẩn hoá tới đâu (3NF)? Chỗ nào denormalize và vì sao?" — **[CÂU MỚI — lý thuyết]**
+
+**Trả lời:**
+
+Lược đồ thiết kế theo hướng chuẩn hoá tới **3NF**: mỗi bảng một thực thể, dùng khoá ngoại tham chiếu thay vì lặp dữ liệu. Ví dụ quan hệ nhiều-nhiều `students` ↔ `classes` được phân giải qua bảng nối `enrollments` thay vì nhồi danh sách lớp vào một cột (loại bỏ phụ thuộc bắc cầu, đặc trưng 3NF); điểm và điểm danh tách bảng riêng tham chiếu `student_id`/`class_id` (§2.3.2 ERD). **Denormalize có chủ đích** vài chỗ vì hiệu năng/đúng nghiệp vụ: lưu `price_vnd` ngay trong `subscriptions` (snapshot giá tại thời điểm đăng ký, tránh đổi bảng giá làm sai hoá đơn cũ); dashboard doanh thu (MRR/churn) tính qua aggregate, có thể dùng materialized view khi quy mô tăng. Báo cáo chưa nêu rõ chữ "3NF", em xin bổ sung phần lý thuyết chuẩn hoá.
+
+**Bằng chứng:**
+- Chương 2 §2.3.2 (ERD, bảng nối `enrollments` phân giải N-N) + §2.3.3 (`subscriptions.price_vnd` lưu số nguyên đồng)
+- Thuật ngữ "3NF" + phân tích denormalize: kiến thức nền, chưa nêu tường minh trong báo cáo
+
+---
+
+### Q37: "N+1 query là gì? Em phát hiện và xử lý thế nào trong JPA?" — **[CÂU MỚI — lý thuyết]**
+
+**Trả lời:**
+
+**N+1 query** xảy ra khi tải N bản ghi cha rồi lazy-load quan hệ con sinh thêm N truy vấn (ví dụ tải danh sách lớp rồi từng lớp lại query học sinh = 1 + N). Đây là lỗi hiệu năng phổ biến của JPA/Hibernate do lazy loading mặc định. **Phát hiện:** bật `spring.jpa.show-sql` + đếm số query, hoặc dùng `pg_stat_statements` thấy cùng một câu lặp nhiều lần. **Xử lý:** dùng `JOIN FETCH` trong JPQL, hoặc `@EntityGraph` khai báo quan hệ tải kèm, hoặc đặt `default_batch_fetch_size` để gom thành IN-query. Performance audit (86/100) đã chuyển vài endpoint `findAll` sang cursor pagination. Em xin thừa nhận: việc rà soát N+1 toàn hệ thống chưa hoàn tất, nằm trong nhóm điểm tối ưu còn lại của audit.
+
+**Bằng chứng:**
+- Chương 2 §2.1.2 Bảng 2.2 (đo qua `pg_stat_statements`); Performance audit 86/100 B+ (cursor pagination)
+- `JOIN FETCH`/`@EntityGraph`/batch fetch: kỹ thuật chuẩn JPA, chưa mô tả trong báo cáo (audit chưa đóng)
+
+---
+
+### Q38: "HikariCP là gì, vì sao cần? Vì sao phải reset GUC tenant mỗi connection?" — **[CÂU MỚI — lý thuyết]**
+
+**Trả lời:**
+
+**HikariCP** là connection pool: mở sẵn một tập kết nối DB để tái sử dụng, tránh chi phí bắt tay TCP + xác thực mỗi request (mở kết nối mới rất đắt). Cấu hình 10 kết nối/service × 6 service = 60 kết nối nền, trần 150 với RDS (§2.1.2). **Vì sao phải reset GUC mỗi connection:** pool tái dùng kết nối, nếu kết nối đặt `app.current_tenant_id = A` rồi trả về pool, request kế của tenant B nhận đúng kết nối đó có thể "kế thừa" ngữ cảnh A, gây rò chéo tenant. Em khắc phục hai lớp: (i) `SET LOCAL` giới hạn theo transaction, tự xoá khi commit/rollback; (ii) `connectionInitSql: RESET app.current_tenant_id` mỗi khi kết nối quay về pool (§2.2.4). Đây là một trade-off bắt buộc của mô hình Pool + RLS.
+
+**Bằng chứng:**
+- Chương 2 §2.1.2 Scalability (HikariCP 10 × 6 = 60, trần 150)
+- Chương 2 §2.2.4 (HikariCP GUC reset: `SET LOCAL` + `connectionInitSql: RESET`)
+
+---
+
+### Q39: "Flyway hoạt động thế nào? Versioning, idempotent, tách schema và chiến lược rollback?" — **[CÂU MỚI — lý thuyết]**
+
+**Trả lời:**
+
+**Flyway** quản lý phiên bản schema bằng các file `V<số>__<mô tả>.sql` (ví dụ `V60__create_admin_audit_logs.sql`), chạy tuần tự theo số và ghi vào bảng `flyway_schema_history` nên **idempotent** — đã chạy thì không chạy lại. Migration tách theo schema/service: `kitehub` 57 migration, `kiteclass_shared` 76 migration (§2.3.3), mỗi service deploy độc lập với chuỗi riêng. Nguyên tắc **bất biến** (immutable): không sửa file migration đã merge, mọi thay đổi là file V mới, đảm bảo lịch sử tái lập trên mọi môi trường (A08 §2.1.2). **Rollback:** Flyway community không auto-rollback DDL; chiến lược của em là forward-fix (viết migration V mới để hoàn tác) + backup RDS trước deploy, ưu tiên thay đổi backward-compatible (thêm cột nullable trước, bỏ cột ở phiên bản sau).
+
+**Bằng chứng:**
+- Chương 2 §2.3.3 (kitehub 57 + kiteclass_shared 76 migration) + §2.1.2 A08 (migration Flyway bất biến)
+- File thật `V60__create_admin_audit_logs.sql`; chiến lược forward-fix rollback: thực hành chuẩn, chưa nêu rõ trong báo cáo
+
+---
+
+### Q40: "Khóa chính dùng UUID hay auto-increment? Vì sao trong bối cảnh multi-tenant?" — **[CÂU MỚI — lý thuyết]**
+
+**Trả lời:**
+
+Em dùng **lai (hybrid)** có chủ đích: bảng control-plane định danh tenant (`instances`, `subscriptions`, `payments`) dùng **UUID v4**, còn bảng domain volume lớn (`students`) dùng **BIGSERIAL** tự tăng (§2.3.3 Bảng 2.7/2.9). Chọn UUID cho tenant-id vì: (i) **không đoán được** — tránh lộ số lượng tenant và tấn công liệt kê (IDOR) qua đoán id tuần tự; (ii) sinh được phía phân tán không trùng. Đánh đổi: UUID 16 byte to hơn, index phân mảnh hơn auto-increment. Với `students` nội bộ một tenant, BIGSERIAL nhẹ, index tuần tự gọn, lại đã được RLS che nên không lo enumeration xuyên tenant. Đây là quyết định cân bằng giữa an toàn (UUID ở biên multi-tenant) và hiệu năng (BIGSERIAL trong tenant).
+
+**Bằng chứng:**
+- Chương 2 §2.3.3 Bảng 2.7 (`instances.id` UUID) + Bảng 2.8 (`subscriptions.id` UUID) + Bảng 2.9 (`students.id` BIGSERIAL)
+- Chương 2 §2.2.4 (RLS che enumeration domain entity)
+
+---
+
+### Q41: "Vì sao chọn PostgreSQL mà không phải MySQL?" — **[CÂU MỚI — lý thuyết]**
+
+**Trả lời:**
+
+Em chọn **PostgreSQL 15** thay vì MySQL chủ yếu vì kiến trúc multi-tenant phụ thuộc **Row-Level Security native** — Postgres hỗ trợ RLS ở tầng engine từ phiên bản 9.5, là nền tảng cho mô hình Pool + cô lập 5 lớp (§2.2.3, §2.2.4); MySQL không có RLS gốc, phải mô phỏng bằng view hoặc tin tưởng tầng ứng dụng (yếu hơn). Lý do bổ sung: (i) kiểu **JSONB** lưu cấu hình theme branding linh hoạt + index được; (ii) kiểu **UUID** native + hàm sinh UUID; (iii) `current_setting`/`SET LOCAL` (GUC) làm cơ chế truyền ngữ cảnh tenant; (iv) MVCC mạnh cho đọc đồng thời. Trade-off: MySQL phổ cập hơn ở Việt Nam, nhưng lợi thế RLS quyết định lựa chọn cho bài toán SaaS multi-tenant này. Phần so sánh là lập luận thiết kế, chưa có mục riêng trong báo cáo.
+
+**Bằng chứng:**
+- Chương 2 §2.2.3 (Pool model phụ thuộc RLS) + §2.2.4 (RLS + GUC PostgreSQL native)
+- So sánh PostgreSQL vs MySQL: lập luận thiết kế, chưa nêu tường minh trong báo cáo
+
+---
+
 ## Quy trình ứng phó tình huống bất ngờ
 
 ### Khi nhận câu hỏi không nằm trong danh sách trên:
@@ -394,7 +583,49 @@ Phương pháp luận hướng chất lượng là đóng góp methodology chín
 
 ---
 
+## Danh mục thuật ngữ — giải thích cho người đọc
+
+Mục này giải thích ngắn gọn các thuật ngữ kỹ thuật dùng xuyên suốt tài liệu, dành cho người đọc là dev mới hoặc thành viên hội đồng không chuyên sâu mảng tương ứng. Token tiếng Anh giữ nguyên vì là thuật ngữ chuẩn ngành.
+
+| Thuật ngữ | Giải thích |
+|---|---|
+| **SaaS multi-tenant** | Phần mềm dạng dịch vụ phục vụ nhiều khách hàng (tenant) trên cùng một hệ thống; mỗi tenant (ở đây là một trung tâm) chỉ thấy dữ liệu riêng dù dùng chung hạ tầng. |
+| **Pool model** | Mô hình các tenant dùng chung database, cô lập dữ liệu bằng logic (RLS) thay vì tách vật lý; chi phí thấp nhất nhưng cần thiết kế lớp cô lập kỹ. |
+| **RLS (Row-Level Security)** | Tính năng PostgreSQL tự lọc hàng theo điều kiện chính sách ngay tại database engine, để mỗi tenant chỉ đọc/ghi được hàng của mình mà lập trình viên không cần nhớ thêm `WHERE`. |
+| **GUC (Grand Unified Configuration)** | Biến cấu hình theo phiên/transaction của PostgreSQL (ví dụ `app.current_tenant_id`), dùng truyền ngữ cảnh tenant cho chính sách RLS đọc qua `current_setting()`. |
+| **MVCC (Multi-Version Concurrency Control)** | Cơ chế PostgreSQL cho nhiều giao dịch đọc-ghi đồng thời không khoá lẫn nhau, bằng cách giữ nhiều phiên bản của một hàng dữ liệu. |
+| **Adapter pattern** | Mẫu thiết kế bọc một hệ thống ngoài sau một interface chung, để đổi nhà cung cấp (email, thanh toán) mà không phải sửa code nghiệp vụ. |
+| **Outbox pattern** | Kỹ thuật ghi việc-cần-gửi (email) vào một bảng cùng transaction nghiệp vụ, sau đó một tiến trình riêng đọc và phát đi; đảm bảo không mất message khi service hay broker lỗi. |
+| **modular monolith** | Một ứng dụng triển khai chung một khối nhưng bên trong chia module rõ ràng theo miền; nằm giữa monolith rối và microservices phân tán. |
+| **bounded context (DDD)** | Khái niệm của Domain-Driven Design: một ranh giới mô hình hoá độc lập với thuật ngữ và quy tắc riêng, tránh trộn lẫn khái niệm giữa các miền nghiệp vụ. |
+| **HikariCP** | Thư viện connection pool nhanh cho Java/Spring; giữ sẵn các kết nối DB để tái dùng, tránh chi phí mở kết nối mới mỗi request. |
+| **Resilience4j** | Thư viện chịu lỗi cho Java cung cấp circuit breaker, retry, rate limiter; dùng ở gateway để bảo vệ khi service phía sau chậm hoặc lỗi. |
+| **Circuit breaker** | Mẫu "cầu dao": khi một service phía sau lỗi liên tục, tạm ngắt các lời gọi tới nó để tránh lỗi lan và cho nó thời gian hồi phục. |
+| **rate limit** | Giới hạn số request trong một khoảng thời gian (theo IP/user/tenant) để chống lạm dụng và quá tải; ở đây đếm bằng token-bucket trên Redis. |
+| **p50 / p95** | Phân vị độ trễ: p50 là trung vị (50% request nhanh hơn mức này), p95 là mức mà 95% request nhanh hơn; p95 phản ánh trải nghiệm xấu thường gặp tốt hơn trung bình. |
+| **idempotency** | Tính chất "làm lại nhiều lần kết quả vẫn như một lần"; cần cho retry an toàn (gửi email/thanh toán không bị nhân đôi). |
+| **at-least-once** | Cam kết giao message "ít nhất một lần" của hàng đợi: không mất nhưng có thể trùng, nên consumer phải idempotent. |
+| **JWT (JSON Web Token)** | Token có chữ ký chứa thông tin người dùng (vai trò, tenant); server chỉ cần verify chữ ký để xác thực mà không lưu session (stateless). |
+| **OIDC (OpenID Connect)** | Chuẩn xác thực dựng trên OAuth 2.0; trong đồ án dùng cho CI/CD (GitHub Actions xác thực với AWS qua OIDC, không lưu khoá tĩnh). |
+| **refresh token** | Token sống lâu (30 ngày) dùng xin access token mới (15 phút) khi hết hạn, giảm rủi ro nếu access token bị lộ. |
+| **DKIM (DomainKeys Identified Mail)** | Chữ ký số gắn vào email để máy chủ nhận xác minh thư đúng từ tên miền gửi, chống giả mạo và giảm vào hộp spam. |
+| **DSAR (Data Subject Access Request)** | Yêu cầu của chủ thể dữ liệu đòi xem/sửa/xoá dữ liệu cá nhân của mình theo luật bảo vệ dữ liệu (PDPL). |
+| **ACID** | Bốn tính chất của giao dịch DB: Atomicity, Consistency, Isolation, Durability — đảm bảo dữ liệu nhất quán dù lỗi hay nhiều người dùng đồng thời. |
+| **transaction isolation level** | Mức cô lập quy định một giao dịch "thấy" thay đổi của giao dịch khác đến đâu; PostgreSQL mặc định READ COMMITTED (chỉ thấy dữ liệu đã commit). |
+| **3NF (chuẩn hoá thứ ba)** | Quy tắc thiết kế DB loại bỏ dữ liệu lặp và phụ thuộc bắc cầu; mỗi cột phụ thuộc trực tiếp vào khoá chính, dùng khoá ngoại để liên kết bảng. |
+| **B-tree index** | Cấu trúc chỉ mục cân bằng mặc định của PostgreSQL, cho tra cứu/so sánh/sắp xếp nhanh theo cột (ví dụ `tenant_id`), tránh quét toàn bảng. |
+| **N+1 query** | Lỗi hiệu năng khi tải N bản ghi cha rồi mỗi bản lại query con, thành 1+N truy vấn; khắc phục bằng `JOIN FETCH`/`@EntityGraph`/batch fetch. |
+| **Flyway migration** | Công cụ quản lý thay đổi schema DB bằng các file `V<số>__*.sql` chạy tuần tự, bất biến, có lịch sử, để mọi môi trường có cùng schema. |
+| **magic-link** | Liên kết kích hoạt dùng một lần gửi qua email, cho phép đặt mật khẩu/đăng nhập lần đầu mà không cần mật khẩu sẵn. |
+| **MRR / churn** | MRR (Monthly Recurring Revenue) là doanh thu định kỳ hằng tháng; churn là tỷ lệ tenant rời bỏ — hai chỉ số sức khoẻ kinh doanh của SaaS. |
+| **SDXL / Replicate** | Stable Diffusion XL là mô hình AI sinh ảnh; Replicate là nền tảng cloud chạy mô hình đó qua API, ở đây sinh logo/banner branding (~$0,0012/ảnh). |
+| **VietQR** | Chuẩn mã QR chuyển khoản ngân hàng Việt Nam; hệ thống sinh mã để tenant chuyển khoản theo nội dung rồi quản trị đối soát. |
+| **WCAG AA** | Mức tuân thủ trung bình của bộ tiêu chuẩn truy cập web (tương phản màu, đọc được bằng screen reader...); ảnh/branding sinh ra phải đạt trước khi dùng. |
+
+---
+
 ## Log
 
+- **2026-06-17 (deepen):** Thêm 15 câu lý thuyết/kiến trúc/cơ sở dữ liệu chuyên sâu Q27-Q41 — 6 câu Archetype 1 Kiến trúc (design pattern Adapter/Outbox/Template Method; SOLID + Dependency Injection; REST vs GraphQL/gRPC; sync/async + Outbox + at-least-once/idempotency; bounded context/DDD; stateless JWT + thu hồi token) + 9 câu Archetype 2 NFR-DB-DevOps (ACID + isolation level; RLS internals USING/GUC/FORCE/NULL force-fail; index tenant_id B-tree/composite; 3NF + denormalize; N+1 query; HikariCP + GUC reset; Flyway versioning/rollback; UUID vs BIGSERIAL; PostgreSQL vs MySQL). Thêm mục Danh mục thuật ngữ (32 thuật ngữ giải thích cho dev mới). Lý do: câu cũ nghiêng quyết định/business/NFR-scoring, thiếu CS/kiến trúc/DB cụ thể, và dùng nhiều khái niệm chưa giải thích. Mỗi đáp án bám Chương 2/3, thừa nhận thẳng phần báo cáo chưa khai báo tường minh (READ COMMITTED/SERIALIZABLE per-flow, JOIN FETCH/@EntityGraph, thuật ngữ "3NF", SOLID per-principle code, Strategy/Factory, so sánh GraphQL/gRPC + PostgreSQL/MySQL, composite index theo EXPLAIN, idempotency-key dedupe) — phần bổ sung phụ lục nếu hội đồng yêu cầu.
 - **2026-06-17 (refresh):** Sửa drift + mở rộng. Đổi mọi tham chiếu deploy "ECS" → "EC2" (ADR-031 FE self-host EC2); sửa section refs sai (§2.3.2/§2.3.4 → §2.2.3/§2.2.4; §2.4 → §2.2.2; §2.5 → §2.1.1/§2.1.2; §1.6 → Mở đầu §4); sửa file thật (`V60__create_admin_audit_logs.sql`, `AdminAuditLogControllerSecurityTest.java`, `TenantContextFilter.java`); "4 mô hình" → "6 pattern"; hệ tham khảo MISA AMIS → DotB, bỏ "đối thủ" → "hệ thống tham khảo"; AI gen: chốt SDXL qua Replicate (~$0,0012/ảnh) canonical theo Chương 1 §1.3.2.3 (quyết định user 2026-06-17; Chương 2 nhắc DALL-E 3 là stale, cần sync riêng); test coverage 72% → ~985 test + ≥75% line theo Chương 3; phrasing thời gian "vận hành chính thức"/"giai đoạn này" → "hiện tại"/"lộ trình phát triển sau"; số estimate (p50/p95, 95% overhead) thừa nhận trung thực chưa benchmark; beta reviews "đã ký" → demo tenant giả định minh họa (chưa có cohort ký thật). Thêm 6 câu mới Q21-Q26 (thanh toán, pen-test/RLS, Zalo OA, AI Branding an toàn/bản quyền, data localization NĐ 53/2022, solo-dev methodology). Trạng thái thanh toán + Zalo OA: "đã có".
 - **2026-05-23 (Wave thesis-1 Bucket C):** File tạo cho defense preparation. 20 Q&A phân theo 4 archetype × 5 câu hỏi từ outside-in audit `documents/04-quality/audits/persona-review/2026-05-18-thesis-defense-failure-mode-matrix.md`. Mỗi response ≤120 từ với evidence cite cụ thể.
