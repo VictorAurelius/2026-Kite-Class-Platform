@@ -1,8 +1,8 @@
-# Văn nói thuyết trình bảo vệ — bản chi tiết verbatim (22 slide, template UTC)
+# Văn nói thuyết trình bảo vệ — bản chi tiết nguyên văn (22 slide, mẫu UTC)
 
-> Văn nói đầy đủ cho từng slide (đọc/thuộc được), bám nội dung khóa luận + bộ chương 1-4. Deck gồm 22 slide trên nền template UTC, diagram nền trắng. Tổng thời lượng nói khoảng **20 phút** (chưa tính demo). Demo trực tiếp chèn tại **slide 20**, chạy trên hệ thống production thật tại `kitehub.me` theo `defense-demo-script.md`.
+> Văn nói đầy đủ cho từng slide (đọc/thuộc được), bám nội dung khóa luận + bộ chương 1-4. Deck gồm 22 slide trên nền mẫu UTC, sơ đồ nền trắng. Tổng thời lượng nói khoảng **20 phút** (chưa tính demo). Demo trực tiếp chèn tại **slide 20**, chạy trên hệ thống production thật tại `kitehub.me` theo `defense-demo-script.md`.
 >
-> Cách dùng: mỗi slide là một đoạn nói hoàn chỉnh. Marker `(~XX giây)` cuối mỗi slide là thời lượng mục tiêu. Năm slide trọng tâm (6, 11, 12, 17, 18, 19) nói kỹ hơn.
+> Cách dùng: mỗi slide là một đoạn nói hoàn chỉnh. Dấu `(~XX giây)` cuối mỗi slide là thời lượng mục tiêu. Năm slide trọng tâm (6, 11, 12, 17, 18, 19) nói kỹ hơn.
 
 ## Slide 1 — XÂY DỰNG HỆ THỐNG SAAS CUNG CẤP DỊCH VỤ ĐÀO TẠO
 

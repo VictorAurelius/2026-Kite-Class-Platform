@@ -1,14 +1,14 @@
 ---
-title: Defense Live Demo Script — 5 phút (AWS production thật)
+title: Kịch bản demo bảo vệ trực tiếp — 5 phút (AWS production thật)
 chapter: defense
-audience: thesis
+audience: dev
 status: ready
 created: 2026-06-17
 last-reviewed: 2026-06-17
 related: [defense-demo-script.md, defense-speaker-script-20slide.md, KiteHub-baove-khoaluan-20slide.pptx]
 ---
 
-# Defense Live Demo Script — 5 phút (chèn tại slide 20)
+# Kịch bản demo bảo vệ trực tiếp — 5 phút (chèn tại slide 20)
 
 > **Bản 5 phút này** là kịch bản demo CHÍNH cho buổi bảo vệ, chạy trên **hệ thống production thật tại AWS Singapore** (`kitehub.me`). Bản đầy đủ 15 phút (`defense-demo-script.md`) giữ làm **bản mở rộng/dự phòng** nếu hội đồng muốn xem sâu thêm.
 >
@@ -24,8 +24,8 @@ related: [defense-demo-script.md, defense-speaker-script-20slide.md, KiteHub-bao
 
 | Đoạn | Thời lượng | Nội dung | Mục tiêu chứng minh |
 |---|:---:|---|---|
-| 0 | (trước demo) | Setup + dự phòng | Không gặp surprise giữa chừng |
-| 1 | 0:00 → 0:30 | Trang chủ thương hiệu riêng (anchor) | Phân giải Tenant → Domain → Landing chạy thật |
+| 0 | (trước demo) | Thiết lập + dự phòng | Không gặp bất ngờ giữa chừng |
+| 1 | 0:00 → 0:30 | Trang chủ thương hiệu riêng (điểm neo) | Phân giải Tenant → Domain → Landing chạy thật |
 | 2 | 0:30 → 2:15 | AI Branding — gói Miễn phí vs Trả phí | Đóng góp 2: tự động hóa nhận diện thương hiệu |
 | 3 | 2:15 → 4:30 | Cô lập đa-tenant — 2 tài khoản + probe chéo | Đóng góp 1: RLS ép buộc ở tầng database |
 | 4 | 4:30 → 5:00 | Audit log bất biến + chốt | PDPL Điều 11 + mời câu hỏi |
@@ -34,7 +34,7 @@ related: [defense-demo-script.md, defense-speaker-script-20slide.md, KiteHub-bao
 
 ---
 
-## Đoạn 0 — Setup (chuẩn bị trước, KHÔNG tính trong 5 phút demo)
+## Đoạn 0 — Thiết lập (chuẩn bị trước, KHÔNG tính trong 5 phút demo)
 
 ### Tiền điều kiện AWS production (T-1 ngày)
 
@@ -46,13 +46,13 @@ related: [defense-demo-script.md, defense-speaker-script-20slide.md, KiteHub-bao
 - [ ] **Seed 2 tenant demo** (tên giả định, KHÔNG dùng dữ liệu người thật):
   - **Tenant A — gói Miễn phí:** `Trung tâm Anh ngữ Sao Mai (giả định)` — chủ `Nguyễn Thị Lan (giả định)` — 1 lớp + 5 học viên (tên giả định), branding theo **mẫu dựng sẵn**.
   - **Tenant B — gói Trả phí:** `Trung tâm Hóa học Minh Trí (giả định)` — chủ `Trần Văn Đức (giả định)` — 1 lớp khác + 3 học viên khác, branding **sinh tự động qua AI** (chủ đề Hóa học, tông màu khác hẳn).
-- [ ] **Pre-generate AI Branding** cho Tenant B từ trước — tránh chờ 30-60 giây sinh ảnh live.
-- [ ] **Pre-load 3 tab trình duyệt** (đã đăng nhập sẵn, tránh gõ mật khẩu giữa demo):
+- [ ] **Sinh sẵn AI Branding** cho Tenant B từ trước — tránh chờ 30-60 giây sinh ảnh trực tiếp.
+- [ ] **Tải sẵn 3 tab trình duyệt** (đã đăng nhập sẵn, tránh gõ mật khẩu giữa demo):
   - Tab 1: `https://saomai.kitehub.me` (landing Tenant A) — hoặc subdomain tương ứng.
   - Tab 2: đăng nhập sẵn dashboard Tenant A.
   - Tab 3: đăng nhập sẵn dashboard Tenant B.
 - [ ] **Mạng dự phòng:** 4G tethering điện thoại (nếu Wi-Fi phòng cho phép).
-- [ ] **Backup recording** `backup-demo.mp4` sẵn sàng (xem cuối file) — phòng khi mạng/region trục trặc.
+- [ ] **Bản ghi dự phòng** `backup-demo.mp4` sẵn sàng (xem cuối file) — phòng khi mạng/region trục trặc.
 - [ ] **Deck mở sẵn** ở slide 20 (slide cầu nối demo).
 
 ### Câu chuyển từ slide 20 (deck) sang demo (≤15 giây)
@@ -88,7 +88,7 @@ Mở Tab 1 (landing thương hiệu riêng).
 **Thao tác:**
 - Đặt 2 cửa sổ cạnh nhau (hoặc 2 tab chuyển nhanh): landing Tenant A (Miễn phí, mẫu) và landing Tenant B (Trả phí, AI — chủ đề Hóa học).
 - Chỉ vào sự khác biệt: bố cục mẫu giống nhau (gói Miễn phí) vs bộ nhận diện riêng biệt theo chủ đề môn học (gói Trả phí).
-- (Tùy chọn, nếu muốn show pipeline) mở wizard onboarding bước AI Branding của một tenant mới: nhập tên brand + chọn tông + màu chủ đạo → hiển thị 3 asset đã pre-generate (logo + hero + banner).
+- (Tùy chọn, nếu muốn trình bày pipeline) mở wizard onboarding bước AI Branding của một tenant mới: nhập tên thương hiệu + chọn tông + màu chủ đạo → hiển thị 3 tài nguyên đã sinh sẵn (logo + hero + banner).
 
 **Văn nói (~105 giây):**
 
@@ -98,7 +98,7 @@ Mở Tab 1 (landing thương hiệu riêng).
 >
 > Về kỹ thuật, quy trình ưu tiên mẫu trước, chỉ gọi AI khi thực sự cần, để kiểm soát chi phí. Mỗi ảnh sinh ra phải qua hai cổng kiểm soát bắt buộc trước khi hiển thị: đạt tiêu chuẩn tương phản WCAG AA, và qua bộ phân loại an toàn nội dung. Nhờ vậy chủ trung tâm không cần biết thiết kế vẫn có một thương hiệu số riêng chỉ trong vài phút — đây là rào cản mà các hệ thống tham khảo trên thị trường hiện chưa giải quyết ở phân khúc giá thấp."
 
-**Hình ảnh nhấn:** 2 landing cạnh nhau (tương phản mẫu vs AI) + 3 asset trong wizard nếu show pipeline.
+**Hình ảnh nhấn:** 2 landing cạnh nhau (tương phản mẫu vs AI) + 3 tài nguyên trong wizard nếu trình bày pipeline.
 
 **Dự phòng:** nếu wizard lỗi giữa chừng → bỏ phần wizard, chỉ so sánh 2 landing đã có (đủ chứng minh kết quả); hoặc chuyển deck slide AI Branding mô tả pipeline lý thuyết.
 
@@ -132,7 +132,7 @@ Mở Tab 1 (landing thương hiệu riêng).
 
 **Thao tác:**
 - Mở DevTools → tab Network.
-- Đang ở phiên Tenant B, gửi một request thủ công: `GET /api/v1/students/{UUID-học-viên-của-Tenant-A}` với JWT của Tenant B.
+- Đang ở phiên Tenant B, gửi một yêu cầu thủ công: `GET /api/v1/students/{UUID-học-viên-của-Tenant-A}` với JWT của Tenant B.
 - Kết quả: `403 Forbidden` (hoặc `404 Not Found` tùy endpoint) — không trả dữ liệu.
 
 **Văn nói (~55 giây):**
@@ -143,7 +143,7 @@ Mở Tab 1 (landing thương hiệu riêng).
 
 **Hình ảnh nhấn:** request URL + JWT tenant B + response 403 trong Network tab.
 
-**Dự phòng:** nếu thao tác DevTools khó thực hiện trực tiếp trên màn chiếu → chuyển deck slide Defense-in-depth (5 lớp) + slide RLS, mô tả cơ chế bằng sơ đồ; hoặc dùng probe đã pre-record trong backup recording.
+**Dự phòng:** nếu thao tác DevTools khó thực hiện trực tiếp trên màn chiếu → chuyển deck slide Defense-in-depth (5 lớp) + slide RLS, mô tả cơ chế bằng sơ đồ; hoặc dùng probe đã thu sẵn trong bản ghi dự phòng.
 
 ---
 
@@ -165,35 +165,35 @@ Chuyển deck sang slide kết luận / Q&A.
 
 ---
 
-## Backup recording (dự phòng bắt buộc)
+## Bản ghi dự phòng (dự phòng bắt buộc)
 
-**Mục đích:** nếu live demo trục trặc (mạng, region AWS, lỗi bất ngờ), phát recording thay thế.
+**Mục đích:** nếu demo trực tiếp trục trặc (mạng, region AWS, lỗi bất ngờ), phát bản ghi thay thế.
 
-- **Quay:** OBS Studio, capture cửa sổ trình duyệt 1920×1080 + voiceover theo văn nói trên. Quay 1 lần tại **T-3 ngày**, đúng kịch bản 5 phút này.
-- **Output:** `backup-demo.mp4` (lưu local + Google Drive; KHÔNG commit file lớn vào repo).
-- **Khi nào chuyển sang backup:** mạng đứt > 30 giây / endpoint trả 5xx ≥ 2 lần / mất > 1 phút debug live.
+- **Quay:** OBS Studio, thu cửa sổ trình duyệt 1920×1080 + thuyết minh theo văn nói trên. Quay 1 lần tại **T-3 ngày**, đúng kịch bản 5 phút này.
+- **Tệp xuất:** `backup-demo.mp4` (lưu local + Google Drive; KHÔNG commit file lớn vào repo).
+- **Khi nào chuyển sang bản dự phòng:** mạng đứt > 30 giây / endpoint trả 5xx ≥ 2 lần / mất > 1 phút debug trực tiếp.
 - **Cách chuyển (bình tĩnh):** *"Em xin chuyển sang bản ghi demo vì lý do kỹ thuật — bản ghi mô tả chính xác các bước vừa rồi."* Mở `backup-demo.mp4` toàn màn hình, phát từ đoạn đang dở.
 
 ---
 
-## Checklist T-1 ngày trước bảo vệ
+## Danh sách kiểm tra T-1 ngày trước bảo vệ
 
 - [ ] `bash scripts/aws/start-stack.sh` — stack GREEN trên CloudWatch.
 - [ ] `curl -sI https://kitehub.me/` → 200; đăng nhập thử 2 tenant OK.
-- [ ] 2 tenant demo seed xong (tên giả định) — A mẫu, B AI pre-generated.
-- [ ] 3 tab pre-loaded (landing A + dashboard A + dashboard B), đã đăng nhập sẵn.
-- [ ] Backup recording test phát OK trên laptop sẽ dùng.
-- [ ] Adapter máy chiếu test với laptop.
-- [ ] Mạng dự phòng 4G test kết nối OK.
+- [ ] 2 tenant demo seed xong (tên giả định) — A mẫu, B AI sinh sẵn.
+- [ ] 3 tab tải sẵn (landing A + dashboard A + dashboard B), đã đăng nhập sẵn.
+- [ ] Bản ghi dự phòng thử phát OK trên laptop sẽ dùng.
+- [ ] Adapter máy chiếu thử với laptop.
+- [ ] Mạng dự phòng 4G thử kết nối OK.
 - [ ] Deck mở sẵn slide 20.
-- [ ] Q&A response sheet (`defense-qa-response-sheet.md`) in 1 bản giấy.
+- [ ] Tài liệu Q&A (`defense-qa-response-sheet.md`) in 1 bản giấy.
 
 ---
 
 ## Quan hệ với các tài liệu khác
 
 - **`defense-speaker-script-20slide.md`** — văn nói 22 slide; slide 20 là cầu nối sang demo này.
-- **`defense-demo-script.md`** — bản demo đầy đủ 15 phút (6 phase); dùng làm bản mở rộng nếu hội đồng muốn xem sâu, hoặc nguồn cho backup recording dài.
+- **`defense-demo-script.md`** — bản demo đầy đủ 15 phút (6 phase); dùng làm bản mở rộng nếu hội đồng muốn xem sâu, hoặc nguồn cho bản ghi dự phòng dài.
 - **`multi-tenant-demo-script.md`** — kịch bản chi tiết chứng minh cô lập RLS (mở rộng đoạn 3).
 - **`defense-qa-response-sheet.md`** — câu hỏi phản biện dự kiến.
 

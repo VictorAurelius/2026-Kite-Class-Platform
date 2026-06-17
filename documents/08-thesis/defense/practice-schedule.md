@@ -1,219 +1,219 @@
 ---
-title: Defense Practice Schedule — 2 buổi dry-run + pre-defense checklist
+title: Lịch tập bảo vệ — 2 buổi dry-run + danh sách kiểm tra trước bảo vệ
 chapter: defense
-audience: thesis
+audience: dev
 status: draft
 created: 2026-05-23
 last-reviewed: 2026-05-23
 ---
 
-# Defense Practice Schedule — 2 buổi dry-run pre-defense
+# Lịch tập bảo vệ — 2 buổi dry-run trước bảo vệ
 
-**Mục tiêu:** chuẩn bị tâm lý + timing + flow defense qua 2 buổi dry-run thực tế (T-3 tuần và T-2 tuần trước defense window), cộng pre-defense checklist T-1 ngày.
+**Mục tiêu:** chuẩn bị tâm lý + canh giờ + luồng bảo vệ qua 2 buổi dry-run thực tế (T-3 tuần và T-2 tuần trước cửa sổ bảo vệ), cộng danh sách kiểm tra trước bảo vệ T-1 ngày.
 
-**Defense window dự kiến:** 15/08/2026 → 15/10/2026 (per `thesis-info.md`).
+**Cửa sổ bảo vệ dự kiến:** 15/08/2026 → 15/10/2026 (theo `thesis-info.md`).
 
-Giả sử defense ngày cụ thể là **T-day**, lịch dry-run như sau:
+Giả sử ngày bảo vệ cụ thể là **T-day**, lịch dry-run như sau:
 
-| Buổi | Timing | Mục tiêu chính | Audience đề xuất |
+| Buổi | Thời điểm | Mục tiêu chính | Người tham gia đề xuất |
 |---|---|---|---|
-| **Buổi 1** | T-day − 3 tuần | Full deck + demo walkthrough + timing | GVHD (TS. Nguyễn Đức Dư) + 1 peer reviewer |
-| **Buổi 2** | T-day − 2 tuần | Q&A drill + tinh chỉnh slide sau Buổi 1 | 1 peer + tự record audio |
-| **Pre-defense check** | T-day − 1 ngày | Final checklist + logistics | Cá nhân |
+| **Buổi 1** | T-day − 3 tuần | Toàn bộ deck + đi qua demo + canh giờ | GVHD (TS. Nguyễn Đức Dư) + 1 người phản biện |
+| **Buổi 2** | T-day − 2 tuần | Luyện Q&A + tinh chỉnh slide sau Buổi 1 | 1 người phản biện + tự quay audio |
+| **Kiểm tra trước bảo vệ** | T-day − 1 ngày | Danh sách kiểm tra cuối + hậu cần | Cá nhân |
 
 ---
 
-## Buổi 1 — Full Deck + Demo Walkthrough (T-3 tuần)
+## Buổi 1 — Toàn bộ deck + đi qua demo (T-3 tuần)
 
-### Pre-Buổi 1 setup (1 tuần trước Buổi 1)
+### Chuẩn bị trước Buổi 1 (1 tuần trước Buổi 1)
 
-- [ ] Liên hệ GVHD đặt lịch — slot 90 phút cuối ngày trong tuần (Mon-Fri 16:00-18:00 ưu tiên)
-- [ ] Liên hệ 1 peer reviewer (đề xuất: bạn cùng lớp K63 ngành CNTT đã pass defense round trước, hoặc senior đã hỗ trợ debug code) — slot trùng GVHD
-- [ ] Gửi trước cho GVHD + peer reviewer:
-  - PDF Reveal.js deck (export qua `decktape` hoặc `chrome --headless --print-to-pdf`)
-  - Link repository GitHub (read-only mode cho reviewer ngoài team)
-  - Báo cáo chính bản PDF (latest version)
-- [ ] Đặt phòng họp UTC hoặc cafe phù hợp — có projector + Wi-Fi ổn định
+- [ ] Liên hệ GVHD đặt lịch — khung 90 phút cuối ngày trong tuần (Thứ 2-Thứ 6 16:00-18:00 ưu tiên)
+- [ ] Liên hệ 1 người phản biện (đề xuất: bạn cùng lớp K63 ngành CNTT đã qua vòng bảo vệ trước, hoặc đàn anh đã hỗ trợ debug code) — khung trùng GVHD
+- [ ] Gửi trước cho GVHD + người phản biện:
+  - Deck Reveal.js dạng PDF (xuất qua `decktape` hoặc `chrome --headless --print-to-pdf`)
+  - Link repository GitHub (chế độ chỉ-đọc cho người phản biện ngoài team)
+  - Báo cáo chính bản PDF (phiên bản mới nhất)
+- [ ] Đặt phòng họp UTC hoặc quán cafe phù hợp — có máy chiếu + Wi-Fi ổn định
 
-### Buổi 1 — Agenda chi tiết (90 phút)
+### Buổi 1 — Lịch trình chi tiết (90 phút)
 
-| Slot | Hoạt động | Thời lượng | Note |
+| Khung giờ | Hoạt động | Thời lượng | Ghi chú |
 |---|---|---|---|
-| 00:00-00:05 | Setup laptop + projector + Wi-Fi | 5 phút | Test slide deck + Reveal.js render Mermaid |
-| 00:05-00:35 | **Slide deck walkthrough** — 40 slide tiếng Việt | 30 phút | Time mỗi slide ≤ 45 giây, đo bằng đồng hồ bấm giây |
-| 00:35-00:50 | **Live demo 15 phút** theo `defense-demo-script.md` | 15 phút | Bám sát timing 6 phase |
-| 00:50-01:10 | **Feedback round 1** — GVHD + peer note | 20 phút | Take note bằng giấy + audio recording |
-| 01:10-01:30 | **Q&A drill light** — 5 câu random từ 20 Q&A sheet | 20 phút | Practice trả lời ≤ 30 giây/câu |
+| 00:00-00:05 | Chuẩn bị laptop + máy chiếu + Wi-Fi | 5 phút | Kiểm thử slide deck + Reveal.js render Mermaid |
+| 00:05-00:35 | **Đi qua slide deck** — 40 slide tiếng Việt | 30 phút | Canh mỗi slide ≤ 45 giây, đo bằng đồng hồ bấm giây |
+| 00:35-00:50 | **Demo trực tiếp 15 phút** theo `defense-demo-script.md` | 15 phút | Bám sát canh giờ 6 pha |
+| 00:50-01:10 | **Vòng phản hồi 1** — GVHD + người phản biện ghi chú | 20 phút | Ghi chú bằng giấy + quay audio |
+| 01:10-01:30 | **Luyện Q&A nhẹ** — 5 câu ngẫu nhiên từ 20 câu trong tờ Q&A | 20 phút | Luyện trả lời ≤ 30 giây/câu |
 
 ### Mục tiêu cụ thể Buổi 1
 
-1. **Timing realistic:** deck 30 phút + demo 15 phút = 45 phút tổng (Q&A defense thường thêm 15-20 phút sau). Nếu vượt 50 phút → phải cắt nội dung.
+1. **Canh giờ thực tế:** deck 30 phút + demo 15 phút = 45 phút tổng (Q&A bảo vệ thường thêm 15-20 phút sau). Nếu vượt 50 phút → phải cắt nội dung.
 
-2. **Identify slide nào dư thừa:** slide nào lặp lại nội dung slide khác → loại bỏ. Slide quá nặng text → reformat thành bullet ngắn.
+2. **Xác định slide nào dư thừa:** slide nào lặp lại nội dung slide khác → loại bỏ. Slide quá nặng chữ → định dạng lại thành gạch đầu dòng ngắn.
 
-3. **Demo fluency:** đi qua 6 phase mượt mà, không gặp surprise bug. Nếu Step nào bug → fix ngay trong tuần T-3 → T-2.
+3. **Trôi chảy khi demo:** đi qua 6 pha mượt mà, không gặp lỗi bất ngờ. Nếu Bước nào lỗi → fix ngay trong tuần T-3 → T-2.
 
-4. **Get honest feedback:** GVHD + peer phải critique thẳng thắn. Hỏi cụ thể:
+4. **Lấy phản hồi thẳng thắn:** GVHD + người phản biện phải nhận xét thẳng thắn. Hỏi cụ thể:
    - "Phần nào confusing nhất cho hội đồng không chuyên?"
    - "Slide nào em nói quá nhanh / quá chậm?"
    - "Demo bug nào em cần fix?"
    - "Câu Q&A nào em trả lời chưa convincing?"
 
-### Buổi 1 deliverables (post-meeting)
+### Sản phẩm bàn giao Buổi 1 (sau buổi họp)
 
-- [ ] List feedback đầy đủ (note + audio transcript)
-- [ ] Action plan T-3 → T-2: top 5 slide cần fix + top 3 demo step cần debug + top 5 Q&A response cần rewrite
-- [ ] Schedule Buổi 2 với 1 peer (không cần GVHD lần 2 trừ khi có concern major)
+- [ ] Danh sách phản hồi đầy đủ (ghi chú + bản gỡ băng audio)
+- [ ] Kế hoạch hành động T-3 → T-2: top 5 slide cần fix + top 3 bước demo cần debug + top 5 câu trả lời Q&A cần viết lại
+- [ ] Lên lịch Buổi 2 với 1 người phản biện (không cần GVHD lần 2 trừ khi có lo ngại lớn)
 
 ---
 
-## Buổi 2 — Q&A Drill + Polish (T-2 tuần)
+## Buổi 2 — Luyện Q&A + tinh chỉnh (T-2 tuần)
 
-### Pre-Buổi 2 setup (1 tuần sau Buổi 1)
+### Chuẩn bị trước Buổi 2 (1 tuần sau Buổi 1)
 
-- [ ] Apply feedback Buổi 1: fix slide + fix demo + rewrite Q&A response sheet
-- [ ] Liên hệ peer reviewer (cùng người Buổi 1 hoặc khác) — slot 60 phút
-- [ ] Chuẩn bị **20 câu Q&A từ `defense-qa-response-sheet.md`** + 5 câu bất ngờ (peer tự nghĩ thêm)
-- [ ] Setup môi trường: laptop + headphones + microphone để record audio Q&A drill
+- [ ] Áp dụng phản hồi Buổi 1: fix slide + fix demo + viết lại tờ trả lời Q&A
+- [ ] Liên hệ người phản biện (cùng người Buổi 1 hoặc khác) — khung 60 phút
+- [ ] Chuẩn bị **20 câu Q&A từ `defense-qa-response-sheet.md`** + 5 câu bất ngờ (người phản biện tự nghĩ thêm)
+- [ ] Chuẩn bị môi trường: laptop + tai nghe + microphone để quay audio luyện Q&A
 
-### Buổi 2 — Agenda chi tiết (60 phút)
+### Buổi 2 — Lịch trình chi tiết (60 phút)
 
-| Slot | Hoạt động | Thời lượng | Note |
+| Khung giờ | Hoạt động | Thời lượng | Ghi chú |
 |---|---|---|---|
-| 00:00-00:05 | Setup + audio record start | 5 phút | OBS Studio hoặc QuickTime audio-only |
-| 00:05-00:30 | **Q&A drill round 1** — 10 câu từ 4 archetype | 25 phút | Peer đọc câu, em trả lời ≤ 30 giây, peer time bằng đồng hồ |
-| 00:30-00:50 | **Q&A drill round 2** — 10 câu còn lại + 5 câu bất ngờ peer tự nghĩ | 20 phút | Đo timing + nhịp độ + sự tự tin |
-| 00:50-00:60 | **Self-review audio** — nghe lại + critique | 10 phút | Identify câu nào ngập ngừng / mơ hồ / sai evidence |
+| 00:00-00:05 | Chuẩn bị + bắt đầu quay audio | 5 phút | OBS Studio hoặc QuickTime chỉ-audio |
+| 00:05-00:30 | **Luyện Q&A vòng 1** — 10 câu từ 4 nhóm | 25 phút | Người phản biện đọc câu, em trả lời ≤ 30 giây, người phản biện canh giờ bằng đồng hồ |
+| 00:30-00:50 | **Luyện Q&A vòng 2** — 10 câu còn lại + 5 câu bất ngờ người phản biện tự nghĩ | 20 phút | Đo canh giờ + nhịp độ + sự tự tin |
+| 00:50-00:60 | **Tự đánh giá audio** — nghe lại + nhận xét | 10 phút | Xác định câu nào ngập ngừng / mơ hồ / sai bằng chứng |
 
 ### Mục tiêu cụ thể Buổi 2
 
-1. **Drill 20 Q&A × 3 lần:** mỗi câu trả lời được ≤ 30 giây cô đọng, cite evidence cụ thể.
+1. **Luyện 20 Q&A × 3 lần:** mỗi câu trả lời được ≤ 30 giây cô đọng, dẫn bằng chứng cụ thể.
 
-2. **Identify câu yếu nhất:** câu nào em trả lời ngập ngừng, mơ hồ, hoặc evidence sai → rewrite response sheet trước Buổi 3 nếu có.
+2. **Xác định câu yếu nhất:** câu nào em trả lời ngập ngừng, mơ hồ, hoặc bằng chứng sai → viết lại tờ trả lời trước Buổi 3 nếu có.
 
-3. **Stress test với câu bất ngờ:** 5 câu peer tự nghĩ kiểm tra khả năng ứng phó situation không chuẩn bị trước. Cần áp dụng template 4 phần trong `defense-qa-response-sheet.md` §Quy trình ứng phó.
+3. **Kiểm thử áp lực với câu bất ngờ:** 5 câu người phản biện tự nghĩ kiểm tra khả năng ứng phó tình huống không chuẩn bị trước. Cần áp dụng mẫu 4 phần trong `defense-qa-response-sheet.md` §Quy trình ứng phó.
 
-4. **Build confidence:** sau Buổi 2 em phải tự tin cho mọi câu trong 20 Q&A — không phải học thuộc, mà hiểu rõ evidence và có thể giải thích linh hoạt.
+4. **Xây dựng sự tự tin:** sau Buổi 2 em phải tự tin cho mọi câu trong 20 Q&A — không phải học thuộc, mà hiểu rõ bằng chứng và có thể giải thích linh hoạt.
 
-### Buổi 2 deliverables (post-meeting)
+### Sản phẩm bàn giao Buổi 2 (sau buổi họp)
 
-- [ ] Audio recording Q&A drill — playback trong tuần T-2 → T-1 vài lần để self-coach
-- [ ] Final response sheet update sau drill (commit changes vào repo)
-- [ ] Confidence rating self-assessment per archetype:
-  - Architecture: __/10
-  - NFR/Database: __/10
-  - Business/Compliance: __/10
-  - Process/Future: __/10
-- [ ] Nếu bất kỳ archetype < 7/10 → schedule mini-drill bổ sung trong tuần T-2 → T-1
+- [ ] Bản quay audio luyện Q&A — phát lại trong tuần T-2 → T-1 vài lần để tự rèn
+- [ ] Cập nhật tờ trả lời cuối sau khi luyện (commit thay đổi vào repo)
+- [ ] Tự đánh giá mức độ tự tin theo từng nhóm:
+  - Kiến trúc: __/10
+  - NFR/Cơ sở dữ liệu: __/10
+  - Nghiệp vụ/Tuân thủ: __/10
+  - Quy trình/Tương lai: __/10
+- [ ] Nếu bất kỳ nhóm nào < 7/10 → lên lịch buổi luyện nhỏ bổ sung trong tuần T-2 → T-1
 
 ---
 
-## Tuần T-2 → T-1 — Self-coaching
+## Tuần T-2 → T-1 — Tự rèn luyện
 
-Trong tuần này, không cần meeting external — focus self-coaching:
+Trong tuần này, không cần họp với người ngoài — tập trung tự rèn luyện:
 
 ### Hàng ngày (15-30 phút/ngày)
 
-- **Sáng:** đọc 1 archetype Q&A response sheet (5 câu) tiếng nhỏ, time mình bằng đồng hồ
-- **Chiều:** nghe lại audio recording Buổi 2 1 lần
-- **Tối:** review slide deck 1 lần — nhớ flow + transition
+- **Sáng:** đọc 1 nhóm trong tờ trả lời Q&A (5 câu) tiếng nhỏ, tự canh giờ bằng đồng hồ
+- **Chiều:** nghe lại bản quay audio Buổi 2 1 lần
+- **Tối:** xem lại slide deck 1 lần — nhớ luồng + chuyển cảnh
 
 ### Cuối tuần (60-90 phút)
 
-- **Thứ 7:** full deck + demo walkthrough trước gương / camera laptop — quay video xem lại
-- **Chủ nhật:** Q&A drill 20 câu solo (đặt câu hỏi cho mình + trả lời) + nghỉ ngơi
+- **Thứ 7:** toàn bộ deck + đi qua demo trước gương / camera laptop — quay video xem lại
+- **Chủ nhật:** luyện Q&A 20 câu một mình (đặt câu hỏi cho mình + trả lời) + nghỉ ngơi
 
-### Anti-patterns tránh trong tuần T-2 → T-1
+### Lỗi cần tránh trong tuần T-2 → T-1
 
-- ❌ Cố gắng thêm slide mới giờ chót — slide deck phải lock sau Buổi 2
-- ❌ Học thuộc Q&A như văn mẫu — phải hiểu evidence để trả lời linh hoạt
-- ❌ Stress eating / thiếu ngủ → ảnh hưởng performance defense day
-- ❌ Drill liên tục 4 giờ/ngày → burnout
+- ❌ Cố gắng thêm slide mới giờ chót — slide deck phải khóa sau Buổi 2
+- ❌ Học thuộc Q&A như văn mẫu — phải hiểu bằng chứng để trả lời linh hoạt
+- ❌ Ăn uống do căng thẳng / thiếu ngủ → ảnh hưởng phong độ ngày bảo vệ
+- ❌ Luyện liên tục 4 giờ/ngày → kiệt sức
 - ✅ Phân bổ 30 phút/ngày × 7 ngày > 4 giờ/ngày × 1-2 ngày
 
 ---
 
-## Pre-Defense Checklist (T-1 ngày)
+## Danh sách kiểm tra trước bảo vệ (T-1 ngày)
 
-### Logistics (sáng T-1)
+### Hậu cần (sáng T-1)
 
-- [ ] Confirm timing + phòng defense với khoa CNTT — gọi điện xác nhận lần cuối
-- [ ] Print 3 bản cứng báo cáo chính (cho 3 thành viên hội đồng thường gặp)
-- [ ] Print 1 bản cứng Q&A response sheet (backup khi quên evidence)
-- [ ] Print 1 bản cứng `defense-demo-script.md` (backup khi quên flow demo)
-- [ ] USB backup: báo cáo PDF + slide deck PDF + backup demo recording MP4
-- [ ] Mang theo: laptop chính + laptop dự phòng (nếu có) + sạc + chuột + adapter HDMI/USB-C
+- [ ] Xác nhận thời gian + phòng bảo vệ với khoa CNTT — gọi điện xác nhận lần cuối
+- [ ] In 3 bản cứng báo cáo chính (cho 3 thành viên hội đồng thường gặp)
+- [ ] In 1 bản cứng tờ trả lời Q&A (dự phòng khi quên bằng chứng)
+- [ ] In 1 bản cứng `defense-demo-script.md` (dự phòng khi quên luồng demo)
+- [ ] USB dự phòng: báo cáo PDF + slide deck PDF + bản ghi demo dự phòng MP4
+- [ ] Mang theo: laptop chính + laptop dự phòng (nếu có) + sạc + chuột + bộ chuyển đổi HDMI/USB-C
 
-### Technical (chiều T-1)
+### Kỹ thuật (chiều T-1)
 
-- [ ] Test slide deck trên laptop chính — full screen Reveal.js render OK
-- [ ] Test demo walkthrough end-to-end 1 lần — tất cả 6 phase fluent
-- [ ] Test backup recording play trên laptop chính
-- [ ] Verify production stack health all GREEN qua CloudWatch
-- [ ] Backup database snapshot pre-defense — phòng khi demo accidentally corrupt data
-- [ ] Charge laptop 100% + mang theo cable sạc
+- [ ] Kiểm thử slide deck trên laptop chính — toàn màn hình Reveal.js render OK
+- [ ] Kiểm thử đi qua demo end-to-end 1 lần — tất cả 6 pha trôi chảy
+- [ ] Kiểm thử phát bản ghi dự phòng trên laptop chính
+- [ ] Xác minh sức khỏe stack production toàn bộ GREEN qua CloudWatch
+- [ ] Sao lưu snapshot database trước bảo vệ — phòng khi demo vô tình làm hỏng dữ liệu
+- [ ] Sạc laptop 100% + mang theo cáp sạc
 
 ### Tâm lý (tối T-1)
 
 - [ ] Ăn nhẹ tối — không ăn quá no
 - [ ] Đi ngủ trước 22:30 — đảm bảo 7-8 giờ ngủ
-- [ ] Set alarm 6:30 sáng T-day
-- [ ] Chuẩn bị quần áo formal sẵn — sơ mi + quần tây + giày tây
-- [ ] KHÔNG drill thêm Q&A T-1 tối — relax xem phim / đọc sách nhẹ
+- [ ] Đặt báo thức 6:30 sáng T-day
+- [ ] Chuẩn bị quần áo trang trọng sẵn — sơ mi + quần tây + giày tây
+- [ ] KHÔNG luyện thêm Q&A tối T-1 — thư giãn xem phim / đọc sách nhẹ
 
 ---
 
-## Defense Day Checklist (T-day)
+## Danh sách kiểm tra ngày bảo vệ (T-day)
 
 ### Sáng T-day
 
 - [ ] Dậy 6:30 — ăn sáng đầy đủ (cơm/bún + protein)
-- [ ] Đến phòng defense **trước 30 phút** so với schedule
-- [ ] Setup laptop + projector + Wi-Fi tại phòng — test 1 lần
-- [ ] Mở browser tabs pre-loaded theo `defense-demo-script.md` §Phase 0 setup
-- [ ] Đặt giấy + bút note câu hỏi hội đồng
+- [ ] Đến phòng bảo vệ **trước 30 phút** so với lịch
+- [ ] Chuẩn bị laptop + máy chiếu + Wi-Fi tại phòng — kiểm thử 1 lần
+- [ ] Mở tab browser nạp sẵn theo `defense-demo-script.md` §Pha 0 chuẩn bị
+- [ ] Đặt giấy + bút ghi chú câu hỏi hội đồng
 - [ ] Uống nước, thư giãn 10 phút trước khi vào phòng
 
-### Trong defense (40-60 phút thường)
+### Trong buổi bảo vệ (40-60 phút thường)
 
-- [ ] **5 phút đầu** — present slide intro (slide 1-6) — tốc độ vừa, hơi chậm rãi vì hội đồng mới làm quen
-- [ ] **25 phút tiếp** — slide content (slide 7-38) — tốc độ chuẩn, 40-45 giây/slide
-- [ ] **15 phút demo** — theo `defense-demo-script.md` 6 phase
-- [ ] **Slide 39-40 + Q&A** — mời câu hỏi, áp dụng template `defense-qa-response-sheet.md`
-- [ ] Take note câu hỏi hội đồng bằng giấy — phòng khi quên detail
-- [ ] Nếu không biết câu → áp dụng "Em xin tiếp thu" template
+- [ ] **5 phút đầu** — trình bày slide intro (slide 1-6) — tốc độ vừa, hơi chậm rãi vì hội đồng mới làm quen
+- [ ] **25 phút tiếp** — nội dung slide (slide 7-38) — tốc độ chuẩn, 40-45 giây/slide
+- [ ] **15 phút demo** — theo `defense-demo-script.md` 6 pha
+- [ ] **Slide 39-40 + Q&A** — mời câu hỏi, áp dụng mẫu `defense-qa-response-sheet.md`
+- [ ] Ghi chú câu hỏi hội đồng bằng giấy — phòng khi quên chi tiết
+- [ ] Nếu không biết câu → áp dụng mẫu "Em xin tiếp thu"
 
-### Sau defense (T-day chiều/tối)
+### Sau buổi bảo vệ (T-day chiều/tối)
 
-- [ ] Cảm ơn hội đồng + GVHD bằng tin nhắn formal
-- [ ] Take note feedback hội đồng — bổ sung vào báo cáo final version nếu cần
-- [ ] Nghỉ ngơi — defense xong là milestone lớn, không cần code thêm gì tối nay
+- [ ] Cảm ơn hội đồng + GVHD bằng tin nhắn trang trọng
+- [ ] Ghi chú phản hồi hội đồng — bổ sung vào báo cáo phiên bản cuối nếu cần
+- [ ] Nghỉ ngơi — bảo vệ xong là cột mốc lớn, không cần code thêm gì tối nay
 
 ---
 
-## Contingency Plans
+## Phương án dự phòng
 
-### Nếu Buổi 1 fail (timing > 50 phút hoặc demo bug critical)
+### Nếu Buổi 1 lỗi (canh giờ > 50 phút hoặc demo lỗi nghiêm trọng)
 
-- Schedule **Buổi 1.5** tuần T-2.5 với chỉ GVHD (60 phút)
-- Focus: cắt nội dung dư thừa + fix demo bug
-- Push Buổi 2 lùi 3-4 ngày để có thời gian apply feedback
+- Lên lịch **Buổi 1.5** tuần T-2.5 với chỉ GVHD (60 phút)
+- Tập trung: cắt nội dung dư thừa + fix lỗi demo
+- Đẩy Buổi 2 lùi 3-4 ngày để có thời gian áp dụng phản hồi
 
-### Nếu defense window thay đổi (khoa đẩy sớm hoặc trễ)
+### Nếu cửa sổ bảo vệ thay đổi (khoa đẩy sớm hoặc trễ)
 
-- Đẩy sớm > 2 tuần: gộp Buổi 1 + Buổi 2 thành 1 buổi intensive 3 giờ
-- Đẩy trễ > 4 tuần: schedule thêm Buổi 3 polish vào T-1 tuần
+- Đẩy sớm > 2 tuần: gộp Buổi 1 + Buổi 2 thành 1 buổi cường độ cao 3 giờ
+- Đẩy trễ > 4 tuần: lên lịch thêm Buổi 3 tinh chỉnh vào T-1 tuần
 
-### Nếu GVHD bận / peer không available
+### Nếu GVHD bận / người phản biện không sẵn sàng
 
-- Buổi 1: thay GVHD bằng senior alumni đã pass defense + 1 peer
-- Buổi 2: thay peer bằng AI-driven mock interview (record voice + tự nghe lại)
+- Buổi 1: thay GVHD bằng cựu sinh viên đàn anh đã qua bảo vệ + 1 người phản biện
+- Buổi 2: thay người phản biện bằng phỏng vấn thử do AI dẫn (quay giọng + tự nghe lại)
 
-### Nếu defense day technical fail (laptop hỏng, projector không hoạt động)
+### Nếu ngày bảo vệ gặp sự cố kỹ thuật (laptop hỏng, máy chiếu không hoạt động)
 
-- Switch laptop dự phòng
-- Nếu projector hỏng → present trên màn hình laptop directly (zoom font size)
-- Nếu network hỏng → switch backup recording cho demo
+- Chuyển sang laptop dự phòng
+- Nếu máy chiếu hỏng → trình bày trực tiếp trên màn hình laptop (phóng to cỡ chữ)
+- Nếu mạng hỏng → chuyển sang bản ghi dự phòng cho demo
 
 ---
 
