@@ -10,7 +10,7 @@
 export const dynamic = 'force-dynamic';
 
 import { useState } from 'react';
-import { ArrowLeft, Download, Users, TrendingUp, TrendingDown, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Download, Users, TrendingUp, TrendingDown, CheckCircle, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import { DashboardLayout } from '@/components/layout';
 import { Button } from '@/components/ui/button';
@@ -23,6 +23,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuCheckboxItem,
+} from '@/components/ui/dropdown-menu';
+import {
   Table,
   TableBody,
   TableCell,
@@ -34,9 +42,14 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { useAllActiveClasses } from '@/hooks/use-classes';
 import { useAttendanceByClass } from '@/hooks/use-attendance';
-import { AttendanceStatusLabels } from '@/types/attendance';
 import type { Class } from '@/types/class';
 import { DynamicAttendanceCalendar } from '@/components/attendance';
+import {
+  exportAttendanceXlsx,
+  ATTENDANCE_CRITERION_ORDER,
+  ATTENDANCE_CRITERION_LABELS,
+  type AttendanceExportCriterion,
+} from '@/lib/attendance-export';
 
 export default function AttendanceReportsPage() {
   const { data: classes = [], error: classesError } = useAllActiveClasses();
@@ -90,39 +103,41 @@ export default function AttendanceReportsPage() {
       )
     : [];
 
-  // Export to CSV
-  const handleExport = () => {
+  // Selected export criteria (default: export all four sheets).
+  const [exportCriteria, setExportCriteria] = useState<Record<AttendanceExportCriterion, boolean>>({
+    detail: true,
+    session: true,
+    student: true,
+    summary: true,
+  });
+
+  const toggleCriterion = (criterion: AttendanceExportCriterion) =>
+    setExportCriteria((prev) => ({ ...prev, [criterion]: !prev[criterion] }));
+
+  const selectedCount = ATTENDANCE_CRITERION_ORDER.filter((c) => exportCriteria[c]).length;
+
+  const selectedClass = classes.find((c: Class) => c.id === selectedClassId);
+
+  // Export the selected criteria to a single XLSX workbook (one sheet per criterion).
+  const handleExportXlsx = () => {
     if (!attendanceData?.content || attendanceData.content.length === 0) {
       alert('Không có dữ liệu để xuất');
       return;
     }
-
-    const csvHeaders = [
-      'Học viên',
-      'Buổi học',
-      'Trạng thái',
-      'Ngày điểm danh',
-      'Ghi chú',
-      'Điểm',
-    ].join(',');
-
-    const csvRows = attendanceData.content.map((record) =>
-      [
-        `"${record.studentName}"`,
-        record.sessionNumber || '',
-        AttendanceStatusLabels[record.status],
-        new Date(record.markedDate).toLocaleDateString('vi-VN'),
-        `"${(record.notes || '').replace(/"/g, '""')}"`,
-        record.pointsAwarded,
-      ].join(',')
+    const criteria = ATTENDANCE_CRITERION_ORDER.filter((c) => exportCriteria[c]);
+    if (criteria.length === 0) {
+      alert('Vui lòng chọn ít nhất một nội dung để xuất');
+      return;
+    }
+    exportAttendanceXlsx(
+      {
+        className: selectedClass?.name ?? 'lop',
+        records: attendanceData.content,
+        stats,
+        studentStats,
+      },
+      criteria,
     );
-
-    const csv = [csvHeaders, ...csvRows].join('\n');
-    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `bao-cao-diem-danh-${new Date().toISOString().split('T')[0]}.csv`;
-    link.click();
   };
 
   return (
@@ -143,10 +158,41 @@ export default function AttendanceReportsPage() {
               </p>
             </div>
           </div>
-          <Button onClick={handleExport} disabled={!selectedClassId || stats.total === 0}>
-            <Download className="mr-2 h-4 w-4" />
-            Xuất CSV
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={handleExportXlsx}
+              disabled={!selectedClassId || stats.total === 0 || selectedCount === 0}
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Xuất Excel ({selectedCount})
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  disabled={!selectedClassId || stats.total === 0}
+                  aria-label="Chọn nội dung xuất"
+                >
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>Chọn nội dung xuất</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {ATTENDANCE_CRITERION_ORDER.map((criterion) => (
+                  <DropdownMenuCheckboxItem
+                    key={criterion}
+                    checked={exportCriteria[criterion]}
+                    onCheckedChange={() => toggleCriterion(criterion)}
+                    onSelect={(e) => e.preventDefault()}
+                  >
+                    {ATTENDANCE_CRITERION_LABELS[criterion]}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
 
         {/* Error State */}
