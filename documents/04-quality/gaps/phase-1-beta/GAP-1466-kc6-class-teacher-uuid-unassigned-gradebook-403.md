@@ -1,10 +1,17 @@
 # GAP-1466: KC-6 teacher gradebook 403 — class.teacher_id (actor UUID) chưa gán → owning teacher bị deny enrollments/class
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (seed-side FIXED + verified; product residual OPEN)
 **Priority:** 🟡 P2
 **Domain:** Backend
 **Found:** 2026-06-16 (Flow Verification Campaign — agent-G1 walk KC-6 grade trên g2walk)
 **Affects:** Walk seed (`kitehub/scripts/seed-walk-tenant.sh`) + KC-6 grade flow + class-create teacher assignment
+
+## Fix progress (2026-06-16)
+
+Root cause confirmed empirically: `ClassServiceImpl` (GAP-727) gán `classes.teacher_id = CALLER's actor-UUID` lúc create; `UpdateClassRequest` KHÔNG có `teacherId`, KHÔNG có assign-teacher endpoint → teacher_id = creator vĩnh viễn. Model = **teacher tự tạo class của mình**.
+
+- ✅ **Seed-side FIXED** (this PR): `seed-walk-tenant.sh` extend — class giờ do TEACHER tạo (teacher JWT) → `class.teacher_id` = teacher actor-UUID. Verified: teacher tạo class#26 → `GET /api/v1/enrollments/class/26` → **200** (hết 403). Teacher login (`POST /teachers/{id}/credentials`) + parent invite→redeem cũng folded vào committed seed.
+- 🔵 **Product residual OPEN:** nếu workflow thật = "owner/admin tạo courses+classes, teachers được assign" thì KHÔNG có đường gán teacher cho owner-created class → escalate **P1** + cần `PATCH teacherId` hoặc assign-teacher endpoint. Cần xác nhận intended model (owner-creates vs teacher-creates) qua human G2★ / product decision.
 
 ## Problem
 
