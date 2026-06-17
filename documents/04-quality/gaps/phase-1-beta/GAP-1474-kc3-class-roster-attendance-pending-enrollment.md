@@ -1,6 +1,6 @@
 # GAP-1474: KC-3 — Owner không xem được danh sách học sinh trong lớp + điểm danh không fetch (enrollment PENDING_PAYMENT)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (80% — code shipped wave-flow-kc3, pending human G2 re-walk per `feature-ship-runtime-walk-mandate.md`)
 **Priority:** 🟠 P2
 **Domain:** Frontend+Backend+Seed
 **Found:** 2026-06-17 (KC-3 G2 walk — class detail "Generic H2 (Embedded)")
@@ -39,9 +39,19 @@ Vào điểm danh → danh sách học sinh trống. Root cause (đã verify):
 - [ ] Sĩ số và roster điểm danh nhất quán (hoặc tách rõ ACTIVE vs chờ thanh toán).
 - [ ] Human G2 re-walk KC-3 xác nhận xem roster + điểm danh có học sinh.
 
+## Fix shipped (wave-flow-kc3, branch `docs/gap-1474-kc3-roster-attendance` — PR #2469)
+
+- **A:** `components/enrollment/class-roster-section.tsx` (mới) — card "Danh sách học sinh" trong chi tiết lớp, list mọi enrollment + badge trạng thái (Đang học / Chờ thanh toán / …). Tên resolve client-side từ `useStudents` (roster endpoint chỉ trả `studentId`). Có loading / empty ("Lớp chưa có học sinh nào") / error states.
+- **B:** `attendance/page.tsx` + `attendance-form-list.tsx` — khi roster ACTIVE-only trống nhưng có enrollment PENDING_PAYMENT → empty-state giải thích "N học sinh đang chờ xác nhận thanh toán…" thay vì im lặng. BR-ATTEND-001 GIỮ NGUYÊN (attendance vẫn ACTIVE-only). Cũng resolve `studentName` cho hàng điểm danh từ `useStudents`.
+- **C:** `kitehub/scripts/seed-walk-tenant.sh` — sau enroll, `PUT /api/v1/enrollments/{id}/status` `{status:ACTIVE}` cho mọi enrollment chưa ACTIVE (idempotent, owner=ROLE_OWNER bypass) → walk có ≥1 ACTIVE → điểm danh có học sinh.
+- BE: **KHÔNG đổi** (endpoint + DTO đã có sẵn). Sister surface gradebook (tên trống do `EnrollmentResponse` thiếu `studentName`) → DEFER **GAP-1475** (root fix BE enrichment).
+- Verify: FE `pnpm build` + lint + 7 test mới PASS; 188 affected test PASS; seed `shellcheck --severity=warning` clean.
+- Còn lại 20%: **human G2 re-walk KC-3** xác nhận xem roster + điểm danh có học sinh.
+
 ## Related
 
 - Discovered in: KC-3 G2 walk 2026-06-17 (class 27 `Generic H2 (Embedded)`, tenant d1d3e28e, enrollment 109 PENDING_PAYMENT)
+- Sister (DEFER from cross-flow sweep): GAP-1475 (teacher gradebook blank studentName — BE EnrollmentResponse enrichment)
 - BR-ATTEND-001 (attendance requires ACTIVE enrollment) — `kiteclass-core/.../module/attendance`
 - Seed: `kitehub/scripts/seed-walk-tenant.sh:120`
 - Rule: `walk-data-committed-seed.md` (seed phải reproducible + usable baseline)

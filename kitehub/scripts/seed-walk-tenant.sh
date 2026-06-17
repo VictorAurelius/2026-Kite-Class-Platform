@@ -120,7 +120,22 @@ for sid in $SIDS; do
   R=$(post /api/v1/enrollments "{\"studentId\":$sid,\"classId\":$CLID,\"tuitionAmount\":1200000}")
   [ "$(echo "$R"|tail -1)" = "201" ] && EN=$((EN+1))
 done
-ok "students: $NEW mới | enroll: $EN mới (class $CLID)"
+# GAP-1474: confirm payment → activate enrollments so the attendance roster
+# (ACTIVE-only per BR-ATTEND-001) has students. Idempotent: re-fetch class
+# enrollments + PUT status=ACTIVE for any not already ACTIVE (owner = ROLE_OWNER
+# → tenant-admin bypass on the per-class authz guard). POST defaults to
+# PENDING_PAYMENT, so without this step every walk attendance is empty.
+ACT=0
+PENDING_EIDS=$(getj "/api/v1/enrollments/class/$CLID?page=0&size=100" | python3 -c "
+import sys,json
+d=json.load(sys.stdin); c=d.get('data',{}); c=c.get('content',c) if isinstance(c,dict) else c
+print(' '.join(str(e['id']) for e in c if e.get('status')!='ACTIVE'))" 2>/dev/null)
+for eid in $PENDING_EIDS; do
+  RC=$(curl -s -o /dev/null -w "%{http_code}" "${H[@]}" -X PUT "$GATEWAY/api/v1/enrollments/$eid/status" \
+    -d '{"status":"ACTIVE","notes":"Walk seed: payment confirmed (GAP-1474)"}')
+  [ "$RC" = "200" ] && ACT=$((ACT+1))
+done
+ok "students: $NEW mới | enroll: $EN mới | kích hoạt: $ACT ACTIVE (class $CLID)"
 
 # 8. Parent (idempotent — skip nếu parent login đã OK). invite (owner gateway) → redeem (direct-core; gateway strips X-Tenant-Id on public route)
 echo -e "${yellow}[8/8] Parent (invite→redeem)${nc}"
@@ -140,6 +155,7 @@ fi
 
 echo "=============================================="
 echo -e "${green}✓ Walk baseline ready${nc} — tenant=$SUBDOMAIN teacher=$TID course=$CID class=$CLID"
+echo "  điểm danh: $ACT enrollment ACTIVE → roster điểm danh có học sinh (GAP-1474)"
 echo "  KC owner   : http://$SUBDOMAIN.127.0.0.1.nip.io:3000 ($EMAIL / $PASS)"
 echo "  KC teacher : .../teacher/grades/$CLID ($TEACHER_EMAIL / $TEACHER_PASS) — KC-6"
 echo "  KC parent  : .../parent ($PARENT_EMAIL / $PARENT_PASS) — KC-8"
