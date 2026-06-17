@@ -89,6 +89,28 @@ print(c[0]['id'] if c else '')" 2>/dev/null)
           WHERE id=$CLID AND instance_id='$IID';" >/dev/null
   ok "class dates/tuition/status set (IN_PROGRESS, học phí ${TUITION}đ)"
 
+  # 3.5 Publish courses → hiện trong catalog công khai (publicApi.getCourses lọc PUBLISHED only,
+  #     per GAP-958 data-honesty). Seed tạo course để DRAFT → catalog rỗng. Publish yêu cầu
+  #     syllabus + objectives + durationWeeks>0 (CourseServiceImpl.validatePublishRequirements);
+  #     set VN-default nếu null (SQL) rồi publish qua API (production-accurate state transition).
+  psql_q "UPDATE courses SET
+            syllabus = COALESCE(NULLIF(syllabus,''), 'Nội dung khóa học theo lộ trình giảng dạy của giảng viên.'),
+            objectives = COALESCE(NULLIF(objectives,''), 'Trang bị kiến thức nền tảng và kỹ năng theo chương trình.'),
+            duration_weeks = COALESCE(NULLIF(duration_weeks,0), 12)
+          WHERE instance_id='$IID' AND deleted=false;" >/dev/null
+  local CIDS_DRAFT PUB=0
+  CIDS_DRAFT=$(curl -s "${H[@]}" "$GATEWAY/api/v1/courses?status=DRAFT&page=0&size=100" | python3 -c "
+import sys,json
+d=json.load(sys.stdin); c=d.get('data',{}); c=c.get('content',c) if isinstance(c,dict) else c
+print(' '.join(str(x['id']) for x in c))" 2>/dev/null)
+  for cid in $CIDS_DRAFT; do
+    rc=$(curl -s -o /dev/null -w "%{http_code}" "${H[@]}" -X POST "$GATEWAY/api/v1/courses/$cid/publish")
+    [ "$rc" = "200" ] && PUB=$((PUB+1))
+  done
+  local PUBN
+  PUBN=$(curl -s "${H[@]}" "$GATEWAY/api/v1/courses?status=PUBLISHED&page=0&size=100" | python3 -c "import sys,json;d=json.load(sys.stdin);print(d.get('data',{}).get('totalElements','?'))" 2>/dev/null)
+  ok "publish course: $PUB mới | tổng PUBLISHED=$PUBN (catalog công khai)"
+
   # 4. Enroll tất cả HS (idempotent 409 skip) → auto-tạo enrollment + invoice + grade skeleton
   local SIDS NEW=0
   SIDS=$(curl -s "${H[@]}" "$GATEWAY/api/v1/students?page=0&size=300" | python3 -c "
