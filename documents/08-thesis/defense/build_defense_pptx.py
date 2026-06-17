@@ -302,53 +302,60 @@ notes(s, "Bài trình bày bắt đầu thẳng từ bài toán và cách giải
          "kết luận. (~20 giây)")
 
 # ═══ 3. Bài toán ═══
-s = content_slide("Bài toán (§1.1)")
+s = content_slide("Bài toán — thị trường bùng nổ nhưng vẫn quản lý bằng tay")
 bullets(s, [
-    ("Vấn đề cốt lõi:", 0, True, RED),
-    ("Hàng chục nghìn trung tâm dạy thêm vừa và nhỏ tại Việt Nam vẫn quản lý bằng Excel và nhóm Zalo — thiếu một nền tảng số đúng nhu cầu", 1, False, None),
-    ("Thiếu thương hiệu số (logo, trang chủ riêng) vì thuê thiết kế tốn kém và mất thời gian", 1, False, None),
-    ("Phần mềm quản lý hiện có hoặc quá đắt, hoặc quá phức tạp, hoặc thiếu trải nghiệm tiếng Việt", 1, False, None),
-    ("Ba yếu tố thị trường hội tụ thúc đẩy đề tài:", 0, True, NAVY),
-    ("Nhu cầu: Thông tư 29/2024 hợp pháp hóa dạy thêm có thu phí; hơn 50.000 trung tâm tư nhân đang hoạt động", 1, False, None),
-    ("Mốc pháp lý cứng: Luật Bảo vệ dữ liệu cá nhân 2023 hiệu lực 07/2026", 1, False, None),
-    ("AI trưởng thành: API thương mại cho phép tự động hóa nhận diện thương hiệu chi phí thấp", 1, False, None),
-], top=1.8, base=16)
-caption(s, "Nguồn: Magenest EdTech 2024; 6Wresearch 2024–2030; VECITA 2024.", top=6.5)
-notes(s, "Bài toán cốt lõi: hàng chục nghìn trung tâm dạy thêm vừa và nhỏ tại "
-         "Việt Nam vẫn quản lý thủ công bằng Excel và nhóm Zalo, thiếu một nền "
-         "tảng số đúng nhu cầu, thiếu thương hiệu số giá rẻ, trong khi phần mềm "
-         "hiện có hoặc quá đắt, hoặc quá phức tạp, hoặc thiếu trải nghiệm tiếng "
-         "Việt. Ba yếu tố thị trường hội tụ thúc đẩy đề tài: nhu cầu lớn sau "
-         "Thông tư 29, mốc pháp lý cứng của Luật Bảo vệ dữ liệu cá nhân, và công "
-         "nghệ AI vừa đủ chín. (~60 giây)")
+    ("Thị trường bùng nổ:", 0, True, NAVY),
+    ("Hơn 50.000 trung tâm dạy thêm sau Thông tư 29/2024 chính thức hóa (Magenest 2024)", 1, False, None),
+    ("Phụ huynh chi 15–20% thu nhập hộ gia đình cho học thêm (6Wresearch)", 1, False, None),
+    ("Hơn 90% phụ huynh đô thị dùng Zalo làm kênh chính (Kinh tế Số Việt Nam 2024)", 1, False, None),
+    ("Nhưng nghịch lý — vẫn thủ công:", 0, True, RED),
+    ("Trung tâm nhỏ và vừa (1–3 chi nhánh, dưới 500 học viên) quản lý bằng Excel + nhóm Zalo + sổ ghi tay", 1, False, None),
+    ("Vì phần mềm hiện có đều lệch:", 0, True, NAVY),
+    ("Quá phức tạp — MISA EMIS, Cyber School hướng trường công K-12", 1, False, None),
+    ("Thiếu trải nghiệm tiếng Việt — Moodle, Canvas (LMS quốc tế)", 1, False, None),
+    ("Quá đắt — 50–100 USD/tháng (Speed Manager, EduCom); trung tâm mới còn chưa có thương hiệu số, phải thuê thiết kế", 1, False, None),
+    ("Khoảng trống: chưa có nền tảng vừa rẻ + đúng nghiệp vụ dạy-thêm + tiếng Việt + tự tạo thương hiệu cho phân khúc nhỏ-vừa", 0, True, RED),
+], top=1.5, base=15)
+caption(s, "Nguồn: Magenest EdTech 2024; 6Wresearch 2024–2030; Kinh tế Số Việt Nam 2024 (VECITA).", top=6.7)
+notes(s, "Em xin mở đầu bằng bài toán, và đây là một nghịch lý. Thị trường quản lý "
+         "trung tâm dạy thêm đang bùng nổ: hơn năm mươi nghìn trung tâm sau khi "
+         "Thông tư 29 năm 2024 chính thức hóa dạy thêm có thu phí; phụ huynh chi "
+         "mười lăm đến hai mươi phần trăm thu nhập cho học thêm; hơn chín mươi "
+         "phần trăm phụ huynh đô thị dùng Zalo làm kênh chính. Nhưng phần lớn "
+         "trung tâm nhỏ và vừa vẫn quản lý bằng Excel, nhóm Zalo, thậm chí sổ ghi "
+         "tay. Lý do: phần mềm hiện có hoặc quá phức tạp vì hướng trường công, "
+         "hoặc thiếu trải nghiệm tiếng Việt vì là sản phẩm quốc tế, hoặc quá đắt; "
+         "chưa kể trung tâm mới còn chưa có thương hiệu số. Đó chính là khoảng "
+         "trống đề tài hướng tới: một nền tảng vừa rẻ, vừa đúng nghiệp vụ dạy "
+         "thêm, vừa thuần Việt, vừa tự tạo thương hiệu. (~70 giây)")
 
 # ═══ 4. Cách giải quyết — tổng quan ═══
-s = content_slide("Cách giải quyết — bốn trụ cột (tổng quan)")
-tb = s.shapes.add_textbox(Inches(0.75), Inches(1.55), Inches(11.9), Inches(0.55))
+s = content_slide("Giải pháp — KiteHub: SaaS đa-tenant + AI cho trung tâm dạy thêm")
+tb = s.shapes.add_textbox(Inches(0.75), Inches(1.5), Inches(11.9), Inches(0.7))
 tb.text_frame.word_wrap = True
 _pr = tb.text_frame.paragraphs[0].add_run()
-_pr.text = "Hệ thống giải bài toán trên bằng bốn trụ cột, mỗi trụ đáp đúng một khía cạnh:"
-_pr.font.size = Pt(17); _pr.font.bold = True; _pr.font.color.rgb = NAVY
+_pr.text = "Mỗi trung tâm có hệ thống quản lý VÀ thương hiệu số riêng — giá thấp, đúng nghiệp vụ Việt, đúng luật. Bốn trụ, mỗi trụ trị đúng một đau điểm:"
+_pr.font.size = Pt(16); _pr.font.bold = True; _pr.font.color.rgb = NAVY
 bullets(s, [
-    ("Nền tảng SaaS đa-tenant chia sẻ hạ tầng (PostgreSQL RLS, mô hình Pool)", 0, True, NAVY),
-    ("Chi phí thấp — giải bài toán phần mềm hiện có quá đắt", 1, False, None),
-    ("Tự động hóa nhận diện thương hiệu bằng AI (AI Branding)", 0, True, NAVY),
-    ("Có thương hiệu số mà không cần thuê thiết kế — giải bài toán thiếu thương hiệu giá rẻ", 1, False, None),
-    ("Tuân thủ pháp luật VN theo thiết kế (PDPL 2023, An ninh mạng, Thông tư 78)", 0, True, NAVY),
-    ("Tin cậy ngay từ kiến trúc, không vá lại về sau", 1, False, None),
-    ("Phương pháp luận hướng chất lượng (đánh giá /100, kiểm thử nhiều tầng)", 0, True, NAVY),
-    ("Đảm bảo chất lượng dù phát triển một mình", 1, False, None),
-], top=2.2, base=17)
-notes(s, "Để giải bài toán trên, hệ thống được dựng quanh bốn trụ cột, mỗi trụ "
-         "đáp đúng một khía cạnh của vấn đề. Trụ thứ nhất là nền tảng SaaS đa "
-         "người thuê chia sẻ hạ tầng, dùng PostgreSQL Row-Level Security theo mô "
-         "hình Pool, giúp chi phí thấp để giải bài toán phần mềm hiện có quá đắt. "
-         "Trụ thứ hai là tự động hóa nhận diện thương hiệu bằng AI, cho phép một "
-         "trung tâm có thương hiệu số mà không cần thuê thiết kế. Trụ thứ ba là "
-         "tuân thủ pháp luật Việt Nam ngay từ thiết kế, tạo niềm tin từ kiến "
-         "trúc. Trụ thứ tư là phương pháp luận hướng chất lượng, bảo đảm chất "
-         "lượng dù phát triển một mình. Bốn trụ này là mạch xuyên suốt phần còn "
-         "lại của bài trình bày. (~60 giây)")
+    ("Nền tảng SaaS đa-tenant chia sẻ hạ tầng — một hạ tầng phục vụ hàng trăm trung tâm", 0, True, NAVY),
+    ("Trị 'quá đắt': chi phí thấp nhất phân khúc; mở 1 → N chi nhánh không thiết kế lại", 1, False, None),
+    ("Tự động hóa nhận diện thương hiệu bằng AI — sinh logo/banner/bộ nhận diện từ mô tả ngắn", 0, True, NAVY),
+    ("Trị 'thiếu thương hiệu số': từ vài tuần xuống vài ngày, khỏi thuê thiết kế", 1, False, None),
+    ("Đúng nghiệp vụ + tiếng Việt + tuân thủ pháp luật VN (PDPL 2023 / An ninh mạng / Thông tư 78)", 0, True, NAVY),
+    ("Trị 'phức tạp / thiếu UX Việt': đúng nghiệp vụ dạy-thêm, thuần Việt, đúng luật từ thiết kế", 1, False, None),
+    ("Phát triển hướng chất lượng (TDD · DDD · PDCA)", 0, True, NAVY),
+    ("Đảm bảo tin cậy dù phát triển một mình", 1, False, None),
+], top=2.25, base=16)
+notes(s, "Bốn trụ giải pháp không phải tính năng rời rạc — mỗi trụ đáp đúng một "
+         "lý do khiến trung tâm hiện chưa số hóa được. Trụ một, nền tảng SaaS đa "
+         "người thuê chia sẻ hạ tầng, trị đúng cái quá đắt: một hạ tầng phục vụ "
+         "hàng trăm trung tâm, mở từ một lên nhiều chi nhánh không cần thiết kế "
+         "lại. Trụ hai, AI Branding, trị cái không có thương hiệu số: sinh bộ "
+         "nhận diện từ một mô tả ngắn, rút từ vài tuần xuống vài ngày. Trụ ba, "
+         "đúng nghiệp vụ dạy thêm cộng tiếng Việt cộng tuân thủ pháp luật, trị "
+         "cái phức tạp và thiếu trải nghiệm Việt. Trụ bốn, phương pháp luận "
+         "hướng chất lượng, bảo đảm tin cậy dù phát triển một mình. Đây là mạch "
+         "xuyên suốt phần còn lại của bài trình bày. (~70 giây)")
 
 # ═══ 5. Khảo sát (ảnh grid) ═══
 s = content_slide("Khảo sát hệ thống tương tự (§1.2)")
