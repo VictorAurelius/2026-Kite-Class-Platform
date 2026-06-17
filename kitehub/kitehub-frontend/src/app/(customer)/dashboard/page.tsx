@@ -55,11 +55,9 @@ interface SubscriptionHealth {
   activeInstances: number;
   /** Total instances under owner (active + suspended + expired). */
   totalInstances: number;
-  /** Stub 7-day sparkline series — to be replaced by real telemetry. */
+  /** Real instances 7-day series (flat = current count; no fabricated trend). */
   series: {
-    activeClasses: number[];
     instances: number[];
-    apiCalls: number[];
   };
 }
 
@@ -76,14 +74,14 @@ function buildHealthSnapshot(instances: Instance[] | undefined): SubscriptionHea
     subscriptionExpiresAt: primary?.subscriptionExpiresAt ?? null,
     activeInstances,
     totalInstances: list.length,
-    // TODO(GAP-1394): pending BE GET /api/subscription/health — replace these
-    // stub sparkline series with real usage telemetry. tier/trialDaysLeft/
-    // instances above are REAL (from the instances API); only these 7-day
-    // series are placeholders until the telemetry endpoint ships.
+    // TODO(GAP-1394): pending BE GET /api/subscription/health — usage telemetry
+    // (active classes, API-call series, brand-regen quota) has no backend yet.
+    // tier/trialDaysLeft/instances above are REAL (from the instances API). We
+    // no longer fabricate class/API numbers + deltas; those KPIs render an
+    // honest "Sắp có" state until the telemetry endpoint ships (anti-fabrication,
+    // cf. GAP-1205).
     series: {
-      activeClasses: [42, 48, 51, 47, 55, 58, 62],
-      instances: [list.length, list.length, list.length, list.length, list.length, list.length, list.length],
-      apiCalls: [820, 920, 1100, 980, 1240, 1420, 1620],
+      instances: Array.from({ length: 7 }, () => list.length),
     },
   };
 }
@@ -95,9 +93,6 @@ function buildKpis(health: SubscriptionHealth): KPIData[] {
       : health.trialDaysLeft != null && health.trialDaysLeft <= 3
         ? 'warning'
         : 'neutral';
-
-  const lastClasses = health.series.activeClasses[health.series.activeClasses.length - 1] ?? 0;
-  const lastApi = health.series.apiCalls[health.series.apiCalls.length - 1] ?? 0;
 
   return [
     {
@@ -125,25 +120,24 @@ function buildKpis(health: SubscriptionHealth): KPIData[] {
       icon: <Server className="h-4 w-4" />,
       sparkline: health.series.instances,
     },
+    // TODO(GAP-1394): real values pending BE GET /api/subscription/health.
+    // Honest "Sắp có" placeholder — no fabricated number/delta/sparkline
+    // (anti-fabrication, cf. GAP-1205) until usage telemetry ships.
     {
       label: 'Lớp đang vận hành',
-      value: String(lastClasses),
-      delta: 8.2,
-      tone: 'positive',
+      value: 'Sắp có',
+      tone: 'neutral',
       icon: <Users className="h-4 w-4" />,
-      sparkline: health.series.activeClasses,
     },
     {
       label: 'Lượt gọi API · 7 ngày',
-      value: String(lastApi),
-      delta: 24.4,
-      tone: 'positive',
+      value: 'Sắp có',
+      tone: 'neutral',
       icon: <Zap className="h-4 w-4" />,
-      sparkline: health.series.apiCalls,
     },
     {
       label: 'Quota làm lại brand',
-      value: '7/10',
+      value: 'Sắp có',
       tone: 'neutral',
       icon: <RefreshCw className="h-4 w-4" />,
     },
