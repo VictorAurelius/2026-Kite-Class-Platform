@@ -14,6 +14,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { apiClient } from '@/lib/api-client';
 import { attendanceApi } from '../attendance';
 import type { Attendance, AttendanceStatsResponse } from '@/types/attendance';
+import { AttendanceStatus } from '@/types/attendance';
 import type { PaginatedResponse } from '@/types/api';
 
 vi.mock('@/lib/api-client', () => ({
@@ -31,7 +32,7 @@ const sampleRecord: Attendance = {
   studentName: 'Trần Thị Hồng',
   sessionId: 27,
   sessionNumber: 3,
-  status: 'PRESENT',
+  status: AttendanceStatus.PRESENT,
   markedDate: '2026-09-05T07:05:00',
   markedBy: 404,
   markedByName: 'Cô Mai',
@@ -119,13 +120,13 @@ describe('attendanceApi — unwrapped envelope (GAP-1477)', () => {
     const result = await attendanceApi.markAttendance({
       enrollmentId: 109,
       sessionId: 27,
-      status: 'PRESENT',
+      status: AttendanceStatus.PRESENT,
     });
 
     expect(apiClient.post).toHaveBeenCalledWith('/api/v1/attendance', {
       enrollmentId: 109,
       sessionId: 27,
-      status: 'PRESENT',
+      status: AttendanceStatus.PRESENT,
     });
     expect(result.id).toBe(802);
   });
@@ -135,27 +136,27 @@ describe('attendanceApi — unwrapped envelope (GAP-1477)', () => {
 
     const result = await attendanceApi.markBulkAttendance(27, {
       sessionId: 27,
-      records: [{ enrollmentId: 109, status: 'PRESENT' }],
+      records: [{ enrollmentId: 109, status: AttendanceStatus.PRESENT }],
     });
 
     expect(apiClient.post).toHaveBeenCalledWith(
       '/api/v1/attendance/classes/27/sessions/27/attendance',
-      { sessionId: 27, records: [{ enrollmentId: 109, status: 'PRESENT' }] },
+      { sessionId: 27, records: [{ enrollmentId: 109, status: AttendanceStatus.PRESENT }] },
     );
     expect(result).toEqual([sampleRecord]);
   });
 
   it('updateAttendanceStatus returns the unwrapped updated record', async () => {
     vi.mocked(apiClient.patch).mockResolvedValueOnce({
-      data: { ...sampleRecord, status: 'EXCUSED' },
+      data: { ...sampleRecord, status: AttendanceStatus.EXCUSED },
     });
 
     const result = await attendanceApi.updateAttendanceStatus(802, {
-      status: 'EXCUSED',
+      status: AttendanceStatus.EXCUSED,
     });
 
     expect(apiClient.patch).toHaveBeenCalledWith('/api/v1/attendance/802', {
-      status: 'EXCUSED',
+      status: AttendanceStatus.EXCUSED,
     });
     expect(result.status).toBe('EXCUSED');
   });
