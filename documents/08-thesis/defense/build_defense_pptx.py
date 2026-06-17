@@ -87,15 +87,17 @@ def add_pic_fit(slide, path, box_l, box_t, box_w, box_h, border=True):
     return pic
 
 
-def title_box(slide, text, size=26):
-    """Tiêu đề đặt DƯỚI band xanh template, chữ navy.
-    Band trong tpl-bg-content.jpg kết thúc ở y=1.146in → title top=1.28in
-    để đỉnh chữ + dấu tiếng Việt KHÔNG bị band che (trước đây 1.04in → chui vào band)."""
-    tb = slide.shapes.add_textbox(Inches(0.55), Inches(1.28), Inches(12.2), Inches(0.6))
-    tb.text_frame.word_wrap = True
-    p = tb.text_frame.paragraphs[0]
+def title_box(slide, text, size=24):
+    """Tiêu đề đặt TRONG band navy template (chữ trắng, căn giữa chiều dọc),
+    chừa logo UTC góc phải. Band kết thúc ~1.146in; textbox phủ band, anchor MIDDLE
+    để chữ + dấu tiếng Việt căn giữa band, không lệch lên/xuống."""
+    tb = slide.shapes.add_textbox(Inches(0.55), Inches(0.12), Inches(10.5), Inches(0.9))
+    tf = tb.text_frame
+    tf.word_wrap = True
+    tf.vertical_anchor = MSO_ANCHOR.MIDDLE
+    p = tf.paragraphs[0]
     r = p.add_run(); r.text = text
-    r.font.size = Pt(size); r.font.bold = True; r.font.color.rgb = NAVY
+    r.font.size = Pt(size); r.font.bold = True; r.font.color.rgb = WHITE
 
 
 def page_num(slide, idx):
@@ -135,7 +137,7 @@ def notes(slide, text):
     slide.notes_slide.notes_text_frame.text = text
 
 
-def bullets(slide, items, left=0.75, top=1.95, width=11.9, height=4.6, base=19):
+def bullets(slide, items, left=0.75, top=1.5, width=11.9, height=5.0, base=19):
     tb = slide.shapes.add_textbox(Inches(left), Inches(top), Inches(width), Inches(height))
     tf = tb.text_frame; tf.word_wrap = True
     first = True
@@ -153,7 +155,7 @@ def bullets(slide, items, left=0.75, top=1.95, width=11.9, height=4.6, base=19):
     return tb
 
 
-def table(slide, rows, top=1.9, left=0.55, width=12.2, col_widths=None, fs=12):
+def table(slide, rows, top=1.5, left=0.55, width=12.2, col_widths=None, fs=12):
     nr, nc = len(rows), len(rows[0])
     t = slide.shapes.add_table(nr, nc, Inches(left), Inches(top), Inches(width),
                                Inches(0.4 * nr)).table
