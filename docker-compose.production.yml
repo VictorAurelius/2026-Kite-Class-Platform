@@ -107,12 +107,25 @@ services:
       # below documents the binding + lets the secret reach the container even if env_file
       # ordering changes. Binds to kitehub.payment.sepay.api-key.
       SEPAY_API_KEY: "${SEPAY_API_KEY}"
-      # Beta-mode payment override (kitehub.payment.beta-mode.*). Production keeps OFF by
-      # default — flip BETA_PAYMENT_OVERRIDE=true only to force the symbolic
-      # BETA_PAYMENT_AMOUNT_VND (10000 = 10k VND, bank minimum per failure-mode audit
-      # 2026-06-04) at createPayment time. Public config, no secret.
-      BETA_PAYMENT_OVERRIDE: "${BETA_PAYMENT_OVERRIDE:-false}"
-      BETA_PAYMENT_AMOUNT_VND: "${BETA_PAYMENT_AMOUNT_VND:-10000}"
+      # Beta-mode payment (Phase 1 BETA decision 2026-06-18): production charges the
+      # symbolic 10.000đ real transfer, NOT the full prorated plan price. Hardcoded
+      # literals (not ${...:-default}) so the value survives rebuilds without a fragile
+      # shell-export at `docker compose up` time (root cause of the 2026-06-09 "I set it
+      # but it's gone after rebuild" loose end). Public config, no secret.
+      BETA_PAYMENT_OVERRIDE: "true"
+      BETA_PAYMENT_AMOUNT_VND: "10000"
+      # Real VietQR QR (kitehub.payment.vietqr.*). mock-mode=false → real scannable
+      # napas247 QR via img.vietqr.io (no API key needed for QR image generation).
+      # Account = user's MB receiving account (public-by-design: printed on every QR
+      # shown to payers). Verified real-transfer e2e 2026-06-09 (txn 62542238 → PREMIUM).
+      # NOTE: SePay auto-confirm webhook (transfer → PREMIUM ACTIVE) needs
+      # kitehub/production/sepay-api-key secret (NOT yet created) + SePay dashboard
+      # pointed at https://api.kitehub.me webhook — until then payments need manual
+      # confirmation. QR display + real transfer work regardless.
+      PAYMENT_MOCK_MODE: "false"
+      VIETQR_BANK_CODE: "MB"
+      VIETQR_ACCOUNT_NUMBER: "0988269432"
+      VIETQR_ACCOUNT_NAME: "NGUYEN VAN KIET"
     depends_on:
       redis:
         condition: service_healthy
@@ -144,6 +157,16 @@ services:
       # it cross-VPC. BANNER_RENDERER_URL set in /etc/kite/.env to
       # http://<kc-app-private-ip>:3000/render. Blank → StubBannerRenderer fallback.
       BANNER_RENDERER_URL: ${BANNER_RENDERER_URL:-}
+      # Production S3 storage (logo/asset upload). Was unconfigured → branding ran
+      # mock-mode default true OR fell back to mock-access-key static creds → "Tải logo
+      # lên thất bại". mock-mode=false + S3Config blank-cred fallthrough (this PR) →
+      # EC2 instance role (ec2-app, already IAM-granted assets+kiteclass_files buckets).
+      # Reuses the kitehub-owned assets bucket. CDN_DOMAIN blank → presigned GET URLs
+      # signed against the AWS regional endpoint (browser-reachable); the localhost:9100
+      # default would otherwise return dead http://localhost:9100/... asset URLs.
+      S3_MOCK_MODE: "false"
+      S3_BUCKET: "kitehub-assets-production-906286017800"
+      CDN_DOMAIN: ""
     depends_on:
       redis:
         condition: service_healthy

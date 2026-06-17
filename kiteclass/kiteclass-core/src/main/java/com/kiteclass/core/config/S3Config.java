@@ -61,7 +61,7 @@ public class S3Config {
         String accessKeyId = storageProperties.getAccessKeyId();
         if (accessKeyId == null || accessKeyId.isBlank()) {
             log.info("S3 credentials: access-key-id blank -> using AWS default credential chain (IAM role)");
-            return DefaultCredentialsProvider.create();
+            return DefaultCredentialsProvider.builder().build();
         }
         return StaticCredentialsProvider.create(
             AwsBasicCredentials.create(accessKeyId, storageProperties.getSecretAccessKey())

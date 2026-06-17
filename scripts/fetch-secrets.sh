@@ -273,6 +273,13 @@ PARENT_PORTAL_ENABLED=${PARENT_PORTAL_ENABLED:-true}
 
 # Region pinning
 AWS_REGION=ap-southeast-1
+
+# Observability — disable OpenTelemetry SDK in Phase 1 BETA. No OTel collector is
+# deployed (GAP-115 backlog), so every JVM service (subscription/branding/email/
+# admin/gateway + kiteclass-core) otherwise retries span export to the default
+# localhost:4318 every ~10s → ConnectException floods logs + wastes CPU. Setting
+# OTEL_SDK_DISABLED=true stops the exporter entirely. Remove when a collector lands.
+OTEL_SDK_DISABLED=true
 ENVEOF
 
 sudo chown root:docker "$ENV_FILE"
