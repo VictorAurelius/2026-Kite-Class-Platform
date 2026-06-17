@@ -13,7 +13,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import type { ThemeConfig } from '@/lib/theme/types';
 import { isThemeConfig } from '@/lib/theme/types';
 import { DEFAULT_THEME, THEME_STORAGE_KEY } from '@/lib/theme/defaultTheme';
-import { applyThemeVariables } from '@/lib/theme/utils';
+import { applyThemeVariables, removeThemeVariables } from '@/lib/theme/utils';
 
 /**
  * Theme context value interface.
@@ -161,7 +161,13 @@ export function ThemeProvider({ children, initialTheme }: ThemeProviderProps) {
   // SSR ThemeSync provides the per-tenant theme; only apply an EXPLICIT theme
   // (localStorage restore or user setTheme / postMessage preview), which != DEFAULT.
   useEffect(() => {
-    if (areThemesEqual(theme, DEFAULT_THEME)) return;
+    if (areThemesEqual(theme, DEFAULT_THEME)) {
+      // Remove any inline `--theme-*` override so the SSR ThemeSync (per-tenant)
+      // / globals.css (blue default) cascade takes over. Just `return`-ing would
+      // leave a previously-applied custom theme stuck inline (Reset no-op).
+      removeThemeVariables();
+      return;
+    }
     applyThemeVariables(theme);
   }, [theme]);
 
