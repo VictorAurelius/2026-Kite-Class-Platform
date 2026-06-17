@@ -1,6 +1,6 @@
 # GAP-1467: KC-1 branding — color picker dual-register → màu pick không được lưu
 
-**Status:** 🟡 PARTIAL (fix code shipped; flip DONE sau khi coordinator re-walk live confirm)
+**Status:** 🟢 DONE
 **Priority:** 🟠 P2
 **Domain:** Frontend
 **Found:** 2026-06-17 (KC-1 G2 walk)
@@ -18,9 +18,20 @@ Chuyển 3 cặp input màu sang controlled, lấy giá trị form làm single s
 
 ## Acceptance Criteria
 
-- [ ] Pick màu từ swatch → ô text hex sync theo (và ngược lại gõ hex → swatch sync)
-- [ ] Pick/gõ màu mới → "Lưu thay đổi" → `GET /api/v1/settings/branding` trả về màu MỚI (không phải màu cũ)
-- [ ] zod regex validation màu vẫn fire khi nhập hex không hợp lệ
+- [x] Pick màu từ swatch → ô text hex sync theo (và ngược lại gõ hex → swatch sync)
+- [x] Pick/gõ màu mới → "Lưu thay đổi" → `GET /api/v1/settings/branding` trả về màu MỚI (không phải màu cũ)
+- [x] zod regex validation màu vẫn fire khi nhập hex không hợp lệ
+
+## Verification
+
+**G2★ human browser walk — FULL PASS 2026-06-17** (tenant `g2walk`, production-accurate nip.io access):
+
+- Server-side confirm: sau khi pick màu mới + "Lưu thay đổi", `GET /api/v1/settings/branding` trả về màu **MỚI** persist — `primary #3bf79f` / `secondary #5ff7d8` / `accent #b71053` (trước fix giữ nguyên `#3B82F6` mặc định → dual-register stale ref). ✅
+- PUT submit lúc 08:13:51 → HTTP 200, **không** validation error (zod regex màu pass). ✅
+- Swatch ↔ ô text hex sync hai chiều (controlled `watch` + `setValue` single source of truth). ✅
+- Docker rebuild production `next build` PASS + container `kiteclass-frontend` recreate **healthy**. ✅
+
+Fix commit `5daea3b4`: 3 cặp input màu (primary/secondary/accent) chuyển từ dual-`register` → controlled (`value={watch('X')}` + `onChange → setValue`). Tất cả AC ✅.
 
 ## Related
 - Discovered in: 2026-06-17 KC-1 G2 walk (phiên fix branding color picker)
