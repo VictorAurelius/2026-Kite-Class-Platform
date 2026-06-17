@@ -19,6 +19,21 @@ const nextConfig = {
         protocol: 'https',
         hostname: '*.amazonaws.com',
       },
+      // GAP-1469 — VietQR payment QR images. QRCodeDisplay renders the QR via
+      // next/image, so the optimizer rejects (400) any host not allowlisted here.
+      // The fallback path (when VIETQR_API_KEY is absent) returns an img.vietqr.io
+      // URL; the primary API path returns a data: URL (no allowlist needed).
+      {
+        protocol: 'https',
+        hostname: 'img.vietqr.io',
+      },
+      // GAP-1469 — placehold.co mock QR served by the local dev payment mock path
+      // (qrCodeUrl = https://placehold.co/...?text=MOCK+QR...). Same next/image
+      // optimizer allowlist requirement; without it the optimizer returns 400.
+      {
+        protocol: 'https',
+        hostname: 'placehold.co',
+      },
     ],
   },
   // Defense-in-depth redirects for `/auth/*` paths.

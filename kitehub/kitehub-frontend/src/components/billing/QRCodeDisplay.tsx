@@ -52,12 +52,18 @@ export function QRCodeDisplay({ qrCodeUrl, expiresAt }: QRCodeDisplayProps) {
       <CardContent className="flex flex-col items-center space-y-4">
         {/* QR Code Image */}
         <div className="relative w-64 h-64 bg-white dark:bg-white p-4 rounded-lg border">
+          {/* GAP-1469 — unoptimized: bypass the Next.js image optimizer for the QR.
+              The dev mock returns an SVG (placehold.co) which the optimizer blocks
+              by default ("image type is not allowed"); the prod path returns a JPG
+              (img.vietqr.io). A QR gains nothing from optimization (and resizing can
+              hurt scannability), so render the source URL directly. */}
           <Image
             src={qrCodeUrl}
             alt="VietQR Payment Code"
             fill
             className="object-contain"
             priority
+            unoptimized
           />
         </div>
 
