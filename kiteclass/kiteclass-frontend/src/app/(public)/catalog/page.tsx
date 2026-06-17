@@ -43,10 +43,13 @@ const LEVEL_CHIPS: { key: LevelKey; label: string }[] = [
   { key: 'nang-cao', label: 'Nâng cao' },
 ];
 
+// Generic learning situations (subject/level-agnostic) — the 3rd used to be
+// tiểu-học-specific "Chuẩn bị thi vào 6"; now generic exam-prep so it fits THCS
+// (vào 10) / THPT (tốt nghiệp) tenants too. Keys stay internal.
 const RECO_OPTIONS: { key: RecoKey; label: string; sub: string }[] = [
   { key: 'mat-goc', label: 'Con đang mất gốc', sub: 'Cần lấy lại nền tảng' },
   { key: 'theo-kip', label: 'Học theo kịp lớp', sub: 'Củng cố đều đặn' },
-  { key: 'thi-vao-6', label: 'Chuẩn bị thi vào 6', sub: 'Mục tiêu trường tốt' },
+  { key: 'thi-vao-6', label: 'Ôn luyện thi cử', sub: 'Mục tiêu kỳ thi quan trọng' },
 ];
 
 function formatPrice(price?: number | null): string {
@@ -123,9 +126,9 @@ function recommend(courses: Course[], reco: RecoKey): Course | null {
   if (reco === 'mat-goc') return courses.find(isBasic) ?? courses[0] ?? null;
   if (reco === 'theo-kip')
     return courses.find((c) => c.level === 'Intermediate') ?? courses.find(isBasic) ?? courses[0] ?? null;
-  // thi-vao-6
+  // exam-prep (generic): luyện/ôn thi, vào lớp (any), tốt nghiệp, chuyên, nâng cao
   return (
-    courses.find((c) => /ôn thi|vào 6|nâng cao/.test(haystack(c))) ??
+    courses.find((c) => /ôn thi|luyện thi|vào lớp|vào \d|tốt nghiệp|chuyên|nâng cao/.test(haystack(c))) ??
     courses.find(isAdvanced) ??
     courses[0] ??
     null
