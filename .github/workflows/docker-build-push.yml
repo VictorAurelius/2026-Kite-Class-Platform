@@ -174,6 +174,12 @@ jobs:
             BUILD_DATE=${{ github.event.head_commit.timestamp }}
             VCS_REF=${{ github.sha }}
             VERSION=${{ steps.meta.outputs.version }}
+            # FE images bake NEXT_PUBLIC_* at build time (Next.js client bundle).
+            # Backend Dockerfiles ignore these unused build-args. Production URLs
+            # so kite/kitehub-frontend + kite/kiteclass-frontend are deploy-ready.
+            NEXT_PUBLIC_API_URL=https://api.kitehub.me
+            NEXT_PUBLIC_KITECLASS_URL_PATTERN=https://{subdomain}.kitehub.me
+            NEXT_PUBLIC_BETA_PAYMENT_OVERRIDE=false
 
       - name: Build summary
         if: steps.dockerfile_check.outputs.exists == 'true'
@@ -321,6 +327,12 @@ jobs:
             BUILD_DATE=${{ github.event.head_commit.timestamp }}
             VCS_REF=${{ github.sha }}
             VERSION=${{ steps.meta.outputs.version }}
+            # FE images bake NEXT_PUBLIC_* at build time (Next.js client bundle).
+            # Backend Dockerfiles ignore these unused build-args. Production URLs
+            # so kite/kitehub-frontend + kite/kiteclass-frontend are deploy-ready.
+            NEXT_PUBLIC_API_URL=https://api.kitehub.me
+            NEXT_PUBLIC_KITECLASS_URL_PATTERN=https://{subdomain}.kitehub.me
+            NEXT_PUBLIC_BETA_PAYMENT_OVERRIDE=false
 
       - name: Image digest
         run: echo "${{ matrix.service }} digest=${{ steps.build_push.outputs.digest }}"

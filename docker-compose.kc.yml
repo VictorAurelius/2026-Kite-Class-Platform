@@ -79,6 +79,15 @@ services:
       JAVA_OPTS: "-Xmx384m -Xms192m -XX:+UseSerialGC"
       SPRING_PROFILES_ACTIVE: production
       SERVER_PORT: 8081
+      # S3 storage (MinIO->S3 production parity). Blank endpoint -> SDK default
+      # regional endpoint; blank access/secret -> EC2 instance role via S3Config
+      # DefaultCredentialsProvider. Bucket grant in terraform-aws/iam.tf.
+      STORAGE_S3_ENDPOINT: ""
+      STORAGE_S3_PUBLIC_ENDPOINT: ""
+      STORAGE_S3_REGION: ap-southeast-1
+      STORAGE_S3_ACCESS_KEY: ""
+      STORAGE_S3_SECRET_KEY: ""
+      STORAGE_S3_BUCKET: kiteclass-files-production-906286017800
     depends_on:
       redis: { condition: service_healthy }
       rabbitmq: { condition: service_healthy }
