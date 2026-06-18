@@ -106,6 +106,53 @@ Sản phẩm đã được thử nghiệm bởi 2 thầy cô. Trên đây là h�
 
 Sau đó, em xin phép chuyển sang demo trực tiếp trên hệ thống đang chạy thật tại địa chỉ kitehub.me. Em sẽ đi qua sáu bước: bắt đầu từ trang của một khách tham quan ẩn danh, sang luồng đăng ký và tiếp nhận tenant, đến trình hướng dẫn tạo tenant, sau đó chứng minh khả năng cô lập dữ liệu bằng hai tài khoản thuộc hai tenant khác nhau.
 
+<!-- ─────────────────────────────────────────────────────────────────────────
+     BẢNG TRA CREDENTIALS CHO DEMO TRỰC TIẾP (presenter aid — KHÔNG đọc/chiếu trên slide)
+
+     ⚠️ AN TOÀN: file này commit trong repo PUBLIC → TUYỆT ĐỐI KHÔNG ghi mật khẩu thật.
+     Mật khẩu lấy từ AWS Secrets Manager hoặc điền tay trên máy presenter trước buổi bảo vệ.
+     Cân nhắc gitignore file này nếu repo công khai rộng hơn.
+
+     1. TRANG CÔNG KHAI (không cần đăng nhập) — showcase landing đã seed đẹp:
+        - KiteHub SaaS (marketing/landing):   https://kitehub.me
+        - Tenant cô Hà  (Toán tiểu học, FREE): https://co-ha-toan.kitehub.me
+        - Tenant thầy Nhì (Hóa THCS, PREMIUM): https://thay-nhi-hoa.kitehub.me
+        - App KiteClass (đăng nhập tenant):    https://app.kitehub.me
+
+     2. QUẢN TRỊ NỀN TẢNG (KiteHub admin — vai trò PLATFORM_ADMIN):
+        - Vào https://kitehub.me → đăng nhập admin
+        - Email:    admin@kitehub.me
+        - Mật khẩu: AWS Secrets Manager `kitehub/production/seed-admin-password` (KHÔNG commit)
+
+     3. ĐĂNG NHẬP THEO VAI TRÒ — chứng minh SSO + cô lập dữ liệu 2 tenant.
+        MẬT KHẨU CHUNG mọi tài khoản: <điền tay trên máy presenter trước buổi — KHÔNG commit vào repo public>
+        (Mật khẩu demo tạm thời đã bị VÔ HIỆU khi xóa stack AWS ngày 2026-06-18; tái tạo khi redeploy.)
+        (verified 200 lúc live demo: owner→KiteHub /api/auth/login; teacher+student→KiteClass /api/v1/tenant-auth/login)
+
+        ── Tenant cô Hà — Toán tiểu học (https://co-ha-toan.kitehub.me) ──
+          Owner   (KiteHub :3001 → SSO sang KiteClass):  owner.ha@demo.kitehub.me
+          Teacher (KiteClass :3000 đăng nhập trực tiếp):  gv.a1100000@demo.kitehub.me
+          Student (KiteClass :3000):                      hs.a1100000.10000001@demo.kitehub.me
+
+        ── Tenant thầy Nhì — Hóa THCS (https://thay-nhi-hoa.kitehub.me) ──
+          Owner   (KiteHub :3001 → SSO):                  owner.nhi@demo.kitehub.me
+          Teacher (KiteClass :3000):                      gv.b1100000@demo.kitehub.me
+          Student (KiteClass :3000):                      hs.b1100000.10000014@demo.kitehub.me
+
+        - Owner login KiteHub (kitehub.me) → SSO chuyển sang KiteClass tenant (ADR-040).
+        - Teacher/Student login thẳng KiteClass tenant (KC-native tenant-auth).
+        - Cô lập: login Owner Hà KHÔNG thấy dữ liệu tenant Nhì (RLS + tenant-scoped JWT).
+
+     4. THANH TOÁN NÂNG GÓI (KH-3, Phase 1 thu thật 10.000đ):
+        - KiteHub → nâng gói PREMIUM → QR VietQR hiện ra
+        - Tài khoản nhận: MB Bank 0988269432 — NGUYEN VAN KIET (công khai trên QR cho người chuyển)
+        - Số tiền: 10.000đ (beta override) · chuyển khoản thật
+        - Auto-confirm (webhook → PREMIUM ACTIVE) cần SePay key prod; chưa có thì xác nhận tay.
+
+     5. ĐĂNG KÝ BETA (luồng ẩn danh):
+        - https://kitehub.me → "Yêu cầu truy cập Beta" → điền form → admin duyệt ở mục (2).
+     ───────────────────────────────────────────────────────────────────────── -->
+
 ## Slide 17 — Cảm ơn
 
 Em xin chân thành cảm ơn thầy hướng dẫn Tiến sĩ Nguyễn Đức Dư đã tận tình hướng dẫn, cảm ơn quý thầy cô trong hội đồng đã lắng nghe. Sau đây, em xin sẵn sàng nhận câu hỏi từ hội đồng. (~45 giây)
