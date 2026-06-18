@@ -121,9 +121,15 @@ SEPAY_API_KEY=""
 if SEPAY_PAYLOAD=$(fetch_secret sepay-api-key 2>/dev/null); then
   SEPAY_API_KEY="$SEPAY_PAYLOAD"
 fi
-SEPAY_API_KEY="${SEPAY_API_KEY:-${SEPAY_API_KEY_FALLBACK:-}}"
-if [[ -z "$SEPAY_API_KEY" ]]; then
-  log "WARN: kitehub/production/sepay-api-key not found or empty — payment webhook will reject all SePay calls (401). Configure via SePay dashboard + AWS console post-apply."
+# Default to the local dev test-mode key (docker-compose.kitehub.yml:418
+# SEPAY_API_KEY:-dev-sepay-test-key-local) when no real merchant secret is set, so
+# production matches local SePay test-mode (webhook accepts Apikey instead of failing
+# closed 401). To go fully live: store a REAL merchant key in AWS Secrets Manager
+# kitehub/production/sepay-api-key + point the SePay dashboard webhook at
+# https://api.kitehub.me/api/platform/webhooks/payment with that key.
+SEPAY_API_KEY="${SEPAY_API_KEY:-${SEPAY_API_KEY_FALLBACK:-dev-sepay-test-key-local}}"
+if [[ "$SEPAY_API_KEY" == "dev-sepay-test-key-local" ]]; then
+  log "INFO: SEPAY_API_KEY using local dev test-mode key (parity with local). SePay webhook accepts this Apikey; configure SePay dashboard + real merchant key for live auto-confirm."
 fi
 
 # AI Branding generation providers (GAP-1117 / ADR-037 Amendment). Both optional —
