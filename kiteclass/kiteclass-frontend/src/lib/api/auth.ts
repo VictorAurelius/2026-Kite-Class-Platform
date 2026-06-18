@@ -37,13 +37,18 @@ function loginBaseUrl(): string {
   const isIp = /^\d+\.\d+\.\d+\.\d+$/.test(hostname);
   const hasSubdomain = !isIp && hostname !== 'localhost' && hostname.split('.').length >= 3;
   if (!hasSubdomain) return configured;
-  let port = '9000';
+  // Port suffix from configured URL. Empty (prod https://api.kitehub.me → 443) →
+  // no suffix so login hits the tenant host on 443 (nginx /api → gateway, Host
+  // preserved for tenant resolution). Old `port || '9000'` → <tenant>:9000 broke
+  // prod (CSP + unreachable). Mirrors public.ts browserBaseUrl fix.
+  let portSuffix = ':9000';
   try {
-    port = new URL(configured).port || port;
+    const p = new URL(configured).port;
+    portSuffix = p ? `:${p}` : '';
   } catch {
     /* keep default gateway port */
   }
-  return `${protocol}//${hostname}:${port}`;
+  return `${protocol}//${hostname}${portSuffix}`;
 }
 
 const loginClient = axios.create({

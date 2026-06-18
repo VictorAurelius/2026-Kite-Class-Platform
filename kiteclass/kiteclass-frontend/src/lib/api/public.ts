@@ -38,13 +38,19 @@ function browserBaseUrl(): string {
   const isIp = /^\d+\.\d+\.\d+\.\d+$/.test(hostname);
   const hasSubdomain = !isIp && hostname !== 'localhost' && hostname.split('.').length >= 3;
   if (!hasSubdomain) return configured;
-  let port = '9000';
+  // Port suffix from the configured URL. When configured has no explicit port
+  // (production https://api.kitehub.me → default 443), use NO suffix so the call
+  // hits the tenant host on 443 (nginx proxies /api → gateway, Host preserved).
+  // The old `port || '9000'` fallback produced https://<tenant>.kitehub.me:9000
+  // → CSP connect-src block + unreachable in prod (no :9000 listener).
+  let portSuffix = ':9000';
   try {
-    port = new URL(configured).port || port;
+    const p = new URL(configured).port;
+    portSuffix = p ? `:${p}` : '';
   } catch {
     /* keep default gateway port */
   }
-  return `${protocol}//${hostname}:${port}`;
+  return `${protocol}//${hostname}${portSuffix}`;
 }
 
 const publicApiClient = axios.create({
