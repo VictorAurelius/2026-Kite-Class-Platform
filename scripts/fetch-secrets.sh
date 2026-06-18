@@ -121,9 +121,15 @@ SEPAY_API_KEY=""
 if SEPAY_PAYLOAD=$(fetch_secret sepay-api-key 2>/dev/null); then
   SEPAY_API_KEY="$SEPAY_PAYLOAD"
 fi
-SEPAY_API_KEY="${SEPAY_API_KEY:-${SEPAY_API_KEY_FALLBACK:-}}"
-if [[ -z "$SEPAY_API_KEY" ]]; then
-  log "WARN: kitehub/production/sepay-api-key not found or empty — payment webhook will reject all SePay calls (401). Configure via SePay dashboard + AWS console post-apply."
+# Default to the local dev test-mode key (docker-compose.kitehub.yml:418
+# SEPAY_API_KEY:-dev-sepay-test-key-local) when no real merchant secret is set, so
+# production matches local SePay test-mode (webhook accepts Apikey instead of failing
+# closed 401). To go fully live: store a REAL merchant key in AWS Secrets Manager
+# kitehub/production/sepay-api-key + point the SePay dashboard webhook at
+# https://api.kitehub.me/api/platform/webhooks/payment with that key.
+SEPAY_API_KEY="${SEPAY_API_KEY:-${SEPAY_API_KEY_FALLBACK:-dev-sepay-test-key-local}}"
+if [[ "$SEPAY_API_KEY" == "dev-sepay-test-key-local" ]]; then
+  log "INFO: SEPAY_API_KEY using local dev test-mode key (parity with local). SePay webhook accepts this Apikey; configure SePay dashboard + real merchant key for live auto-confirm."
 fi
 
 # AI Branding generation providers (GAP-1117 / ADR-037 Amendment). Both optional —
@@ -280,6 +286,16 @@ AWS_REGION=ap-southeast-1
 # localhost:4318 every ~10s → ConnectException floods logs + wastes CPU. Setting
 # OTEL_SDK_DISABLED=true stops the exporter entirely. Remove when a collector lands.
 OTEL_SDK_DISABLED=true
+
+# Gateway → kiteclass-core cross-EC2 routing. kiteclass-core runs on the kc-app
+# EC2 (separate from the kh-backend gateway), so the gateway cannot use the default
+# docker-DNS http://kiteclass-core:8080. Point it at the kc-app private IP + the
+# host-exposed 8081 port (docker-compose.kc.yml ports 8081:8081 + SG self-ref
+# sgr-035af9359bab821be). Binds kitehub-gateway application.yml ${KITECLASS_CORE_URL}
+# route URI for /api/v1/* kiteclass-core endpoints (landing/course/attendance/...).
+# NOTE: 10.0.0.155 is the kc-app private IP — update on instance replace (same
+# constraint as docker-compose.kc.yml RDS host + BANNER_RENDERER_URL pattern).
+KITECLASS_CORE_URL=${KITECLASS_CORE_URL:-http://10.0.0.155:8081}
 ENVEOF
 
 sudo chown root:docker "$ENV_FILE"
