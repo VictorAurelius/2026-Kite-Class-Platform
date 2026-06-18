@@ -280,6 +280,16 @@ AWS_REGION=ap-southeast-1
 # localhost:4318 every ~10s → ConnectException floods logs + wastes CPU. Setting
 # OTEL_SDK_DISABLED=true stops the exporter entirely. Remove when a collector lands.
 OTEL_SDK_DISABLED=true
+
+# Gateway → kiteclass-core cross-EC2 routing. kiteclass-core runs on the kc-app
+# EC2 (separate from the kh-backend gateway), so the gateway cannot use the default
+# docker-DNS http://kiteclass-core:8080. Point it at the kc-app private IP + the
+# host-exposed 8081 port (docker-compose.kc.yml ports 8081:8081 + SG self-ref
+# sgr-035af9359bab821be). Binds kitehub-gateway application.yml ${KITECLASS_CORE_URL}
+# route URI for /api/v1/* kiteclass-core endpoints (landing/course/attendance/...).
+# NOTE: 10.0.0.155 is the kc-app private IP — update on instance replace (same
+# constraint as docker-compose.kc.yml RDS host + BANNER_RENDERER_URL pattern).
+KITECLASS_CORE_URL=${KITECLASS_CORE_URL:-http://10.0.0.155:8081}
 ENVEOF
 
 sudo chown root:docker "$ENV_FILE"

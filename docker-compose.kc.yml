@@ -98,6 +98,13 @@ services:
       STORAGE_S3_ACCESS_KEY: ""
       STORAGE_S3_SECRET_KEY: ""
       STORAGE_S3_BUCKET: kiteclass-files-production-906286017800
+    # Expose 8081 to the host so the kitehub-gateway on kh-backend (cross-EC2) can
+    # reach kiteclass-core for /api/v1/* routing (KITECLASS_CORE_URL=http://<kc-app-ip>:8081).
+    # Without this, gateway → kiteclass-core 503 → public landing renders empty even
+    # when seeded (FE SSR fetch fails). Intra-backend-SG only (SG self-ref rule tcp 8081,
+    # sgr-035af9359bab821be); no public CIDR. Mirror banner-renderer cross-EC2 pattern.
+    ports:
+      - "8081:8081"
     depends_on:
       redis: { condition: service_healthy }
       rabbitmq: { condition: service_healthy }
