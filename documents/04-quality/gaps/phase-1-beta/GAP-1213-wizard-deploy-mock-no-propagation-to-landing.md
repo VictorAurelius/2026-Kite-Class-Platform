@@ -38,3 +38,13 @@ idClassMapping FQN KH → record local + regression test `RabbitConfigWireFormat
 đúng message incident (PASS). Bucket C tests cũ pass vì 2 chiều dùng cùng class trong test —
 lesson: cross-service AMQP cần wire-format test với header producer thật. Chờ re-walk G1 verify
 landing đổi thật.
+
+## Log — 2026-06-19 G1 propagation verify (wave-phase1-closeout)
+
+Fresh wizard-deploy trigger trên seed tenant g2walk (`cb48ad08-…`), BE-level:
+- `POST /api/v1/branding/jobs` (owner JWT) → jobId `7e1721a7` + brandColors generated
+- `POST /api/v1/branding/jobs/{jobId}/approve` → `qualityScore=77` (pass gate ≥70 GAP-1217) → `provisionAsync` → emit `branding.deployed`
+- Trong ~5s: `landing_pages` cho cb48ad08 **NO_ROW → branding_version=1 + primary_color `#1a73e8` + logo_url applied** (cross-service consumer áp theme)
+- Corroborate: instance `e8ff87e1` historical `branding_version=6` + real colors/logo → chuỗi đã chạy nhiều lần
+
+→ Propagation half của AC #1 verified empirically (outbox→consumer→landing_pages). Remaining: G2★ human browser confirm landing render theme mới visually. Status PARTIAL per gap-done-discipline §3.

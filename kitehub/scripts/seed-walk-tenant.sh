@@ -107,14 +107,29 @@ else
 fi
 
 # 7. Students (idempotent 409 skip) + enroll
+# GAP-1115 paywall walk: hv1-5 enrolled in the (paid) course; hv6 (Đỗ Thị Lan)
+# deliberately NOT enrolled so getCourseStructureForStudent paywall-strip can be
+# walked (non-enrolled student must get paid-lesson body=null, trial full).
 echo -e "${yellow}[7/8] Students + enroll${nc}"
+UNENROLLED_EMAIL=hv6@g2walk.vn
 NAMES=("Trần Văn An" "Lê Thị Mai" "Phạm Minh Quân" "Hoàng Thị Hồng" "Vũ Đức Thành")
 NEW=0
 for i in 1 2 3 4 5; do
   R=$(post /api/v1/students "{\"name\":\"${NAMES[$((i-1))]}\",\"email\":\"hv$i@g2walk.vn\",\"phone\":\"091000000$i\"}")
   [ "$(echo "$R"|tail -1)" = "201" ] && NEW=$((NEW+1))
 done
-SIDS=$(getj "/api/v1/students?page=0&size=20" | python3 -c "import sys,json;d=json.load(sys.stdin);c=d.get('data',{});c=c.get('content',c) if isinstance(c,dict) else c;print(' '.join(str(s['id']) for s in c))" 2>/dev/null)
+# Non-enrolled student for paywall walk (GAP-1115) — created but NEVER enrolled.
+R=$(post /api/v1/students "{\"name\":\"Đỗ Thị Lan\",\"email\":\"$UNENROLLED_EMAIL\",\"phone\":\"0910000006\"}")
+[ "$(echo "$R"|tail -1)" = "201" ] && NEW=$((NEW+1))
+# id↔email map; enroll EVERYONE EXCEPT the designated non-enrolled student (idempotent).
+SIDS=$(getj "/api/v1/students?page=0&size=50" | python3 -c "
+import sys,json
+d=json.load(sys.stdin); c=d.get('data',{}); c=c.get('content',c) if isinstance(c,dict) else c
+print(' '.join(str(s['id']) for s in c if s.get('email')!='$UNENROLLED_EMAIL'))" 2>/dev/null)
+UNENROLLED_SID=$(getj "/api/v1/students?page=0&size=50" | python3 -c "
+import sys,json
+d=json.load(sys.stdin); c=d.get('data',{}); c=c.get('content',c) if isinstance(c,dict) else c
+print(next((str(s['id']) for s in c if s.get('email')=='$UNENROLLED_EMAIL'),''))" 2>/dev/null)
 EN=0
 for sid in $SIDS; do
   R=$(post /api/v1/enrollments "{\"studentId\":$sid,\"classId\":$CLID,\"tuitionAmount\":1200000}")
@@ -153,9 +168,42 @@ else
   else err "parent invite — no token"; fi
 fi
 
+# 9. LMS content for paywall walk (GAP-1115): 1 module + 1 PAID lesson + 1 TRIAL lesson.
+# Authoring via direct-core OWNER (X-User-Roles header = what gateway forwards to core;
+# @PreAuthorize hasAnyRole('OWNER') satisfied by GatewayHeaderAuthenticationFilter).
+# Idempotent: module fetched-by-title via student-path list; lessons fetched-by-title
+# via owner module-detail. Re-run = 0 duplicate.
+echo -e "${yellow}[9/9] LMS content (paywall walk — GAP-1115)${nc}"
+MODTITLE="Chương 1 — Ngữ pháp giao tiếp"
+PAID_TITLE="Bài 2 — Thì hiện tại hoàn thành"
+TRIAL_TITLE="Bài 1 — Giới thiệu khóa học"
+LMS_H=(-H "X-Tenant-Id: $TENANT" -H "X-User-Roles: OWNER" -H "Content-Type: application/json")
+FIRST_SID=$(echo "$SIDS" | awk '{print $1}')
+MODID=$(curl -s "$CORE_DIRECT/api/v1/lms/courses/$CID/modules" -H "X-Tenant-Id: $TENANT" -H "X-User-Reference-Id: $FIRST_SID" \
+  | python3 -c "import sys,json;d=json.load(sys.stdin);c=d.get('data',[]);print(next((str(m['id']) for m in c if m.get('title')=='$MODTITLE'),''))" 2>/dev/null)
+if [ -z "$MODID" ]; then
+  MODID=$(curl -s "${LMS_H[@]}" -X POST "$CORE_DIRECT/api/v1/lms/courses/$CID/modules" \
+    -d "{\"title\":\"$MODTITLE\",\"description\":\"Module demo paywall GAP-1115\",\"orderNumber\":1}" | idof)
+  ok "module tạo mới id=$MODID"
+else warn "module đã tồn tại id=$MODID"; fi
+LJSON=$(curl -s "${LMS_H[@]}" "$CORE_DIRECT/api/v1/lms/modules/$MODID")
+have_lesson() { echo "$LJSON" | python3 -c "import sys,json;d=json.load(sys.stdin);L=d.get('data',{}).get('lessons',[]);print('y' if any(x.get('title')==sys.argv[1] for x in L) else '')" "$1" 2>/dev/null; }
+if [ -z "$(have_lesson "$TRIAL_TITLE")" ]; then
+  curl -s -o /dev/null "${LMS_H[@]}" -X POST "$CORE_DIRECT/api/v1/lms/modules/$MODID/lessons" \
+    -d "{\"title\":\"$TRIAL_TITLE\",\"content\":\"Nội dung học thử — ai cũng xem được.\",\"videoUrl\":\"https://video.g2walk.vn/trial-intro.mp4\",\"isTrial\":true,\"orderNumber\":1,\"estimatedDuration\":20}"
+  ok "trial lesson tạo mới (is_trial=true)"
+else warn "trial lesson đã tồn tại"; fi
+if [ -z "$(have_lesson "$PAID_TITLE")" ]; then
+  curl -s -o /dev/null "${LMS_H[@]}" -X POST "$CORE_DIRECT/api/v1/lms/modules/$MODID/lessons" \
+    -d "{\"title\":\"$PAID_TITLE\",\"content\":\"Nội dung TRẢ PHÍ — chỉ học viên đã ghi danh mới xem được.\",\"videoUrl\":\"https://video.g2walk.vn/paid-present-perfect.mp4\",\"isTrial\":false,\"orderNumber\":2,\"estimatedDuration\":45}"
+  ok "paid lesson tạo mới (is_trial=false)"
+else warn "paid lesson đã tồn tại"; fi
+ok "LMS: module $MODID | trial + paid lesson | non-enrolled student id=$UNENROLLED_SID ($UNENROLLED_EMAIL)"
+
 echo "=============================================="
 echo -e "${green}✓ Walk baseline ready${nc} — tenant=$SUBDOMAIN teacher=$TID course=$CID class=$CLID"
 echo "  điểm danh: $ACT enrollment ACTIVE → roster điểm danh có học sinh (GAP-1474)"
+echo "  LMS paywall: course $CID module $MODID | enrolled hv1-5 | NON-enrolled student=$UNENROLLED_SID (GAP-1115)"
 echo "  KC owner   : http://$SUBDOMAIN.127.0.0.1.nip.io:3000 ($EMAIL / $PASS)"
 echo "  KC teacher : .../teacher/grades/$CLID ($TEACHER_EMAIL / $TEACHER_PASS) — KC-6"
 echo "  KC parent  : .../parent ($PARENT_EMAIL / $PARENT_PASS) — KC-8"
