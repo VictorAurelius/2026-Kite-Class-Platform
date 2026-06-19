@@ -25,9 +25,10 @@
 - PDPL hard deadline 2026-07-01 (~7 tuần countdown)
 
 **Phase progression:**
-- Phase 1 (9-12 tuần): P1 + P2 → trigger để move Phase 2 = Quality audit /100 ≥80 + 5 beta tenants live + 0 P0 incidents 2 tuần
+- Phase 1 (9-12 tuần): P1 + P2 → trigger để move Phase 2 = Quality audit /100 ≥80 + **feature-complete local-verified** (0 P0 local-closable OPEN, local RST/G2 walks pass) — **deploy/go-live conditions tách sang Phase 4** (2026-06-19, campaign `phase-1-closeout`)
 - Phase 2 (+4-6 tuần): + P3 medium-center → trigger Phase 3 = counsel engaged + 4 sub-conditions
 - Phase 3 (+8-12 tuần post-counsel): + K-12 P5
+- **Phase 4 — Deploy/Go-live** (sau Phase 3, AWS redeploy-gated): gồm mọi gap cần AWS stack live / vendor production (terraform/EC2/RDS/IAM/SES/CloudWatch/cert/DNS/restore-drill + Resend/SePay/Zalo live). Gate = **5 beta tenants live + 0 prod P0 incidents 2 tuần** (điều kiện cũ của Phase 1 chuyển xuống đây). Gaps: CSV `phase == phase-4-deploy`, folder `documents/04-quality/gaps/phase-4-deploy/`.
 
 **Reference:** `feedback_release_1_first_session_priority.md` (auto-loaded memory).
 

@@ -33,3 +33,10 @@ Steps: stack up (`up.sh`) → seed (`seed-walk-tenant.sh`) → pre-walk persona 
 ## Blocked-track notes
 - GAP-502 (kh_backend prod thrashing) → AWS-gated (moved out of Wave 1).
 - AWS/vendor tracks resume on redeploy decision.
+
+## Restructuring executed (2026-06-19) — phase-4-deploy split
+- **phase-4-deploy created** (sau phase-3): 40 gap moved (16 P0 + 16 P1 + 8 P2). Classify agent confirmed deploy-gated (31) + hybrid-move (9); 26 candidate giữ lại phase-1-beta (21 local-doable + 5 hybrid-keep — substantive local code còn lại; split AWS-child sau).
+- **unclassified/ cleaned**: 16 n/a → phase (2 active P0 → phase-1-beta; 11 DONE → closed; 3 WONTFIX → phase-1-beta/phase-2). n/a = 0.
+- **Phase 1 P0 burden: 26 → 10** (local-closable). Gate redefined (CLAUDE.md): "5 beta tenants live" → phase-4-deploy.
+- Infra: 2 validators + gap-architecture enum v1.0.6 + folder + README.
+- **Phase 1 active now: 258** (was 298). Còn 10 P0 + P1-critical local → đẩy nốt để đạt gate redefined.

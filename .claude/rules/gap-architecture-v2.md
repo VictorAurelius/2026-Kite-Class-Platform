@@ -7,7 +7,7 @@ paths:
 # Gap Architecture v2 — single canonical source (Design A)
 
 **Priority:** 🟠 MANDATORY — gap docs governance
-**Version:** 1.0.5
+**Version:** 1.0.6
 **Created:** 2026-05-11
 **Last-Reviewed:** 2026-05-31
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.0.4 PATCH self-approve per `rule-change-process.md` §5; adds `paths:` frontmatter per Wave 73 Bucket A2 — no constraint change, rule still applies same scope, just deferred-load when no gap file/CSV in context. v1.0.3 (kept): PATCH self-approve per §5; Phase 2.1 partial auto-fill (richer keyword + `GAP-NNN-p3-*` filename pattern → phase-3 K-12; n/a dropped 246→219, +26 phase-3 gaps) + Phase 4 doc closeout (`audit-to-gap-pipeline.md` §2.8 step 0 CSV query recommendation + wave plan template §3 gap-ref-via-CSV convention). v1.0.2 (kept): `collect-state.sh` queries CSV + surfaces Phase 1 BETA P0 count. v1.0.1: Phase 2 bulk migration closeout. v1.0.0: new rule with built-in enforcement per `rule-change-process.md` §6.5; no constraint loosening across versions)
@@ -35,7 +35,7 @@ Located at `documents/04-quality/gaps/gap-status.csv`.
 | `status` | enum | `OPEN \| PARTIAL \| PLANNED \| IN_PROGRESS \| DONE \| WONTFIX` |
 | `priority` | enum | `P0 \| P1 \| P2 \| P3` |
 | `domain` | enum | `Frontend \| Backend \| DevOps \| Compliance \| Meta \| AI \| Mixed` |
-| `phase` | enum | `phase-1-beta \| phase-1.5-paid \| phase-2 \| phase-3 \| n/a` |
+| `phase` | enum | `phase-1-beta \| phase-1.5-paid \| phase-2 \| phase-3 \| phase-4-deploy \| n/a` |
 | `completion_pct` | 0-100 | For PARTIAL granularity; 0=OPEN, 100=DONE; 1-99 = PARTIAL/IN_PROGRESS |
 | `found_date` | YYYY-MM-DD | Initial filing date |
 | `last_verified` | YYYY-MM-DD | Per `audit-to-gap-pipeline.md` §2.8 — last empirical state-check date |
@@ -254,6 +254,7 @@ Phase 1 pilot + Phase 2 bulk migration + Phase 4 governance integration shipped 
 
 ## 11. Log
 
+- **2026-06-19** (v1.0.6): PATCH — added `phase-4-deploy` to `phase` enum (§Schema). New roadmap phase (sau Phase 3) holding gaps that require live AWS stack / vendor production — split from phase-1-beta per campaign `phase-1-closeout` (CLAUDE.md §Phase progression redefined: deploy/go-live conditions moved from Phase 1 gate to Phase 4). Paired same-PR: `check-gap-status-csv.sh` VALID_PHASES + SUBDIR loop, `check-gap-folder-location.sh` phase_subdir() + target list, folder `documents/04-quality/gaps/phase-4-deploy/` + README. Additive enum value, no constraint loosening. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5).
 - **2026-05-31** (v1.0.5): PATCH — fixed 2 stale CI reference(s) `script-quality.yml` → `quality-docs.yml` (workflow was split into quality-{code,docs,rules-skills,infra}.yml 2026-05-22; this rule's §Enforcement still pointed to the removed file). Historical Log entries left unchanged per `rule-change-process.md` §7 append-only. No constraint change. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per §5 — broken-link fix).
 
 - **2026-05-14 (v1.0.4):** PATCH — added `paths:` frontmatter (`documents/04-quality/gaps/**` + `documents/04-quality/gaps/gap-status.csv`) per Wave 73 Bucket A2 (path-scope context optimization). Rule chỉ auto-load khi session chạm vào gap files hoặc canonical CSV — giảm token overhead các session khác. No constraint change; rule scope unchanged. Paired same-PR với rules-index.csv path_trigger column update. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — frontmatter addition only, no constraint loosening).
