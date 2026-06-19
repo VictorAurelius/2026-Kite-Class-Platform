@@ -1,6 +1,6 @@
 # GAP-1413: Nil-UUID tenant resolver stubs in kiteclass-core parent module (multi-tenant isolation risk)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE (wave-phase1-close2 2026-06-19 — see Log)
 **Priority:** 🔴 P0
 **Domain:** Backend
 **Found:** 2026-06-15 (hardcode-mock state-check, BE agent — top functional finding)
@@ -29,3 +29,10 @@ Wire `resolveTenantId()` / `currentTenantId()` to real tenant context (gateway-i
 
 - Umbrella: GAP-1410 · Audit: `2026-06-15-hardcode-mock-state-check.md`
 - KC-8 parent portal (campaign §4); RLS isolation (sister GAP-983 KC-3 leak class); `g1-browser-walk-before-flip` tenant-resolution (GAP-1068 class)
+
+
+## Log — 2026-06-19 (wave-phase1-close2, state-check DONE)
+
+nil-UUID stub gone — both resolvers use TenantContext.getCurrentTenant() (fixed #2439 ace0c2886); ZaloOaNotificationServiceImplTest + ParentPaymentControllerTest PASS; grep nil-UUID in main java = 0. State-check (§2.8): symptom self-corrected before this wave.
+
+Status → DONE per gap-done-discipline §2 (AC verified at code/runtime level). G2 browser walk = coordinator follow-up where applicable.
