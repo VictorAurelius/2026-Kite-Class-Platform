@@ -56,6 +56,13 @@ class BrandingServiceTest {
 
     private UUID testInstanceId;
 
+    /** Valid PNG magic bytes (89 50 4E 47 0D 0A 1A 0A) — passes GAP-1037 content sniff. */
+    private static final byte[] PNG_BYTES = {
+            (byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D};
+
+    /** Valid ICO magic bytes (00 00 01 00) — passes GAP-1037 content sniff. */
+    private static final byte[] ICO_BYTES = {0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x10, 0x10};
+
     @BeforeEach
     void setUp() {
         testInstanceId = UUID.randomUUID();
@@ -229,7 +236,7 @@ class BrandingServiceTest {
         String logoUrl = "https://minio.local/kite-branding-assets/static/t/logo/logo.png?sig=x";
         Branding branding = BrandingTestDataBuilder.createDefaultBranding(testInstanceId);
         MultipartFile file = new MockMultipartFile(
-                "logo", "logo.png", "image/png", "fake-png-bytes".getBytes());
+                "logo", "logo.png", "image/png", PNG_BYTES);
 
         BrandingResponse expectedResponse = BrandingResponse.builder()
                 .logoUrl(logoUrl)
@@ -261,7 +268,7 @@ class BrandingServiceTest {
         String faviconUrl = "https://minio.local/kite-branding-assets/static/t/favicon/favicon.ico?sig=x";
         Branding branding = BrandingTestDataBuilder.createDefaultBranding(testInstanceId);
         MultipartFile file = new MockMultipartFile(
-                "favicon", "favicon.ico", "image/x-icon", "fake-ico-bytes".getBytes());
+                "favicon", "favicon.ico", "image/x-icon", ICO_BYTES);
 
         BrandingResponse expectedResponse = BrandingResponse.builder()
                 .faviconUrl(faviconUrl)
@@ -392,7 +399,7 @@ class BrandingServiceTest {
         // Given
         String bannerUrl = "https://minio.local/kite-branding-assets/static/t/banner/abc.png?sig=x";
         MultipartFile file = new MockMultipartFile(
-                "banner", "banner.png", "image/png", "fake-png-bytes".getBytes());
+                "banner", "banner.png", "image/png", PNG_BYTES);
 
         when(brandingAssetStorage.store(eq(testInstanceId), eq(ResourceType.BANNER),
                 any(String.class), eq("image/png"), any(byte[].class))).thenReturn(bannerUrl);
@@ -451,6 +458,51 @@ class BrandingServiceTest {
         // When & Then — validation fails before any repository/storage call
         org.assertj.core.api.Assertions.assertThatThrownBy(() -> brandingService.uploadLogo(file))
                 .isInstanceOf(com.kiteclass.core.common.exception.ValidationException.class);
+        verify(brandingAssetStorage, times(0)).store(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("GAP-1037: should reject image/svg+xml logo (SVG removed from allowlist)")
+    void shouldRejectSvgLogoContentType() {
+        // Given — a genuine SVG with an embedded <script> declared as image/svg+xml
+        byte[] svg = ("<svg xmlns=\"http://www.w3.org/2000/svg\"><script>"
+                + "alert(document.cookie)</script></svg>").getBytes();
+        MultipartFile file = new MockMultipartFile("logo", "logo.svg", "image/svg+xml", svg);
+
+        // When & Then — rejected at the allowlist (svg+xml no longer accepted),
+        // before any storage call
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> brandingService.uploadLogo(file))
+                .isInstanceOf(com.kiteclass.core.common.exception.ValidationException.class);
+        verify(brandingAssetStorage, times(0)).store(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("GAP-1037: should reject SVG/script payload spoofed as image/png (content sniff)")
+    void shouldRejectSpoofedMimeViaContentSniff() {
+        // Given — an SVG/script payload that lies about its type with an image/png header.
+        // Passes the client-MIME allowlist but its bytes are not a real PNG.
+        byte[] svg = ("<svg xmlns=\"http://www.w3.org/2000/svg\"><script>"
+                + "alert(1)</script></svg>").getBytes();
+        MultipartFile file = new MockMultipartFile("logo", "logo.png", "image/png", svg);
+
+        // When & Then — magic-byte sniff rejects it; storage never reached
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> brandingService.uploadLogo(file))
+                .isInstanceOf(com.kiteclass.core.common.exception.ValidationException.class);
+        verify(brandingAssetStorage, times(0)).store(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("GAP-1037: should reject spoofed banner payload via content sniff (415)")
+    void shouldRejectSpoofedBannerViaContentSniff() {
+        // Given — script payload spoofed as image/png on the banner path
+        byte[] payload = "<script>alert(1)</script>".getBytes();
+        MultipartFile file = new MockMultipartFile("banner", "banner.png", "image/png", payload);
+
+        // When & Then — 415 from the magic-byte sniff, before any storage call
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> brandingService.uploadBanner(file))
+                .isInstanceOf(com.kiteclass.core.common.exception.BusinessException.class)
+                .extracting("status")
+                .isEqualTo(org.springframework.http.HttpStatus.UNSUPPORTED_MEDIA_TYPE);
         verify(brandingAssetStorage, times(0)).store(any(), any(), any(), any(), any());
     }
 }

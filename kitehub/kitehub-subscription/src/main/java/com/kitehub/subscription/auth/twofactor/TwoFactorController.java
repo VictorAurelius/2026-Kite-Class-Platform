@@ -7,6 +7,7 @@ import com.kitehub.subscription.auth.twofactor.TwoFactorEnrollmentService.TwoFac
 import com.kitehub.subscription.auth.twofactor.dto.*;
 import com.kitehub.subscription.repository.UserRepository;
 import com.kitehub.subscription.service.JwtKeyService;
+import com.kitehub.subscription.service.TokenService;
 import io.jsonwebtoken.Jwts;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -59,6 +60,7 @@ public class TwoFactorController {
     private final TwoFactorEnrollmentService service;
     private final UserRepository userRepository;
     private final JwtKeyService jwtKeyService;
+    private final TokenService tokenService;
 
     // ---- token issuer (closure over JwtKeyService for unit-test isolation) -
 
@@ -66,27 +68,17 @@ public class TwoFactorController {
         new TwoFactorEnrollmentService.TokenIssuer() {
             @Override
             public String access(User user) {
-                return signAccessToken(user, 24, ChronoUnit.HOURS);
+                // GAP-1097: delegate to shared TokenService so 2FA-completion access
+                // tokens carry tier + tenantId claims (parity with AuthService/TokenService
+                // per ADR-039 + GAP-704). Eliminates the 3rd independent token builder that
+                // drifted on every new claim. Same JwtKeyService signing key, 24h expiration.
+                return tokenService.generateAccessToken(user.getId(), user.getEmail(), user.getRole());
             }
             @Override
             public String refresh(User user) {
                 return signRefreshToken(user, 7, ChronoUnit.DAYS);
             }
         };
-
-    private String signAccessToken(User user, long amount, ChronoUnit unit) {
-        SecretKey key = jwtKeyService.signingKey();
-        Instant now = Instant.now();
-        return Jwts.builder()
-            .subject(user.getId().toString())
-            .claim("email", user.getEmail())
-            .claim("role", user.getRole())
-            .claim("type", "access")
-            .issuedAt(Date.from(now))
-            .expiration(Date.from(now.plus(amount, unit)))
-            .signWith(key)
-            .compact();
-    }
 
     private String signRefreshToken(User user, long amount, ChronoUnit unit) {
         SecretKey key = jwtKeyService.signingKey();
