@@ -1,6 +1,6 @@
 # GAP-909: KC `courses` entity vs migration history drift — cover_image_url + suggested_tuition
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE (wave-gap-audit-p1-1 2026-06-19 — substantive work shipped + CI-verified; residual cosmetic doc-ref/AC-checkbox only per verify pass)
 **Priority:** 🟡 P2
 **Domain:** Backend / DB
 **Found:** 2026-06-03 (Wave 13 cluster docs writing — KC academic structure)

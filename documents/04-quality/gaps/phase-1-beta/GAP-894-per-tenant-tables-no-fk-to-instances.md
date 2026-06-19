@@ -1,6 +1,6 @@
 # GAP-894: Per-tenant tables không có FK tới `instances` — audit orphan + integrity check thủ công
 
-**Status:** 🔵 OPEN
+**Status:** ⚪ WONTFIX (wave-gap-audit-p1-1 2026-06-19 — current state intentional per OWASP A09 retention design; logical reference convention accepted, no FK-to-`instances` by design)
 **Priority:** 🟡 P2
 **Domain:** Backend / DB / Compliance
 **Found:** 2026-06-03 (Wave 13 cluster docs writing — KH auth/user/instance)

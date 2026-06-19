@@ -1,6 +1,6 @@
 # GAP-884: `version` column missing DEFAULT 0 on multiple tables — NPE risk seed/raw INSERT
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE (wave-gap-audit-p1-1 2026-06-19 — substantive work shipped + CI-verified; residual cosmetic doc-ref/AC-checkbox only per verify pass)
 **Priority:** 🟡 P2
 **Domain:** Backend / DB
 **Found:** 2026-06-03 (Wave 13 cluster docs writing — KC finance + KC branding)

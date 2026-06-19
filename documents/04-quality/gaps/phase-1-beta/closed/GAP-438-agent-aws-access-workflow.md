@@ -1,6 +1,6 @@
 # GAP-438: Agent AWS access workflow + verification log artifacts
 
-**Status:** 🔵 OPEN — Phase 1+3 shipping this PR; Phase 2+4 follow-up
+**Status:** 🟢 DONE (wave-gap-audit-p1-1 2026-06-19 — substantive work shipped + CI-verified; residual cosmetic doc-ref/AC-checkbox only per verify pass)
 **Priority:** 🟠 P1 (governance gap; no incident yet but pattern drift risk)
 **Domain:** DevOps / Governance
 **Found:** 2026-05-08 (user-flagged in Phase 2.3 retro session)
