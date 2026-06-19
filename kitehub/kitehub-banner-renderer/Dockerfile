@@ -4,7 +4,7 @@
 # branding JVM image stays light (this is the deferred "where does the browser
 # live" decision, resolved as a sidecar). Pin the base tag to the same Playwright
 # version as package.json so the bundled browser matches the npm client.
-FROM mcr.microsoft.com/playwright:v1.49.1-noble
+FROM mcr.microsoft.com/playwright:v1.55.1-noble
 
 WORKDIR /app
 
