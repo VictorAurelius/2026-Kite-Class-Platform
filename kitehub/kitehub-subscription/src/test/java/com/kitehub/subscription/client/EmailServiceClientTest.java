@@ -763,7 +763,7 @@ class EmailServiceClientTest {
             EmailEvent event = decodeEmailEvent(msgCaptor.getValue());
             assertThat(event.getVariables())
                 .containsEntry("dashboardUrl", "https://acme.staging.kitehub.test/dashboard")
-                .containsEntry("supportUrl", "https://staging.kitehub.test/support");
+                .containsEntry("supportUrl", "https://staging.kitehub.test/contact");
         }
 
         /**

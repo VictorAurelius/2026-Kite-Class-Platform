@@ -228,7 +228,7 @@ public class EmailServiceClient {
                     "daysUntilExpiration", daysUntilExpiration,
                     "tier", tier,
                     "amountVnd", String.format("%,d", amountVnd),
-                    "paymentUrl", appBaseUrl + "/subscription/payment"
+                    "paymentUrl", appBaseUrl + "/billing"
                 ))
                 .build();
 
@@ -270,7 +270,7 @@ public class EmailServiceClient {
                 .templateName("subscription-suspended")
                 .variables(Map.of(
                     "organizationName", organizationName,
-                    "renewUrl", appBaseUrl + "/subscription/renew"
+                    "renewUrl", appBaseUrl + "/billing"
                 ))
                 .build();
 
@@ -306,7 +306,7 @@ public class EmailServiceClient {
                 .variables(Map.of(
                     "organizationName", organizationName,
                     "daysLeft", daysLeft,
-                    "renewUrl", appBaseUrl + "/subscription/renew"
+                    "renewUrl", appBaseUrl + "/billing"
                 ))
                 .build();
 
@@ -409,7 +409,7 @@ public class EmailServiceClient {
                 .variables(Map.of(
                     "subdomain", subdomain,
                     "instanceName", subdomain,
-                    "renewUrl", appBaseUrl + "/subscription/renew"
+                    "renewUrl", appBaseUrl + "/billing"
                 ))
                 .build();
 
@@ -443,7 +443,7 @@ public class EmailServiceClient {
                 .variables(Map.of(
                     "subdomain", subdomain,
                     "instanceName", subdomain,
-                    "renewUrl", appBaseUrl + "/subscription/renew"
+                    "renewUrl", appBaseUrl + "/billing"
                 ))
                 .build();
 
@@ -569,8 +569,8 @@ public class EmailServiceClient {
                     "organizationName", organizationName == null ? "" : organizationName,
                     "subdomain", safeSubdomain,
                     "dashboardUrl", String.format("https://%s.%s/dashboard", safeSubdomain, appDomain()),
-                    "onboardingChecklistUrl", appBaseUrl + "/help/onboarding",
-                    "supportUrl", appBaseUrl + "/support",
+                    "onboardingChecklistUrl", appBaseUrl + "/onboarding",
+                    "supportUrl", appBaseUrl + "/contact",
                     "unsubscribeUrl", appBaseUrl + "/unsubscribe"
                 ))
                 .build();
@@ -709,7 +709,7 @@ public class EmailServiceClient {
                     "rightType", rightType,
                     "requesterEmail", requesterEmail,
                     "slaDeadline", slaDeadline.toString(),
-                    "dpoQueueUrl", appBaseUrl + "/admin/dsar"
+                    "dpoQueueUrl", appBaseUrl + "/admin"
                 ))
                 .build();
 
@@ -794,7 +794,7 @@ public class EmailServiceClient {
                     "ip", ip == null ? "unknown" : ip,
                     "userAgent", userAgent == null ? "unknown" : userAgent,
                     "loginAt", loginAt == null ? "" : loginAt.toString(),
-                    "supportUrl", appBaseUrl + "/support"
+                    "supportUrl", appBaseUrl + "/contact"
                 ))
                 .build();
 
