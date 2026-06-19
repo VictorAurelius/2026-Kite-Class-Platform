@@ -165,8 +165,10 @@ class BrandingCacheIntegrationTest {
         assertThat(cache).isNotNull();
         assertThat(cache.get(tenant1)).isNotNull();
 
+        // GAP-1037: bytes must pass the magic-byte content sniff (PNG signature).
         MultipartFile logo = new MockMultipartFile(
-                "logo", "logo.png", "image/png", "fake-png-bytes".getBytes());
+                "logo", "logo.png", "image/png",
+                new byte[] {(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D});
         brandingService.uploadLogo(logo);
 
         assertThat(cache.get(tenant1))
@@ -183,8 +185,10 @@ class BrandingCacheIntegrationTest {
         assertThat(cache).isNotNull();
         assertThat(cache.get(tenant1)).isNotNull();
 
+        // GAP-1037: bytes must pass the magic-byte content sniff (ICO signature).
         MultipartFile favicon = new MockMultipartFile(
-                "favicon", "favicon.ico", "image/x-icon", "fake-ico-bytes".getBytes());
+                "favicon", "favicon.ico", "image/x-icon",
+                new byte[] {0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x10, 0x10});
         brandingService.uploadFavicon(favicon);
 
         assertThat(cache.get(tenant1))
