@@ -373,6 +373,14 @@ jobs:
           severity: 'HIGH,CRITICAL'
           exit-code: ${{ (contains(github.ref, '-staging.') || github.ref == 'refs/heads/main') && '0' || '1' }}
           ignore-unfixed: true
+          # Skip npm's OWN bundled node_modules in the base image (node:22-trixie-slim
+          # ships a global npm install at /usr/lib/node_modules/npm). npm is a
+          # BUILD-tool, never invoked at runtime (Next.js standalone runs node only).
+          # CVEs in npm-vendored tar/glob/minimatch/cross-spawn = 0 runtime exposure.
+          # Per audit 2026-06-19 (17 HIGH dismissed won't-fix) + GAP-1485 + GAP-400.
+          # Path-skip (root-fix) instead of per-CVE .trivyignore entries
+          # (release-fix-retry-budget.md §4 — don't patch each CVE).
+          skip-dirs: 'usr/lib/node_modules/npm'
           format: 'sarif'
           output: 'trivy-results-${{ matrix.service }}.sarif'
           trivyignores: '.trivyignore'
