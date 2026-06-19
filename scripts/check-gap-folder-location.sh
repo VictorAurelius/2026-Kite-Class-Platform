@@ -40,6 +40,7 @@ phase_subdir() {
     phase-1.5-paid) echo "phase-1.5-paid" ;;
     phase-2)        echo "phase-2" ;;
     phase-3)        echo "phase-3" ;;
+    phase-4-deploy) echo "phase-4-deploy" ;;
     n/a)            echo "unclassified" ;;
     *)              echo "UNKNOWN-PHASE" ;;
   esac
@@ -120,6 +121,7 @@ if [[ "$MISMATCH_COUNT" -gt 0 ]]; then
                 phase-1.5-paid phase-1.5-paid/closed \
                 phase-2 phase-2/closed \
                 phase-3 phase-3/closed \
+                phase-4-deploy phase-4-deploy/closed \
                 unclassified unclassified/closed \
                 UNKNOWN-PHASE UNKNOWN-PHASE/closed; do
     count="${MISMATCH_BY_TARGET[$target]:-0}"

@@ -22,7 +22,7 @@ GAP_FILES_OPTIONAL="${GAP_FILES_OPTIONAL:-false}"  # Phase 2 — require 100% co
 # Enum validation
 VALID_STATUSES="OPEN PARTIAL PLANNED IN_PROGRESS DONE WONTFIX PENDING"
 VALID_PRIORITIES="P0 P1 P2 P3"
-VALID_PHASES="phase-1-beta phase-1.5-paid phase-2 phase-3 n/a"
+VALID_PHASES="phase-1-beta phase-1.5-paid phase-2 phase-3 phase-4-deploy n/a"
 
 if [[ ! -f "$CSV" ]]; then
   echo "FAIL: $CSV not found"
@@ -113,7 +113,7 @@ done <<< "$ROWS"
 # Match by exact relative path from $GAPS_DIR.
 if [[ "$GAP_FILES_OPTIONAL" == "false" ]]; then
   # Walk v2.0.0 layout: phase-X/[closed/]/ + unclassified/[closed/]/
-  for SUBDIR in phase-1-beta phase-1.5-paid phase-2 phase-3 unclassified; do
+  for SUBDIR in phase-1-beta phase-1.5-paid phase-2 phase-3 phase-4-deploy unclassified; do
     while IFS= read -r FULLPATH; do
       [[ -z "$FULLPATH" ]] && continue
       REL_PATH="${FULLPATH#$GAPS_DIR/}"
