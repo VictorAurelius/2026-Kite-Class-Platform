@@ -1,6 +1,6 @@
 # GAP-1308: Gateway default-filters không strip X-User-Roles → role-spoof privilege escalation qua gateway
 
-**Status:** 🟡 PARTIAL (code+config+CI-config-test DONE; runtime forged-header→403 walk pending)
+**Status:** 🟢 DONE (wave-phase1-closeout walk 2026-06-19 — runtime forged-header attack-sim verified; see Walk evidence below)
 **Priority:** 🔴 P0
 **Domain:** Backend
 **Found:** 2026-06-14 (security full audit post wave-p0-closeout-1 — AUDIT-2026-06-14-security-full, F-001)
@@ -54,3 +54,13 @@ Code-fix PARTIAL — cơ chế anti-spoof đã hoàn tất ở tầng gateway co
 - GAP-825 (tenant-isolation hardening, OPEN) — defense-in-depth bổ trợ.
 - GAP-1310 (X-User-Email strip, P2) — sibling cùng evidence.
 - `cross-flow-bug-class-sweep.md` — strip-pattern cần sweep mọi inject-header (X-User-Id/Tenant/Reference/Tier/Roles/Email).
+
+## Walk evidence (per g1-browser-walk-before-flip §note + feature-ship-runtime-walk-mandate §3) — 2026-06-19
+
+**Method:** attack-simulation header-injection → `curl :9000` is the correct walk method (forged header IS the payload, not an FE affordance). Stack: local Docker (15 containers healthy), gateway built from main.
+
+- **Config active:** `RemoveRequestHeader=X-User-Roles` (application.yml L983) + `X-User-Email` (L987) present in running gateway.
+- **Runtime forged-header (no token):** `curl -H "X-User-Roles: OWNER,PLATFORM_ADMIN" -H "X-User-Id: <uuid>"` →
+  - `GET :9000/api/v1/admin/instances` → **401** ✅ (stripped → no authority)
+  - `GET :9000/api/platform/admin/beta-requests` → **401** ✅
+- **Verdict:** gateway strips client-supplied `X-User-Roles` before forwarding → forged role grants no authority → privilege-escalation (F-001) closed.
