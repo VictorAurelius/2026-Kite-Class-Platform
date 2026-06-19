@@ -6,7 +6,16 @@
   **Multi-platform Educational Technology Suite**
   SaaS Management × Multi-tenant Education
 
-  [Quick Start](#quick-start) · [Architecture](#architecture) · [Documentation](#documentation) · [Governance](#governance)
+  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+  [![Spring Boot](https://img.shields.io/badge/Spring_Boot-6DB33F?logo=springboot&logoColor=white)](#tech-stack)
+  [![Next.js](https://img.shields.io/badge/Next.js-000000?logo=nextdotjs&logoColor=white)](#tech-stack)
+  [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](#tech-stack)
+  [![Java 17](https://img.shields.io/badge/Java-17-007396?logo=openjdk&logoColor=white)](#tech-stack)
+  [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white)](#tech-stack)
+  [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+  [![Vietnamese-first](https://img.shields.io/badge/%F0%9F%87%BB%F0%9F%87%B3-Vietnamese--first-da251d)](#)
+
+  [Quick Start](#quick-start) · [Architecture](#architecture) · [Documentation](#documentation) · [Governance](#governance) · [Live Demo](https://victoraurelius.github.io/2026-Kite-Class-Platform/)
 </div>
 
 ---
@@ -16,6 +25,17 @@
 📖 **Live design preview:** https://victoraurelius.github.io/2026-Kite-Class-Platform/ — interactive HTML prototypes for every persona-tuned UI kit.
 
 🇻🇳 **Vietnamese-first.** All user-facing copy in Vietnamese; code comments + commit messages in English.
+
+---
+
+## ✨ Why Kite is interesting
+
+- **One platform provisions another.** KiteHub is a SaaS control plane that spins up a fully isolated KiteClass instance whenever a school subscribes — trial → subscription → provision → deploy, automated end to end.
+- **Database-level multi-tenancy.** Each tenant gets its own database (instance-per-tenant), not row-level filtering — the strongest isolation boundary, no `WHERE tenant_id` leaks.
+- **AI branding from a local LLM.** Per-tenant logo, color theme, and hero imagery generated via local **Ollama** with template-first routing and per-tier rate limits — no external AI bill.
+- **Governance as code.** The whole project runs on an **audit → gap → fix** pipeline: every audit finding becomes a tracked gap file, every fix is its own PR, every wave merges only after an audit refresh. Scores come from specialist audits, not self-estimates.
+- **Persona-tuned UX.** Distinct dashboards for Owner, Teacher, Parent, and Student — mobile-first where it matters (parents & students), command-palette power tools where it helps (owners).
+- **Built Vietnamese-first.** VND tax-format invoices, Zalo OA notifications, local payment rails (VNPay / MoMo / ZaloPay / Bank / Cash).
 
 ---
 
@@ -40,6 +60,35 @@ Run `./scripts/help.sh` inside either folder for the full command list.
 ---
 
 ## Architecture
+
+```mermaid
+flowchart TB
+    subgraph KH["🛰️ KiteHub — SaaS Control Plane"]
+        KHGW["Gateway :9000"]
+        SUB["Subscription"]
+        BILL["Billing"]
+        BRAND["AI Branding"]
+        PROV["Provisioning"]
+    end
+
+    subgraph KC["🏫 KiteClass — one instance per tenant (school)"]
+        KCGW["Gateway :8090"]
+        CORE["Core — students · courses · classes · attendance · grades · payments"]
+    end
+
+    subgraph SH["🧱 Shared Infrastructure (kite-*)"]
+        PG[("PostgreSQL")]
+        REDIS[("Redis")]
+        MQ["RabbitMQ"]
+        MINIO[("MinIO / S3")]
+        OLLAMA["Ollama LLM"]
+    end
+
+    KH -->|provisions isolated instance + branding on subscribe| KC
+    BRAND -.->|template-first theme gen| OLLAMA
+    KH --> SH
+    KC --> SH
+```
 
 ### Two products, one stack
 
@@ -148,6 +197,20 @@ For dynamic state (open PRs, current wave, audit scores, gap counts) → see [`R
 - **Audit-to-gap pipeline** — audit issue → gap file → fix PR (no direct fixes from audit)
 
 Governance rules under [`.claude/rules/`](.claude/rules/) — `rule-change-process`, `output-review-mandate`, `gap-done-discipline`, `incident-to-rule-pipeline`, `readme-content-discipline` — automated by pre-commit hooks + CI.
+
+---
+
+## Contributing
+
+Issues, ideas, and pull requests are welcome — see [`CONTRIBUTING.md`](CONTRIBUTING.md) for the
+branch / PR / commit conventions, and [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md). For security
+reports, please follow [`SECURITY.md`](SECURITY.md) (no public issues).
+
+If you find the project interesting, a ⭐ helps others discover it.
+
+## License
+
+Released under the [MIT License](LICENSE). © 2026 Nguyen Van Kiet (VictorAurelius).
 
 ---
 
