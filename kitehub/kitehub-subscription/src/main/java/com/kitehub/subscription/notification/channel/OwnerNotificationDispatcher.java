@@ -4,6 +4,7 @@ import com.kitehub.platform.domain.entity.Instance;
 import com.kitehub.subscription.billing.dto.ReceiptResponse;
 import com.kitehub.subscription.notification.enums.NotificationChannelType;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.EnumMap;
@@ -30,6 +31,15 @@ public class OwnerNotificationDispatcher {
 
     private final Map<NotificationChannelType, NotificationChannel> channels =
         new EnumMap<>(NotificationChannelType.class);
+
+    /**
+     * GAP-1414: canonical KiteHub public app base URL for owner-notification CTA links.
+     * Single source of truth shared with EmailServiceClient + DomainService; env-overridable
+     * via {@code KITEHUB_APP_BASE_URL} (Spring relaxed binding). Replaces hardcoded
+     * {@code https://kitehub.me/billing*} literals.
+     */
+    @Value("${kitehub.app.base-url:https://kitehub.me}")
+    private String appBaseUrl;
 
     public OwnerNotificationDispatcher(List<NotificationChannel> channelBeans) {
         for (NotificationChannel ch : channelBeans) {
@@ -88,7 +98,7 @@ public class OwnerNotificationDispatcher {
             .title("Thanh toán đã được xác nhận")
             .body("KiteHub đã xác nhận thanh toán " + amountStr + "đ của bạn. "
                 + "Biên nhận: " + receipt.getReceiptNumber() + ".")
-            .actionUrl("https://kitehub.me/billing")
+            .actionUrl(appBaseUrl + "/billing")
             .emailSubject("[KiteHub] Thanh toán đã được xác nhận - " + (org == null ? "" : org))
             .emailTemplate("payment-confirmed")
             .emailVariables(Map.of(
@@ -98,7 +108,7 @@ public class OwnerNotificationDispatcher {
                 "amountVnd", amountStr,
                 "transactionId", receipt.getTransactionId() == null ? "" : receipt.getTransactionId(),
                 "paidAt", receipt.getPaidAt() == null ? "" : receipt.getPaidAt().toString(),
-                "billingUrl", "https://kitehub.me/billing"
+                "billingUrl", appBaseUrl + "/billing"
             ))
             .build();
         notifyOwner(n);
@@ -129,14 +139,14 @@ public class OwnerNotificationDispatcher {
             .organizationName(org)
             .title("Kích hoạt lại trung tâm của bạn")
             .body(reason + " Kích hoạt lại bất cứ lúc nào để tiếp tục sử dụng KiteHub.")
-            .actionUrl("https://kitehub.me/billing/reactivate")
+            .actionUrl(appBaseUrl + "/billing/reactivate")
             .emailSubject("[KiteHub] Kích hoạt lại " + (org == null ? "trung tâm của bạn" : org))
             .emailTemplate("winback-reactivate")
             .emailVariables(Map.of(
                 "organizationName", org == null ? "" : org,
                 "reason", reason,
                 "voluntary", voluntary,
-                "reactivateUrl", "https://kitehub.me/billing/reactivate"
+                "reactivateUrl", appBaseUrl + "/billing/reactivate"
             ))
             .build();
         notifyOwner(n);

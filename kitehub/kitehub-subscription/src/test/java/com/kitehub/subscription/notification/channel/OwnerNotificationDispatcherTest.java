@@ -9,6 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
 import java.util.UUID;
@@ -33,7 +34,11 @@ class OwnerNotificationDispatcherTest {
         when(inAppChannel.type()).thenReturn(NotificationChannelType.IN_APP);
         lenient().when(emailChannel.deliver(org.mockito.ArgumentMatchers.any())).thenReturn(true);
         lenient().when(inAppChannel.deliver(org.mockito.ArgumentMatchers.any())).thenReturn(true);
-        return new OwnerNotificationDispatcher(List.of(emailChannel, inAppChannel));
+        OwnerNotificationDispatcher d = new OwnerNotificationDispatcher(List.of(emailChannel, inAppChannel));
+        // GAP-1414: appBaseUrl is @Value-injected at runtime (default https://kitehub.me);
+        // set the canonical default so CTA links render correctly in unit tests.
+        ReflectionTestUtils.setField(d, "appBaseUrl", "https://kitehub.me");
+        return d;
     }
 
     @Test

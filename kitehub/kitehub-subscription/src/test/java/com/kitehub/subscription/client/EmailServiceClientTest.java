@@ -89,6 +89,10 @@ class EmailServiceClientTest {
         objectMapper.findAndRegisterModules();
         emailServiceClient = new EmailServiceClient(restTemplate, emailSentLogRepository,
             rabbitTemplate, emailConfigProperties, eventEmitter, objectMapper);
+        // GAP-1414: appBaseUrl is @Value-injected at runtime (default https://kitehub.me).
+        // Mockito unit tests bypass Spring, so set the canonical default explicitly here —
+        // appDomain() would NPE otherwise when building per-tenant subdomain dashboard URLs.
+        ReflectionTestUtils.setField(emailServiceClient, "appBaseUrl", "https://kitehub.me");
         instanceId = UUID.randomUUID();
         lenient().when(emailConfigProperties.getTypeToggles()).thenReturn(new HashMap<>());
     }
@@ -694,6 +698,102 @@ class EmailServiceClientTest {
 
             verify(emailSentLogRepository, never()).save(any(EmailSentLog.class));
             verify(rabbitTemplate, never()).send(anyString(), anyString(), any(Message.class));
+        }
+    }
+
+    @Nested
+    @DisplayName("GAP-1414 — email link domain from config (not hardcoded)")
+    class UrlFromConfig {
+
+        @BeforeEach
+        void setUpQueueMode() {
+            ReflectionTestUtils.setField(emailServiceClient, "useQueue", true);
+        }
+
+        /**
+         * Apex links (upgradeUrl, loginUrl, ...) must derive from the configured base URL —
+         * proves they are NO LONGER hardcoded to kitehub.com / kitehub.vn. Overriding the
+         * config field flips every link to the new domain.
+         */
+        @Test
+        @DisplayName("apex links use the configured base URL, not a hardcoded domain")
+        void apexLinksUseConfiguredBaseUrl() {
+            ReflectionTestUtils.setField(emailServiceClient, "appBaseUrl", "https://staging.kitehub.test");
+            when(emailSentLogRepository.existsByInstanceIdAndEmailTypeAndRecipientAndSentAtBetween(
+                eq(instanceId), eq("trial-warning"), eq("test@example.com"),
+                any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(false);
+
+            emailServiceClient.sendTrialExpirationWarning(
+                instanceId, "test@example.com", "Test Org", 3);
+
+            ArgumentCaptor<Message> msgCaptor = ArgumentCaptor.forClass(Message.class);
+            verify(rabbitTemplate).send(
+                eq(EmailQueueConfig.EMAIL_EXCHANGE),
+                eq(EmailQueueConfig.EMAIL_ROUTING_KEY),
+                msgCaptor.capture());
+
+            EmailEvent event = decodeEmailEvent(msgCaptor.getValue());
+            assertThat(event.getVariables())
+                .containsEntry("upgradeUrl", "https://staging.kitehub.test/pricing");
+        }
+
+        /**
+         * Per-tenant subdomain dashboard URL must derive the bare host from the configured
+         * base URL (scheme stripped) — {@code https://<subdomain>.<appDomain>/dashboard}.
+         */
+        @Test
+        @DisplayName("subdomain dashboard URL derives bare host from configured base URL")
+        void subdomainDashboardUrlUsesConfiguredDomain() {
+            ReflectionTestUtils.setField(emailServiceClient, "appBaseUrl", "https://staging.kitehub.test");
+            when(emailSentLogRepository.existsByInstanceIdAndEmailTypeAndRecipientAndSentAtBetween(
+                eq(instanceId), eq("tenant-ready"), eq("owner@acme.edu.vn"),
+                any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(false);
+
+            emailServiceClient.sendTenantReadyEmail(
+                instanceId, "owner@acme.edu.vn", "Acme School", "acme");
+
+            ArgumentCaptor<Message> msgCaptor = ArgumentCaptor.forClass(Message.class);
+            verify(rabbitTemplate).send(
+                eq(EmailQueueConfig.EMAIL_EXCHANGE),
+                eq(EmailQueueConfig.EMAIL_ROUTING_KEY),
+                msgCaptor.capture());
+
+            EmailEvent event = decodeEmailEvent(msgCaptor.getValue());
+            assertThat(event.getVariables())
+                .containsEntry("dashboardUrl", "https://acme.staging.kitehub.test/dashboard")
+                .containsEntry("supportUrl", "https://staging.kitehub.test/support");
+        }
+
+        /**
+         * Canonical default (https://kitehub.me) — every customer-email link resolves to the
+         * real Phase 1 BETA domain when no override is supplied (the value set in setUp matches
+         * the {@code @Value} annotation default literal).
+         */
+        @Test
+        @DisplayName("default base URL is canonical kitehub.me for apex + subdomain links")
+        void defaultBaseUrlIsCanonicalKitehubMe() {
+            // setUp() set appBaseUrl to the @Value default "https://kitehub.me".
+            when(emailSentLogRepository.existsByInstanceIdAndEmailTypeAndRecipientAndSentAtBetween(
+                eq(instanceId), eq("welcome"), eq("test@example.com"),
+                any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(false);
+
+            emailServiceClient.sendWelcomeEmail(
+                instanceId, "test@example.com", "Test Org", 14, "2026-04-30");
+
+            ArgumentCaptor<Message> msgCaptor = ArgumentCaptor.forClass(Message.class);
+            verify(rabbitTemplate).send(
+                eq(EmailQueueConfig.EMAIL_EXCHANGE),
+                eq(EmailQueueConfig.EMAIL_ROUTING_KEY),
+                msgCaptor.capture());
+
+            EmailEvent event = decodeEmailEvent(msgCaptor.getValue());
+            assertThat(event.getVariables())
+                .containsEntry("loginUrl", "https://kitehub.me/login")
+                .containsEntry("docsUrl", "https://kitehub.me/help")
+                .containsEntry("unsubscribeUrl", "https://kitehub.me/unsubscribe");
         }
     }
 }

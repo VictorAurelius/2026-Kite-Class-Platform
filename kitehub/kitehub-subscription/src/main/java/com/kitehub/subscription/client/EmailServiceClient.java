@@ -70,6 +70,17 @@ public class EmailServiceClient {
     @Value("${kitehub.email.use-queue:true}")
     private boolean useQueue;
 
+    /**
+     * GAP-1414: canonical KiteHub public app base URL for ALL customer-email links.
+     * Single source of truth — replaces ~25 hardcoded URLs that previously drifted across
+     * 3 conflicting domains (kitehub.com / kitehub.me / kitehub.vn) in this one file, sending
+     * customers to dead/wrong links. Real domain = kitehub.me (per kitehub-kiteclass-boundary §2).
+     * Env-overridable via {@code KITEHUB_APP_BASE_URL} (Spring relaxed binding); shared with
+     * OwnerNotificationDispatcher + DomainService.
+     */
+    @Value("${kitehub.app.base-url:https://kitehub.me}")
+    private String appBaseUrl;
+
     public EmailServiceClient(RestTemplate restTemplate,
                               EmailSentLogRepository emailSentLogRepository,
                               RabbitTemplate rabbitTemplate,
@@ -121,7 +132,7 @@ public class EmailServiceClient {
                 .variables(Map.of(
                     "organizationName", organizationName,
                     "daysRemaining", daysRemaining,
-                    "upgradeUrl", "https://kitehub.com/pricing"
+                    "upgradeUrl", appBaseUrl + "/pricing"
                 ))
                 .build();
 
@@ -163,7 +174,7 @@ public class EmailServiceClient {
                 .templateName("trial-expired")
                 .variables(Map.of(
                     "organizationName", organizationName,
-                    "upgradeUrl", "https://kitehub.com/pricing"
+                    "upgradeUrl", appBaseUrl + "/pricing"
                 ))
                 .build();
 
@@ -217,7 +228,7 @@ public class EmailServiceClient {
                     "daysUntilExpiration", daysUntilExpiration,
                     "tier", tier,
                     "amountVnd", String.format("%,d", amountVnd),
-                    "paymentUrl", "https://kitehub.com/subscription/payment"
+                    "paymentUrl", appBaseUrl + "/subscription/payment"
                 ))
                 .build();
 
@@ -259,7 +270,7 @@ public class EmailServiceClient {
                 .templateName("subscription-suspended")
                 .variables(Map.of(
                     "organizationName", organizationName,
-                    "renewUrl", "https://kitehub.com/subscription/renew"
+                    "renewUrl", appBaseUrl + "/subscription/renew"
                 ))
                 .build();
 
@@ -295,7 +306,7 @@ public class EmailServiceClient {
                 .variables(Map.of(
                     "organizationName", organizationName,
                     "daysLeft", daysLeft,
-                    "renewUrl", "https://kitehub.com/subscription/renew"
+                    "renewUrl", appBaseUrl + "/subscription/renew"
                 ))
                 .build();
 
@@ -329,8 +340,8 @@ public class EmailServiceClient {
                 .variables(Map.of(
                     "subdomain", subdomain,
                     "instanceName", subdomain,
-                    "upgradeUrl", "https://kitehub.com/pricing",
-                    "dashboardUrl", String.format("https://%s.kitehub.me/dashboard", subdomain)
+                    "upgradeUrl", appBaseUrl + "/pricing",
+                    "dashboardUrl", String.format("https://%s.%s/dashboard", subdomain, appDomain())
                 ))
                 .build();
 
@@ -364,7 +375,7 @@ public class EmailServiceClient {
                 .variables(Map.of(
                     "subdomain", subdomain,
                     "instanceName", subdomain,
-                    "dashboardUrl", String.format("https://%s.kitehub.me/dashboard", subdomain)
+                    "dashboardUrl", String.format("https://%s.%s/dashboard", subdomain, appDomain())
                 ))
                 .build();
 
@@ -398,7 +409,7 @@ public class EmailServiceClient {
                 .variables(Map.of(
                     "subdomain", subdomain,
                     "instanceName", subdomain,
-                    "renewUrl", "https://kitehub.com/subscription/renew"
+                    "renewUrl", appBaseUrl + "/subscription/renew"
                 ))
                 .build();
 
@@ -432,7 +443,7 @@ public class EmailServiceClient {
                 .variables(Map.of(
                     "subdomain", subdomain,
                     "instanceName", subdomain,
-                    "renewUrl", "https://kitehub.com/subscription/renew"
+                    "renewUrl", appBaseUrl + "/subscription/renew"
                 ))
                 .build();
 
@@ -465,7 +476,7 @@ public class EmailServiceClient {
                 .templateName("data-deleted")
                 .variables(Map.of(
                     "organizationName", organizationName,
-                    "contactUrl", "https://kitehub.com/contact"
+                    "contactUrl", appBaseUrl + "/contact"
                 ))
                 .build();
 
@@ -507,9 +518,9 @@ public class EmailServiceClient {
                     "organizationName", organizationName,
                     "trialDays", trialDays,
                     "expiryDate", expiryDate,
-                    "loginUrl", "https://kitehub.vn/login",
-                    "docsUrl", "https://kitehub.me/help",
-                    "unsubscribeUrl", "https://kitehub.me/unsubscribe"
+                    "loginUrl", appBaseUrl + "/login",
+                    "docsUrl", appBaseUrl + "/help",
+                    "unsubscribeUrl", appBaseUrl + "/unsubscribe"
                 ))
                 .build();
 
@@ -557,10 +568,10 @@ public class EmailServiceClient {
                     "recipientName", organizationName == null ? "bạn" : organizationName,
                     "organizationName", organizationName == null ? "" : organizationName,
                     "subdomain", safeSubdomain,
-                    "dashboardUrl", String.format("https://%s.kitehub.me/dashboard", safeSubdomain),
-                    "onboardingChecklistUrl", "https://kitehub.me/help/onboarding",
-                    "supportUrl", "https://kitehub.me/support",
-                    "unsubscribeUrl", "https://kitehub.me/unsubscribe"
+                    "dashboardUrl", String.format("https://%s.%s/dashboard", safeSubdomain, appDomain()),
+                    "onboardingChecklistUrl", appBaseUrl + "/help/onboarding",
+                    "supportUrl", appBaseUrl + "/support",
+                    "unsubscribeUrl", appBaseUrl + "/unsubscribe"
                 ))
                 .build();
 
@@ -607,7 +618,7 @@ public class EmailServiceClient {
                     "organizationName", organizationName,
                     "tier", tier,
                     "billingCycle", billingCycle,
-                    "dashboardUrl", "https://kitehub.me/dashboard"
+                    "dashboardUrl", appBaseUrl + "/dashboard"
                 ))
                 .build();
 
@@ -653,7 +664,7 @@ public class EmailServiceClient {
                     "tier", tier,
                     "expiresAt", expiresAt == null ? "" : expiresAt,
                     // GAP-1086 sweep: sister of subscription-created — kitehub.vn → kitehub.me.
-                    "supportUrl", "https://kitehub.me/dashboard"
+                    "supportUrl", appBaseUrl + "/dashboard"
                 ))
                 .build();
 
@@ -698,7 +709,7 @@ public class EmailServiceClient {
                     "rightType", rightType,
                     "requesterEmail", requesterEmail,
                     "slaDeadline", slaDeadline.toString(),
-                    "dpoQueueUrl", "https://kitehub.vn/admin/dsar"
+                    "dpoQueueUrl", appBaseUrl + "/admin/dsar"
                 ))
                 .build();
 
@@ -743,7 +754,7 @@ public class EmailServiceClient {
                     "rightType", rightType,
                     "slaDeadline", slaDeadline.toString(),
                     "statusCheckUrl",
-                        String.format("https://kitehub.vn/legal/data-rights/status?id=%s", ticketUuid)
+                        appBaseUrl + "/legal/data-rights/status?id=" + ticketUuid
                 ))
                 .build();
 
@@ -783,7 +794,7 @@ public class EmailServiceClient {
                     "ip", ip == null ? "unknown" : ip,
                     "userAgent", userAgent == null ? "unknown" : userAgent,
                     "loginAt", loginAt == null ? "" : loginAt.toString(),
-                    "supportUrl", "https://kitehub.me/support"
+                    "supportUrl", appBaseUrl + "/support"
                 ))
                 .build();
 
@@ -844,7 +855,7 @@ public class EmailServiceClient {
                     "claimCode", claimCode == null ? "" : claimCode,
                     "inviteUrl", signupUrl == null ? "" : signupUrl,
                     "expiresAt", expiresAt == null ? "" : expiresAt,
-                    "unsubscribeUrl", "https://kitehub.me/unsubscribe"
+                    "unsubscribeUrl", appBaseUrl + "/unsubscribe"
                 ))
                 .build();
 
@@ -1075,6 +1086,16 @@ public class EmailServiceClient {
             .recipient(recipient)
             .sentAt(LocalDateTime.now())
             .build());
+    }
+
+    /**
+     * GAP-1414: bare app domain (scheme stripped from {@link #appBaseUrl}) for building
+     * per-tenant subdomain dashboard URLs ({@code https://<subdomain>.<appDomain>/dashboard}).
+     *
+     * @return app domain without scheme, e.g. {@code kitehub.me}
+     */
+    private String appDomain() {
+        return appBaseUrl.replaceFirst("^https?://", "");
     }
 
     /**
