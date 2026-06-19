@@ -250,7 +250,7 @@ check_secret_keys() {
     info "Check 4: /etc/kite/.env presence + required keys (kh-backend + kc-app)"
     local hosts=("$TAG_KH_BACKEND" "$TAG_KC_APP")
     local key_grep
-    key_grep=$(echo "$REQUIRED_ENV_KEYS" | sed 's/ /\\|/g')
+    key_grep="${REQUIRED_ENV_KEYS// /\\|}"
     local all_ok=1
     for h in "${hosts[@]}"; do
         local out
