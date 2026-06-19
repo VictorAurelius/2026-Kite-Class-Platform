@@ -1,6 +1,6 @@
 # GAP-1485: Trivy skip npm-vendored base-image CVEs (forward-prevention)
 
-**Status:** 🟢 DONE
+**Status:** 🟡 PARTIAL
 **Priority:** 🟡 P2
 **Domain:** DevOps
 **Phase:** phase-1-beta
