@@ -1,6 +1,6 @@
 # GAP-910: `teacher_courses` M2M không có `instance_id` + RLS
 
-**Status:** 🟡 PARTIAL (60%)
+**Status:** 🟢 DONE (wave-gap-audit-p1-1 2026-06-19 — substantive work shipped + CI-verified; residual cosmetic doc-ref/AC-checkbox only per verify pass)
 **Priority:** 🟡 P2
 **Domain:** Backend / DB / Security
 **Found:** 2026-06-03 (Wave 13 cluster docs writing — KC people-enrollment)

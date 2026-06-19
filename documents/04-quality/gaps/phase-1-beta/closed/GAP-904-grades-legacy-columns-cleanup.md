@@ -1,6 +1,6 @@
 # GAP-904: `grades` cleanup 8 cột legacy V1 sau khi entity V64 stable
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE (wave-gap-audit-p1-1 2026-06-19 — substantive work shipped + CI-verified; residual cosmetic doc-ref/AC-checkbox only per verify pass)
 **Priority:** 🟢 P3
 **Domain:** Backend / DB
 **Found:** 2026-06-03 (Wave 13 cluster docs writing — KC attendance-grading)

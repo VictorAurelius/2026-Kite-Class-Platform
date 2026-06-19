@@ -1,6 +1,6 @@
 # GAP-899: CHECK constraint coverage không nhất quán cross-table
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE (wave-gap-audit-p1-1 2026-06-19 — substantive work shipped + CI-verified; residual cosmetic doc-ref/AC-checkbox only per verify pass)
 **Priority:** 🟡 P2
 **Domain:** Backend / DB
 **Found:** 2026-06-03 (Wave 13 cluster docs writing — KH branding + KH subscription)
