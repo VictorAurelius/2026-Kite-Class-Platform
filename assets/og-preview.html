@@ -1,0 +1,85 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1280px; height: 640px; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: radial-gradient(1200px 700px at 80% -10%, #0b3a52 0%, #071a26 45%, #04101a 100%);
+    color: #e8f4fb;
+    position: relative;
+    overflow: hidden;
+  }
+  .grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(14,165,233,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(14,165,233,0.06) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(900px 600px at 75% 0%, #000 40%, transparent 80%);
+  }
+  .glow { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.55; }
+  .glow.blue { width: 420px; height: 420px; background: #0EA5E9; top: -120px; right: -60px; }
+  .glow.orange { width: 300px; height: 300px; background: #F97316; bottom: -120px; left: 380px; opacity: 0.35; }
+  .wrap { position: relative; z-index: 2; height: 100%; padding: 76px 80px; display: flex; flex-direction: column; justify-content: space-between; }
+  .top { display: flex; align-items: center; gap: 22px; }
+  .mark { width: 88px; height: 88px; }
+  .brand h1 { font-size: 30px; font-weight: 800; letter-spacing: -0.5px; color: #ffffff; }
+  .brand .sub { font-size: 17px; color: #7fc6e8; margin-top: 4px; letter-spacing: 0.3px; }
+  .mid { max-width: 1000px; }
+  .title { font-size: 68px; line-height: 1.05; font-weight: 800; letter-spacing: -2px; color: #ffffff; }
+  .title .accent { color: #38bdf8; }
+  .title .x { color: #F97316; font-weight: 700; }
+  .desc { margin-top: 22px; font-size: 25px; line-height: 1.45; color: #aacfe3; max-width: 940px; }
+  .chips { display: flex; gap: 12px; flex-wrap: wrap; }
+  .chip {
+    font-size: 18px; font-weight: 600; padding: 10px 18px; border-radius: 999px;
+    background: rgba(14,165,233,0.12); border: 1px solid rgba(56,189,248,0.35); color: #cfeaf8;
+  }
+  .chip.o { background: rgba(249,115,22,0.12); border-color: rgba(249,115,22,0.4); color: #fdd9bd; }
+  .foot { display: flex; align-items: center; justify-content: space-between; }
+  .repo { font-size: 19px; color: #6fa9c6; font-family: "SFMono-Regular", ui-monospace, Menlo, Consolas, monospace; }
+  .vn { font-size: 19px; color: #f3a36a; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+  .vn svg { border-radius: 2px; }
+</style>
+</head>
+<body>
+  <div class="grid"></div>
+  <div class="glow blue"></div>
+  <div class="glow orange"></div>
+  <div class="wrap">
+    <div class="top">
+      <svg class="mark" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M24 4L40 24L24 44L8 24L24 4Z" fill="#0EA5E9"/>
+        <path d="M24 4V44M8 24H40" stroke="white" stroke-width="2" stroke-opacity="0.3"/>
+        <circle cx="24" cy="24" r="4" fill="#F97316"/>
+      </svg>
+      <div class="brand">
+        <h1>Kite Platform</h1>
+        <div class="sub">Educational Technology Suite</div>
+      </div>
+    </div>
+
+    <div class="mid">
+      <div class="title"><span class="accent">KiteHub</span> <span class="x">×</span> <span class="accent">KiteClass</span></div>
+      <div class="desc">A SaaS control plane that provisions an isolated, AI-branded school platform per tenant. Database-level multi-tenancy, governed by an audit&nbsp;→&nbsp;gap&nbsp;→&nbsp;fix pipeline.</div>
+    </div>
+
+    <div class="chips">
+      <span class="chip">Spring Boot</span>
+      <span class="chip">Next.js</span>
+      <span class="chip">TypeScript</span>
+      <span class="chip">Multi-tenant</span>
+      <span class="chip">Microservices</span>
+      <span class="chip o">Local AI · Ollama</span>
+    </div>
+
+    <div class="foot">
+      <span class="repo">github.com/VictorAurelius/2026-Kite-Class-Platform</span>
+      <span class="vn"><svg width="28" height="19" viewBox="0 0 30 20"><rect width="30" height="20" fill="#da251d"/><path d="M15 3.2 l1.94 5.96 6.27 0 -5.07 3.68 1.94 5.96 -5.07-3.68 -5.07 3.68 1.94-5.96 -5.07-3.68 6.27 0z" fill="#ffff00"/></svg>Vietnamese-first</span>
+    </div>
+  </div>
+</body>
+</html>
