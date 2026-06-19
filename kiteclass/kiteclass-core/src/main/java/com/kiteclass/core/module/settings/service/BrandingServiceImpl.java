@@ -45,10 +45,20 @@ public class BrandingServiceImpl implements BrandingService {
     /** Per-file upload cap (5 MB). Logos/favicons are small; cap protects MinIO + memory. */
     static final long MAX_ASSET_BYTES = 5L * 1024 * 1024;
 
-    /** Allowed image MIME types for logo/favicon upload (GAP-804). */
+    /**
+     * Allowed image MIME types for logo/favicon/banner upload (GAP-804).
+     *
+     * <p><strong>GAP-1037</strong> — {@code image/svg+xml} removed. SVG is active
+     * content (can embed {@code <script>} / event handlers) and was served inline
+     * with the client-reported Content-Type → stored XSS when a tenant logo renders
+     * on login / tenant pages. Branding assets are raster-only now (PNG / JPEG / WEBP
+     * / ICO). The client-reported MIME is only a first gate — actual bytes are
+     * magic-byte sniffed in {@link #isRasterImage(byte[])} so a script payload spoofed
+     * with an {@code image/png} header is still rejected.
+     */
     static final Set<String> ALLOWED_CONTENT_TYPES = Set.of(
             "image/png", "image/jpeg", "image/webp",
-            "image/svg+xml", "image/x-icon", "image/vnd.microsoft.icon");
+            "image/x-icon", "image/vnd.microsoft.icon");
 
     private final BrandingRepository brandingRepository;
     private final BrandingMapper brandingMapper;
@@ -272,6 +282,14 @@ public class BrandingServiceImpl implements BrandingService {
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
+        // GAP-1037: content-sniff the actual bytes — the client-reported MIME is
+        // spoofable. A script/SVG payload sent with an image/png header passes the
+        // allowlist above but fails the magic-byte check here.
+        if (!isRasterImage(bytes)) {
+            throw new BusinessException("BRANDING_BANNER_TYPE_UNSUPPORTED",
+                    HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+        }
+
         // Unique object name per upload so banners accumulate (never overwrite a
         // slot). Extension preserved for correct Content-Type / browser handling.
         String uniqueName = UUID.randomUUID() + extensionFor(file.getOriginalFilename(), contentType);
@@ -296,7 +314,6 @@ public class BrandingServiceImpl implements BrandingService {
             case "image/png" -> ".png";
             case "image/jpeg" -> ".jpg";
             case "image/webp" -> ".webp";
-            case "image/svg+xml" -> ".svg";
             case "image/x-icon", "image/vnd.microsoft.icon" -> ".ico";
             default -> "";
         };
@@ -341,7 +358,56 @@ public class BrandingServiceImpl implements BrandingService {
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
+        // GAP-1037: content-sniff the actual bytes — the client-reported MIME is
+        // spoofable. A script/SVG payload sent with an image/png header passes the
+        // allowlist above but fails the magic-byte check here.
+        if (!isRasterImage(bytes)) {
+            throw new ValidationException("BRANDING_ASSET_TYPE_UNSUPPORTED", new Object[0]);
+        }
+
         return brandingAssetStorage.store(instanceId, type, filename, contentType, bytes);
+    }
+
+    /**
+     * Magic-byte content sniff — accept only genuine raster images (PNG / JPEG /
+     * WEBP / ICO). Closes <strong>GAP-1037</strong>: SVG/HTML/script payloads (active
+     * content) never match a raster signature, so a {@code <script>}-bearing file
+     * — even one spoofed with an {@code image/png} Content-Type header — is rejected
+     * here regardless of what the client claimed.
+     *
+     * @param bytes raw uploaded bytes
+     * @return {@code true} when the leading bytes match an accepted raster signature
+     */
+    static boolean isRasterImage(byte[] bytes) {
+        if (bytes == null || bytes.length < 4) {
+            return false;
+        }
+        return matchesPng(bytes) || matchesJpeg(bytes) || matchesWebp(bytes) || matchesIco(bytes);
+    }
+
+    /** PNG signature: 89 50 4E 47 0D 0A 1A 0A. */
+    private static boolean matchesPng(byte[] b) {
+        return b.length >= 8
+                && (b[0] & 0xFF) == 0x89 && b[1] == 0x50 && b[2] == 0x4E && b[3] == 0x47
+                && b[4] == 0x0D && b[5] == 0x0A && b[6] == 0x1A && b[7] == 0x0A;
+    }
+
+    /** JPEG SOI marker: FF D8 FF. */
+    private static boolean matchesJpeg(byte[] b) {
+        return b.length >= 3
+                && (b[0] & 0xFF) == 0xFF && (b[1] & 0xFF) == 0xD8 && (b[2] & 0xFF) == 0xFF;
+    }
+
+    /** WEBP: "RIFF"....{size}...."WEBP" (RIFF container with WEBP fourcc at offset 8). */
+    private static boolean matchesWebp(byte[] b) {
+        return b.length >= 12
+                && b[0] == 'R' && b[1] == 'I' && b[2] == 'F' && b[3] == 'F'
+                && b[8] == 'W' && b[9] == 'E' && b[10] == 'B' && b[11] == 'P';
+    }
+
+    /** ICO: 00 00 01 00 (reserved + image-type=1 icon, little-endian). */
+    private static boolean matchesIco(byte[] b) {
+        return b.length >= 4 && b[0] == 0x00 && b[1] == 0x00 && b[2] == 0x01 && b[3] == 0x00;
     }
 
     /**
