@@ -15,6 +15,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -56,6 +57,10 @@ class DomainServiceTest {
 
     @BeforeEach
     void setUp() {
+        // GAP-1414: appBaseUrl is @Value-injected at runtime (default https://kitehub.me).
+        // @InjectMocks bypasses Spring property resolution, so set the canonical default —
+        // buildResponse() strips its scheme to build the subdomain backup URL (NPE otherwise).
+        ReflectionTestUtils.setField(domainService, "appBaseUrl", "https://kitehub.me");
         instanceId = UUID.randomUUID();
 
         premiumInstance = new Instance();

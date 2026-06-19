@@ -1,6 +1,6 @@
 # GAP-1167: Sửa trạng thái điểm danh — FE dùng `PUT /api/v1/attendance/{id}` nhưng BE là `PATCH` (405 method mismatch)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE (wave-phase1-close2 2026-06-19 — see Log)
 **Priority:** 🟠 P1
 **Domain:** Backend
 **Found:** 2026-06-11 (sweep từ GAP-1165 cross-flow)
@@ -28,3 +28,10 @@ Phát hiện trong cross-flow sweep của GAP-1165. DEFER vì khác flow (sửa 
 
 - Sweep parent: GAP-1165
 - Sister drift: GAP-1166
+
+
+## Log — 2026-06-19 (wave-phase1-close2, state-check DONE)
+
+FE attendance.ts uses apiClient.patch (was PUT→405), comment cites GAP-1429 sweep; BE @PatchMapping("/{id}") L280 matches; 0 FE PUT-to-attendance remaining.
+
+Status → DONE per gap-done-discipline §2 (AC verified at code/runtime level). G2 browser walk = coordinator follow-up where applicable.

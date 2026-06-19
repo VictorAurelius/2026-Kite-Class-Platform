@@ -7,6 +7,7 @@ import com.kitehub.subscription.repository.InstanceRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,6 +40,16 @@ public class DomainService {
     private final DomainVerificationConfig domainVerificationConfig;
     private final DnsTxtLookupService dnsTxtLookupService;
     private final CertProvisioningService certProvisioningService;
+
+    /**
+     * GAP-1414: canonical KiteHub public app base URL (e.g. {@code https://kitehub.me}). The bare
+     * host (scheme stripped) builds the per-tenant subdomain backup URL (BR-DOMAIN-007). Single
+     * source of truth shared with EmailServiceClient + OwnerNotificationDispatcher; env-overridable
+     * via {@code KITEHUB_APP_BASE_URL} (Spring relaxed binding). Non-final so Lombok
+     * {@code @RequiredArgsConstructor} skips it for {@code @Value} field injection.
+     */
+    @Value("${kitehub.app.base-url:https://kitehub.me}")
+    private String appBaseUrl;
 
     // KH-7 FM-5: a tenant must not be able to claim the platform's own domains as their
     // custom domain (no denylist previously — `kitehub.me` was accepted). Block the
@@ -282,7 +293,8 @@ public class DomainService {
             );
         }
 
-        String backupUrl = "https://" + instance.getSubdomain() + ".kitehub.me";
+        String rootDomain = appBaseUrl.replaceFirst("^https?://", "");
+        String backupUrl = "https://" + instance.getSubdomain() + "." + rootDomain;
 
         return DomainVerifyResponse.builder()
             .customDomain(customDomain)
