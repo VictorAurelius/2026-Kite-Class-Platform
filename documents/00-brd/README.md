@@ -30,6 +30,13 @@ Enterprise-standard Business Requirements Documentation. Chứa nghiệp vụ n�
 | [`dpo-designation.md`](dpo-designation.md) | Data Protection Officer designation — Decree 13/2023/NĐ-CP Art 27-28 (acting `@nguyenvankiet` solo-dev skeleton; Phase 2 counsel sign-off via GAP-156) | 1 |
 | [`dpia.md`](dpia.md) | Data Protection Impact Assessment framework + processing inventory skeleton + 5×5 risk matrix — Decree 13/2023 Art 24-26 (Phase 1 skeleton; full backfill at 50k subscriber trigger) | 1 |
 | [`mps-a05-registration-check.md`](mps-a05-registration-check.md) | MPS A05 registration trigger procedure + pre-emptive monitoring at 50k/75k/90k thresholds — Decree 13/2023 Art 28(1) (Phase 1 procedure; actual registration upon 100k threshold OR K-12 trigger) | 1 |
+| [`product-scope-mrd.md`](product-scope-mrd.md) | Product Scope / Market Requirements — VN edu-center market, in/out-scope per phase — Education L5 + PDPL L1 (P1 skeleton, 2026-06-21) | 1 |
+| [`data-classification-policy.md`](data-classification-policy.md) | 5-tier data classification + handling matrix — PDPL L1 + Cybersecurity L6 localization (P1 skeleton) | 1 |
+| [`customer-sla-uptime.md`](customer-sla-uptime.md) | Customer-facing SLA + uptime + support windows — Consumer Protection L3 (P1 skeleton; numbers TBD) | 1 |
+| [`incident-response-breach-notification.md`](incident-response-breach-notification.md) | Incident severity + PDPL ≤72h breach notification — Decree 13/2023 L1 (P1 skeleton) | 1 |
+| [`data-export-portability-policy.md`](data-export-portability-policy.md) | Data export / portability rights — PDPL L1 data-subject rights (P1 skeleton) | 1 |
+| [`moet-regulatory-alignment-matrix.md`](moet-regulatory-alignment-matrix.md) | MoET requirement → feature → status matrix (11 rows) — Education L5 (P1 skeleton; K-12 Phase 3) | 1 |
+| [`academic-year-curriculum-structure-policy.md`](academic-year-curriculum-structure-policy.md) | Niên khóa/học kỳ + curriculum structure — Education L5 + GDPT 2018 (P1 skeleton; ref ADR-002) | 1 |
 | [`persona-criteria/`](persona-criteria/) | Per-persona Acceptance Criteria framework — `_TEMPLATE.md` + 4 Tier-1 docs (P1/P2/P3/P5) — formal AC for `persona-based-business-review` skill | 6 |
 
 ---

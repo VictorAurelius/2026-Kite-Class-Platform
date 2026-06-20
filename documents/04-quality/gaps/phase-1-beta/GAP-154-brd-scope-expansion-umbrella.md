@@ -1,6 +1,6 @@
 # GAP-154: BRD Scope Expansion (Umbrella — 22 Missing BRD Docs)
 
-**Status:** 🔵 OPEN (umbrella)
+**Status:** 🟡 PARTIAL (~80%) — 7 P0 legal skeletons + **7 P1 BRD skeletons written 2026-06-21**; P2/P3 + sim re-run + legal counsel remain
 **Priority:** 🔴 P0 (business-logic tier — 7 sub-items GA-blocking)
 **Domain:** Business / BRD / Legal / Governance
 **Found:** 2026-04-20 (simulation gap-finder run per user request)
@@ -86,10 +86,10 @@ User's framing: *"BRD là điểm khởi đầu quan trọng nhất của dự �
 
 ### Phase 2/3/4 (future sessions)
 
-- [ ] P1 sub-gaps filed + Wave assignment
-- [ ] P2 sub-gaps filed + post-GA scheduling
-- [ ] P3 sub-gaps filed + backlog
-- [ ] Quarterly re-run of simulation-gap-finder against BRD scope (catch new gaps as personas/features expand)
+- [x] **P1 BRD skeleton docs WRITTEN 2026-06-21** (7 docs) — REFRAMED from "file 7 P1 sub-gap trackers": active gap backlog is 192% over-cap per `docs-folder-volume-budget.md`, so wrote the actual BRD artifacts in `00-brd/` (folder has room) instead of tracker stubs. Docs: `product-scope-mrd` · `data-classification-policy` · `customer-sla-uptime` · `incident-response-breach-notification` · `data-export-portability-policy` · `moet-regulatory-alignment-matrix` · `academic-year-curriculum-structure-policy` (all 🟡 SKELETON, TBD-marked, VN-law cited)
+- [ ] P2 sub-gaps / P2 BRD skeletons (5) — DEFER (post-GA; same reframe-to-docs approach when picked up)
+- [ ] P3 sub-gaps / P3 BRD skeletons (3) — DEFER (maturity)
+- [ ] Quarterly re-run of simulation-gap-finder against BRD scope — not re-run this session
 
 ## Out of Scope
 
@@ -116,7 +116,7 @@ User's framing: *"BRD là điểm khởi đầu quan trọng nhất của dự �
 
 ## Log
 
-
+- 2026-06-21 — Status OPEN → 🟡 PARTIAL (~80%). **7 P1 BRD skeleton docs written** to `00-brd/` (Opus agent): product-scope-mrd / data-classification-policy / customer-sla-uptime / incident-response-breach-notification / data-export-portability-policy / moet-regulatory-alignment-matrix / academic-year-curriculum-structure-policy. All 🟡 SKELETON with `audience` frontmatter, VN-law citations (L1/L3/L5/L6), explicit TBD markers, no fabricated metrics. **Reframed Phase-2 AC** from "file 7 P1 sub-gap trackers" → "write the BRD artifacts directly" because active gap backlog is 192% over-cap per `docs-folder-volume-budget.md` (writing trackers into an over-cap backlog = negative value; the docs ARE the deliverable). Docs reference `compliance-checklist.md` (shipped in parallel PR #2513, GAP-156) — soft cross-PR dependency. P2/P3 + sim re-run + legal counsel remain.
 - 2026-06-14: phase re-triage — n/a→phase-1-beta (P0 BRD scope expansion 22 docs; business-doc meta (FLAGGED beta-vs-1.5)).
 - 2026-04-20 (later session) — Phase 1 FILED. 7 P0 sub-gap files created (GAP-180..186). Wave 8 master plan updated to include these gaps. Phase 2 P1 sub-gaps (GAP-187..193) still reserved for future session.
 - 2026-04-20 — Umbrella created. Simulation surfaced 22 missing BRD docs. Phase 0 artifacts shipped in this PR. Phase 1 P0 sub-gaps (GAP-180..186) reserved for next session.

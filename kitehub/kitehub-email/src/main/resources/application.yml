@@ -125,11 +125,15 @@ management:
 # Secrets Manager declarations for ZALO_ACCESS_TOKEN + ZALO_OA_ID MUST land same PR
 # (terraform-aws/secrets.tf + fetch-secrets.sh + env-vars-registry.md).
 zalo:
+  enabled: ${ZALO_ENABLED:true}                  # ZALO channel master switch (mock mode ON by default)
   provider: ${ZALO_PROVIDER:mock}                # mock | live
-  oa-id: ${ZALO_OA_ID:}                          # numeric OA id from Zalo (live only)
-  access-token: ${ZALO_ACCESS_TOKEN:}            # OA access token (live only)
+  oa-id: ${ZALO_OA_ID:}                          # numeric OA id from Zalo (live only — PLACEHOLDER, never a real secret here)
+  access-token: ${ZALO_ACCESS_TOKEN:}            # OA access token (live only — PLACEHOLDER, sourced from Secrets Manager in prod)
   api-base-url: ${ZALO_API_BASE_URL:https://openapi.zalo.me}
   timeout-seconds: ${ZALO_TIMEOUT_SECONDS:5}
+  # Logical-template-name → Zalo ZNS template id map (live only). Empty in Phase 1 mock.
+  # Example (Wave 12+): zns-template-ids: { payment-confirmed: "<ZNS_TEMPLATE_ID>" }
+  zns-template-ids: {}
 
 # Logging
 logging:
