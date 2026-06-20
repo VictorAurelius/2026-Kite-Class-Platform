@@ -37,6 +37,14 @@ Enterprise-standard Business Requirements Documentation. Chứa nghiệp vụ n�
 | [`data-export-portability-policy.md`](data-export-portability-policy.md) | Data export / portability rights — PDPL L1 data-subject rights (P1 skeleton) | 1 |
 | [`moet-regulatory-alignment-matrix.md`](moet-regulatory-alignment-matrix.md) | MoET requirement → feature → status matrix (11 rows) — Education L5 (P1 skeleton; K-12 Phase 3) | 1 |
 | [`academic-year-curriculum-structure-policy.md`](academic-year-curriculum-structure-policy.md) | Niên khóa/học kỳ + curriculum structure — Education L5 + GDPT 2018 (P1 skeleton; ref ADR-002) | 1 |
+| [`support-sla-sop.md`](support-sla-sop.md) | Support SOP — intake/severity/escalation/lifecycle — Consumer Protection L3 (P2 skeleton, 2026-06-21) | 1 |
+| [`customer-dr-bcp.md`](customer-dr-bcp.md) | Customer-facing DR/BCP — RTO/RPO + backup + continuity — PDPL L1 + L3 (P2 skeleton; gated GAP-257) | 1 |
+| [`api-terms-developer-license.md`](api-terms-developer-license.md) | API Terms / Developer License — IP Law 2022 + PDPL L1 (P2 forward skeleton; no public API Phase 1) | 1 |
+| [`security-posture-summary.md`](security-posture-summary.md) | Security posture summary (due-diligence) — Cybersecurity Law + PDPL L1 + NĐ 53/2022 (P2 skeleton) | 1 |
+| [`vendor-management-third-party-risk.md`](vendor-management-third-party-risk.md) | Vendor/3rd-party risk + sub-processor inventory — PDPL L1 controller-processor (P2 skeleton) | 1 |
+| [`versioning-deprecation-policy.md`](versioning-deprecation-policy.md) | API/feature versioning + deprecation window — Consumer Protection L3 (P3 skeleton) | 1 |
+| [`accessibility-statement.md`](accessibility-statement.md) | Accessibility statement — Luật Người khuyết tật 2010 + WCAG 2.1 AA (P3 skeleton) | 1 |
+| [`brand-trademark-policy.md`](brand-trademark-policy.md) | Brand guidelines / trademark policy — IP Law 2022 + L3 (P3 skeleton) | 1 |
 | [`persona-criteria/`](persona-criteria/) | Per-persona Acceptance Criteria framework — `_TEMPLATE.md` + 4 Tier-1 docs (P1/P2/P3/P5) — formal AC for `persona-based-business-review` skill | 6 |
 
 ---
