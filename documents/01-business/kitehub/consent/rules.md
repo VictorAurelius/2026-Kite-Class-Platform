@@ -34,3 +34,13 @@ Detailed implementation: `kitehub-subscription/src/main/java/com/kitehub/subscri
 - `api-contract.md` — 3 endpoints
 - `../marketing/rules.md` — BR-PDPL-CONSENT-001..004
 - `../../../04-quality/compliance/pdpl-pre-launch-checklist.md`
+
+## Five-attribute review per `business-logic-review.md` §2
+
+> Pointer stub — the canonical 5-attribute review for `BR-PDPL-CONSENT-001..004` lives in [`../marketing/rules.md`](../marketing/rules.md). This folder hosts only the immutable hash-chain implementation; the block below covers that integrity extension.
+
+- **Source:** Delegated — consent business rules sourced + reviewed in `marketing/rules.md` (Wave 23, PDPL consent design). Immutability extension (Wave br-4 Bucket B, GAP-353b): engineering decision (SHA-256 hash chain + RLS UPDATE/DELETE block) implementing tamper-evidence for the same rules.
+- **Rationale:** Authenticated post-login consent capture needs non-repudiation (withdraw = INSERT new row, not flip) so a tenant/auditor can prove consent state over time — PDPL accountability principle. Hash chain + RLS block silent tampering.
+- **Reviewer:** @nguyenvankiet (acting Legal scout + Tech Lead, solo-dev, 2026-06-21). Formal DPO/legal counsel review queued — GAP-156 AC-D.
+- **Compliance check:** **Considered (self-assessed, counsel pending GAP-156 AC-D)** — per `documents/00-brd/compliance-checklist.md` L1/L7: **Nghị định 13/2023/NĐ-CP (PDPL) Điều 11** (consent legal basis + time/version stamping, BR-PDPL-CONSENT-001/002/003); **Luật Giao dịch điện tử 2023** (electronic consent record = valid e-transaction); withdrawal accessible as grant (BR-PDPL-CONSENT-004) supports the PDPL right-to-withdraw. No counsel verification of version-stamping sufficiency yet.
+- **Review cadence:** **Annual** + event-driven on PDPL implementing-decree publication. **Next review:** 2026-09-21 (next audit checkpoint), then Annual.

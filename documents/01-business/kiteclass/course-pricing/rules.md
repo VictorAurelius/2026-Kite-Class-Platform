@@ -125,7 +125,7 @@ Per-rule attributes (Source / Rationale / Reviewer / Compliance check / Review c
 - **Source:** Existing rules trong file này derive từ: ADR-035 (LOCKED taxonomy decision), Wave beta-readiness-4 Bucket C external benchmark (Apollo/ILA/ACET published rate sheets), VN edu market norms.
 - **Rationale:** Rule values reflect VN TT Anh ngữ + STEM dạy thêm market dominant model (PER_HOUR). Adding pricing model classes deferred until persona surfaces need (YAGNI). Detailed per-rule rationale backfilled during GAP-156 Phase 2.
 - **Reviewer:** @nguyenvankiet (acting Product Owner + Tech Lead, solo-dev, 2026-05-25). Formal stakeholder + tax/legal counsel sign-off queued via GAP-156. Solo-dev exemption per `business-logic-review.md` §2.3.
-- **Compliance check:** **Considered** — Luật Bảo vệ Quyền lợi Người tiêu dùng 2023 (price display transparency), Luật Quản lý Thuế 2019 (invoice line-item structure), Nghị định 123/2020/NĐ-CP (e-invoice line semantics).
+- **Compliance check:** **Considered (self-assessed, counsel pending GAP-156 AC-D)** — per `documents/00-brd/compliance-checklist.md` L3: **Luật Bảo vệ Quyền lợi Người tiêu dùng 2023** (Luật 19/2023/QH15 — price-display transparency; VND inc/exc VAT must be unambiguous given `unitPrice` semantics BR-PRICING-003); **Luật Quản lý Thuế 2019** (invoice line-item structure derived from pricing model). Nghị định 123/2020/NĐ-CP governs e-invoice line semantics downstream (deferred GAP-185). No counsel verification of price-display / VAT-inclusion wording yet.
 - **Review cadence:** Quarterly cho Phase 1 BETA (validate model fit), sau đó Annual. **Next review:** 2026-08-25. Event triggers: VN edu pricing regulation amendment, ≥5 tenant complaints về model coverage, analytics surface unused model class.
 
 ## Log

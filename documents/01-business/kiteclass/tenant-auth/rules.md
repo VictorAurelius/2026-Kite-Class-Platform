@@ -107,3 +107,15 @@ Tài liệu này phủ:
 - `teacher/api-contract.md` — `POST /api/v1/teachers/{id}/credentials`.
 - GAP-725 (parent/student/teacher auth pull-forward), GAP-798/798b (reference-id authz), GAP-705 (gateway HS512 shared key), GAP-711 (TenantResolver), GAP-1012 (rate-limit + HS512 keylen), GAP-1009 (3-layer docs).
 - Audit: `documents/04-quality/audits/api-contract/2026-06-06-wave-auth-1-api-contract.md`, `documents/04-quality/audits/business-logic/2026-06-06-wave-auth-1-business-logic.md`.
+
+---
+
+## 9. Five-attribute review per `business-logic-review.md` §2
+
+Auth/credential rule values (BCrypt cost, HS512 algorithm, token TTL, rate-limit thresholds) are **engineering security decisions**, not market-facing business values. The PII-handling dimension (login credential + email) carries a compliance overlay.
+
+- **Source:** Engineering decision — industry security standards: BCrypt (OWASP Password Storage Cheat Sheet, cost 10), HS512 / 512-bit key (RFC 7518), uniform-401 no-enumeration (OWASP Auth Cheat Sheet), rate-limit mirror of GAP-514 auth-register. Wave auth-1 (GAP-725/798/1012).
+- **Rationale:** Values chosen for security posture, not revenue — BCrypt cost 10 = standard work-factor balance; access-TTL 12h = single school-day session without refresh-token complexity (Phase 1 no refresh BR-AUTH-JWT-005); rate-limit 3/5 IP-keyed = brute-force / credential-stuffing throttle on a public mint endpoint.
+- **Reviewer:** @nguyenvankiet (acting Tech Lead, solo-dev, 2026-06-21). No Product-Owner/business sign-off required — pure auth-mechanism thresholds. Security/legal review of PII handling queued — GAP-156 AC-D.
+- **Compliance check:** **Considered (self-assessed, counsel pending GAP-156 AC-D)** — per `documents/00-brd/compliance-checklist.md` L7 (+ security overlay): **Luật An ninh mạng 2018** (credential security — BCrypt hash BR-AUTH-005, no plaintext, no MD5/SHA1); **Nghị định 13/2023/NĐ-CP (PDPL)** (login PII = email/credential protection at rest + in transit); **Luật Giao dịch điện tử 2023** (e-identity / token-based access — click-login = valid electronic authentication, no e-signature in scope). No counsel verification yet.
+- **Review cadence:** **Annual** (stable security mechanism) + event-driven on crypto-standard deprecation (BCrypt→Argon2, HS512→RS256) or PDPL implementing-decree. **Next review:** 2026-09-21 (next audit checkpoint), then Annual.

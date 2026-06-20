@@ -67,3 +67,13 @@ Không có config key động — `MAX_MONTHS = 36` là hằng số code-level (
 - Drill-down per-class / per-teacher revenue + attendance.
 - Export CSV/Excel báo cáo (document-generation infra đã có nhưng chưa wire cho analytics).
 - So sánh kỳ trước (MoM/YoY growth %).
+
+## Five-attribute review per `business-logic-review.md` §2
+
+Analytics-report rule values (COMPLETED-only revenue, PRESENT-only attendance rate, 36-month clamp, Owner/admin role gate) carry **business meaning** — a Center Owner cares whether revenue counts only settled payments and how attendance is computed. Pure-engineering bits (month clamp guard) are noted as such.
+
+- **Source:** GAP-775 (Wave 106 RST Mảng B11) — derived from P2 Center Owner persona need (revenue + attendance overview). Definitions (COMPLETED-only revenue, PRESENT-only rate, zero-fill months) = informed gut + standard reporting convention; no internal analytics A/B data yet.
+- **Rationale:** Revenue = `COMPLETED` payments only (BR-RPT-REV-001) so unsettled/pending money is not overstated; attendance rate = `PRESENT` / total with `LATE`/`EXCUSED`/`MAKEUP` excluded (BR-RPT-ATT-006) to give a strict present-rate; the 36-month clamp (BR-RPT-SCOPE-004) is an engineering full-table-scan guard, not a business limit; aggregate tenant-wide financial+operational data → role-gated to Owner/admin (OWASP A01).
+- **Reviewer:** @nguyenvankiet (acting Product Owner, solo-dev, 2026-06-21). Revenue/attendance definitions warrant Product-Owner + (future) center-owner stakeholder sign-off — queued GAP-156 AC-D.
+- **Compliance check:** **Considered (self-assessed, counsel pending GAP-156 AC-D)** — per `documents/00-brd/compliance-checklist.md` L1: the aggregate report is read-only, tenant-isolated (BR-RPT-SCOPE-001), and role-gated (BR-RPT-AUTHZ-001) so no per-student PII is exposed to unauthorized roles. **Nghị định 13/2023/NĐ-CP (PDPL)** applies if CSV/Excel export is added (Phase 1.5+, out-of-scope) — aggregate-data export would need a PII-minimization review then. No counsel verification yet.
+- **Review cadence:** **Quarterly** (Phase 1 BETA feature, validate definitions fit) → Annual once stable. **Next review:** 2026-09-21. Event triggers: revenue-definition change (e.g., counting PROCESSING), export feature added (PDPL re-review), persona complaint on attendance semantics.

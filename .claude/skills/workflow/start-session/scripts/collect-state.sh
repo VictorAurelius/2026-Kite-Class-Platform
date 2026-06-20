@@ -581,4 +581,8 @@ Ghi chú:
     Nếu YES → tạo wave plan + spawn 4-5 parallel agents thay vì serial PRs.
     Refs: feedback_wave_plan_before_serial_prs.md + feedback_parallel_agent_strategy.md
     Anti-pattern 2026-04-26: GAP-229 chạy 3 phases serial (~90min) thay vì parallel (~30min).
+  · ⚠️ INLINE-HYBRID (luôn áp dụng — per agent-concurrency-budget-inline-hybrid.md): KHÔNG ngồi chờ agent.
+    Spawn ÍT agent (heavy-cohesive bucket, tránh server/rate limit) + LẤP idle bằng inline bucket disjoint
+    chạy SONG SONG agents → tối ưu wall-clock liên tục. Sau mỗi spawn, hỏi "còn bucket inline-able không?" → làm ngay.
+    "ít agent" PHẢI đi kèm "coordinator làm inline", KHÔNG phải "ngồi chờ".
 EOF
