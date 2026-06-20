@@ -1,6 +1,6 @@
 # GAP-063: Zalo OA + SMS Notification Infrastructure (Phase 1 BETA P0)
 
-**Status:** 🟡 PARTIAL (20%) — Phase 1 BETA P0 (re-scoped Wave 11). Phase 1 EMAIL channel scaffolding đã shipped Wave 18a Bucket B (notification abstraction + email adapter + user preference UI), nhưng Zalo OA + SMS adapter (the actual P0 channels per VN edu market) vẫn chưa có. Wave 11 outside-in persona audit (PR #2085) elevated từ P1 → P0 vì 3/5 Tier 1 personas blocked bởi missing Zalo OA channel.
+**Status:** 🟡 PARTIAL (45%) — Phase 1 BETA P0 (re-scoped Wave 11). **Phase-1 Zalo channel scaffold DONE 2026-06-21** (`ZaloNotificationChannel` bridge + 5 tests green + `sms-provider-evaluation.md`). Phase 2 (live ZNS/SMS) + Phase 3 (monitoring) vendor/AWS-blocked. Phase 1 EMAIL channel scaffolding đã shipped Wave 18a Bucket B (notification abstraction + email adapter + user preference UI), nhưng Zalo OA + SMS adapter (the actual P0 channels per VN edu market) vẫn chưa có. Wave 11 outside-in persona audit (PR #2085) elevated từ P1 → P0 vì 3/5 Tier 1 personas blocked bởi missing Zalo OA channel.
 **Priority:** 🔴 P0 (Phase 1 BETA blocker — re-classified 2026-06-02 per Wave 11 outside-in audit)
 **Domain:** Backend + DevOps + Frontend (multi-layer notification + provisioning + integration)
 **Phase:** phase-1-beta
@@ -71,10 +71,10 @@ GAP-286 (OTP) + GAP-297 (invoice batch) cũng underestimated cùng pattern — c
 - [x] Notification abstraction interface — `NotificationChannel.java` (Wave 18a, preserved)
 - [x] Email adapter — `SESEmailService` implementing `NotificationChannel` (Wave 18a, preserved)
 - [x] User preference UI — `kitehub-frontend/src/app/(customer)/settings/notifications/page.tsx` (Wave 18a, EMAIL toggle live; Zalo/SMS toggles disabled với "Sắp ra mắt" tooltip)
-- [ ] `ZaloOAClient.java` interface + mock impl + config skeleton (Wave 11 Bucket B)
-- [ ] SMS provider evaluation doc — `documents/02-architecture/sms-provider-evaluation.md` (Wave 11 Bucket C)
-- [ ] IT verify mock Zalo OA + mock SMS dispatch contract pass (Wave 12 close)
-- [ ] FE settings UI enable Zalo OA + SMS toggles post-Phase-2 verify (Wave 12 close)
+- [x] `ZaloOAClient.java` interface + mock impl + config skeleton (`com.kitehub.email.zalo` — existed) **+ NEW `ZaloNotificationChannel` adapter bridging `ZaloOAClient` → platform `NotificationChannel` seam** (2026-06-21) — the genuinely-missing slot; mock-mode default, no live HTTP
+- [x] SMS provider evaluation doc — `documents/02-architecture/sms-provider-evaluation.md` (2026-06-21; 3-provider ZNS-primary + SMS-fallback, reframes Bucket-C set toward ZNS)
+- [~] IT verify mock dispatch — **Zalo mock verified** (`ZaloNotificationChannelTest` 5 tests green + `ZaloOAScaffoldIT`); **SMS mock adapter NOT built** (eval-first per Bucket C — SMS adapter deferred to Phase 2 once provider chosen)
+- [ ] FE settings UI enable Zalo OA + SMS toggles — DEFER (explicitly post-Phase-2-verify; depends on live Zalo, vendor-blocked)
 
 ### Phase 2 — Live integration (Wave 12+ scope, post-account-verify)
 
@@ -115,6 +115,7 @@ GAP-286 (OTP) + GAP-297 (invoice batch) cũng underestimated cùng pattern — c
 
 ## Log
 
+- **2026-06-21** — Phase-1 Zalo channel scaffold DONE (completion 20% → 45%). Discovery: low-level Zalo mock (`ZaloOAClient` / `ZaloOAMockClient` / `ZaloOAConfig` / `ZaloOAScaffoldIT` trong `com.kitehub.email.zalo`) **đã tồn tại**; slot thiếu thật = adapter bridge sang platform `NotificationChannel` seam → thêm `ZaloNotificationChannel` (`@Service`, mock-mode default, map `NotificationContext`→`ZaloMessage`) + `ZaloNotificationChannelTest` (5 Mockito test green) + mở rộng config `zalo.*` (`enabled` + `zns-template-ids`). `./mvnw -pl kitehub-email test-compile` EXIT 0. SMS eval doc shipped (`documents/02-architecture/sms-provider-evaluation.md` — Zalo ZNS primary + eSMS-class SMS fallback; reframe Bucket-C set sang ZNS-primary). SMS mock adapter CHƯA build (eval-first per Bucket C; build Phase 2 khi chốt provider). Config giữ `zalo.*` có sẵn (không tạo `kitehub.notification.zalo.*` song song) per `design-patterns` no-duplicate-abstraction. Phase 2 (live ZNS/SMS) + Phase 3 (monitoring) vẫn vendor/AWS-blocked (REAL-USER-ACTION). 2 Opus agent + coordinator inline per `agent-concurrency-budget-inline-hybrid`.
 - **2026-06-02** — Gap **re-scoped P1 → P0** + filename renamed (`GAP-063-sms-zalo-notification-integration.md` → `GAP-063-zalo-oa-sms-notification-infra.md`) per Wave 11 plan Bucket A. Trigger: Wave 11 outside-in persona simulation audit (PR #2085) surfaced 3/5 Tier 1 personas (P2 Owner / P3 Manager / P5 K-12 Parent) blocked bởi missing Zalo OA + SMS channel. AC restructured 3-phase delivery (Phase 1 scaffold Wave 11+12 / Phase 2 live integration Wave 12+ post-account-verify / Phase 3 monitoring Wave 12+ post-live). Original Phase 1 EMAIL scope (Wave 18a Bucket B) preserved as historical baseline + Phase 1 ACs marked `[x]` đã shipped. Per `thesis-as-future-state-mandate.md` v1.0.0 — gap references thesis Ch1 §1.1.2 + §1.4 + §1.2.5 source.
 - **2026-05-04** — Phase 1 EMAIL scope shipped Wave 18a Bucket B. Status flipped 🔵 OPEN → 🟡 PARTIAL per `gap-done-discipline.md` §3 (Phase 2 Zalo + SMS deferred via sister gap GAP-063b filed by closure PR). Phase 1 deliverables: `NotificationChannel` interface + `SESEmailService` implementing it + `NotificationPreference` entity + V23 migration + CRUD service/controller + settings UI + business docs 3-layer. Existing email callers unchanged (backward compat verified via full subscription test suite + email module test suite). 11 new unit tests for service + controller; 5 contract tests for interface; 4 FE page tests. State-check 2026-05-04: V18 (GAP-098) instance-level columns retained as legacy fallback per BR-NOTIF-006.
 - **2026-04-14** — Persona review — critical VN market fit. Original P1 priority assigned (later elevated to P0 by Wave 11 outside-in audit 2026-06-02).

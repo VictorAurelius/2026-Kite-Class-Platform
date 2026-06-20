@@ -6,6 +6,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Configuration for the Zalo OA messaging provider.
  *
@@ -32,6 +35,13 @@ public class ZaloOAConfig {
     @Data
     @ConfigurationProperties(prefix = "zalo")
     public static class ZaloProperties {
+
+        /**
+         * Channel master switch — when {@code false} the {@code ZaloNotificationChannel}
+         * adapter is not registered (no ZALO dispatch). Default {@code true} so the
+         * Phase 1 mock channel is ON out of the box.
+         */
+        private boolean enabled = true;
 
         /**
          * Provider selector: {@code "mock"} (default, deterministic canned
@@ -64,5 +74,13 @@ public class ZaloOAConfig {
          * Default 5 — Zalo OA typical p95 is well under 1s.
          */
         private int timeoutSeconds = 5;
+
+        /**
+         * Logical-template-name → Zalo ZNS template id mapping. Consumed by
+         * {@code ZaloNotificationChannel} to translate a {@code NotificationContext}
+         * template name into the vendor ZNS template id. Empty in Phase 1 (mock ignores
+         * the id); populated when the live ZNS adapter ships (Wave 12+).
+         */
+        private Map<String, String> znsTemplateIds = new HashMap<>();
     }
 }
