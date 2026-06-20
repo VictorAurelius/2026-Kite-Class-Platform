@@ -118,3 +118,15 @@ Mọi scheduled email job (e.g., day-7 feedback survey, trial-expiration warning
 - **ADR-025** — Vendor selection (Stream A = Resend)
 - **`postgres-specific-type-testcontainers.md`** — testing standards
 - **`audit-service-isolation.md`** — applies to email audit log services
+
+---
+
+## Five-attribute review per `business-logic-review.md` §2
+
+Email config values (Reply-To, sender identity, provider routing, tone register) are mostly **engineering/deliverability decisions**, but send-behavior touches anti-spam + marketing-consent regulation (List-Unsubscribe BR-EMAIL-003 is a compliance control).
+
+- **Source:** Engineering + deliverability standards — RFC 8058 (one-click List-Unsubscribe BR-EMAIL-003), DKIM/SPF/DMARC alignment (sender identity BR-EMAIL-005), multipart/alternative plain-text fallback (BR-EMAIL-001). VN business-email tone benchmark (Misa eInvoice + Talkpal VN formal guide) per BR-EMAIL-004. Wave 98 Bucket B1 (GAP-657/659/543).
+- **Rationale:** Deliverability hardening (plain-text fallback, Reply-To, unsubscribe header) raises inbox placement + trust; FORMAL_SAFE_DEFAULT tone avoids trust-burning when emailing authority figures (P2 Owner). password-reset is exempt from unsubscribe (BR-EMAIL-003) because it is essential security mail (user cannot opt out mid-reset).
+- **Reviewer:** @nguyenvankiet (acting Tech Lead + Legal scout, solo-dev, 2026-06-21). PII / marketing-consent dimension queued for legal review — GAP-156 AC-D.
+- **Compliance check:** **Considered (self-assessed, counsel pending GAP-156 AC-D)** — per `documents/00-brd/compliance-checklist.md` (anti-spam + marketing overlay): **Nghị định 91/2020/NĐ-CP** (chống tin nhắn/email rác — List-Unsubscribe + one-click opt-out BR-EMAIL-003 is the self-assessed control); **Luật Bảo vệ Quyền lợi Người tiêu dùng 2023** (marketing claims must match real SLA/NFR); **Nghị định 13/2023/NĐ-CP (PDPL)** (marketing-email consent — non-essential email respects opt-out; transactional security mail like password-reset exempt by design). No counsel verification yet.
+- **Review cadence:** **Annual** + event-driven on anti-spam regulation amendment (NĐ 91/2020) or marketing-consent rule change. **Next review:** 2026-09-21 (next audit checkpoint), then Annual.

@@ -6,10 +6,10 @@ paths:
 # Business Logic Correctness Review
 
 **Priority:** 🔴 CRITICAL — every business rule (constraint, threshold, pricing tier, compliance check) MUST pass review before merge
-**Version:** 1.0.1
+**Version:** 1.1.0
 **Created:** 2026-04-29
-**Last-Reviewed:** 2026-05-14
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.0.1 PATCH self-approve per `rule-change-process.md` §5; adds `paths:` frontmatter per Wave 73 Bucket A2 — no constraint change, rule still applies same scope, just deferred-load when no per-domain rules.md in context. v1.0.0 (kept): new-rule with built-in enforcement; per §5 self-approve allowed because no prior process — "thing right vs right thing" violation #7 in `output-review-mandate.md` §3 had no review standard at all)
+**Last-Reviewed:** 2026-06-20
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — v1.1.0 MINOR self-approve per `rule-change-process.md` §5; GAP-156 AC-E — replaces §6.2 (which described a non-existent `audit-gate.py` partial detector) with the real implemented detector `scripts/check-business-rule-attributes.sh` + CI job `business-rule-attributes` + 3 fixtures; block-on-new-file / warn-on-modified makes block-mode safe; no constraint loosening — enforcement mechanism now actually wired (corrects an inaccurate enforcement claim). v1.0.1 (kept): PATCH adds `paths:` frontmatter per Wave 73 Bucket A2 — no constraint change. v1.0.0 (kept): new-rule with built-in enforcement; per §5 self-approve allowed because no prior process — "thing right vs right thing" violation #7 in `output-review-mandate.md` §3 had no review standard at all)
 **Applies to:** Every per-domain `documents/01-business/*/rules.md` file (currently 45 across kiteclass + kitehub) AND every code constant encoding business value (timeouts, limits, thresholds, prices, tiers, quotas, periods)
 **Closes:** Phase 1 of GAP-049 (rule file shipped + matrix-row flip); Phase 2 audit + stakeholder sign-offs tracked in GAP-156
 
@@ -237,16 +237,23 @@ Already exists per `output-review-mandate.md` §6.2 ("Business docs — updated 
 
 Solo-dev exemption clause (`§2.3`) applies — but the Reviewer line must explicitly say which role is being worn + queue formal review via GAP-156.
 
-### 6.2 `audit-gate.py` partial detector (PARTIAL — full detector tracked in GAP-156)
+### 6.2 5-attribute detector — `scripts/check-business-rule-attributes.sh` (IMPLEMENTED 2026-06-20, GAP-156 AC-E)
 
-This rule ships with a **partial** detector to satisfy `rule-change-process.md` §6.5 Enforcement Parity Mandate. The partial detector runs in `audit-gate.py` AUDIT_RULES on diffs touching `documents/01-business/**/rules.md` or matching business-value constant patterns in `*.java`/`*.ts` (`*_DAYS`, `*_LIMIT`, `*_QUOTA`, `*_FEE_PCT`, `*_PERIOD`, `MAX_*`, `MIN_*`).
+> **Correction (2026-06-20):** v1.0.0 of this rule claimed a "partial warn-mode detector in `audit-gate.py` AUDIT_RULES". That per-attribute scan was never actually wired — `audit-gate.py:30` only requires the `business-logic-audit` *skill*, it does not scan the 5 attributes. GAP-156 AC-E ships the **real** standalone detector below.
 
-Detector behavior in this PR:
-- **Detects** added/changed business-rule lines in `rules.md` files
-- **Warns** if any of the 5 attributes (Source / Rationale / Reviewer / Compliance / Review cadence) appears missing in the changed lines
-- **Does NOT block** — solo-dev mode tolerates iteration; warnings surface in PR description
+Detector: `scripts/check-business-rule-attributes.sh` — scans changed `documents/01-business/**/rules.md` in the PR diff for the 5 attributes (matching the bolded-label format from §4.2: `**Source:**` / `**Rationale:**` / `**Reviewer:**` / `**Compliance check:**` / `**Review cadence:**` or `**Next review:**`).
 
-Full block-mode detector (with regex per-attribute + override trailer) deferred to GAP-156 once baseline pass-rate is known. Until then, the warn-mode detector + PR template checkbox + manual reviewer step cover enforcement parity.
+Severity is keyed to change type so block-mode is SAFE without breaking grandfathered files:
+
+| Change type | Behavior | Rationale |
+|---|---|---|
+| **ADDED** rules.md (brand-new domain) | 🔴 **BLOCK** if missing any attribute | A new business domain must be born-compliant |
+| **MODIFIED** existing rules.md | 🟡 **WARN** only | Grandfathered until bucket-B backfill (flip via `BUSINESS_RULE_BLOCK_MODIFIED=1`) |
+| Either + `BUSINESS_RULE_OVERRIDE:` trailer | downgrade BLOCK→WARN | Genuine exception per §8 |
+
+- **CI wiring:** job `business-rule-attributes` in `.github/workflows/quality-docs.yml` (path-gated on `documents/01-business/**` + the script/fixtures), runs `--self-test` then `--diff origin/main`.
+- **Self-test:** `bash scripts/check-business-rule-attributes.sh --self-test` → 3 fixtures (compliant→PASS / missing→BLOCK / missing+override→WARN), all green.
+- **Flip-to-full-block roadmap:** once bucket-B backfill (GAP-156) raises the highest-stakes existing rules.md to compliant, set `BUSINESS_RULE_BLOCK_MODIFIED=1` in the CI step to also block on modified files. Baseline pass-rate captured in `documents/04-quality/audits/business-correctness/2026-Q3.md` (GAP-156 AC-A).
 
 **Override trailer** (when block-mode lands):
 ```
@@ -316,5 +323,6 @@ Override does NOT exempt the rule from the 5 attributes long-term. It exempts on
 
 ## 10. Log
 
+- **2026-06-20 (v1.1.0):** MINOR — GAP-156 AC-E. Rewrote §6.2 to ship the **real** 5-attribute detector `scripts/check-business-rule-attributes.sh` (+ CI job `business-rule-attributes` in `quality-docs.yml` + 3 fixtures + `--self-test` 3/3 PASS). Discovery during GAP-156 work: v1.0.0 §6.2 claimed a "partial warn-mode detector in `audit-gate.py`" but no per-attribute scan was ever wired (`audit-gate.py:30` only triggers the business-logic-audit *skill*). New detector is block-on-ADDED-rules.md (born-compliant mandate) / warn-on-MODIFIED (grandfathered until bucket-B backfill) / `BUSINESS_RULE_OVERRIDE:` trailer downgrades block→warn — making block-mode safe without breaking the ~76 grandfathered files. Flip-to-full-block roadmap documented (`BUSINESS_RULE_BLOCK_MODIFIED=1` after backfill). Paired same-PR: GAP-156 AC-A baseline report (`business-correctness/2026-Q3.md`) + AC-C compliance-checklist (`00-brd/compliance-checklist.md`). Per `incident-to-rule-pipeline.md` 5-stage + `rule-change-process.md` §6.5 Enforcement Parity Mandate (rule + detector + fixtures + self-test all same PR). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5 — corrects inaccurate enforcement claim + wires real detector; no constraint loosening; existing rules.md grandfathered, block applies prospectively to new domains).
 - **2026-05-14 (v1.0.1):** PATCH — added `paths:` frontmatter `documents/01-business/**/rules.md` per Wave 73 Bucket A2 (path-scope context optimization). Rule chỉ auto-load khi session chạm vào per-domain rules.md — giảm token overhead các session khác. No constraint change; rule scope unchanged. Paired same-PR với rules-index.csv path_trigger column update. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — frontmatter addition only, no constraint loosening).
 - **2026-04-29 (v1.0.0):** Rule created. Phase 1 of GAP-049 closure (rule file shipped + `output-review-mandate.md` §3 matrix-row flip from ❌ VIOLATION → ⚠️ PARTIAL). Phase 2 (audit execution against existing 45 per-domain `rules.md` files + stakeholder sign-offs against representative sample) tracked in GAP-156. Reviewer: @nguyenvankiet (solo-dev, acting Product Owner + Legal scout) self-approve per `rule-change-process.md` §5 — new rule with built-in enforcement (PR template checkbox + `audit-gate.py` partial warn-mode detector + quarterly cadence schedule + reviewer-checklist line); no constraint loosening for prior work. Existing rules in `documents/01-business/` are grandfathered (no retroactive 5-attribute audit until GAP-156 quarterly run). Self-approve permitted because §3 review-process VIOLATION existed without standard at all — this rule establishes the standard solo-dev would otherwise route through. Motivation: `output-review-mandate.md` §4 VIOLATION row "Business logic CORRECTNESS" was the last unaddressed CRITICAL violation; GAP-049 sliced into Phase 1 (this rule, Wave Business Correctness 2026-04-29) + Phase 2 (audit + sign-offs, GAP-156) per `gap-done-discipline.md` §3 PARTIAL exit ramp.

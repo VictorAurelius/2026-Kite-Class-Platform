@@ -117,6 +117,16 @@ kitehub:
 - **Operations:** [`../../../05-guides/operations/custom-domain-verify-runbook.md`](../../../05-guides/operations/custom-domain-verify-runbook.md)
 - **Gap:** [GAP-812](../../../04-quality/gaps/phase-1-beta/GAP-812-custom-domain-dns-ssl-completion.md)
 
+## Five-attribute review per `business-logic-review.md` §2
+
+Custom-domain rule values (48h verify timeout, TXT-record convention, token format, state-machine transitions) are **engineering decisions** (DNS/SSL provisioning mechanics). The PREMIUM/ENTERPRISE tier restriction (BR-DOMAIN-011) is a pricing entitlement that inherits from `subscription-billing` (`PricingTier.allowsCustomDomain()`), not set here.
+
+- **Source:** Engineering decision — DNS-verification convention (TXT `_kitehub-verify.{domain}`) + ADR-018 (registrar/DNS/TLD) + Wave tenant-domain-1 / kitehub-biz-100 (GAP-812/1024). 48h timeout = informed gut (standard DNS-propagation safety margin).
+- **Rationale:** 48h verify window covers slow DNS propagation without leaving instances pending indefinitely (hourly timeout sweep BR-DOMAIN-015). Stub cert (Phase 1) decouples from real-CA vendor dependency (ACM/Cloudflare) per BR-DOMAIN-008/014. Backup subdomain always-on (BR-DOMAIN-007) avoids lock-out during provisioning.
+- **Reviewer:** @nguyenvankiet (acting Tech Lead, solo-dev, 2026-06-21). No business sign-off required — DNS/SSL mechanism thresholds. The tier-gate pricing is reviewed in `subscription-billing`. Review queued — GAP-156 AC-D.
+- **Compliance check:** **N/A** — pure DNS-verification + cert-provisioning mechanism; no PII business rule, no financial/consent data (a custom domain string is tenant-public infrastructure config, not personal data). No regulated area triggered per `documents/00-brd/compliance-checklist.md` (domain not listed → default N/A unless PII touched).
+- **Review cadence:** **Annual** (stable DNS mechanism) + event-driven on real ACM/Cloudflare cert integration landing (Phase 1.5+, BR-DOMAIN-008). **Next review:** 2026-09-21 (next audit checkpoint), then Annual.
+
 ## 6. Log
 
 - **2026-06-13:** GAP-1024 (Wave kitehub-biz-100 Bucket BE-5) — state machine completion. Thêm BR-DOMAIN-013 (verify idempotent), BR-DOMAIN-014 (cert provisioning seam — `CertProvisioningService` interface + `StubCertProvisioningService` Phase 1 stub), BR-DOMAIN-015 (timeout sweep `DomainVerificationTimeoutScheduler`). `DomainService.verifyCustomDomain()` giờ wire `PENDING_VERIFY → CERT_PROVISIONING → VERIFIED` + idempotent (VERIFIED no-op 200, không 400) + FAILED throw (re-initiate). §3.1 implementation-status table mới. Config key giữ `kitehub.domain.verification.timeout-hours=48` (KHÔNG đổi sang `verify-timeout-hours`/72 như wave plan đề xuất — giữ khớp BR-003). Real ACM/Cloudflare cert + gateway-route deferred Phase 1.5+ (vendor dependency).

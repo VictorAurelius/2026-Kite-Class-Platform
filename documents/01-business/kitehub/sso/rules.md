@@ -47,3 +47,15 @@ BR-SSO-001..009
 - ADR-039 — Cross-Service Subscription Tier Propagation (precedent gateway shared-secret inject)
 - GAP-1138 — SSO KH→KC implementation; GAP-1305 — SSO owner-seed deterministic walk
 - `use-cases.md` + `api-contract.md` (cùng domain)
+
+---
+
+## Five-attribute review per `business-logic-review.md` §2
+
+SSO rule values (60s code TTL, 256-bit entropy, single-use GETDEL, CSRF guard, fail-loud store) are **engineering security decisions** for a one-time-code exchange mechanism. The mechanism carries an identity tuple `(userId, email, role)` (email = PII in transit) but creates no new marketing/financial business rule.
+
+- **Source:** Engineering decision — OWASP / OAuth-style one-time-code patterns: single-use code (OWASP CSRF + authz-code precedent), 256-bit SecureRandom entropy, ≤60s TTL, JSON-only CSRF guard (BR-SSO-007). ADR-040 (Option A redirect + one-time-code) + ADR-039 (shared-secret gateway inject precedent). GAP-1138/1305.
+- **Rationale:** Opaque one-time code (not raw JWT on URL) + ≤60s TTL + single-use GETDEL minimize token-leak blast radius; JWT re-minted at exchange so tenant + tier claims reflect current DB; fail-loud (BR-SSO-008, unlike fail-open blacklist) keeps SSO from silently degrading — fallback = KC-native dual-path login.
+- **Reviewer:** @nguyenvankiet (acting Tech Lead, solo-dev, 2026-06-21). No business sign-off required — pure auth-handoff mechanism. PII-in-transit + token-security review queued — GAP-156 AC-D.
+- **Compliance check:** **Considered (self-assessed, counsel pending GAP-156 AC-D)** — per `documents/00-brd/compliance-checklist.md` L6/L7: **Luật An ninh mạng 2018** (token/credential security — single-use code, 256-bit entropy, HS512 shared key); **Luật Giao dịch điện tử 2023** (cross-product e-identity handoff = valid electronic authentication). No new PII business rule beyond the identity tuple already governed by `tenant-auth` / KiteHub `auth`. No counsel verification yet.
+- **Review cadence:** **Annual** (stable security mechanism) + event-driven on crypto-standard change or ADR-040 supersession. **Next review:** 2026-09-21 (next audit checkpoint), then Annual.

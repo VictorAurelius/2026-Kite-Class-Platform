@@ -156,6 +156,18 @@ Locale=`en-US` returns placeholder constants (`Student Sample`, `Example Center`
 
 ---
 
+## Five-attribute review per `business-logic-review.md` §2
+
+Seed-worker rule values (VN-name pools, class/center naming, VND/date/time formats) govern **synthetic sample/demo data** for default-tenant onboarding — a localization/engineering fixture, not a production business rule. No real personal data.
+
+- **Source:** Informed gut + VN edu localization norms — `user-manual-content-standard.md` §2 row 7 (VN sample-data mandate) + `dev-readable-doc-language.md` §2/§3 + P2 Center Owner persona walkthrough (chị Hằng, Q.1 TP.HCM). Wave 98 Bucket B2 (GAP-658, closes GAP-538 AC7).
+- **Rationale:** First-touch trust signal — English Lorem-Ipsum placeholders (`John Doe`, `$60.00`, `Mon May 14`) trigger bounce ("đây là phần mềm Mỹ"). VN-friendly sample data (real diacritic names, `Trung tâm`/`Lớp` prefixes, `1.500.000đ`, `Thứ Hai, 14/05/2026`) signals a VN-built product. `en-US` override retained for cross-locale test fixtures only.
+- **Reviewer:** @nguyenvankiet (acting Tech Lead, solo-dev, 2026-06-21). VN-localization correctness benefits from a native-VN reviewer (deferred, paired Wave 98 Bucket B4 i18n). No business-value sign-off required — synthetic fixture. Review queued — GAP-156 AC-D.
+- **Compliance check:** **N/A** — synthetic/sample seed data only (no real student/parent/teacher PII; production tenants generate their own data). Dev fixture, not a production data-processing rule, so no PDPL/tax trigger per `documents/00-brd/compliance-checklist.md`.
+- **Review cadence:** **Annual** + event-driven when VN sample pools expand or a new locale is added. **Next review:** 2026-09-21 (next audit checkpoint), then Annual.
+
+---
+
 ## Log
 
 - **2026-05-18 (v1.0):** Domain `seed/` created Wave 98 Bucket B2 per GAP-658. Closes GAP-538 AC7 (VN sample seed worker). 10 business rules codify VN-friendly sample data mandate per `user-manual-content-standard.md` §2 row 7 + `dev-readable-doc-language.md` §2/§3. 6 CSV sources shipped trong `seed-data/vn-friendly/`. `VietnamSampleDataGenerator` Spring component implements rules. Native VN copywriter review pass deferred — paired với Wave 98 Bucket B4 i18n bucket (parallel execution).

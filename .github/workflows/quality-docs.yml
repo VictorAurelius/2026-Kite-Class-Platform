@@ -93,6 +93,8 @@ jobs:
             business:
               - 'documents/01-business/**'
               - 'scripts/check-3-layer-completeness.sh'
+              - 'scripts/check-business-rule-attributes.sh'
+              - 'scripts/fixtures/business-rule-attributes/**'
             docs_scaling:
               - 'documents/**'
               - 'scripts/check-docs-archival-stale.sh'
@@ -324,6 +326,33 @@ jobs:
           # `incident-to-rule-pipeline.md` premature-rule guard.
           # WARN mode initially; target HARD STOP 2026-06-19 (30-day grace).
           bash scripts/check-3-layer-completeness.sh --warn
+
+
+  business-rule-attributes:
+    name: Business rule 5-attribute check (`documents/01-business/**/rules.md`)
+    needs: changes
+    if: needs.changes.outputs.business == 'true' || needs.changes.outputs.workflow == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Run self-test (3 fixtures — compliant + missing + override)
+        run: bash scripts/check-business-rule-attributes.sh --self-test
+
+      - name: Validate business rule attributes (BLOCK new rules.md, WARN modified)
+        run: |
+          # Per `.claude/rules/business-logic-review.md` §2 + §6.2 (GAP-156 AC-E):
+          # every business rule must document 5 attributes (Source / Rationale /
+          # Reviewer / Compliance / Review cadence). Block-mode is SAFE: a brand-new
+          # rules.md (ADDED) must be born-compliant; modified existing files only
+          # WARN (grandfathered until bucket-B backfill). Override trailer
+          # `BUSINESS_RULE_OVERRIDE:` downgrades block→warn. Diff vs origin/main.
+          git fetch origin main --depth=1 2>/dev/null || true
+          bash scripts/check-business-rule-attributes.sh --diff origin/main
 
 
   docs-scaling-detectors:
