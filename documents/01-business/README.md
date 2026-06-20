@@ -79,7 +79,7 @@ documents/01-business/          ← TẤT CẢ business logic ở đây
 
 ### 5. Index — Documents hiện có
 
-#### KiteHub (8 domains; 7 complete + 1 🟡 PARTIAL)
+#### KiteHub (9 domains; 8 complete + 1 🟡 PARTIAL)
 | Domain | rules | use-cases | api-contract | Last Verified |
 |--------|-------|-----------|-------------|---------------|
 | trial-lifecycle | ✅ | ✅ | ✅ | 2026-03-24 |
@@ -90,6 +90,7 @@ documents/01-business/          ← TẤT CẢ business logic ở đây
 | data-retention | ✅ | ✅ | ✅ | 2026-03-24 |
 | ai-branding | ✅ | ✅ | ✅ | 2026-03-24 |
 | marketing | ✅ | ⏳ → GAP-353b | ⏳ → GAP-353b | 2026-05-06 (Wave 23 Bucket A — PDPL consent canonical) |
+| signup-otp | ✅ | ✅ | ✅ | 2026-06-21 (GAP-286 Phase-1 backend OTP scaffold — mock delivery) |
 
 #### KiteClass (13 domains × 3 layers = 39 files ✅)
 | Domain | rules | use-cases | api-contract | Last Verified |

@@ -126,6 +126,10 @@ jwt:
   # be different from jwt.secret so a leaked access token cannot impersonate a
   # challenge token (and vice versa).
   challenge-secret: ${JWT_CHALLENGE_SECRET:dev-challenge-secret-pad-pad-pad-pad-pad}
+  # GAP-286 — signup tokens (10-min TTL) issued after phone-OTP verification on
+  # mobile signup. MUST differ from jwt.secret + jwt.challenge-secret so a leaked
+  # token of one kind cannot impersonate another. Production fail-fast if unset.
+  signup-secret: ${JWT_SIGNUP_SECRET:dev-signup-secret-pad-pad-pad-pad-pad-pad}
 
 # Email verification
 kitehub:
@@ -145,6 +149,15 @@ kitehub:
     # gateway rate-limit (1/sec email-keyed) shipped Wave 78 (PR #1354).
     password-reset:
       token-ttl-minutes: ${PASSWORD_RESET_TOKEN_TTL_MINUTES:60}
+    # GAP-286 — phone-OTP for mobile signup. Phase 1 = MOCK delivery (code logged
+    # at INFO, no live vendor send). Code is 6-digit, stored hashed (bcrypt),
+    # in-memory (TODO Phase 2: Redis). Rate-limit + attempt caps below.
+    signup-otp:
+      mock-enabled: ${SIGNUP_OTP_MOCK_ENABLED:true}
+      code-ttl-seconds: ${SIGNUP_OTP_CODE_TTL_SECONDS:300}
+      max-verify-attempts: ${SIGNUP_OTP_MAX_VERIFY_ATTEMPTS:5}
+      rate-limit-max-requests: ${SIGNUP_OTP_RATE_LIMIT_MAX_REQUESTS:3}
+      rate-limit-window-minutes: ${SIGNUP_OTP_RATE_LIMIT_WINDOW_MINUTES:15}
   trial:
     duration-days: 14
     max-per-owner: 1
