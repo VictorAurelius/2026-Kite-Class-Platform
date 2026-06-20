@@ -1,6 +1,6 @@
 # GAP-286: Mobile OTP signup via Zalo/SMS
 
-**Status:** 🟡 PARTIAL (~40%) — backend OTP core + 3-layer docs DONE 2026-06-21; FE mobile form + live ZNS/SMS + fast-provisioning + E2E remain
+**Status:** 🟡 PARTIAL (~60%) — backend OTP core + FE mobile signup + 3-layer docs DONE 2026-06-21; live ZNS/SMS + fast-provisioning + E2E remain
 **Priority:** 🔴 P0 — blocks P1 Solo Teacher onboarding (AC-ONBOARD-001 FAIL)
 **Domain:** Backend (auth) + Frontend (register flow) + KiteHub provisioning
 **Found:** 2026-05-04 (Wave 17 P1 Solo Teacher persona review — Round 1)
@@ -48,12 +48,16 @@ Signup flow ban đầu thiết kế cho web-first email/password (B2B SaaS deskt
 - [x] Tests: 7 `OtpServiceTest` + 5 `OtpControllerTest` green; `mvnw -pl kitehub-subscription test-compile` EXIT 0
 - [~] OTP gửi qua Zalo OA (primary) + SMS fallback — **mock delivery** (`OtpDeliveryService` logs `[OTP-MOCK]`); live ZNS/SMS = Phase 2 (GAP-063 vendor-blocked)
 
-### Remaining (follow-up — FE / vendor / infra)
-- [ ] FE `app/(auth)/register/mobile/page.tsx` phone-first form + 6-digit OTP input (Web-OTP autofill) — wires to new endpoints
-- [ ] Mobile signup flow ≤10 phút wall-clock landing → dashboard (needs FE + fast-provisioning)
+### FE mobile signup ✅ DONE 2026-06-21 (kitehub-frontend — KiteHub per boundary rule)
+- [x] FE mobile signup `kitehub-frontend/src/app/(auth)/signup/mobile/page.tsx` + `MobileSignupOtpForm.tsx` — 2-step phone→OTP, 6-digit input (`inputMode=numeric` + `autoComplete=one-time-code` Web-OTP autofill), 5-min countdown, rate-limit 429 countdown, VN copy, shadcn components, wires to `endpoints.auth.{requestSignupOtp,verifySignupOtp}` via existing `apiClient` (pre-auth, no tenant header)
+- [x] `pnpm --filter kitehub-frontend build` EXIT 0 (production build verified per `fe-build-local-verify`)
+- [~] Post-verify navigation = placeholder success card (stores `signupToken` sessionStorage) — tenant-create redirect = Phase 2 (UC-OTP-03)
+
+### Remaining (follow-up — vendor / infra / E2E)
+- [ ] Mobile signup flow ≤10 phút wall-clock landing → dashboard (needs fast-provisioning + live)
 - [ ] Tenant TRIAL provisioning sub-30s từ OTP verify → first login redirect (separate sub-task)
-- [ ] E2E Playwright mobile viewport (iPhone 13 Safari) — needs FE
-- [ ] Live ZNS/SMS delivery + cost telemetry (Zalo ZNS vs SMS unit cost) — Phase 2 vendor-blocked
+- [ ] E2E Playwright mobile viewport (iPhone 13 Safari) — needs full stack walk (mock OTP code from BE log)
+- [ ] Live ZNS/SMS delivery + cost telemetry (Zalo ZNS vs SMS unit cost) — Phase 2 vendor-blocked (GAP-063)
 
 ## Related
 
@@ -65,4 +69,5 @@ Signup flow ban đầu thiết kế cho web-first email/password (B2B SaaS deskt
 ## Log
 
 - **2026-06-21** — Status OPEN → 🟡 PARTIAL (~40%). **Backend OTP core shipped** (kitehub-subscription, mirror `passwordreset` pattern): `OtpService` (6-digit, bcrypt-hashed `ConcurrentHashMap` store + `// TODO Phase 2: Redis`, 300s TTL, 3-req/15min sliding-window rate-limit, max-5-verify-attempts, single-use, VN phone `^0\d{9,10}$`, injectable `Clock`) + `SignupTokenService` (10-min HS256, mirror `twofactor/ChallengeTokenService`) + `OtpDeliveryService` (MOCK — logs `[OTP-MOCK]`, no vendor call) + `OtpController` (`POST /api/v1/auth/signup/request-otp` + `verify-otp`, ProblemDetail) + config `kitehub.auth.signup-otp.*`. Tests: 7 `OtpServiceTest` + 5 `OtpControllerTest` green; `mvnw -pl kitehub-subscription test-compile` EXIT 0. **3-layer business docs** written (`01-business/kitehub/signup-otp/`, rules.md born-compliant 5-attribute). Notification dispatch = mock-log fallback (`OwnerNotificationDispatcher` email-centric, `ZALO` channel unwired stub → Phase 2 wire). **Remaining:** FE mobile signup page + 6-digit input, live ZNS/SMS (GAP-063 Phase 2 vendor), fast-provisioning sub-30s, Playwright E2E, cost telemetry. Built via 1 Opus agent + coordinator inline (3-layer docs) per `agent-concurrency-budget-inline-hybrid`.
+- **2026-06-21 (FE)** — Status 40% → ~60%. **FE mobile signup shipped** (kitehub-frontend — KiteHub per `kitehub-kiteclass-boundary`, evidence: signup creates new tenant = SaaS lifecycle): `app/(auth)/signup/mobile/page.tsx` + `MobileSignupOtpForm.tsx` (2-step phone→OTP, 6-digit `one-time-code` autofill, 5-min + rate-limit countdown, VN copy, shadcn, `endpoints.auth.*` via apiClient pre-auth). `pnpm --filter kitehub-frontend build` EXIT 0. Post-verify = placeholder success (signupToken sessionStorage); tenant-create redirect = Phase 2. Built via 1 Opus FE agent (same branch, PR #2515) + coordinator inline (api-contract reconcile).
 - **2026-05-04** — Filed by Wave 17 Bucket A Agent during P1 Solo Teacher persona review Round 1. State-check confirmed no existing implementation. Reserved range GAP-286..295.

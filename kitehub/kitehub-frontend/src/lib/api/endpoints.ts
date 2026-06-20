@@ -130,6 +130,11 @@ export const endpoints = {
     completeBetaSignup: '/api/v1/auth/beta-signup',
     // GAP-609 Wave 91 — claim code exchange (alternate path when email link unavailable)
     exchangeClaimCode: '/api/v1/auth/beta-signup/exchange-claim-code',
+    // GAP-286 Wave OTP — mobile phone + OTP signup (kitehub-subscription, Phase 1 mock
+    // delivery). PRE-AUTH: no tenant yet → never attach X-Tenant-Id/Authorization.
+    // Contract: documents/01-business/kitehub/signup-otp/api-contract.md
+    requestSignupOtp: '/api/v1/auth/signup/request-otp',
+    verifySignupOtp: '/api/v1/auth/signup/verify-otp',
   },
 
   // Admin coordinator endpoints (GAP-372 Wave 33)

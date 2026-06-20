@@ -4,7 +4,9 @@
 **Related:** `rules.md` · `use-cases.md` · GAP-286
 **Status:** 🟡 Phase 1 — mock delivery. Base path `/api/v1/auth/signup`.
 
-> Verification chain: BR-OTP-* (`rules.md`) → UC-OTP-* (`use-cases.md`) → endpoint dưới → `@PostMapping` → `OtpServiceTest` / controller test.
+> Verification chain: BR-OTP-* (`rules.md`) → UC-OTP-* (`use-cases.md`) → endpoint dưới → `@PostMapping` → `OtpServiceTest` / `OtpControllerTest`.
+>
+> **Error envelope:** request-otp lỗi 400/429 dùng RFC 7807 **ProblemDetail** (`type`/`title`/`status`/`detail` + extension field như `error`/`retryAfterSeconds`); verify-otp 400 trả domain body `{ verified:false, reason }`. Endpoints `permitAll` cho `/api/v1/auth/**` (pre-auth signup, no tenant header).
 
 ---
 
