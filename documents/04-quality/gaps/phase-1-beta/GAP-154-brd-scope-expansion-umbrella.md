@@ -1,6 +1,6 @@
 # GAP-154: BRD Scope Expansion (Umbrella — 22 Missing BRD Docs)
 
-**Status:** 🟡 PARTIAL (~80%) — 7 P0 legal skeletons + **7 P1 BRD skeletons written 2026-06-21**; P2/P3 + sim re-run + legal counsel remain
+**Status:** 🟡 PARTIAL (~92%) — 7 P0 + 7 P1 + **5 P2 + 3 P3 BRD skeletons written 2026-06-21**; sim re-run + legal counsel remain (DONE-blocked: counsel)
 **Priority:** 🔴 P0 (business-logic tier — 7 sub-items GA-blocking)
 **Domain:** Business / BRD / Legal / Governance
 **Found:** 2026-04-20 (simulation gap-finder run per user request)
@@ -87,8 +87,8 @@ User's framing: *"BRD là điểm khởi đầu quan trọng nhất của dự �
 ### Phase 2/3/4 (future sessions)
 
 - [x] **P1 BRD skeleton docs WRITTEN 2026-06-21** (7 docs) — REFRAMED from "file 7 P1 sub-gap trackers": active gap backlog is 192% over-cap per `docs-folder-volume-budget.md`, so wrote the actual BRD artifacts in `00-brd/` (folder has room) instead of tracker stubs. Docs: `product-scope-mrd` · `data-classification-policy` · `customer-sla-uptime` · `incident-response-breach-notification` · `data-export-portability-policy` · `moet-regulatory-alignment-matrix` · `academic-year-curriculum-structure-policy` (all 🟡 SKELETON, TBD-marked, VN-law cited)
-- [ ] P2 sub-gaps / P2 BRD skeletons (5) — DEFER (post-GA; same reframe-to-docs approach when picked up)
-- [ ] P3 sub-gaps / P3 BRD skeletons (3) — DEFER (maturity)
+- [x] **P2 BRD skeleton docs WRITTEN 2026-06-21** (5 docs) — same reframe-to-docs approach: `support-sla-sop` · `customer-dr-bcp` · `api-terms-developer-license` · `security-posture-summary` · `vendor-management-third-party-risk` (all 🟡 SKELETON, TBD-marked, VN-law cited)
+- [x] **P3 BRD skeleton docs WRITTEN 2026-06-21** (3 docs) — `versioning-deprecation-policy` · `accessibility-statement` · `brand-trademark-policy` (all 🟡 SKELETON, TBD-marked, VN-law cited)
 - [ ] Quarterly re-run of simulation-gap-finder against BRD scope — not re-run this session
 
 ## Out of Scope
@@ -116,6 +116,7 @@ User's framing: *"BRD là điểm khởi đầu quan trọng nhất của dự �
 
 ## Log
 
+- 2026-06-21 (loop) — Completion ~80% → ~92%. **5 P2 + 3 P3 BRD skeleton docs written** to `00-brd/` (coordinator inline, Phase-1 closeout loop): P2 = support-sla-sop / customer-dr-bcp / api-terms-developer-license / security-posture-summary / vendor-management-third-party-risk; P3 = versioning-deprecation-policy / accessibility-statement / brand-trademark-policy. All 🟡 SKELETON với `audience: mixed` frontmatter, VN-law citations (IP Law 2022 / Consumer Protection L3 / PDPL L1 / Cybersecurity Law / Luật Người khuyết tật 2010), explicit TBD markers, no fabricated metrics. Same reframe-to-docs rationale as P1 batch (gap backlog over-cap → write artifacts not trackers). BRD skeleton scope now COMPLETE (27/27 docs exist as skeleton or filled); **remaining: quarterly sim-gap-finder re-run + legal counsel content-fill** (DONE-blocked on counsel per Phase 2). Gap stays PARTIAL.
 - 2026-06-21 — Status OPEN → 🟡 PARTIAL (~80%). **7 P1 BRD skeleton docs written** to `00-brd/` (Opus agent): product-scope-mrd / data-classification-policy / customer-sla-uptime / incident-response-breach-notification / data-export-portability-policy / moet-regulatory-alignment-matrix / academic-year-curriculum-structure-policy. All 🟡 SKELETON with `audience` frontmatter, VN-law citations (L1/L3/L5/L6), explicit TBD markers, no fabricated metrics. **Reframed Phase-2 AC** from "file 7 P1 sub-gap trackers" → "write the BRD artifacts directly" because active gap backlog is 192% over-cap per `docs-folder-volume-budget.md` (writing trackers into an over-cap backlog = negative value; the docs ARE the deliverable). Docs reference `compliance-checklist.md` (shipped in parallel PR #2513, GAP-156) — soft cross-PR dependency. P2/P3 + sim re-run + legal counsel remain.
 - 2026-06-14: phase re-triage — n/a→phase-1-beta (P0 BRD scope expansion 22 docs; business-doc meta (FLAGGED beta-vs-1.5)).
 - 2026-04-20 (later session) — Phase 1 FILED. 7 P0 sub-gap files created (GAP-180..186). Wave 8 master plan updated to include these gaps. Phase 2 P1 sub-gaps (GAP-187..193) still reserved for future session.
