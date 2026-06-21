@@ -1,5 +1,9 @@
 # Business Logic Documents
 
+**Last Updated:** 2026-06-21
+
+> SOURCE OF TRUTH cho business rules. Mỗi domain = 1 folder × 3 layers (rules.md + use-cases.md + api-contract.md). Index đầy đủ ở §5 — hiện **75 domains** (27 KiteHub + 48 KiteClass), tất cả đủ 3 layers (verify: `bash scripts/check-3-layer-completeness.sh`).
+
 ## Quy tắc
 
 ### 1. Lưu ở đâu?
@@ -7,31 +11,21 @@
 ```
 documents/01-business/          ← TẤT CẢ business logic ở đây
 ├── README.md                   ← File này (index + quy tắc)
-├── kitehub/                    ← KiteHub platform (8 domains × 3 layers expected; some 🟡 PARTIAL)
-│   ├── trial-lifecycle/        ← rules.md + use-cases.md + api-contract.md
+├── kitehub/                    ← KiteHub platform (27 domains × 3 layers — tất cả complete)
+│   ├── trial-lifecycle/        ← rules.md + use-cases.md + api-contract.md (mẫu 3-layer)
 │   ├── subscription-billing/
-│   ├── email-lifecycle/
 │   ├── instance-provisioning/
-│   ├── domain-management/
-│   ├── data-retention/
-│   ├── ai-branding/
-│   └── marketing/              ← Wave 23 (rules.md only — use-cases/api-contract → GAP-353b/c)
-└── kiteclass/                  ← KiteClass core (13 domains × 3 layers = 39 files)
-    ├── student-enrollment/     ← rules.md + use-cases.md + api-contract.md
-    ├── course-class/
-    ├── teacher/
-    ├── attendance/
-    ├── analytics-report/      ← báo cáo dashboard doanh thu + tỷ lệ điểm danh (GAP-775)
-    ├── grade-assignment/
-    ├── payment-invoice/
-    ├── gamification-points/
-    ├── notification-email/
-    ├── tenant-settings/
-    ├── lms/
-    ├── marketing/
-    ├── storage/
-    ├── parent-portal/          ← Wave 2 MVP (GAP-052a + GAP-105)
-    └── tenant-auth/            ← Wave auth-1 KC-native login (PARENT/TEACHER/STUDENT, GAP-1009)
+│   ├── auth/ · auth-2fa/ · sso/ · signup-otp/   ← auth cluster
+│   ├── beta-access/ · beta-status/ · onboarding/ · off-boarding/
+│   ├── consent/ · preferences/ · feedback/ · support/
+│   └── ...                     ← (+ 14 domains khác — danh sách đầy đủ ở §5 Index)
+└── kiteclass/                  ← KiteClass core (48 domains × 3 layers — tất cả complete)
+    ├── student-enrollment/     ← rules.md + use-cases.md + api-contract.md (mẫu 3-layer)
+    ├── course-class/ · teacher/ · attendance/ · grade-assignment/
+    ├── payment-invoice/ · payment-record/ · payroll/ · course-pricing/
+    ├── parent-portal/ · student-portal/ · tenant-auth/   ← Wave auth-1/2 KC-native login
+    ├── analytics-report/       ← dashboard doanh thu + tỷ lệ điểm danh (GAP-775)
+    └── ...                     ← (+ 35 domains khác — danh sách đầy đủ ở §5 Index)
 ```
 
 **KHÔNG lưu trong:**
@@ -79,35 +73,87 @@ documents/01-business/          ← TẤT CẢ business logic ở đây
 
 ### 5. Index — Documents hiện có
 
-#### KiteHub (9 domains; 8 complete + 1 🟡 PARTIAL)
-| Domain | rules | use-cases | api-contract | Last Verified |
-|--------|-------|-----------|-------------|---------------|
-| trial-lifecycle | ✅ | ✅ | ✅ | 2026-03-24 |
-| subscription-billing | ✅ | ✅ | ✅ | 2026-03-24 |
-| email-lifecycle | ✅ | ✅ | ✅ | 2026-03-24 |
-| instance-provisioning | ✅ | ✅ | ✅ | 2026-03-24 |
-| domain-management | ✅ | ✅ | ✅ | 2026-03-24 |
-| data-retention | ✅ | ✅ | ✅ | 2026-03-24 |
-| ai-branding | ✅ | ✅ | ✅ | 2026-03-24 |
-| marketing | ✅ | ⏳ → GAP-353b | ⏳ → GAP-353b | 2026-05-06 (Wave 23 Bucket A — PDPL consent canonical) |
-| signup-otp | ✅ | ✅ | ✅ | 2026-06-21 (GAP-286 Phase-1 backend OTP scaffold — mock delivery) |
+> Tất cả domain dưới đây có đủ 3 layers (rules.md + use-cases.md + api-contract.md). Verify: `bash scripts/check-3-layer-completeness.sh` → 75/75 complete. "Last Verified" = ngày verify gần nhất doc-khớp-code; `index sync` = ngày xác nhận file presence trong đợt sync index (GAP-666, không phải re-verify doc-vs-code).
 
-#### KiteClass (13 domains × 3 layers = 39 files ✅)
+#### KiteHub (27 domains × 3 layers — tất cả complete ✅)
 | Domain | rules | use-cases | api-contract | Last Verified |
 |--------|-------|-----------|-------------|---------------|
-| student-enrollment | ✅ | ✅ | ✅ | 2026-03-24 |
-| course-class | ✅ | ✅ | ✅ | 2026-03-24 |
-| teacher | ✅ | ✅ | ✅ | 2026-03-24 |
-| attendance | ✅ | ✅ | ✅ | 2026-03-24 |
+| admin | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
+| admin-audit | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
+| ai-branding | ✅ | ✅ | ✅ | 2026-03-24 |
+| auth | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
+| auth-2fa | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
+| beta-access | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
+| beta-status | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
+| consent | ✅ | ✅ | ✅ | 2026-06-21 (GAP-1516 use-cases — was PARTIAL GAP-353b) |
+| custom-domain | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
+| data-retention | ✅ | ✅ | ✅ | 2026-03-24 |
+| domain-management | ✅ | ✅ | ✅ | 2026-03-24 |
+| email | ✅ | ✅ | ✅ | 2026-06-21 (GAP-664 use-cases backfill) |
+| email-lifecycle | ✅ | ✅ | ✅ | 2026-03-24 |
+| feedback | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
+| instance-provisioning | ✅ | ✅ | ✅ | 2026-03-24 |
+| marketing | ✅ | ✅ | ✅ | 2026-06-21 (GAP-1516 use-cases — was PARTIAL GAP-353b) |
+| notification | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
+| off-boarding | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
+| onboarding | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
+| preferences | ✅ | ✅ | ✅ | 2026-06-21 (GAP-664 rules + use-cases backfill) |
+| seed | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
+| signup-otp | ✅ | ✅ | ✅ | 2026-06-21 (GAP-286 Phase-1 backend OTP scaffold — mock delivery) |
+| sso | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
+| subscription-billing | ✅ | ✅ | ✅ | 2026-03-24 |
+| support | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
+| trial-lifecycle | ✅ | ✅ | ✅ | 2026-03-24 |
+| trial-to-paid-migration | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
+
+#### KiteClass (48 domains × 3 layers — tất cả complete ✅)
+| Domain | rules | use-cases | api-contract | Last Verified |
+|--------|-------|-----------|-------------|---------------|
+| academic-year | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
+| ai-agent-workflow | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
+| ai-provider | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
 | analytics-report | ✅ | ✅ | ✅ | 2026-06-02 (GAP-775 Mảng B11 — revenue + attendance dashboard) |
-| grade-assignment | ✅ | ✅ | ✅ | 2026-03-24 |
-| payment-invoice | ✅ | ✅ | ✅ | 2026-03-24 |
+| attendance | ✅ | ✅ | ✅ | 2026-03-24 |
+| branding-api | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
+| branding-wizard | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
+| bulk-import | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
+| child-protection | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
+| content-moderation | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
+| course-class | ✅ | ✅ | ✅ | 2026-03-24 |
+| course-pricing | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
+| data-retention | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
+| document-generation | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
 | gamification-points | ✅ | ✅ | ✅ | 2026-03-24 |
-| notification-email | ✅ | ✅ | ✅ | 2026-03-24 |
-| tenant-settings | ✅ | ✅ | ✅ | 2026-03-24 |
+| grade-assignment | ✅ | ✅ | ✅ | 2026-03-24 |
+| instance-lifecycle | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
+| k12-model | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
+| legal-ip-protection | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
 | lms | ✅ | ✅ | ✅ | 2026-03-24 |
 | marketing | ✅ | ✅ | ✅ | 2026-03-24 |
-| storage | ✅ | ✅ | ✅ | 2026-03-24 |
-| parent-portal | ✅ | ✅ | ✅ | 2026-04-19 |
-| tenant-auth | ✅ | ✅ | ✅ | 2026-06-06 (Wave auth-2 GAP-1009 — KC-native login Option B) |
+| mis-integration | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
 | multi-subject-gradebook | ✅ | ✅ | ✅ | 2026-05-05 (Wave 19 Bucket B GAP-323c Phase 1C v1) |
+| multi-tenancy | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
+| notification-email | ✅ | ✅ | ✅ | 2026-03-24 |
+| outbox-events | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
+| parent-portal | ✅ | ✅ | ✅ | 2026-04-19 |
+| payment-invoice | ✅ | ✅ | ✅ | 2026-03-24 |
+| payment-record | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
+| payroll | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
+| period-attendance | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
+| quality-gate | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
+| rebrand-approval | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
+| report-card | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
+| reschedule | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
+| resource-classification | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
+| resource-handlers | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
+| role-hierarchy | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
+| security-foundation | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
+| security-hardening | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
+| staff-invitation | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
+| storage | ✅ | ✅ | ✅ | 2026-03-24 |
+| student-enrollment | ✅ | ✅ | ✅ | 2026-03-24 |
+| student-portal | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
+| teacher | ✅ | ✅ | ✅ | 2026-03-24 |
+| tenant-auth | ✅ | ✅ | ✅ | 2026-06-06 (Wave auth-2 GAP-1009 — KC-native login Option B) |
+| tenant-provisioning | ✅ | ✅ | ✅ | 2026-06-21 (index sync) |
+| tenant-settings | ✅ | ✅ | ✅ | 2026-03-24 |
