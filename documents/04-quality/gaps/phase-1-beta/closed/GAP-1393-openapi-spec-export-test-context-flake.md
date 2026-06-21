@@ -1,6 +1,6 @@
 # GAP-1393: kiteclass-core "Test Core Service" CI — context-load flake escalated to a ~93-min CI HANG
 
-**Status:** 🟡 PARTIAL
+**Status:** 🟢 DONE
 **Priority:** 🟠 P1
 **Domain:** Test-infra
 **Found:** 2026-06-14 (audit-fix campaign 2026-06-14 — red-flagged #2416/#2421/#2422); **escalated 2026-06-21** (PR #2525 / GAP-1491: "Test Core Service" HUNG ~93 min, cancelled, re-triggered → hung again at 25 min = deterministic CI block, not just a fast flake)
@@ -65,7 +65,7 @@ Caused by: HibernateException: Unable to determine Dialect without JDBC metadata
 
 - [x] Xác định nguyên nhân thật làm fail context trong CI full-reactor (điều tra empirical, không patch mù) — **DONE**: connection exhaustion trên shared Testcontainers Postgres do `minimum-idle: 10` × nhiều cached context; OpenApiSpecExportTest (RANDOM_PORT duy nhất) build muộn là nạn nhân. Bằng chứng = CI log `Caused by: Unable to determine Dialect` + `connection has been closed`.
 - [x] **(NEW 2026-06-21) "Test Core Service" KHÔNG bao giờ hang vô hạn nữa** — **DONE by construction**: surefire/failsafe `forkedProcessTimeoutInSeconds=1500` (kill fork sau 25 phút) + workflow `timeout-minutes` (test=30 / build=20 / security-scan=25 / code-quality=35) → một hang biến thành FAIL nhanh (≤25-30 phút) thay vì block ~93 phút. Đây là trip-wire không thể bypass: dù root-cause còn sót, CI vẫn complete.
-- [ ] `OpenApiSpecExportTest.exportSpec` PASS ổn định trong CI full-reactor (không cần `ADMIN_MERGE_OVERRIDE`) — **PENDING CI quan sát trên chính PR này**: flake không tái hiện local (suite local xanh 1804 test, BUILD SUCCESS). Root cause robustified (Postgres `max_connections` 100→500 — bỏ trần connection exhaustion). Verify trên CI của PR này: nếu "Test Core Service" complete xanh → flip DONE.
+- [x] `OpenApiSpecExportTest.exportSpec` PASS ổn định trong CI full-reactor (không cần `ADMIN_MERGE_OVERRIDE`) — **DONE**: "Test Core Service" trên CI của PR #2526 (run 27910467965) **SUCCESS trong 6m20s** (16:27:55→16:34:15Z), KHÔNG hang, KHÔNG cần override. Root cause robustified (Postgres `max_connections` 100→500). Job chạy 6 phút < 25-phút fork timeout < 30-phút job timeout = margin lớn.
 - [x] Không tăng đáng kể tổng thời gian test kiteclass-core — **DONE**: `max_connections=500` chỉ nâng trần (idle backend rẻ); `minimum-idle: 0` release idle conn; trip-wire chỉ fire khi hang. Local full-suite vẫn ~5-6 phút.
 
 ## Resolution (2026-06-15 — PARTIAL, best-effort root-cause fix, CI-confirm pending)
@@ -100,7 +100,8 @@ Sau khi Resolution v1 (#2427 Hikari `minimum-idle:0`) đã land vào `main`, "Te
 
 ## Log
 
-- **2026-06-21:** Escalation — "Test Core Service" hang ~93 phút (PR #2525, run cancelled 08:12→09:45) rồi hang lại ở 25 phút khi re-trigger. Hikari fix (#2427) một mình không đủ. Land Fix 3 (Postgres `max_connections` 100→500, bỏ trần exhaustion) + Fix 4 (surefire/failsafe `forkedProcessTimeoutInSeconds=1500` + workflow `timeout-minutes` mọi job = hang trip-wire không-thể-bypass). Local verify: full suite 1804/0/0 BUILD SUCCESS + targeted 19/0/0 với container mới + `SHOW max_connections=500` confirmed live. PARTIAL 70%→90%. CI-confirm trên chính PR này. Per `release-fix-retry-budget.md` §3.5 (investigation-first: đọc gap + config + CI run durations trước khi patch) + `feature-ship-runtime-walk-mandate.md` (local full-suite walk).
+- **2026-06-21 (CI-confirm → DONE):** "Test Core Service" trên PR #2526 (run 27910467965) **SUCCESS trong 6m20s**, không hang, không cần `ADMIN_MERGE_OVERRIDE` → AC #2 verified trên CI thật. PARTIAL 90% → **DONE 100%**. git mv → `phase-1-beta/closed/`. Unblocks #2525/GAP-1491 (Test Core Service giờ complete reliably). Phép thử CI của chính PR fix là bằng chứng theo `gap-done-discipline.md` (AC verified) + `pre-handoff-self-test-completeness.md` §3 (post-fix walk = CI run của PR).
+- **2026-06-21 (fix v2):** Escalation — "Test Core Service" hang ~93 phút (PR #2525, run cancelled 08:12→09:45) rồi hang lại ở 25 phút khi re-trigger. Hikari fix (#2427) một mình không đủ. Land Fix 3 (Postgres `max_connections` 100→500, bỏ trần exhaustion) + Fix 4 (surefire/failsafe `forkedProcessTimeoutInSeconds=1500` + workflow `timeout-minutes` mọi job = hang trip-wire không-thể-bypass). Local verify: full suite 1804/0/0 BUILD SUCCESS + targeted 19/0/0 với container mới + `SHOW max_connections=500` confirmed live. PARTIAL 70%→90%. Per `release-fix-retry-budget.md` §3.5 (investigation-first: đọc gap + config + CI run durations trước khi patch) + `feature-ship-runtime-walk-mandate.md` (local full-suite walk).
 - **2026-06-15:** Điều tra CI log (#2416 run 27509770548, #2422 run 27509543210) → bác bỏ giả thuyết "sibling cache inherit"; root cause thật = connection exhaustion shared Postgres (`minimum-idle: 10` × cached contexts). Land Fix 1 (Hikari `minimum-idle: 0` + lifecycle bounds) + Fix 2 (surefire rerun + failure.threshold). Local verify PASS (isolation + concurrent test + validate). Status OPEN → PARTIAL (70%). CI-confirm AC #2 pending. PR `fix/open1393-2026-06-15`.
 
 ## Related
