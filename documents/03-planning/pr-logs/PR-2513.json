@@ -1,0 +1,37 @@
+{
+  "pr": 2513,
+  "title": "feat(gap-156): business-rules compliance audit \u2014 A+C+E DONE, B backfill (PARTIAL, D counsel-blocked)",
+  "branch": "feature/gap-156-compliance-audit-2026-06-21",
+  "created_at": null,
+  "merged_at": "2026-06-20T20:14:33Z",
+  "checklist": {
+    "tests_written": false,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [
+      "business-logic-audit"
+    ],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-06-21T03:14:43.515624",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 28,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": [
+          "business-logic-audit"
+        ]
+      }
+    }
+  ],
+  "compliance_score": "0/3",
+  "session_telemetry": {
+    "session_id": "kitedev@kite-dev:ppid-63650"
+  }
+}

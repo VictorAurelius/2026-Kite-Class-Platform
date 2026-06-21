@@ -1,0 +1,37 @@
+{
+  "pr": 2514,
+  "title": "feat(gap-063,gap-154): Zalo notification channel adapter + 7 P1 BRD skeletons",
+  "branch": "feature/brd-zalo-scaffold-2026-06-21",
+  "created_at": null,
+  "merged_at": "2026-06-20T20:16:21Z",
+  "checklist": {
+    "tests_written": true,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [
+      "business-logic-audit"
+    ],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-06-21T03:16:26.102141",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 16,
+        "java_files": 2,
+        "test_files": 1,
+        "business_docs": true,
+        "missing_audits": [
+          "business-logic-audit"
+        ]
+      }
+    }
+  ],
+  "compliance_score": "1/3",
+  "session_telemetry": {
+    "session_id": "kitedev@kite-dev:ppid-70252"
+  }
+}
