@@ -535,6 +535,18 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <rerunFailingTestsCount>2</rerunFailingTestsCount>
+                    <!--
+                      GAP-1393 trip-wire: hard ceiling on the forked test JVM. The whole
+                      kiteclass-core suite runs in ONE fork (forkCount=1, reuseForks=true
+                      default), so this caps total test execution. A clean run is ~5 min
+                      local / ~10-13 min on a 2-vCPU CI runner; 1500s (25 min) leaves >2x
+                      headroom yet KILLS a hung fork fast. On 2026-06-21 a context-load
+                      hang blocked "Test Core Service" ~93 min (cancelled, then hung again
+                      at 25 min on retry). With this trip-wire an unforeseen hang surfaces
+                      as a FAST build failure (≤25 min) instead of an indefinite block, so
+                      it can never wedge a kiteclass-core PR's CI for an hour again.
+                    -->
+                    <forkedProcessTimeoutInSeconds>1500</forkedProcessTimeoutInSeconds>
                     <systemPropertyVariables>
                         <spring.test.context.failure.threshold>5</spring.test.context.failure.threshold>
                     </systemPropertyVariables>
@@ -553,6 +565,10 @@
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <configuration>
                     <argLine>${failsafeArgLine}</argLine>
+                    <!-- GAP-1393 trip-wire: same hung-fork ceiling as surefire (the *IT
+                         tests reuse the same @SpringBootTest contexts). The `mvn verify`
+                         path runs only in the code-quality (Sonar) job. -->
+                    <forkedProcessTimeoutInSeconds>1500</forkedProcessTimeoutInSeconds>
                 </configuration>
                 <executions>
                     <execution>
