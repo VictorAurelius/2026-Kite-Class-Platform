@@ -29,6 +29,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -105,6 +106,11 @@ class InstanceControllerIntegrationTest {
 
         // When & Then
         MvcResult result = mockMvc.perform(post("/api/platform/instances")
+                // GAP-1525: createInstance is now PLATFORM_ADMIN-guarded; fixture setup
+                // authenticates as platform-admin so own-instance/IDOR assertions (run as
+                // OWNER via @WithMockUser) can build their world. Ownership comes from
+                // request.ownerId, not the auth principal.
+                .with(user("setup-admin").roles("PLATFORM_ADMIN"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isCreated())
@@ -138,6 +144,11 @@ class InstanceControllerIntegrationTest {
 
         // When & Then
         mockMvc.perform(post("/api/platform/instances")
+                // GAP-1525: createInstance is now PLATFORM_ADMIN-guarded; fixture setup
+                // authenticates as platform-admin so own-instance/IDOR assertions (run as
+                // OWNER via @WithMockUser) can build their world. Ownership comes from
+                // request.ownerId, not the auth principal.
+                .with(user("setup-admin").roles("PLATFORM_ADMIN"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isBadRequest());
@@ -155,6 +166,11 @@ class InstanceControllerIntegrationTest {
             .build();
 
         MvcResult createResult = mockMvc.perform(post("/api/platform/instances")
+                // GAP-1525: createInstance is now PLATFORM_ADMIN-guarded; fixture setup
+                // authenticates as platform-admin so own-instance/IDOR assertions (run as
+                // OWNER via @WithMockUser) can build their world. Ownership comes from
+                // request.ownerId, not the auth principal.
+                .with(user("setup-admin").roles("PLATFORM_ADMIN"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createRequest)))
             .andExpect(status().isCreated())
@@ -184,6 +200,11 @@ class InstanceControllerIntegrationTest {
             .build();
 
         mockMvc.perform(post("/api/platform/instances")
+                // GAP-1525: createInstance is now PLATFORM_ADMIN-guarded; fixture setup
+                // authenticates as platform-admin so own-instance/IDOR assertions (run as
+                // OWNER via @WithMockUser) can build their world. Ownership comes from
+                // request.ownerId, not the auth principal.
+                .with(user("setup-admin").roles("PLATFORM_ADMIN"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createRequest)))
             .andExpect(status().isCreated());
@@ -208,6 +229,11 @@ class InstanceControllerIntegrationTest {
             .build();
 
         MvcResult createResult = mockMvc.perform(post("/api/platform/instances")
+                // GAP-1525: createInstance is now PLATFORM_ADMIN-guarded; fixture setup
+                // authenticates as platform-admin so own-instance/IDOR assertions (run as
+                // OWNER via @WithMockUser) can build their world. Ownership comes from
+                // request.ownerId, not the auth principal.
+                .with(user("setup-admin").roles("PLATFORM_ADMIN"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createRequest)))
             .andExpect(status().isCreated())
@@ -240,12 +266,22 @@ class InstanceControllerIntegrationTest {
 
         // Create first instance
         mockMvc.perform(post("/api/platform/instances")
+                // GAP-1525: createInstance is now PLATFORM_ADMIN-guarded; fixture setup
+                // authenticates as platform-admin so own-instance/IDOR assertions (run as
+                // OWNER via @WithMockUser) can build their world. Ownership comes from
+                // request.ownerId, not the auth principal.
+                .with(user("setup-admin").roles("PLATFORM_ADMIN"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isCreated());
 
         // Try to create second instance with same subdomain
         mockMvc.perform(post("/api/platform/instances")
+                // GAP-1525: createInstance is now PLATFORM_ADMIN-guarded; fixture setup
+                // authenticates as platform-admin so own-instance/IDOR assertions (run as
+                // OWNER via @WithMockUser) can build their world. Ownership comes from
+                // request.ownerId, not the auth principal.
+                .with(user("setup-admin").roles("PLATFORM_ADMIN"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isBadRequest());
@@ -262,6 +298,11 @@ class InstanceControllerIntegrationTest {
             .tier(PricingTier.BASIC)
             .build();
         MvcResult res = mockMvc.perform(post("/api/platform/instances")
+                // GAP-1525: createInstance is now PLATFORM_ADMIN-guarded; fixture setup
+                // authenticates as platform-admin so own-instance/IDOR assertions (run as
+                // OWNER via @WithMockUser) can build their world. Ownership comes from
+                // request.ownerId, not the auth principal.
+                .with(user("setup-admin").roles("PLATFORM_ADMIN"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(req)))
             .andExpect(status().isCreated())
