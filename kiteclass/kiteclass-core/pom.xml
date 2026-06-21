@@ -547,8 +547,25 @@
                       it can never wedge a kiteclass-core PR's CI for an hour again.
                     -->
                     <forkedProcessTimeoutInSeconds>1500</forkedProcessTimeoutInSeconds>
+                    <!--
+                      GAP-1523 (residual of GAP-1393): suite wall-clock varied 6 min ↔ 25 min+
+                      under CI load because the Spring TestContext context cache thrashed. The
+                      suite has ~50 DISTINCT cached contexts (35 @WebMvcTest slices + ~6 distinct
+                      @SpringBootTest configs + ~11 @DataJpaTest) but the framework default
+                      maxSize is 32 → LRU eviction forced the heavy full-context @SpringBootTest
+                      / @DataJpaTest contexts (~5-15s each to rebuild on a constrained runner) to
+                      reload repeatedly. Raising maxSize above the distinct-context count makes
+                      each context build exactly once (0 eviction). maxSize is read from
+                      SpringProperties (system property), NOT application.yml, so it lives here.
+                      Safe on connections post-GAP-1393 (minimum-idle=0 → cached-idle contexts
+                      pin ~0 connections); -Xmx4g (the @{argLine} prefix preserves the JaCoCo
+                      prepare-agent argLine) gives the larger cache heap headroom on the
+                      16 GB-RAM public-repo runner.
+                    -->
+                    <argLine>@{argLine} -Xmx4g</argLine>
                     <systemPropertyVariables>
                         <spring.test.context.failure.threshold>5</spring.test.context.failure.threshold>
+                        <spring.test.context.cache.maxSize>64</spring.test.context.cache.maxSize>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>
@@ -564,11 +581,18 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <configuration>
-                    <argLine>${failsafeArgLine}</argLine>
+                    <!-- GAP-1523: -Xmx4g headroom for the larger context cache (see surefire). -->
+                    <argLine>${failsafeArgLine} -Xmx4g</argLine>
                     <!-- GAP-1393 trip-wire: same hung-fork ceiling as surefire (the *IT
                          tests reuse the same @SpringBootTest contexts). The `mvn verify`
                          path runs only in the code-quality (Sonar) job. -->
                     <forkedProcessTimeoutInSeconds>1500</forkedProcessTimeoutInSeconds>
+                    <!-- GAP-1523: same context-cache sizing as surefire so the *IT contexts
+                         (which reuse the @SpringBootTest contexts) also avoid LRU thrash. -->
+                    <systemPropertyVariables>
+                        <spring.test.context.failure.threshold>5</spring.test.context.failure.threshold>
+                        <spring.test.context.cache.maxSize>64</spring.test.context.cache.maxSize>
+                    </systemPropertyVariables>
                 </configuration>
                 <executions>
                     <execution>
