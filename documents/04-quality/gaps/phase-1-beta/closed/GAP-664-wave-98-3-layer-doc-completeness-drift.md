@@ -1,6 +1,6 @@
 # GAP-664: Wave 98 3-layer doc completeness drift — preferences + email domains missing layers
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟠 P1
 **Domain:** Meta (Living Docs 3-layer compliance)
 **Found:** 2026-05-19 (Wave 98 post-closure audit suite — GAP-661 Business Logic + API Contract audits both flagged)
@@ -65,12 +65,13 @@ Per Wave 92 GAP-640 + Wave 98 = 2 recurrences → file follow-up META gap:
 
 ## Acceptance Criteria
 
-- [ ] `preferences/rules.md` created với 3 BR-PREFERENCES-* IDs
-- [ ] `preferences/use-cases.md` created với 3 UC-PREFERENCES-* IDs
-- [ ] `email/use-cases.md` created với 6 UC-EMAIL-* IDs covering shipped templates
-- [ ] `documents/01-business/README.md` index updated (3 new entries)
-- [ ] BR-IDs / UC-IDs consistent across rules ↔ use-cases ↔ api-contract per Living Docs verification chain
-- [ ] Business Logic audit refresh next wave reflects fix → Cat 1 score +4-6 pts
+- [x] `preferences/rules.md` created với 9 BR-PREF-* IDs (BR-PREF-001..009) — grounded trong `PreferencesController` thực tế. **Note:** dùng prefix `BR-PREF-*` thay vì `BR-PREFERENCES-*` đề xuất ban đầu, để khớp với `api-contract.md` (đã cite `UC-PREF-001`). Passes 5-attribute BLOCK gate (`check-business-rule-attributes.sh --files` → 🟢 PASS all 5).
+- [x] `preferences/use-cases.md` created với 3 UC-PREF-* IDs (UC-PREF-001 dismiss / 002 cross-tab-sync / 003 reset)
+- [x] `email/use-cases.md` created với 6 UC-EMAIL-* IDs (UC-EMAIL-001..006) covering 5 critical templates (welcome / beta-invite / email-verification / password-reset / invite-staff) + provider-failure envelope
+- [x] BR-IDs / UC-IDs consistent across rules ↔ use-cases ↔ api-contract per Living Docs verification chain (`BR-PREF → UC-PREF → endpoint`; `BR-EMAIL → UC-EMAIL → endpoint`)
+- [x] `check-3-layer-completeness.sh --strict` → **0 violations** (75/75 domains complete)
+- [ ] `documents/01-business/README.md` index updated → **deferred to GAP-666** (existing follow-up; CSV note: "README index missing 3 new domains... depends on GAP-664 backfilling rules.md first" — now unblocked)
+- [ ] Business Logic audit refresh next wave reflects fix → Cat 1 score +4-6 pts → **next-wave measurement** (not a same-PR deliverable; the BL audit re-run will reflect this fix)
 
 ## Related
 
@@ -79,3 +80,12 @@ Per Wave 92 GAP-640 + Wave 98 = 2 recurrences → file follow-up META gap:
 - **Rule:** CLAUDE.md §"CRITICAL: Business Logic Documents — 3-Layer Structure"
 - **Rule:** `business-logic-review.md` §2 — 5-attribute coverage (constraint / config_key / source_of_truth / verification / migration)
 - **Future scope:** META pre-flight skill (post-3rd-recurrence trigger per `incident-to-rule-pipeline.md` premature-rule guard)
+
+## Closure
+
+- **2026-06-21 — DONE (100%).** Backfilled both drifted domains (GAP-1516 đã đóng marketing+consent trước đó; còn lại 2):
+  - `preferences/`: `rules.md` (9 BR-PREF-* grounded trong `PreferencesController` — cookie marker / TTL 30d hằng số / format kebab-case / httpOnly=false FE-readable / in-memory Phase 1 / no outbox) + `use-cases.md` (3 UC-PREF-*).
+  - `email/`: `use-cases.md` (6 UC-EMAIL-* grounded trong `POST /api/platform/emails/send` + 5 critical templates + BR-EMAIL-001..007; UC-EMAIL-004 ground password-reset exempt khỏi List-Unsubscribe; UC-EMAIL-006 ground envelope 200+FAILED→GAP-572).
+  - Ghi nhận drift doc↔code trong `preferences/rules.md` (`HttpOnly` + `PREF_MISSING_DISMISSED` trong api-contract khác code thực tế) → reconcile theo GAP-666/GAP-733.
+- **Gate evidence:** `check-3-layer-completeness.sh --strict` = 0 violations (75/75); `check-business-rule-attributes.sh --self-test` = 3/3 PASS; `--files preferences/rules.md` (ADDED→BLOCK gate) = 🟢 PASS all 5 attributes.
+- **Residual (tracked elsewhere, không block DONE):** README index sync → GAP-666 (giờ unblocked); BL audit Cat 1 refresh = next-wave measurement.
