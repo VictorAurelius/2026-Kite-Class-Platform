@@ -129,7 +129,9 @@ public class AttendanceController {
      * @return attendance record
      */
     @GetMapping("/{id}")
-    @Operation(summary = "Get attendance record by ID")
+    @PreAuthorize("hasAnyRole('TEACHER','STAFF','OWNER','ADMIN')")
+    @Operation(summary = "Get attendance record by ID",
+               description = "Role-gated read (OWASP A01) — GAP-1527: was unguarded.")
     public ResponseEntity<AttendanceResponse> getAttendance(
             @Parameter(description = "Attendance ID") @PathVariable Long id) {
         log.debug("GET /api/v1/attendance/{}", id);
@@ -146,8 +148,10 @@ public class AttendanceController {
      * @return page of attendance records
      */
     @GetMapping("/enrollment/{enrollmentId}")
+    @PreAuthorize("hasAnyRole('TEACHER','STAFF','OWNER','ADMIN')")
     @Operation(summary = "Get attendance history for an enrollment",
-               description = "Returns all attendance records for a specific enrollment.")
+               description = "Returns all attendance records for a specific enrollment. "
+                       + "Role-gated read (OWASP A01) — GAP-1527: was unguarded.")
     public ResponseEntity<Page<AttendanceResponse>> getAttendanceByEnrollment(
             @Parameter(description = "Enrollment ID") @PathVariable Long enrollmentId,
             @PageableDefault(sort = "markedDate", direction = Sort.Direction.DESC)
@@ -301,8 +305,10 @@ public class AttendanceController {
      * @return no content
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('TEACHER','STAFF','OWNER','ADMIN')")
     @Operation(summary = "Delete attendance record",
-               description = "Soft deletes an attendance record (admin only).")
+               description = "Soft deletes an attendance record. Role-gated (OWASP A01) — GAP-1527: "
+                       + "was unguarded; STUDENT/PARENT now blocked.")
     public ResponseEntity<Void> deleteAttendance(
             @Parameter(description = "Attendance ID") @PathVariable Long id) {
         log.info("DELETE /api/v1/attendance/{}", id);

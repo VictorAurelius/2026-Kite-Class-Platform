@@ -34,7 +34,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * <p>All refund-request endpoints originally had NO {@code @PreAuthorize}; with
  * {@code SecurityConfig.anyRequest().permitAll()} a low-privilege role could approve/reject
  * a refund. The fix guards every endpoint at the financial tier
- * ({@code hasAnyRole('ADMIN','OWNER','PLATFORM_ADMIN','STAFF')}); reads add {@code TEACHER}.
+ * ({@code hasAnyRole('ADMIN','OWNER','PLATFORM_ADMIN','STAFF')}); reads add {@code PRINCIPAL}
+ * (GAP-1527: TEACHER dropped from reads — intra-tenant financial IDOR).
  */
 @WebMvcTest(RefundRequestController.class)
 @AutoConfigureMockMvc

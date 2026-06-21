@@ -35,7 +35,9 @@ import java.time.LocalDateTime;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -171,5 +173,63 @@ class AssignmentAuthzTest {
 
         verify(assignmentService).createAssignment(any(), eq(TEACHER_ID));
         Mockito.verify(assignmentService, Mockito.never()).createAssignment(any(), eq(999L));
+    }
+
+    // ── GAP-1527 (OWASP A01): submission reads were unguarded → now teacher/staff-tier;
+    //    POST /submit is now STUDENT-only so a teacher cannot spoof a student submission. ──
+
+    @Test
+    @DisplayName("GAP-1527 OWASP A01: STUDENT → denied GET /submissions/{id} (service NOT invoked)")
+    @WithMockUser(roles = "STUDENT")
+    void getSubmissionById_student_denied() throws Exception {
+        mockMvc.perform(get("/api/v1/assignments/submissions/{id}", 5L)
+                        .header("X-Tenant-Id", "00000000-0000-0000-0000-000000000001"))
+                .andExpect(result -> assertDenied(result.getResponse().getStatus(), "STUDENT getSubmissionById"));
+        verifyNoInteractions(assignmentService);
+    }
+
+    @Test
+    @DisplayName("GAP-1527: TEACHER → 200 on GET /{assignmentId}/submissions (read tier)")
+    @WithMockUser(roles = "TEACHER")
+    void getSubmissionsByAssignment_teacher_allowed() throws Exception {
+        when(assignmentService.getSubmissionsByAssignment(9L))
+                .thenReturn(java.util.Collections.emptyList());
+        mockMvc.perform(get("/api/v1/assignments/{assignmentId}/submissions", 9L)
+                        .header("X-Tenant-Id", "00000000-0000-0000-0000-000000000001"))
+                .andExpect(status().isOk());
+        verify(assignmentService).getSubmissionsByAssignment(9L);
+    }
+
+    @Test
+    @DisplayName("GAP-1527 OWASP A01: TEACHER → denied POST /submit (STUDENT-only; service NOT invoked)")
+    @WithMockUser(roles = "TEACHER")
+    void submit_teacher_denied() throws Exception {
+        mockMvc.perform(post("/api/v1/assignments/submit")
+                        .header("X-Tenant-Id", "00000000-0000-0000-0000-000000000001")
+                        .header("X-User-Id", "55")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"assignmentId\":7,\"contentUrl\":\"https://x/y\"}"))
+                .andExpect(result -> assertDenied(result.getResponse().getStatus(), "TEACHER submit"));
+        verifyNoInteractions(assignmentService);
+    }
+
+    @Test
+    @DisplayName("GAP-1527: STUDENT → 201 on POST /submit (student can submit their own work)")
+    @WithMockUser(roles = "STUDENT")
+    void submit_student_allowed() throws Exception {
+        when(assignmentService.submitAssignment(any(), eq(55L))).thenReturn(null);
+        mockMvc.perform(post("/api/v1/assignments/submit")
+                        .header("X-Tenant-Id", "00000000-0000-0000-0000-000000000001")
+                        .header("X-User-Id", "55")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"assignmentId\":7,\"contentUrl\":\"https://x/y\"}"))
+                .andExpect(status().isCreated());
+        verify(assignmentService).submitAssignment(any(), eq(55L));
+    }
+
+    private static void assertDenied(int statusCode, String label) {
+        if (statusCode >= 200 && statusCode < 300) {
+            throw new AssertionError(label + " must be denied by @PreAuthorize, got " + statusCode);
+        }
     }
 }

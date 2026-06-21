@@ -94,7 +94,7 @@ public class InvoiceController {
      * @return page of invoice response DTOs scoped to the current tenant
      */
     @GetMapping
-    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER', 'PRINCIPAL', 'PLATFORM_ADMIN', 'STAFF')")
     public ResponseEntity<ApiResponse<PageResponse<InvoiceResponse>>> getInvoices(
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         log.info("GET /api/v1/invoices");
@@ -109,7 +109,7 @@ public class InvoiceController {
      * @return invoice response DTO
      */
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER', 'PRINCIPAL', 'PLATFORM_ADMIN', 'STAFF')")
     public ResponseEntity<ApiResponse<InvoiceResponse>> getInvoiceById(@PathVariable Long id) {
         log.info("GET /api/v1/invoices/{}", id);
         InvoiceResponse invoice = invoiceService.getInvoiceById(id);
@@ -123,7 +123,7 @@ public class InvoiceController {
      * @return list of invoice item response DTOs
      */
     @GetMapping("/{id}/items")
-    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER', 'PRINCIPAL', 'PLATFORM_ADMIN', 'STAFF')")
     public ResponseEntity<ApiResponse<List<InvoiceItemResponse>>> getInvoiceItems(@PathVariable Long id) {
         log.info("GET /api/v1/invoices/{}/items", id);
         List<InvoiceItemResponse> items = invoiceService.getInvoiceItems(id);
@@ -138,7 +138,7 @@ public class InvoiceController {
      * @return page of invoice response DTOs
      */
     @GetMapping("/student/{studentId}")
-    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER', 'PRINCIPAL', 'PLATFORM_ADMIN', 'STAFF')")
     public ResponseEntity<ApiResponse<Page<InvoiceResponse>>> getInvoicesByStudent(
             @PathVariable Long studentId,
             @PageableDefault(size = 20) Pageable pageable) {
@@ -187,7 +187,7 @@ public class InvoiceController {
      * @return page of overdue invoice response DTOs
      */
     @GetMapping("/overdue")
-    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER', 'PRINCIPAL', 'PLATFORM_ADMIN', 'STAFF')")
     public ResponseEntity<ApiResponse<Page<InvoiceResponse>>> getOverdueInvoices(
             @PageableDefault(size = 20) Pageable pageable) {
 
@@ -204,7 +204,7 @@ public class InvoiceController {
      * @return page of unpaid invoice response DTOs
      */
     @GetMapping("/student/{studentId}/unpaid")
-    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER', 'PRINCIPAL', 'PLATFORM_ADMIN', 'STAFF')")
     public ResponseEntity<ApiResponse<Page<InvoiceResponse>>> getUnpaidInvoicesByStudent(
             @PathVariable Long studentId,
             @PageableDefault(size = 20) Pageable pageable) {
@@ -222,7 +222,7 @@ public class InvoiceController {
      * @return page of overdue invoice response DTOs
      */
     @GetMapping("/student/{studentId}/overdue")
-    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER', 'PRINCIPAL', 'PLATFORM_ADMIN', 'STAFF')")
     public ResponseEntity<ApiResponse<Page<InvoiceResponse>>> getOverdueInvoicesByStudent(
             @PathVariable Long studentId,
             @PageableDefault(size = 20) Pageable pageable) {

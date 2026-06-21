@@ -59,7 +59,7 @@ public class InstallmentPlanController {
      * @return installment plan response DTO
      */
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER', 'PRINCIPAL', 'PLATFORM_ADMIN', 'STAFF')")
     public ResponseEntity<InstallmentPlanResponse> getInstallmentPlanById(@PathVariable Long id) {
         log.info("GET /api/v1/installment-plans/{}", id);
         InstallmentPlanResponse plan = installmentPlanService.getInstallmentPlanById(id);

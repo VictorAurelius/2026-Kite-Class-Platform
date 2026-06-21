@@ -111,9 +111,11 @@ class VettingDocumentUploadControllerTest {
         when(storage.storeDocument(eq(7L), eq("lltp.pdf"), any(byte[].class)))
                 .thenReturn("vetting/7/lltp.pdf");
 
+        // GAP-1527: content must pass the server-side magic-byte sniff → real PDF header.
+        byte[] pdfBytes = "%PDF-1.4 body".getBytes();
         MockMultipartFile file = new MockMultipartFile(
                 "file", "lltp.pdf", "application/pdf",
-                "fake-pdf-bytes".getBytes()
+                pdfBytes
         );
 
         mockMvc.perform(multipart("/api/v1/vettings/{id}/documents", 7L)
@@ -123,10 +125,30 @@ class VettingDocumentUploadControllerTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.vettingId").value(7))
                 .andExpect(jsonPath("$.data.storageKey").value("vetting/7/lltp.pdf"))
-                .andExpect(jsonPath("$.data.sizeBytes").value(14))
+                .andExpect(jsonPath("$.data.sizeBytes").value(pdfBytes.length))
                 .andExpect(jsonPath("$.data.contentType").value("application/pdf"));
 
         verify(storage).storeDocument(eq(7L), eq("lltp.pdf"), any(byte[].class));
+    }
+
+    @Test
+    @DisplayName("POST /vettings/{id}/documents — spoofed content (image/pdf MIME, non-magic bytes) → 400, storage never called (GAP-1527)")
+    void upload_spoofedContent_returns400() throws Exception {
+        Vetting v = Vetting.builder().teacherId(100L).status(VettingStatus.PENDING).build();
+        v.setId(7L);
+        when(vettingService.findById(7L)).thenReturn(v);
+
+        // Declared application/pdf, but actual bytes are an HTML/script payload — no PDF/JPG/PNG magic.
+        MockMultipartFile spoof = new MockMultipartFile(
+                "file", "lltp.pdf", "application/pdf",
+                "<html><script>alert(1)</script></html>".getBytes()
+        );
+        mockMvc.perform(multipart("/api/v1/vettings/{id}/documents", 7L)
+                        .file(spoof)
+                        .header("X-User-Roles", OFFICER_ROLE))
+                .andExpect(status().isBadRequest());
+
+        verify(storage, never()).storeDocument(any(), any(), any());
     }
 
     @Test

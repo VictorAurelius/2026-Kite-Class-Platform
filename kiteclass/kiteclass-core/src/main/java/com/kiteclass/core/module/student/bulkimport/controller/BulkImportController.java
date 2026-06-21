@@ -14,6 +14,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -65,9 +66,11 @@ public class BulkImportController {
      * @return parse/validation summary
      */
     @PostMapping(value = "/preview", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAnyRole('OWNER', 'ADMIN', 'PRINCIPAL', 'STAFF')")
     @Operation(
             summary = "Preview bulk-import xlsx",
-            description = "Parse + validate only; returns counts and first 10 errors. No DB writes."
+            description = "Parse + validate only; returns counts and first 10 errors. No DB writes. "
+                    + "Admin-tier authz (OWASP A01) — GAP-1527."
     )
     public ApiResponse<BulkImportResult> preview(
             @RequestParam("file") MultipartFile file,
@@ -94,10 +97,12 @@ public class BulkImportController {
      * @return summary with {@code jobId} + {@code credentialsProvisioned}; inline errors truncated to 10
      */
     @PostMapping(value = "/commit", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAnyRole('OWNER', 'ADMIN', 'PRINCIPAL', 'STAFF')")
     @Operation(
             summary = "Commit bulk-import xlsx",
             description = "Parse + validate + create. Valid rows persisted; invalid rows skipped and reported. "
-                    + "Optional initialPassword form field auto-provisions KC-native login for each created student."
+                    + "Optional initialPassword form field auto-provisions KC-native login for each created student. "
+                    + "Admin-tier authz (OWASP A01) — GAP-1527."
     )
     public ResponseEntity<ApiResponse<BulkImportResult>> commit(
             @RequestParam("file") MultipartFile file,
@@ -164,9 +169,11 @@ public class BulkImportController {
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
             produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
+    @PreAuthorize("hasAnyRole('OWNER', 'ADMIN', 'PRINCIPAL', 'STAFF')")
     @Operation(
             summary = "Download error report xlsx",
-            description = "Re-validates the original file and returns an xlsx listing each rejected row."
+            description = "Re-validates the original file and returns an xlsx listing each rejected row. "
+                    + "Admin-tier authz (OWASP A01) — GAP-1527."
     )
     public ResponseEntity<Resource> downloadErrors(
             @PathVariable("id") Long jobId,

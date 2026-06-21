@@ -196,6 +196,16 @@ public class VettingController {
             throw new BusinessException("VETTING_DOC_UPLOAD_FAILED", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
+        // GAP-1527 (OWASP A05/A08): server-side magic-byte content sniff. The
+        // client-reported {@code file.getContentType()} is a hint only and was
+        // previously stored verbatim — a script payload spoofed with an image/pdf
+        // header would pass. Reject anything whose actual bytes are not PDF / JPG / PNG.
+        if (!isAllowedDocumentContent(bytes)) {
+            log.warn("Vetting document rejected — content not PDF/JPG/PNG vettingId={} filename={} clientMime={}",
+                    vettingId, filename, file.getContentType());
+            throw new ValidationException("VETTING_DOC_CONTENT_NOT_ALLOWED", new Object[0]);
+        }
+
         String storageKey = documentStorage.storeDocument(vetting.getId(), filename, bytes);
 
         VettingDocumentResponse resp = new VettingDocumentResponse(
@@ -226,5 +236,36 @@ public class VettingController {
         if (!roles.contains(SAFEGUARDING_OFFICER)) {
             throw new BusinessException("VETTING_RBAC_DENIED", HttpStatus.FORBIDDEN);
         }
+    }
+
+    /**
+     * Server-side content allowlist by magic bytes (GAP-1527, OWASP A05/A08).
+     * Accepts only PDF, JPEG and PNG — the legitimate evidence formats (LLTP /
+     * CCCD photo / police-check scan). The client-declared MIME is NOT trusted.
+     *
+     * @param bytes the actual uploaded file content
+     * @return {@code true} iff the leading bytes match PDF / JPEG / PNG
+     */
+    static boolean isAllowedDocumentContent(byte[] bytes) {
+        return matchesPdf(bytes) || matchesJpeg(bytes) || matchesPng(bytes);
+    }
+
+    /** PDF: {@code %PDF} (0x25 0x50 0x44 0x46). */
+    private static boolean matchesPdf(byte[] b) {
+        return b != null && b.length >= 4
+                && b[0] == 0x25 && b[1] == 0x50 && b[2] == 0x44 && b[3] == 0x46;
+    }
+
+    /** JPEG: {@code FF D8 FF}. */
+    private static boolean matchesJpeg(byte[] b) {
+        return b != null && b.length >= 3
+                && (b[0] & 0xFF) == 0xFF && (b[1] & 0xFF) == 0xD8 && (b[2] & 0xFF) == 0xFF;
+    }
+
+    /** PNG: {@code 89 50 4E 47 0D 0A 1A 0A}. */
+    private static boolean matchesPng(byte[] b) {
+        return b != null && b.length >= 8
+                && (b[0] & 0xFF) == 0x89 && b[1] == 0x50 && b[2] == 0x4E && b[3] == 0x47
+                && b[4] == 0x0D && b[5] == 0x0A && b[6] == 0x1A && b[7] == 0x0A;
     }
 }

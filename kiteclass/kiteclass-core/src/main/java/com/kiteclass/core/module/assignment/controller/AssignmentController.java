@@ -175,8 +175,13 @@ public class AssignmentController {
 
     /**
      * Submit an assignment (student).
+     *
+     * <p>OWASP A01 (GAP-1527): role-gated to STUDENT so a TEACHER/ADMIN cannot
+     * spoof a student submission. The acting student id is still derived from the
+     * gateway-forwarded {@code X-User-Id} header (gateway-controlled identity).
      */
     @PostMapping("/submit")
+    @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<ApiResponse<SubmissionResponse>> submitAssignment(
             @Valid @RequestBody SubmitAssignmentRequest request,
             @RequestHeader("X-User-Id") Long studentId) {
@@ -213,8 +218,12 @@ public class AssignmentController {
 
     /**
      * Get submission by ID.
+     *
+     * <p>OWASP A01 (GAP-1527): role-gated read — submissions + grades are
+     * teacher/staff-facing; STUDENT/PARENT are blocked from arbitrary id lookup.
      */
     @GetMapping("/submissions/{id}")
+    @PreAuthorize("hasAnyRole('TEACHER','STAFF','OWNER','ADMIN')")
     public ResponseEntity<ApiResponse<SubmissionResponse>> getSubmissionById(
             @PathVariable Long id) {
 
@@ -224,8 +233,11 @@ public class AssignmentController {
 
     /**
      * Get all submissions for an assignment.
+     *
+     * <p>OWASP A01 (GAP-1527): teacher/staff-facing grading surface — role-gated.
      */
     @GetMapping("/{assignmentId}/submissions")
+    @PreAuthorize("hasAnyRole('TEACHER','STAFF','OWNER','ADMIN')")
     public ResponseEntity<ApiResponse<List<SubmissionResponse>>> getSubmissionsByAssignment(
             @PathVariable Long assignmentId) {
 
@@ -235,8 +247,13 @@ public class AssignmentController {
 
     /**
      * Get student's submission for an assignment.
+     *
+     * <p>OWASP A01 (GAP-1527): teacher/staff-facing — role-gated. A finer
+     * per-student ownership helper (so a student reads only their own) is a
+     * follow-up (mirrors GAP-837 hasAccessToAssignment deferral).
      */
     @GetMapping("/{assignmentId}/submissions/student/{studentId}")
+    @PreAuthorize("hasAnyRole('TEACHER','STAFF','OWNER','ADMIN')")
     public ResponseEntity<ApiResponse<SubmissionResponse>> getStudentSubmission(
             @PathVariable Long assignmentId,
             @PathVariable Long studentId) {
@@ -247,8 +264,11 @@ public class AssignmentController {
 
     /**
      * Get all submissions by student.
+     *
+     * <p>OWASP A01 (GAP-1527): teacher/staff-facing — role-gated.
      */
     @GetMapping("/submissions/student/{studentId}")
+    @PreAuthorize("hasAnyRole('TEACHER','STAFF','OWNER','ADMIN')")
     public ResponseEntity<ApiResponse<List<SubmissionResponse>>> getSubmissionsByStudent(
             @PathVariable Long studentId) {
 
