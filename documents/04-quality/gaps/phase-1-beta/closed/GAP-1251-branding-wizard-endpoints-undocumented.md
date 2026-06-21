@@ -1,6 +1,6 @@
 # GAP-1251: Branding-100 wizard + legacy endpoints undocumented trong api-contract.md
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟠 P1
 **Domain:** Backend (API contract drift)
 **Found:** 2026-06-12 (post-wave audit suite — api-contract-audit, cadence ui-kits-100 + landing-100, base SHA `1f6baea26`)
@@ -41,9 +41,28 @@ Document 13 endpoint vào api-contract.md đúng domain: wizard `/api/v1/brandin
 
 ## Acceptance Criteria
 
-- [ ] 13 endpoint trong bảng có entry trong api-contract.md với schema + error codes
-- [ ] `kiteclass/branding-wizard/api-contract.md` reconcile với wizard controller thật (KiteHub `/api/v1/branding/jobs`)
-- [ ] api-contract-audit §2.1.1 endpoint-coverage diff = 0 cho branding domain
+- [x] 13 endpoint trong bảng có entry trong api-contract.md với schema + error codes
+- [x] `kiteclass/branding-wizard/api-contract.md` reconcile với wizard controller thật (KiteHub `/api/v1/branding/jobs`)
+- [x] api-contract-audit §2.1.1 endpoint-coverage diff = 0 cho branding domain (kitehub-branding)
+
+## Resolution (2026-06-21)
+
+Đóng qua 2 đợt:
+
+**Đợt 1 (branding-100 Bucket B+E, PR mid-audit #2358/#2359 — `1f6baea26` về sau):** 3 core wizard endpoints + bộ wizard lifecycle (slug/quota/regenerate/sse-token/deploy-stream/quality-score/preview/deploy-status/lifecycle-events/GET jobs) đã được document trong `ai-branding/api-contract.md` §"Wave branding-100" + §"Wave 34".
+
+**Đợt 2 (this PR — GAP-1251 closeout):** document 5 endpoint còn lại + reconcile:
+- `POST /api/platform/branding/content/generate` (`ContentGenerationController`) — schema `ContentGenerationRequest` → `LandingPageContent`
+- `GET /api/platform/branding/content/{instanceId}` — honest 404 (persistence hoãn PR 4.9)
+- `POST /api/platform/branding/assets/{instanceId}/{assetType}` (`AssetStorageController`) — multipart → `BrandingAsset` + dedup policy
+- `GET /api/platform/branding/assets/{instanceId}` — `BrandingAsset[]`
+- `DELETE /api/platform/branding/assets/{instanceId}` — `{status, message}`
+- Legacy `BrandingJobController` (`@Deprecated`, GAP-1252): chuyển narrative → 5 entry method+path+auth+error tường minh
+- `kiteclass/branding-wizard/api-contract.md`: reconcile Backend-calls → controller THẬT ở `kitehub-branding`, cross-link doc canonical, phân biệt khỏi saga `/api/v1/instances` (`kiteclass-core`)
+
+Verify: mọi endpoint của 9 controller `kitehub-branding` (AIBranding/ContentGeneration/AssetStorage/BrandingJob[legacy]/TemplateGallery/BrandingJobV1/BrandingWizard/DeployStream/Preview/QualityScore/LifecycleEvents) đều có ≥1 entry → endpoint-coverage diff = 0.
+
+**Out-of-scope (not GAP-1251):** `/api/v1/settings/branding` (`kiteclass-core` settings module `BrandingController`) — khác domain (settings, không phải wizard); follow-up riêng nếu audit flag.
 
 ## Related
 
