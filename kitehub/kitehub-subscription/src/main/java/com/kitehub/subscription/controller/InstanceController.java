@@ -120,7 +120,10 @@ public class InstanceController {
         return ResponseEntity.ok(page);
     }
 
+    // GAP-1525 (OWASP A01): platform-admin-only instance creation, matching the sibling
+    // list/delete/extend-trial/purge endpoints. Self-service signup is POST /register (below).
     @PostMapping
+    @PreAuthorize("hasAnyRole('PLATFORM_ADMIN','ADMIN')")
     public ResponseEntity<InstanceResponse> createInstance(@Valid @RequestBody CreateInstanceRequest request) {
         InstanceResponse response = instanceService.createTrialInstance(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
