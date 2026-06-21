@@ -36,7 +36,7 @@
         <commons-compress.version>1.28.0</commons-compress.version>
         <poi.version>5.5.1</poi.version>
         <!-- GAP-114: structured JSON logging via LogstashEncoder (Spring Boot 3.5.x compatible) -->
-        <logstash-logback-encoder.version>8.0</logstash-logback-encoder.version>
+        <logstash-logback-encoder.version>8.1</logstash-logback-encoder.version>
         <!-- GAP-468: CVE overrides for transitive deps surfaced via GitHub code-scanning 2026-05-11 -->
         <!-- GAP-470: netty 4.2.13.Final fixes CVE-2026-42577 (advisory revised — no 4.1.x patch; 4.2.13 closes 5 HIGH CVEs incl epoll DoS) -->
         <netty.version>4.2.15.Final</netty.version>

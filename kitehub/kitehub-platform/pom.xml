@@ -48,7 +48,7 @@
         <dependency>
             <groupId>net.logstash.logback</groupId>
             <artifactId>logstash-logback-encoder</artifactId>
-            <version>8.0</version>
+            <version>8.1</version>
         </dependency>
 
         <!-- GAP-114: Spring Web for HTTP filter (TenantContextFilter); optional for non-web consumers -->
