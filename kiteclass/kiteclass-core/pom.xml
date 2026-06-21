@@ -37,7 +37,7 @@
         <!-- Wave 5 ADR-019: document generation stack. openhtmltopdf-pdfbox 1.0.x pulls Apache PDFBox 2.0.x transitively. -->
         <openhtmltopdf.version>1.0.10</openhtmltopdf.version>
         <!-- GAP-114: structured JSON logging via LogstashEncoder (Spring Boot 3.5.x compatible) -->
-        <logstash-logback-encoder.version>8.0</logstash-logback-encoder.version>
+        <logstash-logback-encoder.version>8.1</logstash-logback-encoder.version>
         <!-- GAP-468 + GAP-470: CVE overrides for transitive deps surfaced via GitHub code-scanning 2026-05-11 -->
         <!-- netty 4.2.13.Final: GAP-470 line bump for revised CVE-2026-42577 (advisory has no 4.1.x patch) -->
         <netty.version>4.2.15.Final</netty.version>
