@@ -1,6 +1,6 @@
 # GAP-666: Wave 98 business META cleanup — BR-ID javadoc refs + business README index sync
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (50% — README index sync DONE; BR-ID javadoc refs → GAP-1522)
 **Priority:** 🟡 P2
 **Domain:** Meta (business docs + code traceability hygiene)
 **Found:** 2026-05-19 (Wave 98 post-closure audit suite — GAP-661 Business Logic audit)
@@ -65,11 +65,25 @@ Note: entries depend on GAP-664 backfilling missing layers; coordinator merge or
 
 ## Acceptance Criteria
 
-- [ ] 6+ Java service classes annotated với BR-ID javadoc references
-- [ ] `documents/01-business/README.md` Directory Map includes 3 new domain entries
-- [ ] Grep `BR-(EMAIL|SEED|PREFERENCES)-\d+` returns ≥10 hits across `kitehub/` Java code
-- [ ] Living Docs verification chain links: BR-EMAIL-001 → grep code → `EmailTemplateRenderer` line found
-- [ ] Business Logic audit refresh next wave reflects fix → Cat 5 Traceability +2 pts
+- [x] `documents/01-business/README.md` Directory Map includes 3 new domain entries — **DONE 2026-06-21, scope expanded**: index was stale far beyond "3 new domains" (chỉ liệt kê 9 KiteHub + 16 KiteClass = 25 trong khi thực tế 27 KiteHub + 48 KiteClass = 75 domains, tất cả đủ 3 layers). README §5 index now lists toàn bộ 75 domains; §1 tree comment + counts cập nhật; marketing/consent/email/preferences flip từ PARTIAL/missing → ✅ (GAP-1516 + GAP-664 backfilled). `check-3-layer-completeness.sh` = 75/75 complete.
+- [ ] 6+ Java service classes annotated với BR-ID javadoc references → **DEFERRED → GAP-1522** (code-heavy, spans 3 services)
+- [ ] Grep `BR-(EMAIL|SEED|PREFERENCES)-\d+` returns ≥10 hits across `kitehub/` Java code → **DEFERRED → GAP-1522**
+- [ ] Living Docs verification chain links: BR-EMAIL-001 → grep code → `EmailTemplateRenderer` line found → **DEFERRED → GAP-1522**
+- [ ] Business Logic audit refresh next wave reflects fix → Cat 5 Traceability +2 pts → **DEFERRED → GAP-1522** (downstream of javadoc annotation)
+
+## Out-of-scope / Deferred (per gap-done-discipline.md §3 PARTIAL exit ramp)
+
+| Item | Where |
+|------|-------|
+| BR-ID javadoc annotation cho 6 Java classes (EmailTemplateRenderer / ResendEmailService / SESEmailService / VietnamSampleDataGenerator / SeedWorkerService / PreferencesController) | **GAP-1522** — code-heavy, converts to code PR (3 services), separable từ docs-only README sync |
+| BR-(EMAIL\|SEED\|PREFERENCES) grep ≥10 hits | GAP-1522 (consequence of javadoc annotation) |
+| Business Logic audit Cat 5 Traceability +2 refresh | GAP-1522 (downstream of javadoc) |
+
+Verified 2026-06-21: `grep -rnE "BR-(EMAIL|SEED|PREFERENCES)-[0-9]+" kitehub/ --include="*.java"` = 0 hits (javadoc deliverable confirmed not-yet-done). Target classes all present (4 main + 1 test + SeedWorkerService).
+
+## Log
+
+- **2026-06-21:** README index sync DONE (GAP-666 unblocked by GAP-664). Index was stale far beyond original "3 new domains" scope — synced `documents/01-business/README.md` §5 to list all 75 domains (27 KiteHub + 48 KiteClass), all verified 3-layer-complete via `check-3-layer-completeness.sh` (75/75). §1 tree + counts + `**Last Updated:**` header updated; marketing/consent/email/preferences flipped to ✅ (GAP-1516 + GAP-664 backfills). BR-ID javadoc annotation (AC #1/#3/#4/#5) deferred to **GAP-1522** per `gap-done-discipline.md` §3 — code-heavy, spans 3 services, would convert this docs-only PR into a code PR. Status OPEN → 🟡 PARTIAL (50% — docs half done, code half tracked). Gap stays in `phase-1-beta/` (PARTIAL, not closed/).
 
 ## Related
 
