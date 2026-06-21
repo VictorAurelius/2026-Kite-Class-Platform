@@ -2,6 +2,7 @@ package com.kitehub.branding.wizard.preview;
 
 import com.kitehub.branding.domain.entity.BrandingJob;
 import com.kitehub.branding.repository.BrandingJobRepository;
+import com.kitehub.branding.security.TenantOwnershipGuard;
 import com.kitehub.branding.wizard.dto.BrandColours;
 import com.kitehub.branding.wizard.quality.BrandColoursDeriver;
 import io.micrometer.core.annotation.Timed;
@@ -11,8 +12,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -52,8 +55,14 @@ public class PreviewController {
     private final BrandingJobRepository jobRepository;
     private final BrandColoursDeriver coloursDeriver;
 
+    /** Read access — owner + staff personas (mirrors {@code BrandingJobV1Controller.READ_AUTHZ}). */
+    private static final String READ_AUTHZ =
+            "hasAnyRole('OWNER','MANAGER','TEACHER','ACCOUNTANT','PLATFORM_ADMIN','ADMIN','STAFF')";
+
     @GetMapping(value = "/{jobId}/preview", produces = MediaType.TEXT_HTML_VALUE)
-    public ResponseEntity<String> getPreview(@PathVariable UUID jobId) {
+    @PreAuthorize(READ_AUTHZ)
+    public ResponseEntity<String> getPreview(@PathVariable UUID jobId,
+            @RequestHeader(value = "X-Tenant-Id", required = false) String tenantHeader) {
         Optional<BrandingJob> jobOpt = jobRepository.findById(jobId);
 
         HttpHeaders headers = new HttpHeaders();
@@ -69,6 +78,8 @@ public class PreviewController {
         }
 
         BrandingJob job = jobOpt.get();
+        // GAP-1526 (OWASP A01 / IDOR) — own-tenant preview only after findById.
+        TenantOwnershipGuard.requireInstanceOwnership(job.getInstanceId(), tenantHeader);
         BrandColours colours = coloursDeriver.derive(job);
         String html = renderPreview(job, colours);
         log.debug("Rendered preview for job {} ({} bytes)", jobId, html.length());

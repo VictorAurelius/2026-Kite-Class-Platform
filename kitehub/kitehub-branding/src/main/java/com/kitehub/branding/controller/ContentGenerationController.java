@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,12 +37,22 @@ public class ContentGenerationController {
     private final ContentGenerationService contentGenerationService;
 
     /**
+     * GAP-1526 (OWASP A01) — OWNER-tier write authorization (mirrors
+     * {@code BrandingJobController.OWNER_AUTHZ}). AI content-generation is a paid/owner action;
+     * STAFF/MANAGER/TEACHER → 403. The request carries no tenant-scoped resource id, so this is a
+     * role-gate only (no per-instance ownership check applies).
+     */
+    private static final String OWNER_AUTHZ =
+            "hasAnyRole('OWNER','PLATFORM_ADMIN','ADMIN')";
+
+    /**
      * Generate landing page content based on logo analysis.
      *
      * @param request Content generation request
      * @return Generated landing page content
      */
     @PostMapping("/generate")
+    @PreAuthorize(OWNER_AUTHZ)
     public Mono<ResponseEntity<LandingPageContent>> generateContent(
             @RequestBody ContentGenerationRequest request
     ) {
