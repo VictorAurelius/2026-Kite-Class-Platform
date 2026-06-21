@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -41,6 +42,14 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/instances")
 @RequiredArgsConstructor
+// GAP-1491 (OWASP A01): FrontendInstance is a platform-level provisioning table.
+// Class-level guard restricts the whole lifecycle to platform admins + the tenant
+// owner (self-service AI-branding rebrand) — low-privilege roles (STUDENT / PARENT /
+// TEACHER / STAFF) are denied. The cross-tenant list() below is tightened to
+// platform admins only (no OWNER) since it returns instances across tenants.
+// Conservative-by-design: the AI-branding flow is mock in Phase 1 (no real S2S
+// caller), so over-restricting here cannot break a production integration.
+@PreAuthorize("hasAnyRole('PLATFORM_ADMIN', 'ADMIN', 'OWNER')")
 @Tag(name = "FrontendInstance", description = "Frontend instance provisioning lifecycle APIs")
 public class InstanceController {
 
@@ -75,6 +84,7 @@ public class InstanceController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('PLATFORM_ADMIN', 'ADMIN')")
     @Operation(summary = "List instances (optionally filtered by status)")
     public ApiResponse<List<InstanceResponse>> list(
             @RequestParam(required = false) FrontendInstanceStatus status) {

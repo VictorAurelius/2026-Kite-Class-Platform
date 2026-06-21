@@ -53,6 +53,7 @@ public class TeacherController {
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasAnyRole('OWNER', 'ADMIN', 'PRINCIPAL', 'PLATFORM_ADMIN')")
     @Operation(summary = "Create a new teacher", description = "Creates a new teacher with the provided information")
     public ApiResponse<TeacherResponse> createTeacher(@Valid @RequestBody CreateTeacherRequest request) {
         log.info("REST request to create teacher: {}", request.name());
@@ -87,6 +88,7 @@ public class TeacherController {
      * @return ApiResponse with teacher data and HTTP 200
      */
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('OWNER', 'ADMIN', 'PRINCIPAL', 'TEACHER', 'STAFF', 'PLATFORM_ADMIN')")
     @Operation(summary = "Get teacher by ID", description = "Retrieves a teacher's information by their ID")
     public ApiResponse<TeacherResponse> getTeacherById(
             @Parameter(description = "Teacher ID") @PathVariable Long id) {
@@ -106,6 +108,7 @@ public class TeacherController {
      * @return ApiResponse with page of teachers and HTTP 200
      */
     @GetMapping
+    @PreAuthorize("hasAnyRole('OWNER', 'ADMIN', 'PRINCIPAL', 'TEACHER', 'STAFF', 'PLATFORM_ADMIN')")
     @Operation(summary = "Search teachers", description = "Searches teachers with optional filters and pagination")
     public ApiResponse<PageResponse<TeacherResponse>> getTeachers(
             @Parameter(description = "Search keyword (name, email, or specialization)") @RequestParam(required = false) String search,
@@ -150,6 +153,7 @@ public class TeacherController {
      * @return ApiResponse with updated teacher data and HTTP 200
      */
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('OWNER', 'ADMIN', 'PRINCIPAL', 'PLATFORM_ADMIN')")
     @Operation(summary = "Update teacher", description = "Updates an existing teacher's information")
     public ApiResponse<TeacherResponse> updateTeacher(
             @Parameter(description = "Teacher ID") @PathVariable Long id,
@@ -167,6 +171,7 @@ public class TeacherController {
      */
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasAnyRole('OWNER', 'ADMIN', 'PRINCIPAL', 'PLATFORM_ADMIN')")
     @Operation(summary = "Delete teacher", description = "Soft-deletes a teacher (sets deleted flag)")
     public ApiResponse<Void> deleteTeacher(
             @Parameter(description = "Teacher ID") @PathVariable Long id) {
@@ -176,6 +181,7 @@ public class TeacherController {
     }
 
     @GetMapping("/search")
+    @PreAuthorize("hasAnyRole('OWNER', 'ADMIN', 'PRINCIPAL', 'TEACHER', 'STAFF', 'PLATFORM_ADMIN')")
     @Operation(
             summary = "Search teachers by specialization",
             description = "Searches teachers by specialization with partial match and case-insensitive"

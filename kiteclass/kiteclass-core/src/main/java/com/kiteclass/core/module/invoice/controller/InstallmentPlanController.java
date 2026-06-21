@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -40,6 +41,7 @@ public class InstallmentPlanController {
      * @return created installment plan response DTO
      */
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
     public ResponseEntity<InstallmentPlanResponse> requestInstallmentPlan(
             @Valid @RequestBody CreateInstallmentPlanRequest request) {
 
@@ -57,6 +59,7 @@ public class InstallmentPlanController {
      * @return installment plan response DTO
      */
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
     public ResponseEntity<InstallmentPlanResponse> getInstallmentPlanById(@PathVariable Long id) {
         log.info("GET /api/v1/installment-plans/{}", id);
         InstallmentPlanResponse plan = installmentPlanService.getInstallmentPlanById(id);
@@ -71,6 +74,7 @@ public class InstallmentPlanController {
      * @return approved installment plan response DTO
      */
     @PutMapping("/{id}/approve")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
     public ResponseEntity<InstallmentPlanResponse> approveInstallmentPlan(
             @PathVariable Long id,
             @RequestParam Long approvedBy) {
@@ -88,6 +92,7 @@ public class InstallmentPlanController {
      * @return rejected installment plan response DTO
      */
     @PutMapping("/{id}/reject")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
     public ResponseEntity<InstallmentPlanResponse> rejectInstallmentPlan(
             @PathVariable Long id,
             @RequestParam String reason) {
@@ -105,6 +110,7 @@ public class InstallmentPlanController {
      * @return updated installment plan response DTO
      */
     @PostMapping("/installments/{installmentId}/payment")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
     public ResponseEntity<InstallmentPlanResponse> recordInstallmentPayment(
             @PathVariable Long installmentId,
             @RequestParam BigDecimal amount) {

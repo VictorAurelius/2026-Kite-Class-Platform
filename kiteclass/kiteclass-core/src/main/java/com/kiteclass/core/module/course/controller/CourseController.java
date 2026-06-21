@@ -14,6 +14,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -53,6 +54,7 @@ public class CourseController {
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
     @Operation(summary = "Create a new course",
             description = "Creates a new course with DRAFT status and assigns CREATOR role to teacher")
     public ApiResponse<CourseResponse> createCourse(@Valid @RequestBody CreateCourseRequest request) {
@@ -67,7 +69,12 @@ public class CourseController {
      * @param id the course ID
      * @return ApiResponse with course data and HTTP 200
      */
+    // Public catalog read (GAP-1491): the course catalog + landing page are browsed
+    // anonymously (kiteclass-frontend src/lib/api/public.ts, sitemap.ts) with the tenant
+    // resolved from the Host header — NOT a logged-in role. permitAll() makes the public
+    // intent explicit (vs silently unguarded). Mutations below remain role-restricted.
     @GetMapping("/{id}")
+    @PreAuthorize("permitAll()")
     @Operation(summary = "Get course by ID", description = "Retrieves a course's information by its ID")
     public ApiResponse<CourseResponse> getCourseById(
             @Parameter(description = "Course ID") @PathVariable Long id) {
@@ -87,7 +94,9 @@ public class CourseController {
      * @param sort      sort criteria (format: "field,direction")
      * @return ApiResponse with page of courses and HTTP 200
      */
+    // Public catalog read (GAP-1491) — see getCourseById note. permitAll() is intentional.
     @GetMapping
+    @PreAuthorize("permitAll()")
     @Operation(summary = "Search courses", description = "Searches courses with optional filters and pagination")
     public ApiResponse<PageResponse<CourseResponse>> getCourses(
             @Parameter(description = "Search keyword (name or code)") @RequestParam(required = false) String search,
@@ -121,6 +130,7 @@ public class CourseController {
      * @return ApiResponse with updated course data and HTTP 200
      */
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
     @Operation(summary = "Update course",
             description = "Updates an existing course. Update restrictions apply based on status.")
     public ApiResponse<CourseResponse> updateCourse(
@@ -142,6 +152,7 @@ public class CourseController {
      */
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
     @Operation(summary = "Delete course",
             description = "Soft-deletes a course. Only DRAFT courses without classes can be deleted.")
     public ApiResponse<Void> deleteCourse(
@@ -165,7 +176,9 @@ public class CourseController {
      * @param direction sort direction (ASC or DESC)
      * @return ApiResponse with page of courses and HTTP 200
      */
+    // Public catalog read (GAP-1491) — see getCourseById note. permitAll() is intentional.
     @GetMapping("/search")
+    @PreAuthorize("permitAll()")
     @Operation(summary = "Search courses by level and category",
             description = "Searches courses by difficulty level and/or category with pagination")
     public ApiResponse<PageResponse<CourseResponse>> searchByLevelAndCategory(
@@ -200,6 +213,7 @@ public class CourseController {
      * @return ApiResponse with published course data and HTTP 200
      */
     @PostMapping("/{id}/publish")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
     @Operation(summary = "Publish course",
             description = "Changes course status from DRAFT to PUBLISHED. Makes course visible to students.")
     public ApiResponse<CourseResponse> publishCourse(
@@ -220,6 +234,7 @@ public class CourseController {
      * @return ApiResponse with unpublished (DRAFT) course data and HTTP 200
      */
     @PostMapping("/{id}/unpublish")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
     @Operation(summary = "Unpublish course",
             description = "Reverts course status from PUBLISHED back to DRAFT for full re-editing, then re-publish.")
     public ApiResponse<CourseResponse> unpublishCourse(
@@ -239,6 +254,7 @@ public class CourseController {
      * @return ApiResponse with archived course data and HTTP 200
      */
     @PostMapping("/{id}/archive")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
     @Operation(summary = "Archive course",
             description = "Changes course status from PUBLISHED to ARCHIVED. No new enrollments accepted.")
     public ApiResponse<CourseResponse> archiveCourse(
@@ -259,6 +275,7 @@ public class CourseController {
      * @return ApiResponse with success message and HTTP 200
      */
     @PostMapping("/{id}/prerequisites/{prerequisiteId}")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
     @Operation(summary = "Add prerequisite to course",
             description = "Adds a prerequisite course. Prevents circular dependencies using DFS validation.")
     public ApiResponse<Void> addPrerequisite(
@@ -279,6 +296,7 @@ public class CourseController {
      * @return ApiResponse with success message and HTTP 200
      */
     @DeleteMapping("/{id}/prerequisites/{prerequisiteId}")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
     @Operation(summary = "Remove prerequisite from course",
             description = "Removes a prerequisite course. Idempotent operation.")
     public ApiResponse<Void> removePrerequisite(

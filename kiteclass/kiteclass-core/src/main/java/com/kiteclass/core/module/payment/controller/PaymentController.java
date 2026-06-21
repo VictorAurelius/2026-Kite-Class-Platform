@@ -16,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -42,6 +43,7 @@ public class PaymentController {
      * @return payment response with payment URL (if online payment)
      */
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
     public ResponseEntity<ApiResponse<PaymentResponse>> createPayment(
         @Valid @RequestBody CreatePaymentRequest request) {
 
@@ -67,6 +69,7 @@ public class PaymentController {
      * @return payment response with payment URL (if online payment)
      */
     @PostMapping("/installments")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
     public ResponseEntity<ApiResponse<PaymentResponse>> createInstallmentPayment(
         @Valid @RequestBody CreateInstallmentPaymentRequest request) {
 
@@ -105,6 +108,7 @@ public class PaymentController {
      * @return payment response
      */
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
     public ResponseEntity<ApiResponse<PaymentResponse>> getPaymentById(@PathVariable Long id) {
         log.debug("Getting payment by ID: {}", id);
 
@@ -120,6 +124,7 @@ public class PaymentController {
      * @return list of payment responses
      */
     @GetMapping("/invoice/{invoiceId}")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
     public ResponseEntity<ApiResponse<List<PaymentResponse>>> getPaymentsByInvoice(@PathVariable Long invoiceId) {
         log.debug("Getting payments for invoice: {}", invoiceId);
 
@@ -135,6 +140,7 @@ public class PaymentController {
      * @return page of pending payments
      */
     @GetMapping("/pending")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
     public ResponseEntity<ApiResponse<Page<PaymentResponse>>> getPendingPayments(Pageable pageable) {
         log.debug("Getting pending payments (page: {}, size: {})",
             pageable.getPageNumber(), pageable.getPageSize());
@@ -151,6 +157,7 @@ public class PaymentController {
      * @return no content
      */
     @PutMapping("/{id}/cancel")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
     public ResponseEntity<Void> cancelPayment(@PathVariable Long id) {
         log.info("Cancelling payment: {}", id);
 
@@ -166,6 +173,7 @@ public class PaymentController {
      * @return no content
      */
     @PostMapping("/{id}/refund")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
     public ResponseEntity<Void> processRefund(@PathVariable Long id) {
         log.info("Processing refund for payment: {}", id);
 
@@ -181,6 +189,7 @@ public class PaymentController {
      * @return payment status response
      */
     @GetMapping("/{id}/status")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
     public ResponseEntity<ApiResponse<PaymentStatusResponse>> queryPaymentStatus(@PathVariable Long id) {
         log.debug("Querying payment status for: {}", id);
 
