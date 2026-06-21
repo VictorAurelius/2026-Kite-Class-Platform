@@ -141,6 +141,107 @@
 
 ---
 
+## Content generation endpoints (`/api/platform/branding/content`)
+
+> **Source-of-truth:** `ContentGenerationController` tại `kitehub/kitehub-branding/src/main/java/com/kitehub/branding/controller/ContentGenerationController.java`. Sinh nội dung landing page (hero/about/mission/features/CTA) từ `LogoAnalysis`. Reactive (`Mono`) — AI call bounded by service timeout (SLO Tier C). Không có per-method role gate (gateway-authenticated).
+
+### POST /api/platform/branding/content/generate
+**Use case:** UC-AIB-03 (mở rộng — sinh trọn bộ nội dung landing page thay vì chỉ marketing copy)
+**Auth:** Bearer token (gateway-authenticated; không có `@PreAuthorize` per-method)
+**Request body** (`ContentGenerationRequest`):
+```json
+{
+  "logoAnalysis": {
+    "primaryColor": "#1a73e8",
+    "secondaryColor": "#fbbc04",
+    "accentColor": "#10B981",
+    "theme": "MODERN",
+    "typography": "Modern Sans-serif",
+    "targetAudience": "học sinh THPT",
+    "brandPersonality": ["Professional", "Friendly"],
+    "rawAnalysis": "..."
+  },
+  "orgName": "Trung tâm Anh ngữ Sky",
+  "language": "vi"
+}
+```
+- `language` — `"vi"` (mặc định khi null) hoặc `"en"`
+**Response 200:** `LandingPageContent`
+```json
+{
+  "heroTitle": "Trung Tâm Tiếng Anh Hàng Đầu Việt Nam",
+  "heroSubtitle": "Phương pháp học hiện đại, giáo viên giàu kinh nghiệm, cam kết đầu ra",
+  "tagline": "Học Vui, Tiến Xa",
+  "aboutUs": "...(3 đoạn)...",
+  "mission": "...",
+  "vision": "...",
+  "features": [
+    { "title": "Học Trực Tuyến Linh Hoạt", "description": "...", "icon": "video" }
+  ],
+  "ctaText": "Đăng Ký Học Thử Miễn Phí"
+}
+```
+- `features` — 3–5 phần tử `{ title, description, icon? }`
+**Errors:** error envelope chuẩn `{ "error": "<CODE>", "message": "..." }` khi AI provider lỗi (circuit-breaker fallback per `ai-branding-guidelines.md`)
+
+---
+
+### GET /api/platform/branding/content/{instanceId}
+**Use case:** UC-AIB-03 — fetch nội dung landing đã cache cho instance
+**Auth:** Bearer token (gateway-authenticated)
+**Path param:** `instanceId` (UUID)
+**Response 404 (Phase 1 hiện tại):** body rỗng — content persistence hoãn tới Job Queue (PR 4.9). Nội dung sinh on-demand qua `POST /content/generate`, KHÔNG cache → endpoint này luôn trả 404 cho tới khi persistence land.
+**Response 200 (khi persistence land):** `LandingPageContent` (cùng schema `POST /content/generate`)
+
+---
+
+## Asset storage endpoints (`/api/platform/branding/assets`)
+
+> **Source-of-truth:** `AssetStorageController` tại `kitehub/kitehub-branding/src/main/java/com/kitehub/branding/controller/AssetStorageController.java`. Upload/list/delete branding assets (logo, hero, portrait, …) trên MinIO/S3 (SLO Tier D — uploads có thể vài MB). Response URL là **presigned GET** ngắn hạn (browser load được từ private bucket); URL lưu trữ ổn định path-based giữ trong job để delete/dedup.
+
+### POST /api/platform/branding/assets/{instanceId}/{assetType}
+**Use case:** UC-AIB-02 — owner upload asset (logo/hero/portrait) cho instance
+**Auth:** Bearer token (gateway-authenticated)
+**Path params:** `instanceId` (UUID), `assetType` (`profile | hero | logos | banners | og | PORTRAIT | …`)
+**Content-Type:** `multipart/form-data`
+**Request part:** `file` — binary asset
+**Response 200:** `BrandingAsset`
+```json
+{
+  "type": "logo",
+  "variant": "default",
+  "url": "https://minio/.../instances/{instanceId}/...?X-Amz-...",
+  "sizeBytes": 20480,
+  "contentType": "image/png",
+  "uploadedAt": 1717920000
+}
+```
+- `url` — presigned GET URL để preview ngay (URL lưu trữ ổn định được persist vào `BrandingJob`)
+- **Dedup (GAP-1112 #2 / GAP-1134):** mọi `assetType` giữ đúng 1 asset per `(instanceId, assetType)` — upload lại xoá bản cũ (kèm S3 delete). **Ngoại lệ `PORTRAIT`** tích luỹ 1..N (trung tâm nhiều giáo viên).
+**Errors:** 500 khi đọc file / upload S3 lỗi (`IOException`)
+
+---
+
+### GET /api/platform/branding/assets/{instanceId}
+**Use case:** UC-AIB-02 / UC-AIB-11 — list assets đã upload/sinh cho instance
+**Auth:** Bearer token (gateway-authenticated)
+**Path param:** `instanceId` (UUID)
+**Response 200:** `BrandingAsset[]` — mỗi URL re-presign cho browser preview; rỗng `[]` khi instance chưa có asset (hoặc job chưa generate). Lỗi nội bộ degrade về `[]` (không 5xx) để FE không vỡ.
+
+---
+
+### DELETE /api/platform/branding/assets/{instanceId}
+**Use case:** UC-AIB-09 — xoá toàn bộ asset của instance (vd trước rebrand)
+**Auth:** Bearer token (gateway-authenticated)
+**Path param:** `instanceId` (UUID)
+**Response 200:**
+```json
+{ "status": "success", "message": "Deleted 3 assets for instance 550e8400-..." }
+```
+- `status` ∈ `success | error`; khi lỗi `message` chứa nguyên nhân (vẫn trả 200 để FE xử lý mềm)
+
+---
+
 # v2 Endpoints (Waves 2-4 — kiteclass-core implementation)
 
 > **Source-of-truth:** Real Controllers in `kiteclass/kiteclass-core/src/main/java/com/kiteclass/core/module/{instance,branding}/controller/`. Schema below derived directly from `InstanceController`, `BrandingPackageController`, `PublicBrandingController`, `InternalWebhookController`. Use `InstanceResponse` record for response shape (id is `Long`, not UUID).
@@ -643,7 +744,32 @@ Core wizard flow served by `BrandingJobV1Controller` tại `/api/v1/branding/job
 
 ## DEPRECATED — `/api/platform/branding/jobs/**` (legacy `BrandingJobController`, GAP-1252)
 
-Legacy `BrandingJobController` (`@Deprecated`, GAP-1252) trả raw entity `BrandingJob` tại `/api/platform/branding/jobs` (POST/GET/GET `{id}`/GET `{id}/assets`/DELETE `{id}`). **Caller mới PHẢI dùng path v1 ở trên** (`/api/v1/branding/jobs`) trả DTO contract-stable `BrandingJobResponse`. Path legacy chỉ giữ cho client legacy đang chạy, sẽ remove sau khi migrate xong.
+> **⚠️ DEPRECATED (GAP-1252):** Legacy `BrandingJobController` (`@Deprecated`) trả **raw entity** `BrandingJob` tại `/api/platform/branding/jobs`. **Caller mới PHẢI dùng path v1 ở trên** (`/api/v1/branding/jobs`) trả DTO contract-stable `BrandingJobResponse`. Path legacy chỉ giữ cho client legacy đang chạy, sẽ remove sau khi migrate xong.
+>
+> **Auth (toàn bộ block):** Bearer token + headers `X-Instance-Id` (required UUID) + `X-Tenant-Id` (gateway-trusted). Mọi endpoint verify `X-Instance-Id` khớp `X-Tenant-Id` qua `TenantOwnershipGuard` (GAP-1019) → **403** khi mismatch (platform admin bypass). Write = OWNER-tier; read = OWNER + STAFF subroles (GAP-562).
+
+### POST /api/platform/branding/jobs  *(deprecated)*
+**Auth:** OWNER-tier write · headers `X-Instance-Id`, `X-Tenant-Id`, `X-Subscription-Tier` (mặc định `FREE`)
+**Request params:** `organizationName` (required), `language` (mặc định `vi`), `logoUrl` (required)
+**Response 201:** raw `BrandingJob` entity
+**Errors:** 401/403 unauthenticated / non-owner hoặc tenant mismatch
+
+### GET /api/platform/branding/jobs/{id}  *(deprecated)*
+**Auth:** OWNER + STAFF read
+**Response 200:** raw `BrandingJob` entity · **404** khi không tồn tại / khác tenant
+
+### GET /api/platform/branding/jobs  *(deprecated)*
+**Auth:** OWNER + STAFF read
+**Response 200:** `BrandingJob[]` — toàn bộ job của instance (header `X-Instance-Id`)
+
+### GET /api/platform/branding/jobs/{id}/assets  *(deprecated)*
+**Auth:** OWNER + STAFF read
+**Response 200:** `assetsGenerated` (JSON các asset đã sinh của job) · **404** khi job không tồn tại
+
+### DELETE /api/platform/branding/jobs/{id}  *(deprecated)*
+**Auth:** OWNER-tier write
+**Response 204:** đã huỷ job
+**Errors:** **400** khi job đã hoàn tất (không huỷ được) · **404** không tồn tại
 
 ---
 
