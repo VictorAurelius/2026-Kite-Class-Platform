@@ -132,9 +132,10 @@ class TemplateGalleryControllerTest {
         when(templateService.applyTemplate(eq(templateId), eq(INSTANCE_ID)))
                 .thenReturn(Optional.of(themeConfig));
 
-        // When & Then
+        // When & Then — own-tenant (X-Tenant-Id == X-Instance-Id) passes the GAP-1526 guard
         mockMvc.perform(post(TEMPLATES_URL + "/{id}/apply", templateId)
-                        .header(INSTANCE_HEADER, INSTANCE_ID.toString()))
+                        .header(INSTANCE_HEADER, INSTANCE_ID.toString())
+                        .header("X-Tenant-Id", INSTANCE_ID.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.themeConfig").value(themeConfig))
                 .andExpect(jsonPath("$.status").value("applied"));
@@ -151,7 +152,8 @@ class TemplateGalleryControllerTest {
 
         // When & Then
         mockMvc.perform(post(TEMPLATES_URL + "/{id}/apply", templateId)
-                        .header(INSTANCE_HEADER, INSTANCE_ID.toString()))
+                        .header(INSTANCE_HEADER, INSTANCE_ID.toString())
+                        .header("X-Tenant-Id", INSTANCE_ID.toString()))
                 .andExpect(status().isNotFound());
     }
 

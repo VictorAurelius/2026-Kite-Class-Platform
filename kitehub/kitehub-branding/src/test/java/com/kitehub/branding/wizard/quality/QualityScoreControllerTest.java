@@ -66,7 +66,7 @@ class QualityScoreControllerTest {
     void returnsAggregatedScore() {
         when(jobRepository.findById(jobId)).thenReturn(Optional.of(job));
 
-        ResponseEntity<?> response = controller.getQualityScore(jobId);
+        ResponseEntity<?> response = controller.getQualityScore(jobId, job.getInstanceId().toString());
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         QualityScoreResponse body = (QualityScoreResponse) response.getBody();
@@ -85,7 +85,7 @@ class QualityScoreControllerTest {
     void returns404WhenMissing() {
         when(jobRepository.findById(jobId)).thenReturn(Optional.empty());
 
-        ResponseEntity<?> response = controller.getQualityScore(jobId);
+        ResponseEntity<?> response = controller.getQualityScore(jobId, job.getInstanceId().toString());
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         @SuppressWarnings("unchecked")
@@ -100,7 +100,7 @@ class QualityScoreControllerTest {
         job.setStatus(JobStatus.QUEUED);
         when(jobRepository.findById(jobId)).thenReturn(Optional.of(job));
 
-        ResponseEntity<?> response = controller.getQualityScore(jobId);
+        ResponseEntity<?> response = controller.getQualityScore(jobId, job.getInstanceId().toString());
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
         @SuppressWarnings("unchecked")
@@ -114,7 +114,7 @@ class QualityScoreControllerTest {
         job.setLogoUrl(null);
         when(jobRepository.findById(jobId)).thenReturn(Optional.of(job));
 
-        ResponseEntity<?> response = controller.getQualityScore(jobId);
+        ResponseEntity<?> response = controller.getQualityScore(jobId, job.getInstanceId().toString());
 
         QualityScoreResponse body = (QualityScoreResponse) response.getBody();
         assertThat(body).isNotNull();

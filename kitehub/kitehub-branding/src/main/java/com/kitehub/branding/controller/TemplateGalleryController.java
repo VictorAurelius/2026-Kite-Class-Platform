@@ -1,6 +1,7 @@
 package com.kitehub.branding.controller;
 
 import com.kitehub.branding.domain.entity.BrandingTemplate;
+import com.kitehub.branding.security.TenantOwnershipGuard;
 import com.kitehub.branding.service.TemplateGalleryService;
 import io.micrometer.core.annotation.Timed;
 import io.swagger.v3.oas.annotations.Operation;
@@ -8,6 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -40,6 +42,14 @@ import java.util.UUID;
 public class TemplateGalleryController {
 
     private final TemplateGalleryService templateService;
+
+    /**
+     * GAP-1526 (OWASP A01) — OWNER-tier write authorization for applying a template (mutates the
+     * instance branding). Mirrors {@code BrandingJobController.OWNER_AUTHZ}. The read endpoints
+     * (list/detail) stay public — the template catalogue carries no tenant data.
+     */
+    private static final String OWNER_AUTHZ =
+            "hasAnyRole('OWNER','PLATFORM_ADMIN','ADMIN')";
 
     /**
      * List all active templates, optionally filtered by category.
@@ -79,10 +89,16 @@ public class TemplateGalleryController {
      * @return theme config JSON to apply, or 404 if template not found
      */
     @PostMapping("/{id}/apply")
+    @PreAuthorize(OWNER_AUTHZ)
     @Operation(summary = "Apply template to instance", description = "Returns theme config for instant application")
     public ResponseEntity<Map<String, String>> applyTemplate(
             @PathVariable UUID id,
-            @RequestHeader("X-Instance-Id") UUID instanceId) {
+            @RequestHeader("X-Instance-Id") UUID instanceId,
+            @RequestHeader(value = "X-Tenant-Id", required = false) String tenantHeader) {
+
+        // GAP-1526 (OWASP A01 / IDOR) — bind the client X-Instance-Id to the gateway-trusted tenant
+        // so an OWNER cannot apply a template into another tenant's instance (platform admin bypass).
+        TenantOwnershipGuard.requireInstanceOwnership(instanceId, tenantHeader);
 
         return templateService.applyTemplate(id, instanceId)
                 .map(themeConfig -> ResponseEntity.ok(Map.of(

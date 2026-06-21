@@ -8,10 +8,13 @@ import com.kitehub.branding.lifecycle.entity.BrandingInstanceState;
 import com.kitehub.branding.lifecycle.entity.BrandingLifecycleEvent;
 import com.kitehub.branding.lifecycle.repository.BrandingInstanceStateRepository;
 import com.kitehub.branding.lifecycle.repository.BrandingLifecycleEventRepository;
+import com.kitehub.branding.security.TenantOwnershipGuard;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -38,6 +41,10 @@ public class LifecycleEventsController {
     private static final int MAX_LIMIT = 200;
     private static final String DEPLOY_MARKER = "deploy-completed";
 
+    /** Read access — owner + staff personas (mirrors {@code BrandingJobV1Controller.READ_AUTHZ}). */
+    private static final String READ_AUTHZ =
+            "hasAnyRole('OWNER','MANAGER','TEACHER','ACCOUNTANT','PLATFORM_ADMIN','ADMIN','STAFF')";
+
     private final BrandingLifecycleEventRepository eventRepo;
     private final BrandingInstanceStateRepository stateRepo;
     private final ObjectMapper objectMapper;
@@ -56,9 +63,13 @@ public class LifecycleEventsController {
      * {@code deploy-completed} marker's {@code frontendUrl} / templateId / slug.
      */
     @GetMapping("/{instanceId}/deploy-status")
+    @PreAuthorize(READ_AUTHZ)
     public ResponseEntity<DeployStatusResponse> getDeployStatus(
-        @PathVariable("instanceId") UUID instanceId) {
+        @PathVariable("instanceId") UUID instanceId,
+        @RequestHeader(value = "X-Tenant-Id", required = false) String tenantHeader) {
 
+        // GAP-1526 (OWASP A01 / IDOR) — own-tenant deploy-status read only.
+        TenantOwnershipGuard.requireInstanceOwnership(instanceId, tenantHeader);
         BrandingInstanceState state = stateRepo.findById(instanceId).orElse(null);
         LifecycleState lifecycleState = state == null ? null : state.getState();
         boolean deployed = lifecycleState == LifecycleState.DEPLOYED;
@@ -113,12 +124,16 @@ public class LifecycleEventsController {
     }
 
     @GetMapping("/{instanceId}/lifecycle/events")
+    @PreAuthorize(READ_AUTHZ)
     public ResponseEntity<LifecycleEventDto.EventsResponse> getEvents(
         @PathVariable("instanceId") UUID instanceId,
+        @RequestHeader(value = "X-Tenant-Id", required = false) String tenantHeader,
         @RequestParam(value = "since", required = false) String since,
         @RequestParam(value = "limit", required = false) Integer limit,
         @RequestParam(value = "cursor", required = false) String cursor) {
 
+        // GAP-1526 (OWASP A01 / IDOR) — own-tenant lifecycle-events read only.
+        TenantOwnershipGuard.requireInstanceOwnership(instanceId, tenantHeader);
         LocalDateTime sinceTs = parseSince(since);
         int effectiveLimit = clampLimit(limit);
 
