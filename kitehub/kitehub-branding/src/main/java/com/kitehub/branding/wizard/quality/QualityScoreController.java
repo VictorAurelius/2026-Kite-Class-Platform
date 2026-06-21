@@ -3,6 +3,7 @@ package com.kitehub.branding.wizard.quality;
 import com.kitehub.branding.domain.entity.BrandingJob;
 import com.kitehub.branding.domain.enums.JobStatus;
 import com.kitehub.branding.repository.BrandingJobRepository;
+import com.kitehub.branding.security.TenantOwnershipGuard;
 import com.kitehub.branding.wizard.quality.dto.QualityScoreResponse;
 import io.micrometer.core.annotation.Timed;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -10,8 +11,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -48,6 +51,10 @@ public class QualityScoreController {
     private final BrandingJobRepository jobRepository;
     private final QualityScoreAggregator aggregator;
 
+    /** Read access — owner + staff personas (mirrors {@code BrandingJobV1Controller.READ_AUTHZ}). */
+    private static final String READ_AUTHZ =
+            "hasAnyRole('OWNER','MANAGER','TEACHER','ACCOUNTANT','PLATFORM_ADMIN','ADMIN','STAFF')";
+
     /**
      * GET /api/v1/branding/jobs/{jobId}/quality-score
      *
@@ -55,7 +62,9 @@ public class QualityScoreController {
      * @return aggregated score + sub-scores + issues
      */
     @GetMapping("/{jobId}/quality-score")
-    public ResponseEntity<?> getQualityScore(@PathVariable UUID jobId) {
+    @PreAuthorize(READ_AUTHZ)
+    public ResponseEntity<?> getQualityScore(@PathVariable UUID jobId,
+            @RequestHeader(value = "X-Tenant-Id", required = false) String tenantHeader) {
         Optional<BrandingJob> jobOpt = jobRepository.findById(jobId);
         if (jobOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
@@ -64,6 +73,8 @@ public class QualityScoreController {
             ));
         }
         BrandingJob job = jobOpt.get();
+        // GAP-1526 (OWASP A01 / IDOR) — own-tenant quality-score read only after findById.
+        TenantOwnershipGuard.requireInstanceOwnership(job.getInstanceId(), tenantHeader);
 
         // Per api-contract: 409 when job in GENERATING/early phase before REVIEW step.
         // v0 mapping: QUEUED is too early to score; everything else returns a score

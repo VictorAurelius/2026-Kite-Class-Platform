@@ -67,7 +67,8 @@ class LifecycleEventsControllerTest {
         when(eventRepo.findByInstanceIdSince(eq(instanceId), any(LocalDateTime.class), any(Pageable.class)))
             .thenReturn(List.of(ev));
 
-        mockMvc.perform(get("/api/v1/branding/instances/{id}/lifecycle/events", instanceId))
+        mockMvc.perform(get("/api/v1/branding/instances/{id}/lifecycle/events", instanceId)
+                .header("X-Tenant-Id", instanceId.toString()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.instanceId").value(instanceId.toString()))
             .andExpect(jsonPath("$.events", org.hamcrest.Matchers.hasSize(1)))
@@ -82,7 +83,9 @@ class LifecycleEventsControllerTest {
     void getEventsReturnsEmptyListForUnknownInstance() throws Exception {
         when(eventRepo.findByInstanceIdSince(any(), any(), any())).thenReturn(List.of());
 
-        mockMvc.perform(get("/api/v1/branding/instances/{id}/lifecycle/events", UUID.randomUUID()))
+        UUID unknownInstance = UUID.randomUUID();
+        mockMvc.perform(get("/api/v1/branding/instances/{id}/lifecycle/events", unknownInstance)
+                .header("X-Tenant-Id", unknownInstance.toString()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.events", org.hamcrest.Matchers.hasSize(0)));
     }
@@ -92,7 +95,8 @@ class LifecycleEventsControllerTest {
         when(eventRepo.findByInstanceIdSince(any(), any(), any())).thenReturn(List.of());
 
         // limit=999 should be clamped to 200; assert no error.
-        mockMvc.perform(get("/api/v1/branding/instances/{id}/lifecycle/events?limit=999", instanceId))
+        mockMvc.perform(get("/api/v1/branding/instances/{id}/lifecycle/events?limit=999", instanceId)
+                .header("X-Tenant-Id", instanceId.toString()))
             .andExpect(status().isOk());
     }
 
@@ -121,7 +125,8 @@ class LifecycleEventsControllerTest {
         when(eventRepo.findByInstanceIdSince(eq(instanceId), any(LocalDateTime.class), any(Pageable.class)))
             .thenReturn(List.of(marker));
 
-        mockMvc.perform(get("/api/v1/branding/instances/{id}/deploy-status", instanceId))
+        mockMvc.perform(get("/api/v1/branding/instances/{id}/deploy-status", instanceId)
+                .header("X-Tenant-Id", instanceId.toString()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.instanceId").value(instanceId.toString()))
             .andExpect(jsonPath("$.state").value("DEPLOYED"))
@@ -137,7 +142,8 @@ class LifecycleEventsControllerTest {
         when(stateRepo.findById(instanceId)).thenReturn(Optional.empty());
         when(eventRepo.findByInstanceIdSince(any(), any(), any())).thenReturn(List.of());
 
-        mockMvc.perform(get("/api/v1/branding/instances/{id}/deploy-status", instanceId))
+        mockMvc.perform(get("/api/v1/branding/instances/{id}/deploy-status", instanceId)
+                .header("X-Tenant-Id", instanceId.toString()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.deployed").value(false))
             .andExpect(jsonPath("$.state").doesNotExist())

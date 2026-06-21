@@ -81,7 +81,7 @@ class AssetStoragePortraitDedupTest {
     private void upload(String assetType, String filename) throws Exception {
         MockMultipartFile file = new MockMultipartFile(
                 "file", filename, "image/png", "data".getBytes());
-        controller.uploadAsset(instanceId, assetType, file);
+        controller.uploadAsset(instanceId, assetType, instanceId.toString(), file);
     }
 
     private List<BrandingAsset> persisted() throws Exception {

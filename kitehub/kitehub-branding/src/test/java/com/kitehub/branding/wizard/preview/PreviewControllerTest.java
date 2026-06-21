@@ -58,7 +58,7 @@ class PreviewControllerTest {
     void returnsIframeSafeHeaders() {
         when(jobRepository.findById(jobId)).thenReturn(Optional.of(job));
 
-        ResponseEntity<String> response = controller.getPreview(jobId);
+        ResponseEntity<String> response = controller.getPreview(jobId, job.getInstanceId().toString());
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getHeaders().getFirst("X-Frame-Options")).isEqualTo("SAMEORIGIN");
@@ -75,7 +75,7 @@ class PreviewControllerTest {
     void rendersBrandData() {
         when(jobRepository.findById(jobId)).thenReturn(Optional.of(job));
 
-        ResponseEntity<String> response = controller.getPreview(jobId);
+        ResponseEntity<String> response = controller.getPreview(jobId, job.getInstanceId().toString());
 
         String html = response.getBody();
         BrandColours colours = coloursDeriver.derive(job);
@@ -92,7 +92,7 @@ class PreviewControllerTest {
         job.setOrganizationName("<script>alert(1)</script>");
         when(jobRepository.findById(jobId)).thenReturn(Optional.of(job));
 
-        ResponseEntity<String> response = controller.getPreview(jobId);
+        ResponseEntity<String> response = controller.getPreview(jobId, job.getInstanceId().toString());
 
         String html = response.getBody();
         assertThat(html).doesNotContain("<script>alert(1)</script>");
@@ -104,7 +104,7 @@ class PreviewControllerTest {
     void returns404Html() {
         when(jobRepository.findById(jobId)).thenReturn(Optional.empty());
 
-        ResponseEntity<String> response = controller.getPreview(jobId);
+        ResponseEntity<String> response = controller.getPreview(jobId, job.getInstanceId().toString());
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         assertThat(response.getHeaders().getFirst("X-Frame-Options")).isEqualTo("SAMEORIGIN");

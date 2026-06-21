@@ -93,7 +93,7 @@ class AssetStorageControllerDedupTest {
         when(s3StorageService.getPresignedAssetUrl(newPath)).thenReturn(newUrl + "?X-Amz-Signature=x");
 
         // When: re-upload a LOGO
-        ResponseEntity<BrandingAsset> response = controller.uploadAsset(instanceId, "LOGO", pngFile("logo.png"));
+        ResponseEntity<BrandingAsset> response = controller.uploadAsset(instanceId, "LOGO", instanceId.toString(), pngFile("logo.png"));
 
         // Then: the prior LOGO S3 object is deleted
         verify(s3StorageService).deleteAsset("instances/" + instanceId + "/branding/LOGO/logo_old.png");
@@ -128,7 +128,7 @@ class AssetStorageControllerDedupTest {
         when(s3StorageService.getPresignedAssetUrl(heroPath)).thenReturn(heroUrl + "?X-Amz-Signature=x");
 
         // When: upload a HERO (different type)
-        controller.uploadAsset(instanceId, "HERO", pngFile("hero.png"));
+        controller.uploadAsset(instanceId, "HERO", instanceId.toString(), pngFile("hero.png"));
 
         // Then: no asset deleted (different type)
         verify(s3StorageService, never()).deleteAsset(anyString());
@@ -163,7 +163,7 @@ class AssetStorageControllerDedupTest {
 
         // When: upload LOGO three times
         for (int i = 0; i < 3; i++) {
-            controller.uploadAsset(instanceId, "LOGO", pngFile("logo.png"));
+            controller.uploadAsset(instanceId, "LOGO", instanceId.toString(), pngFile("logo.png"));
         }
 
         // Then: the final persisted state has exactly 1 LOGO (never accumulates)

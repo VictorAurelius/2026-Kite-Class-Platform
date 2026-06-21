@@ -94,7 +94,7 @@ class AssetStorageControllerTest {
             .thenReturn(Collections.singletonList(brandingJob));
 
         // When
-        ResponseEntity<BrandingAsset> response = controller.uploadAsset(instanceId, assetType, file);
+        ResponseEntity<BrandingAsset> response = controller.uploadAsset(instanceId, assetType, instanceId.toString(), file);
 
         // Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -134,7 +134,7 @@ class AssetStorageControllerTest {
         when(s3StorageService.getPresignedAssetUrl(anyString())).thenReturn(presignedUrl);
 
         // When
-        ResponseEntity<List<BrandingAsset>> response = controller.getAssets(instanceId);
+        ResponseEntity<List<BrandingAsset>> response = controller.getAssets(instanceId, instanceId.toString());
 
         // Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -154,7 +154,7 @@ class AssetStorageControllerTest {
             .thenReturn(Collections.emptyList());
 
         // When
-        ResponseEntity<List<BrandingAsset>> response = controller.getAssets(instanceId);
+        ResponseEntity<List<BrandingAsset>> response = controller.getAssets(instanceId, instanceId.toString());
 
         // Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -171,7 +171,7 @@ class AssetStorageControllerTest {
             .thenReturn(Collections.singletonList(brandingJob));
 
         // When
-        ResponseEntity<List<BrandingAsset>> response = controller.getAssets(instanceId);
+        ResponseEntity<List<BrandingAsset>> response = controller.getAssets(instanceId, instanceId.toString());
 
         // Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -204,7 +204,7 @@ class AssetStorageControllerTest {
             .thenReturn(assets);
 
         // When
-        ResponseEntity<Map<String, String>> response = controller.deleteAssets(instanceId);
+        ResponseEntity<Map<String, String>> response = controller.deleteAssets(instanceId, instanceId.toString());
 
         // Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -223,7 +223,7 @@ class AssetStorageControllerTest {
             .thenReturn(Collections.singletonList(brandingJob));
 
         // When
-        ResponseEntity<Map<String, String>> response = controller.deleteAssets(instanceId);
+        ResponseEntity<Map<String, String>> response = controller.deleteAssets(instanceId, instanceId.toString());
 
         // Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -253,7 +253,7 @@ class AssetStorageControllerTest {
         doThrow(new RuntimeException("S3 error")).when(s3StorageService).deleteAsset(anyString());
 
         // When
-        ResponseEntity<Map<String, String>> response = controller.deleteAssets(instanceId);
+        ResponseEntity<Map<String, String>> response = controller.deleteAssets(instanceId, instanceId.toString());
 
         // Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -295,7 +295,7 @@ class AssetStorageControllerTest {
         when(s3StorageService.getPresignedAssetUrl(expectedPath)).thenReturn(presignedUrl);
 
         // When: Upload asset
-        ResponseEntity<BrandingAsset> response = controller.uploadAsset(instanceId, assetType, file);
+        ResponseEntity<BrandingAsset> response = controller.uploadAsset(instanceId, assetType, instanceId.toString(), file);
 
         // Then: Should auto-create job and upload successfully
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -335,7 +335,7 @@ class AssetStorageControllerTest {
         when(s3StorageService.getPresignedAssetUrl(expectedPath)).thenReturn(presignedUrl);
 
         // When: Upload asset
-        ResponseEntity<BrandingAsset> response = controller.uploadAsset(instanceId, assetType, file);
+        ResponseEntity<BrandingAsset> response = controller.uploadAsset(instanceId, assetType, instanceId.toString(), file);
 
         // Then: Should use existing job, NOT create new one
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);

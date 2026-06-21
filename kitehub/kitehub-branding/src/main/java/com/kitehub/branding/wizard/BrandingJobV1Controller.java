@@ -4,6 +4,7 @@ import com.kitehub.branding.client.ResilientAIClient;
 import com.kitehub.branding.domain.entity.BrandingJob;
 import com.kitehub.branding.domain.enums.GenerationMode;
 import com.kitehub.branding.repository.BrandingJobRepository;
+import com.kitehub.branding.security.TenantOwnershipGuard;
 import com.kitehub.branding.service.BrandingJobService;
 import com.kitehub.branding.service.FullAiQuotaService;
 import com.kitehub.branding.service.S3StorageService;
@@ -373,6 +374,8 @@ public class BrandingJobV1Controller {
     @PostMapping("/{jobId}/approve")
     @PreAuthorize(WRITE_AUTHZ)
     public ResponseEntity<?> approve(@PathVariable UUID jobId,
+                                     @RequestHeader(value = "X-Tenant-Id", required = false)
+                                     String tenantHeader,
                                      @RequestBody(required = false) ApproveDeployRequest req) {
         Optional<BrandingJob> jobOpt = jobRepository.findById(jobId);
         if (jobOpt.isEmpty()) {
@@ -382,6 +385,10 @@ public class BrandingJobV1Controller {
             ));
         }
         BrandingJob job = jobOpt.get();
+
+        // GAP-1526 (OWASP A01 / IDOR) — bind the job's instance to the gateway-trusted tenant so an
+        // OWNER cannot approve+deploy another tenant's branding job (platform admin bypasses).
+        TenantOwnershipGuard.requireInstanceOwnership(job.getInstanceId(), tenantHeader);
 
         // GAP-1217 — quality gate BEFORE deploy. Asset score <70 must never auto-deploy
         // (ai-branding-guidelines.md §5). Failing the gate marks the job FAILED with the
@@ -434,7 +441,9 @@ public class BrandingJobV1Controller {
 
     @GetMapping("/{jobId}")
     @PreAuthorize(READ_AUTHZ)
-    public ResponseEntity<?> getJob(@PathVariable UUID jobId) {
+    public ResponseEntity<?> getJob(@PathVariable UUID jobId,
+                                    @RequestHeader(value = "X-Tenant-Id", required = false)
+                                    String tenantHeader) {
         Optional<BrandingJob> jobOpt = jobRepository.findById(jobId);
         if (jobOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
@@ -443,6 +452,8 @@ public class BrandingJobV1Controller {
             ));
         }
         BrandingJob job = jobOpt.get();
+        // GAP-1526 (OWASP A01 / IDOR) — own-tenant read only after findById.
+        TenantOwnershipGuard.requireInstanceOwnership(job.getInstanceId(), tenantHeader);
         BrandColours colours = coloursDeriver.derive(job);
         // GAP-390-A: resolve tenantId from request-scoped MDC (populated by gateway tenant filter
         // per logback-spring.xml MDC keys). Falls back to null when request lacks tenant context.
