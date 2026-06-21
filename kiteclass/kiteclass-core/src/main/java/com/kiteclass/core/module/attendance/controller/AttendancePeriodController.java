@@ -77,7 +77,9 @@ public class AttendancePeriodController {
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Fetch a single per-period attendance record by ID.")
+    @PreAuthorize("hasAnyRole('TEACHER','STAFF','OWNER','ADMIN')")
+    @Operation(summary = "Fetch a single per-period attendance record by ID.",
+            description = "Role-gated read (OWASP A01) — GAP-1527: was unguarded.")
     public ResponseEntity<AttendancePeriodResponse> findById(
             @Parameter(description = "Period attendance row ID") @PathVariable Long id) {
         log.debug("GET /api/v1/attendance/periods/{}", id);
@@ -85,8 +87,10 @@ public class AttendancePeriodController {
     }
 
     @GetMapping("/students/{studentId}")
+    @PreAuthorize("hasAnyRole('TEACHER','STAFF','OWNER','ADMIN')")
     @Operation(summary = "Page attendance for a student in a date range.",
-            description = "Used by parent portal feeds and student attendance history.")
+            description = "Used by parent portal feeds and student attendance history. "
+                    + "Role-gated read (OWASP A01) — GAP-1527: was unguarded.")
     public ResponseEntity<Page<AttendancePeriodResponse>> findByStudent(
             @Parameter(description = "Student ID") @PathVariable Long studentId,
             @Parameter(description = "From date (inclusive, ISO-8601)")
@@ -166,9 +170,11 @@ public class AttendancePeriodController {
     }
 
     @GetMapping("/subject-sections/{subjectSectionId}")
+    @PreAuthorize("hasAnyRole('TEACHER','STAFF','OWNER','ADMIN')")
     @Operation(summary = "Page attendance for a SubjectSection in a date range.",
             description = "Bộ môn (subject teacher) review surface — references "
-                    + "SubjectSection from GAP-054 Phase 1.")
+                    + "SubjectSection from GAP-054 Phase 1. "
+                    + "Role-gated read (OWASP A01) — GAP-1527: was unguarded.")
     public ResponseEntity<Page<AttendancePeriodResponse>> findBySubjectSection(
             @Parameter(description = "SubjectSection ID")
             @PathVariable Long subjectSectionId,

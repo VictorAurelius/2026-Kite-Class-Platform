@@ -82,10 +82,16 @@ public class StorageServiceImpl implements StorageService {
     /**
      * Whitelist of allowed MIME types.
      * Prevents upload of potentially dangerous files (executables, scripts).
+     *
+     * <p>GAP-1527 / GAP-1489 (OWASP A05 — stored-XSS): {@code image/svg+xml} removed.
+     * SVG is active content (inline {@code <script>} / {@code onload}) and this is a
+     * presigned-URL flow where the server never sees the bytes, so it cannot magic-byte
+     * sniff or sanitize. Mirrors the branding allowlist hardening (GAP-1037). Tenants
+     * needing vector logos go through the sanitized branding path, not generic storage.
      */
     private static final Set<String> ALLOWED_MIME_TYPES = Set.of(
-        // Images
-        "image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml",
+        // Images (raster only — no svg+xml, see class-level GAP-1489 note)
+        "image/jpeg", "image/png", "image/gif", "image/webp",
         // Documents
         "application/pdf",
         "application/msword",

@@ -57,7 +57,7 @@ public class RefundRequestController {
      * @return refund request response DTO
      */
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER', 'PRINCIPAL', 'PLATFORM_ADMIN', 'STAFF')")
     public ResponseEntity<RefundRequestResponse> getRefundRequestById(@PathVariable Long id) {
         log.info("GET /api/v1/refund-requests/{}", id);
         RefundRequestResponse refundRequest = refundRequestService.getRefundRequestById(id);

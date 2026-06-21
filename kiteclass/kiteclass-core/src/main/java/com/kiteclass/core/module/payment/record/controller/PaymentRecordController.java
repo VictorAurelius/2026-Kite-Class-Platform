@@ -1,5 +1,6 @@
 package com.kiteclass.core.module.payment.record.controller;
 
+import com.kiteclass.core.common.context.UserContext;
 import com.kiteclass.core.common.dto.ApiResponse;
 import com.kiteclass.core.module.payment.record.dto.PaymentRecordResponse;
 import com.kiteclass.core.module.payment.record.dto.RecordPaymentRequest;
@@ -10,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -57,7 +57,6 @@ public class PaymentRecordController {
      * @param invoiceId the invoice being paid (path variable)
      * @param request payment details
      * @param idempotencyKey optional Idempotency-Key header per BR-PAYMENT-METHOD-004
-     * @param userId authenticated user ID (Phase 1 BETA: placeholder=1L until full auth wiring per GAP-526)
      * @return 201 Created + PaymentRecordResponse
      */
     @PostMapping("/{invoiceId}/record-payment")
@@ -65,15 +64,18 @@ public class PaymentRecordController {
     public ResponseEntity<ApiResponse<PaymentRecordResponse>> recordPayment(
             @PathVariable Long invoiceId,
             @Valid @RequestBody RecordPaymentRequest request,
-            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
-            @AuthenticationPrincipal Object principal
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey
     ) {
         log.info("POST /api/v1/invoices/{}/record-payment method={} amount={}đ",
                 invoiceId, request.getMethod(), request.getAmount());
 
-        // Phase 1 BETA: placeholder userId=1L (matches PaymentController convention per GAP-526 follow-up).
-        // Full @AuthenticationPrincipal -> userId extraction landed via Wave 105 Bucket E0 sister work.
-        Long recordedByUserId = 1L;
+        // GAP-1527 (OWASP A09 — audit integrity): resolve the recording actor from the
+        // authenticated principal instead of the former hardcoded placeholder `1L`, which
+        // silently attributed every manual payment to (and could have collided with) a real
+        // teacher whose numeric reference id == 1. `recorded_by` is NOT NULL, so admin/owner
+        // (no numeric reference id) fall back to the system sentinel `0L` rather than `1L`.
+        Long currentReferenceId = UserContext.getCurrentReferenceId();
+        Long recordedByUserId = currentReferenceId != null ? currentReferenceId : 0L;
 
         PaymentRecordResponse response = paymentRecordService.recordPayment(
                 invoiceId, request, recordedByUserId, idempotencyKey

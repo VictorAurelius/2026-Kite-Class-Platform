@@ -38,7 +38,9 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -180,5 +182,59 @@ class AttendanceAuthzTest {
 
         verify(service).upsertBatch(any(), eq(TEACHER_ID));
         Mockito.verify(service, Mockito.never()).upsertBatch(any(), eq(111L));
+    }
+
+    // ── GAP-1527: per-period read endpoints (findById / findByStudent / findBySubjectSection)
+    //    were unguarded → now hasAnyRole('TEACHER','STAFF','OWNER','ADMIN'). ──────────────────
+
+    @Test
+    @DisplayName("GAP-1527: TEACHER → 200 on GET /periods/{id} (read tier allows teacher)")
+    @WithMockUser(roles = "TEACHER")
+    void findById_teacher_allowed() throws Exception {
+        when(service.findById(5L)).thenReturn(null);
+        mockMvc.perform(get("/api/v1/attendance/periods/{id}", 5L)
+                        .header("X-Tenant-Id", "00000000-0000-0000-0000-000000000001"))
+                .andExpect(status().isOk());
+        verify(service).findById(5L);
+    }
+
+    @Test
+    @DisplayName("GAP-1527 OWASP A01: STUDENT → denied GET /periods/{id} (service NOT invoked)")
+    @WithMockUser(roles = "STUDENT")
+    void findById_student_denied() throws Exception {
+        mockMvc.perform(get("/api/v1/attendance/periods/{id}", 5L)
+                        .header("X-Tenant-Id", "00000000-0000-0000-0000-000000000001"))
+                .andExpect(result -> assertDenied(result.getResponse().getStatus(), "STUDENT findById"));
+        verifyNoInteractions(service);
+    }
+
+    @Test
+    @DisplayName("GAP-1527 OWASP A01: PARENT → denied GET /periods/students/{id} (service NOT invoked)")
+    @WithMockUser(roles = "PARENT")
+    void findByStudent_parent_denied() throws Exception {
+        mockMvc.perform(get("/api/v1/attendance/periods/students/{id}", 101L)
+                        .header("X-Tenant-Id", "00000000-0000-0000-0000-000000000001")
+                        .param("from", "2026-09-01")
+                        .param("to", "2026-09-30"))
+                .andExpect(result -> assertDenied(result.getResponse().getStatus(), "PARENT findByStudent"));
+        verifyNoInteractions(service);
+    }
+
+    @Test
+    @DisplayName("GAP-1527 OWASP A01: STUDENT → denied GET /periods/subject-sections/{id} (service NOT invoked)")
+    @WithMockUser(roles = "STUDENT")
+    void findBySubjectSection_student_denied() throws Exception {
+        mockMvc.perform(get("/api/v1/attendance/periods/subject-sections/{id}", 303L)
+                        .header("X-Tenant-Id", "00000000-0000-0000-0000-000000000001")
+                        .param("from", "2026-09-01")
+                        .param("to", "2026-09-30"))
+                .andExpect(result -> assertDenied(result.getResponse().getStatus(), "STUDENT findBySubjectSection"));
+        verifyNoInteractions(service);
+    }
+
+    private static void assertDenied(int statusCode, String label) {
+        if (statusCode >= 200 && statusCode < 300) {
+            throw new AssertionError(label + " must be denied by @PreAuthorize, got " + statusCode);
+        }
     }
 }

@@ -43,7 +43,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * a low-privilege role that cleared the gateway could call the financial-mutation
  * endpoints ({@code mark-paid}, {@code cancel}, {@code adjustments}) inside its
  * tenant. The code fix added {@code @PreAuthorize} to all 13 mappings — read tier =
- * {@code hasAnyRole('TEACHER','ADMIN','OWNER','PLATFORM_ADMIN','STAFF')},
+ * {@code hasAnyRole('ADMIN','OWNER','PRINCIPAL','PLATFORM_ADMIN','STAFF')} (GAP-1527:
+ * TEACHER dropped — tenant-wide financial reads are not a teacher concern, intra-tenant IDOR),
  * financial-mutation tier = {@code hasAnyRole('ADMIN','OWNER','PLATFORM_ADMIN','STAFF')}.
  *
  * <p>This {@code *Test} is the residual GAP-1005 CI regression guard for that role
@@ -211,6 +212,16 @@ class InvoiceControllerAuthzTest {
     void getById_student_denied() throws Exception {
         mockMvc.perform(get("/api/v1/invoices/{id}", INVOICE_ID).header("X-Tenant-Id", TENANT_HEADER))
                 .andExpect(result -> assertDenied(result.getResponse().getStatus(), "STUDENT read"));
+
+        verifyNoInteractions(invoiceService);
+    }
+
+    @Test
+    @DisplayName("GAP-1527 OWASP A01: TEACHER → denied GET /invoices/{id} (TEACHER dropped from financial reads — intra-tenant IDOR)")
+    @WithMockUser(roles = "TEACHER")
+    void getById_teacher_denied() throws Exception {
+        mockMvc.perform(get("/api/v1/invoices/{id}", INVOICE_ID).header("X-Tenant-Id", TENANT_HEADER))
+                .andExpect(result -> assertDenied(result.getResponse().getStatus(), "TEACHER read"));
 
         verifyNoInteractions(invoiceService);
     }

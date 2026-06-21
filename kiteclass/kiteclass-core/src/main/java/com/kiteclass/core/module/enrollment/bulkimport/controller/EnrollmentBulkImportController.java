@@ -16,6 +16,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -98,9 +99,11 @@ public class EnrollmentBulkImportController {
      * @return resolve/validation summary
      */
     @PostMapping(value = "/preview", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAnyRole('OWNER', 'ADMIN', 'PRINCIPAL', 'STAFF', 'TEACHER')")
     @Operation(
             summary = "Preview bulk-enroll xlsx",
-            description = "Parse + resolve student/class + field-validate; returns counts and first 10 errors. No DB writes."
+            description = "Parse + resolve student/class + field-validate; returns counts and first 10 errors. No DB writes. "
+                    + "Staff+teacher-tier authz (OWASP A01) — GAP-1527."
     )
     public ApiResponse<EnrollmentBulkResult> preview(
             @RequestParam("file") MultipartFile file,
@@ -119,9 +122,11 @@ public class EnrollmentBulkImportController {
      * @return summary with success/error counts; inline errors truncated to 10
      */
     @PostMapping(value = "/commit", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAnyRole('OWNER', 'ADMIN', 'PRINCIPAL', 'STAFF', 'TEACHER')")
     @Operation(
             summary = "Commit bulk-enroll xlsx",
-            description = "Resolve + enroll valid rows via single-enroll flow. Invalid/failed rows skipped and reported."
+            description = "Resolve + enroll valid rows via single-enroll flow. Invalid/failed rows skipped and reported. "
+                    + "Staff+teacher-tier authz (OWASP A01) — GAP-1527."
     )
     public ResponseEntity<ApiResponse<EnrollmentBulkResult>> commit(
             @RequestParam("file") MultipartFile file,

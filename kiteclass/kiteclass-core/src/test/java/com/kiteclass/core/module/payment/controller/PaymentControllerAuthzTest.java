@@ -37,7 +37,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * the URL layer — so a low-privilege role that cleared the gateway could call financial
  * mutations ({@code cancel}, {@code refund}, {@code create}). The fix adds role guards:
  * mutation tier = {@code hasAnyRole('ADMIN','OWNER','PLATFORM_ADMIN','STAFF')},
- * read tier = {@code hasAnyRole('TEACHER',...)}.
+ * read tier = {@code hasAnyRole('ADMIN','OWNER','PRINCIPAL','PLATFORM_ADMIN','STAFF')}
+ * (GAP-1527: TEACHER dropped — financial reads, intra-tenant IDOR).
  *
  * <p>Mirrors {@code InvoiceControllerAuthzTest}: {@code @WebMvcTest} + {@code @EnableMethodSecurity}
  * so {@code @PreAuthorize} actually fires, with {@link PaymentService} mocked.
