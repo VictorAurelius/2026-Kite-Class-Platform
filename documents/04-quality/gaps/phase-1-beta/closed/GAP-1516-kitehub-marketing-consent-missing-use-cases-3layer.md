@@ -1,6 +1,6 @@
 # GAP-1516: kitehub/marketing + kitehub/consent thiếu use-cases.md (3-layer incomplete)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE (2026-06-21 — both use-cases.md written; marketing + consent no longer in 3-layer violation list)
 **Priority:** 🟡 P2
 **Domain:** Meta (Living Docs 3-layer compliance)
 **Found:** 2026-06-21 (Business Logic full audit refresh — `scripts/check-3-layer-completeness.sh`)
@@ -39,10 +39,10 @@ Grounded trong code consent/marketing hiện có (BR-PDPL-CONSENT-*, hash-chain 
 
 ## Acceptance Criteria
 
-- [ ] `kitehub/marketing/use-cases.md` tồn tại với ≥2 UC mapping tới BR-PDPL-CONSENT-*
-- [ ] `kitehub/consent/use-cases.md` tồn tại với ≥3 UC (capture/withdraw/re-consent)
-- [ ] `scripts/check-3-layer-completeness.sh` → marketing + consent không còn trong violation list
-- [ ] UC mỗi domain trace được tới api-contract.md endpoint hiện có
+- [x] `kitehub/marketing/use-cases.md` tồn tại với ≥2 UC mapping tới BR-PDPL-CONSENT-* — **5 UC** (banner display/read/revoke + DSAR request/status), BR-PDPL-CONSENT-001..004 + BR-PDPL-DSAR-001..006
+- [x] `kitehub/consent/use-cases.md` tồn tại với ≥3 UC (capture/withdraw/re-consent) — **3 UC** (record/view-history/withdraw) immutable v2
+- [x] `scripts/check-3-layer-completeness.sh` → marketing + consent không còn trong violation list (verified — chỉ còn 2 domain GAP-664 preferences/email)
+- [x] UC mỗi domain trace được tới api-contract.md endpoint hiện có (consent v2 `/api/v1/consent/v2/*`; marketing `/api/v1/consent/*` + `/api/v1/dsar/*`)
 
 ## Related
 
@@ -52,3 +52,7 @@ Grounded trong code consent/marketing hiện có (BR-PDPL-CONSENT-*, hash-chain 
 - GAP-666 (OPEN) — business README index sync (sub-folder README cũng thiếu, fold vào đây)
 - CLAUDE.md §"CRITICAL: Business Logic Documents — 3-Layer Structure"
 - `scripts/check-3-layer-completeness.sh` (detector)
+
+## Log
+
+- 2026-06-21 (loop round 3) — 🔵 OPEN → 🟢 DONE. Viết 2 use-cases.md còn thiếu: `kitehub/marketing/use-cases.md` (5 UC — cookie banner display/read/revoke + DSAR request/status, grounded BR-PDPL-CONSENT-001..004 + BR-PDPL-DSAR-001..006 + api-contract endpoints `/api/v1/consent/*` + `/api/v1/dsar/*`) + `kitehub/consent/use-cases.md` (3 UC — immutable v2 record/view-history/withdraw, grounded `/api/v1/consent/v2/*`). `check-3-layer-completeness.sh` xác nhận marketing + consent không còn trong violation list (2 domain còn lại = GAP-664 preferences/email, separate scope). Advances business-logic audit 3-layer Cat (path-to-80 cùng GAP-664 + GAP-156 counsel). Coordinator inline per `agent-concurrency-budget-inline-hybrid` (song song GAP-1251 agent).
