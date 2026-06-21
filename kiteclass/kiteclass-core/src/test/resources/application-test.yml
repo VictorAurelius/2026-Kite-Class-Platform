@@ -28,6 +28,9 @@ spring:
   # @DataJpaTest context opens its OWN Hikari pool. With minimum-idle: 10 and Spring's
   # default context cache (maxSize 32), up to 32 × 10 = 320+ connections were pinned
   # idle against a single Postgres (max_connections ~100) → exhaustion. Under CI
+  # (NOTE: context cache maxSize was raised 32 → 64 in pom.xml surefire/failsafe
+  #  systemPropertyVariables per GAP-1523 to stop context-reload thrash; minimum-idle: 0
+  #  keeps those extra cached-idle contexts from pinning connections.)
   # resource pressure this surfaced as the late, uniquely-keyed RANDOM_PORT
   # OpenApiSpecExportTest context failing to build with
   # "Unable to determine Dialect without JDBC metadata" (Hibernate could not open a

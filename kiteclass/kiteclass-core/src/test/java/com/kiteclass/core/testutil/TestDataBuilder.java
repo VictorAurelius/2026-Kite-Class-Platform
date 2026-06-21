@@ -18,6 +18,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -104,6 +105,12 @@ public class TestDataBuilder {
         MvcResult result = mockMvc.perform(post("/api/v1/teachers")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Tenant-Id", tenantId.toString())
+                        // GAP-1524: TeacherController.createTeacher gained @PreAuthorize
+                        // (OWNER/ADMIN/PRINCIPAL/PLATFORM_ADMIN) in GAP-1491. Authenticate the
+                        // fixture setup as ADMIN via the SecurityContext so method-security-enabled
+                        // tests (e.g. CrossUserAuthzTest) can build their world. No-op when the
+                        // test context has no @EnableMethodSecurity.
+                        .with(user("fixture-admin").roles("ADMIN"))
                         .content(objectMapper.writeValueAsString(teacherRequest)))
                 .andExpect(status().isCreated())
                 .andReturn();
@@ -208,6 +215,10 @@ public class TestDataBuilder {
         MvcResult result = mockMvc.perform(post("/api/v1/students")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Tenant-Id", tenantId.toString())
+                        // GAP-1524: StudentController.createStudent gained @PreAuthorize
+                        // (OWNER/ADMIN/PRINCIPAL/TEACHER/STAFF/PLATFORM_ADMIN) in GAP-1491.
+                        // Authenticate fixture setup as ADMIN; no-op without method security.
+                        .with(user("fixture-admin").roles("ADMIN"))
                         .content(objectMapper.writeValueAsString(studentRequest)))
                 .andExpect(status().isCreated())
                 .andReturn();
@@ -254,6 +265,10 @@ public class TestDataBuilder {
         MvcResult result = mockMvc.perform(post("/api/v1/students")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Tenant-Id", tenantId.toString())
+                        // GAP-1524: StudentController.createStudent gained @PreAuthorize
+                        // (OWNER/ADMIN/PRINCIPAL/TEACHER/STAFF/PLATFORM_ADMIN) in GAP-1491.
+                        // Authenticate fixture setup as ADMIN; no-op without method security.
+                        .with(user("fixture-admin").roles("ADMIN"))
                         .content(objectMapper.writeValueAsString(studentRequest)))
                 .andExpect(status().isCreated())
                 .andReturn();
@@ -334,6 +349,11 @@ public class TestDataBuilder {
         MvcResult result = mockMvc.perform(post("/api/v1/courses")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Tenant-Id", tenantId.toString())
+                        // GAP-1524: CourseController.createCourse gained @PreAuthorize
+                        // (TEACHER/ADMIN/OWNER/STAFF/PLATFORM_ADMIN) in GAP-1491. Authenticate the
+                        // fixture setup as ADMIN via the SecurityContext; no-op when the test
+                        // context has no @EnableMethodSecurity.
+                        .with(user("fixture-admin").roles("ADMIN"))
                         .content(objectMapper.writeValueAsString(courseRequest)))
                 .andExpect(status().isCreated())
                 .andReturn();
@@ -395,6 +415,11 @@ public class TestDataBuilder {
         MvcResult result = mockMvc.perform(post("/api/v1/courses")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Tenant-Id", tenantId.toString())
+                        // GAP-1524: CourseController.createCourse gained @PreAuthorize
+                        // (TEACHER/ADMIN/OWNER/STAFF/PLATFORM_ADMIN) in GAP-1491. Authenticate the
+                        // fixture setup as ADMIN via the SecurityContext; no-op when the test
+                        // context has no @EnableMethodSecurity.
+                        .with(user("fixture-admin").roles("ADMIN"))
                         .content(objectMapper.writeValueAsString(courseRequest)))
                 .andExpect(status().isCreated())
                 .andReturn();

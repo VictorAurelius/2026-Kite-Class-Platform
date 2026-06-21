@@ -41,6 +41,7 @@ import jakarta.persistence.PersistenceContext;
 import java.time.LocalDate;
 import java.util.UUID;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -180,7 +181,10 @@ class CrossUserAuthzTest {
                 mockMvc, objectMapper, tenantId,
                 "Authz IT Course " + System.currentTimeMillis(), domainTeacherId);
         mockMvc.perform(post("/api/v1/courses/" + courseId + "/publish")
-                        .header("X-Tenant-Id", tenantId.toString()))
+                        .header("X-Tenant-Id", tenantId.toString())
+                        // GAP-1524: publishCourse gained @PreAuthorize (staff/teacher tier) in
+                        // GAP-1491; authenticate the fixture publish as ADMIN via SecurityContext.
+                        .with(user("fixture-admin").roles("ADMIN")))
                 .andExpect(status().isOk());
 
         CreateClassRequest classRequest = new CreateClassRequest(
