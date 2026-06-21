@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kitehub.branding.domain.entity.BrandingJob;
 import com.kitehub.branding.dto.BrandingAsset;
+import com.kitehub.branding.security.TenantOwnershipGuard;
 import com.kitehub.branding.service.BrandingJobService;
 import com.kitehub.branding.service.S3StorageService;
 import io.micrometer.core.annotation.Timed;
@@ -12,10 +13,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -52,6 +56,30 @@ public class AssetStorageController {
     private final ObjectMapper objectMapper;
 
     /**
+     * GAP-562 — OWNER-tier write authorization (mirrors {@code BrandingJobController.OWNER_AUTHZ}).
+     * STAFF/MANAGER/TEACHER → 403; only the centre owner (or platform admin) may mutate assets.
+     */
+    private static final String OWNER_AUTHZ =
+            "hasAnyRole('OWNER','PLATFORM_ADMIN','ADMIN')";
+
+    /**
+     * Multi-role READ — OWNER + STAFF subroles may inspect own-tenant assets
+     * (mirrors {@code BrandingJobController.OWNER_OR_STAFF_AUTHZ}).
+     */
+    private static final String OWNER_OR_STAFF_AUTHZ =
+            "hasAnyRole('OWNER','MANAGER','TEACHER','ACCOUNTANT','PLATFORM_ADMIN','ADMIN','STAFF')";
+
+    /**
+     * GAP-1490 (SVG-XSS class) — content-type allowlist for serve-safe assets. SVG is BANNED
+     * because it can embed {@code <script>} executed when a browser inline-renders it. The upload
+     * path persists {@code file.getContentType()} (client-reported) into the asset metadata, so
+     * the only safe gate is to reject active-content types at upload + force a safe type on the
+     * stored record via magic-byte sniffing.
+     */
+    private static final Set<String> ALLOWED_IMAGE_CONTENT_TYPES = Set.of(
+            "image/png", "image/jpeg", "image/jpg", "image/webp", "image/gif");
+
+    /**
      * Upload asset for instance.
      *
      * @param instanceId Instance UUID
@@ -60,21 +88,32 @@ public class AssetStorageController {
      * @return Uploaded asset information
      */
     @PostMapping(value = "/{instanceId}/{assetType}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize(OWNER_AUTHZ)
     public ResponseEntity<BrandingAsset> uploadAsset(
         @PathVariable UUID instanceId,
         @PathVariable String assetType,
+        @RequestHeader(value = "X-Tenant-Id", required = false) String tenantHeader,
         @RequestParam("file") MultipartFile file
     ) throws IOException {
+        // GAP-1526 (OWASP A01) — bind the path-supplied instanceId to the gateway-trusted tenant
+        // so an OWNER cannot upload into another tenant's asset namespace.
+        TenantOwnershipGuard.requireInstanceOwnership(instanceId, tenantHeader);
         log.info("Uploading {} asset for instance: {}", assetType, instanceId);
+
+        // GAP-1490 (SVG-XSS class) — resolve a SAFE content-type for the stored asset. Reject
+        // active-content (SVG) outright; sniff magic bytes so a spoofed extension/content-type
+        // (e.g. text/html bytes uploaded as .png) cannot be served inline as the spoofed type.
+        String safeContentType = resolveSafeContentType(file);
 
         String originalFilename = file.getOriginalFilename();
         String path = s3StorageService.generateAssetPath(instanceId, assetType, originalFilename);
         // Stable storage URL (path-based) — persisted to the job so delete/dedup can
         // always recover the object key (does NOT expire, unlike a presigned URL).
+        // GAP-1490: store with the SAFE (sniffed) content-type, never the client-reported one.
         String storageUrl = s3StorageService.uploadAsset(
             file.getInputStream(),
             path,
-            file.getContentType(),
+            safeContentType,
             file.getSize()
         );
 
@@ -84,7 +123,7 @@ public class AssetStorageController {
             .variant(extractVariant(originalFilename))
             .url(storageUrl)
             .sizeBytes(file.getSize())
-            .contentType(file.getContentType())
+            .contentType(safeContentType)
             .uploadedAt(uploadedAt)
             .build();
 
@@ -104,11 +143,90 @@ public class AssetStorageController {
             .variant(stored.getVariant())
             .url(s3StorageService.getPresignedAssetUrl(path))
             .sizeBytes(file.getSize())
-            .contentType(file.getContentType())
+            .contentType(safeContentType)
             .uploadedAt(uploadedAt)
             .build();
 
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * GAP-1490 (SVG-XSS class) — resolve a serve-safe image content-type for an uploaded file.
+     *
+     * <p>The client-reported {@code Content-Type} is untrusted: an attacker can declare
+     * {@code image/png} while uploading SVG (or HTML) bytes, then have the asset inline-rendered
+     * and execute embedded {@code <script>}. This method:</p>
+     * <ol>
+     *   <li>Reject SVG outright (active-content; never serve inline).</li>
+     *   <li>Sniff the leading magic bytes and return the type they actually match.</li>
+     *   <li>Fall back to the declared type ONLY if it is in the {@link #ALLOWED_IMAGE_CONTENT_TYPES}
+     *       allowlist; otherwise reject.</li>
+     * </ol>
+     *
+     * @throws IOException                if the stream cannot be read for sniffing
+     * @throws IllegalArgumentException   (→ HTTP 400) when the file is SVG or a non-allowlisted type
+     */
+    private String resolveSafeContentType(MultipartFile file) throws IOException {
+        String declared = file.getContentType() == null
+                ? "" : file.getContentType().toLowerCase().trim();
+        if (declared.contains("svg")) {
+            throw new IllegalArgumentException(
+                    "SVG uploads are not allowed (active-content / XSS risk)");
+        }
+
+        byte[] head = readMagicBytes(file);
+        String sniffed = sniffImageContentType(head);
+        if (sniffed != null) {
+            // Magic bytes are authoritative — use the real type regardless of the declared one.
+            return sniffed;
+        }
+
+        // No recognised image signature. Reject HTML/script-shaped payloads spoofing an image type.
+        if (looksLikeMarkup(head)) {
+            throw new IllegalArgumentException(
+                    "Uploaded file content does not match an allowed image type");
+        }
+
+        // Fall back to the declared type only if it is allowlisted.
+        if (ALLOWED_IMAGE_CONTENT_TYPES.contains(declared)) {
+            return declared;
+        }
+        throw new IllegalArgumentException(
+                "Unsupported asset content-type: " + (declared.isEmpty() ? "<none>" : declared));
+    }
+
+    /** Read up to the first 16 bytes for magic-byte sniffing (stream is re-read on upload). */
+    private byte[] readMagicBytes(MultipartFile file) throws IOException {
+        byte[] bytes = file.getBytes();
+        int n = Math.min(bytes.length, 16);
+        byte[] head = new byte[n];
+        System.arraycopy(bytes, 0, head, 0, n);
+        return head;
+    }
+
+    /** Match the leading bytes against known raster-image signatures; null when unrecognised. */
+    private static String sniffImageContentType(byte[] b) {
+        if (b.length >= 8 && (b[0] & 0xFF) == 0x89 && b[1] == 'P' && b[2] == 'N' && b[3] == 'G') {
+            return "image/png";
+        }
+        if (b.length >= 3 && (b[0] & 0xFF) == 0xFF && (b[1] & 0xFF) == 0xD8 && (b[2] & 0xFF) == 0xFF) {
+            return "image/jpeg";
+        }
+        if (b.length >= 6 && b[0] == 'G' && b[1] == 'I' && b[2] == 'F' && b[3] == '8') {
+            return "image/gif";
+        }
+        if (b.length >= 12 && b[0] == 'R' && b[1] == 'I' && b[2] == 'F' && b[3] == 'F'
+                && b[8] == 'W' && b[9] == 'E' && b[10] == 'B' && b[11] == 'P') {
+            return "image/webp";
+        }
+        return null;
+    }
+
+    /** Heuristic: leading bytes look like HTML/XML/SVG markup (an XSS vector, not an image). */
+    private static boolean looksLikeMarkup(byte[] b) {
+        String head = new String(b, java.nio.charset.StandardCharsets.US_ASCII).trim().toLowerCase();
+        return head.startsWith("<") || head.startsWith("<?xml") || head.contains("<svg")
+                || head.contains("<html") || head.contains("<script");
     }
 
     /**
@@ -118,7 +236,12 @@ public class AssetStorageController {
      * @return List of assets
      */
     @GetMapping("/{instanceId}")
-    public ResponseEntity<List<BrandingAsset>> getAssets(@PathVariable UUID instanceId) {
+    @PreAuthorize(OWNER_OR_STAFF_AUTHZ)
+    public ResponseEntity<List<BrandingAsset>> getAssets(
+        @PathVariable UUID instanceId,
+        @RequestHeader(value = "X-Tenant-Id", required = false) String tenantHeader) {
+        // GAP-1526 (OWASP A01) — own-tenant read only (platform admin bypass).
+        TenantOwnershipGuard.requireInstanceOwnership(instanceId, tenantHeader);
         log.info("Getting assets for instance: {}", instanceId);
 
         try {
@@ -163,7 +286,12 @@ public class AssetStorageController {
      * @return Success message
      */
     @DeleteMapping("/{instanceId}")
-    public ResponseEntity<Map<String, String>> deleteAssets(@PathVariable UUID instanceId) {
+    @PreAuthorize(OWNER_AUTHZ)
+    public ResponseEntity<Map<String, String>> deleteAssets(
+        @PathVariable UUID instanceId,
+        @RequestHeader(value = "X-Tenant-Id", required = false) String tenantHeader) {
+        // GAP-1526 (OWASP A01) — owner-only destructive op, bound to own tenant.
+        TenantOwnershipGuard.requireInstanceOwnership(instanceId, tenantHeader);
         log.info("Deleting assets for instance: {}", instanceId);
 
         try {

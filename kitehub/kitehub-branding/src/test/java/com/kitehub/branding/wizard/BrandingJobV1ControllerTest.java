@@ -273,7 +273,7 @@ class BrandingJobV1ControllerTest {
         MDC.put("tenantId", tenantId);
         when(jobRepository.findById(jobId)).thenReturn(Optional.of(job));
 
-        ResponseEntity<?> response = controller.getJob(jobId);
+        ResponseEntity<?> response = controller.getJob(jobId, job.getInstanceId().toString());
 
         BrandingJobResponse body = (BrandingJobResponse) response.getBody();
         assertThat(body).isNotNull();
@@ -285,7 +285,7 @@ class BrandingJobV1ControllerTest {
     void tenantIdNullWhenMdcEmpty() {
         when(jobRepository.findById(jobId)).thenReturn(Optional.of(job));
 
-        ResponseEntity<?> response = controller.getJob(jobId);
+        ResponseEntity<?> response = controller.getJob(jobId, job.getInstanceId().toString());
 
         BrandingJobResponse body = (BrandingJobResponse) response.getBody();
         assertThat(body).isNotNull();
@@ -297,7 +297,7 @@ class BrandingJobV1ControllerTest {
     void returnsBrandColors() throws Exception {
         when(jobRepository.findById(jobId)).thenReturn(Optional.of(job));
 
-        ResponseEntity<?> response = controller.getJob(jobId);
+        ResponseEntity<?> response = controller.getJob(jobId, job.getInstanceId().toString());
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         BrandingJobResponse body = (BrandingJobResponse) response.getBody();
@@ -321,7 +321,7 @@ class BrandingJobV1ControllerTest {
     void returns404WhenMissing() {
         when(jobRepository.findById(jobId)).thenReturn(Optional.empty());
 
-        ResponseEntity<?> response = controller.getJob(jobId);
+        ResponseEntity<?> response = controller.getJob(jobId, job.getInstanceId().toString());
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         @SuppressWarnings("unchecked")
@@ -337,7 +337,7 @@ class BrandingJobV1ControllerTest {
                 jobId.toString(), 55, false, 70,
                 java.util.Map.of(), java.util.List.of(), java.time.Instant.now()));
 
-        ResponseEntity<?> response = controller.approve(jobId,
+        ResponseEntity<?> response = controller.approve(jobId, job.getInstanceId().toString(),
                 new ApproveDeployRequest("acme", "modern", List.of("logo", "colors")));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
@@ -358,7 +358,7 @@ class BrandingJobV1ControllerTest {
                 jobId.toString(), 88, true, 70,
                 java.util.Map.of(), java.util.List.of(), java.time.Instant.now()));
 
-        ResponseEntity<?> response = controller.approve(jobId,
+        ResponseEntity<?> response = controller.approve(jobId, job.getInstanceId().toString(),
                 new ApproveDeployRequest("acme", "modern", List.of("logo", "colors")));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
