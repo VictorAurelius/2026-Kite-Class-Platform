@@ -35,7 +35,20 @@ public class TestContainersConfiguration {
 
     @Container
     private static final PostgreSQLContainer<?> postgres =
-        new PostgreSQLContainer<>(DockerImageName.parse("postgres:15-alpine"));
+        new PostgreSQLContainer<>(DockerImageName.parse("postgres:15-alpine"))
+            // GAP-1393: raise max_connections far above Postgres's default (~100) on
+            // the SINGLE shared Testcontainers Postgres. The whole kiteclass-core suite
+            // (69 @SpringBootTest + 11 @DataJpaTest contexts) shares THIS one container,
+            // but each cached Spring context opens its OWN HikariCP pool. Under CI
+            // resource pressure, overlapping context build/teardown could exhaust the
+            // ~100-connection ceiling → the late, uniquely-keyed RANDOM_PORT
+            // OpenApiSpecExportTest context could not open a JDBC connection for
+            // Hibernate metadata ("Unable to determine Dialect without JDBC metadata"),
+            // cascading to a context-load failure and (escalation 2026-06-21) a hung
+            // forked JVM that blocked "Test Core Service" ~93 min. A high ceiling removes
+            // the cap entirely; idle Postgres backends are cheap (Hikari minimum-idle:0
+            // in application-test.yml already prevents idle pools from pinning slots).
+            .withCommand("postgres", "-c", "max_connections=500");
 
     @Container
     @SuppressWarnings("resource") // Lifecycle managed by @Container + Testcontainers JVM shutdown hook
