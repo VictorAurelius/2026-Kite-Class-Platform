@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -47,7 +48,10 @@ public class SubjectGradeController {
 
     private final SubjectGradeService subjectGradeService;
 
+    // GAP-1491 (OWASP A01): coarse method-level guard excludes STUDENT/PARENT + non-teaching
+    // roles. Fine-grained Tổ trưởng-per-subject vs Hiệu trưởng RBAC remains GAP-058/360.2 scope.
     @PostMapping("/{id}/submit-for-review")
+    @PreAuthorize("hasAnyRole('TEACHER', 'OWNER', 'ADMIN', 'PRINCIPAL', 'PLATFORM_ADMIN')")
     @Operation(summary = "GV bộ môn submits a DRAFT grade for Tổ trưởng review")
     public ResponseEntity<ApiResponse<Long>> submitForReview(
             @PathVariable Long id,
@@ -58,6 +62,7 @@ public class SubjectGradeController {
     }
 
     @PostMapping("/{id}/review")
+    @PreAuthorize("hasAnyRole('TEACHER', 'OWNER', 'ADMIN', 'PRINCIPAL', 'PLATFORM_ADMIN')")
     @Operation(summary = "Tổ trưởng marks DRAFT → REVIEWED")
     public ResponseEntity<ApiResponse<SubjectGrade>> review(
             @PathVariable Long id,
@@ -68,6 +73,7 @@ public class SubjectGradeController {
     }
 
     @PostMapping("/{id}/publish")
+    @PreAuthorize("hasAnyRole('PRINCIPAL', 'OWNER', 'ADMIN', 'PLATFORM_ADMIN')")
     @Operation(summary = "Hiệu trưởng marks REVIEWED → PUBLISHED")
     public ResponseEntity<ApiResponse<SubjectGrade>> publish(
             @PathVariable Long id,
@@ -78,6 +84,7 @@ public class SubjectGradeController {
     }
 
     @PostMapping("/bulk-publish")
+    @PreAuthorize("hasAnyRole('PRINCIPAL', 'OWNER', 'ADMIN', 'PLATFORM_ADMIN')")
     @Operation(summary = "Hiệu trưởng publishes a batch of REVIEWED grades — best-effort")
     public ResponseEntity<ApiResponse<BulkPublishResponse>> bulkPublish(
             @Valid @RequestBody BulkPublishRequest request,

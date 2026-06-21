@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -38,6 +39,7 @@ public class RefundRequestController {
      * @return created refund request response DTO
      */
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
     public ResponseEntity<RefundRequestResponse> createRefundRequest(
             @Valid @RequestBody CreateRefundRequestRequest request) {
 
@@ -55,6 +57,7 @@ public class RefundRequestController {
      * @return refund request response DTO
      */
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
     public ResponseEntity<RefundRequestResponse> getRefundRequestById(@PathVariable Long id) {
         log.info("GET /api/v1/refund-requests/{}", id);
         RefundRequestResponse refundRequest = refundRequestService.getRefundRequestById(id);
@@ -69,6 +72,7 @@ public class RefundRequestController {
      * @return approved refund request response DTO
      */
     @PutMapping("/{id}/approve")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
     public ResponseEntity<RefundRequestResponse> approveRefund(
             @PathVariable Long id,
             @RequestParam Long approvedBy) {
@@ -87,6 +91,7 @@ public class RefundRequestController {
      * @return rejected refund request response DTO
      */
     @PutMapping("/{id}/reject")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
     public ResponseEntity<RefundRequestResponse> rejectRefund(
             @PathVariable Long id,
             @RequestParam Long rejectedBy,
@@ -107,6 +112,7 @@ public class RefundRequestController {
      * @return processed refund request response DTO
      */
     @PostMapping("/{id}/process")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OWNER', 'PLATFORM_ADMIN', 'STAFF')")
     public ResponseEntity<RefundRequestResponse> processRefund(@PathVariable Long id) {
         log.info("POST /api/v1/refund-requests/{}/process", id);
         RefundRequestResponse refundRequest = refundRequestService.processRefund(id);

@@ -56,6 +56,7 @@ public class StudentController {
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasAnyRole('OWNER', 'ADMIN', 'PRINCIPAL', 'TEACHER', 'STAFF', 'PLATFORM_ADMIN')")
     @Operation(summary = "Create a new student", description = "Creates a new student with the provided information")
     public ApiResponse<StudentResponse> createStudent(
             @Valid @RequestBody CreateStudentRequest request,
@@ -95,6 +96,7 @@ public class StudentController {
      * @return ApiResponse with student data and HTTP 200
      */
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('OWNER', 'ADMIN', 'PRINCIPAL', 'TEACHER', 'STAFF', 'PLATFORM_ADMIN')")
     @Operation(summary = "Get student by ID", description = "Retrieves a student's information by their ID")
     public ApiResponse<StudentResponse> getStudentById(
             @Parameter(description = "Student ID") @PathVariable Long id) {
@@ -114,6 +116,7 @@ public class StudentController {
      * @return ApiResponse with page of students and HTTP 200
      */
     @GetMapping
+    @PreAuthorize("hasAnyRole('OWNER', 'ADMIN', 'PRINCIPAL', 'TEACHER', 'STAFF', 'PLATFORM_ADMIN')")
     @Operation(summary = "Search students", description = "Searches students with optional filters and pagination")
     public ApiResponse<PageResponse<StudentResponse>> getStudents(
             @Parameter(description = "Search keyword (name or email)") @RequestParam(required = false) String search,
@@ -158,6 +161,7 @@ public class StudentController {
      * @return ApiResponse with updated student data and HTTP 200
      */
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('OWNER', 'ADMIN', 'PRINCIPAL', 'TEACHER', 'STAFF', 'PLATFORM_ADMIN')")
     @Operation(summary = "Update student", description = "Updates an existing student's information")
     public ApiResponse<StudentResponse> updateStudent(
             @Parameter(description = "Student ID") @PathVariable Long id,
@@ -175,6 +179,7 @@ public class StudentController {
      */
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasAnyRole('OWNER', 'ADMIN', 'PRINCIPAL', 'TEACHER', 'STAFF', 'PLATFORM_ADMIN')")
     @Operation(summary = "Delete student", description = "Soft-deletes a student (sets deleted flag)")
     public ApiResponse<Void> deleteStudent(
             @Parameter(description = "Student ID") @PathVariable Long id) {
