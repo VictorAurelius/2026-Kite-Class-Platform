@@ -33,7 +33,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up JDK 17
         uses: actions/setup-java@v5
@@ -43,7 +43,7 @@ jobs:
           cache: 'maven'
 
       - name: Cache Maven dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-core-${{ hashFiles('kiteclass/kiteclass-core/pom.xml') }}
@@ -117,7 +117,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up JDK 17
         uses: actions/setup-java@v5
@@ -149,7 +149,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       # GAP-870: pre-populate Maven cache so Trivy fs scan reads from ~/.m2
       # offline instead of fetching transitive POMs from Maven Central. Without
@@ -165,7 +165,7 @@ jobs:
           cache: 'maven'
 
       - name: Cache Maven dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-core-${{ hashFiles('kiteclass/kiteclass-core/pom.xml') }}
@@ -205,7 +205,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0  # Full history for SonarQube
 
@@ -217,7 +217,7 @@ jobs:
           cache: 'maven'
 
       - name: Cache SonarQube packages
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
