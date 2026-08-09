@@ -78,7 +78,7 @@ jobs:
           echo "::notice ::target_sha format OK: ${SHA}"
 
       - name: Checkout (fetch-depth=100 for SHA age check)
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 100
 
