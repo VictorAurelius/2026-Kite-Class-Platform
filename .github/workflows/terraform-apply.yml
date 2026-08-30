@@ -70,7 +70,7 @@ jobs:
     environment: production  # GitHub Environment ref (protection rules optional)
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.event.inputs.version }}
 
